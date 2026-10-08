@@ -2,6 +2,15 @@
   <img src="assets/garry-logo.svg" alt="Garry logo" width="324" height="88" />
 </p>
 
+<p align="center">
+  <a href="https://github.com/piotrgodycki/garry/actions/workflows/ci.yml"><img src="https://github.com/piotrgodycki/garry/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D22-0ea5e9" alt="Node >=22" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-6366f1" alt="TypeScript strict" />
+  <img src="https://img.shields.io/badge/design-contract%20first-0ea5e9" alt="contract first" />
+  <img src="https://img.shields.io/badge/security-npm%20audit%20%2B%20Semgrep-6366f1" alt="security npm audit plus Semgrep" />
+  <img src="https://img.shields.io/badge/roadmap-phase%204%2F9-111827" alt="roadmap phase 4 of 9" />
+</p>
+
 ```text
    ____    _    ____  ______   __
   / ___|  / \  |  _ \|  _ \ \ / /
