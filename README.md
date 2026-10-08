@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/garry-logo.svg" alt="Garry logo" width="324" height="88" />
+</p>
+
 ```text
    ____    _    ____  ______   __
   / ___|  / \  |  _ \|  _ \ \ / /
