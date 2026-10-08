@@ -1,3 +1,13 @@
+```text
+   ____    _    ____  ______   __
+  / ___|  / \  |  _ \|  _ \ \ / /
+ | |  _  / _ \ | |_) | |_) \ V /
+ | |_| |/ ___ \|  _ <|  _ < | |
+  \____/_/   \_\_| \_\_| \_\|_|
+
+  A G E N T   .   AI SDLC orchestrator
+```
+
 # Garry
 
 Garry is a single supervisor agent that a human talks to. It drives each feature
