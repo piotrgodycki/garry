@@ -1,0 +1,14 @@
+{
+  "shell": {
+    "entry": "https://cdn.example.com/shell/mf-manifest.json",
+    "exposes": ["./AuthContext"]
+  },
+  "checkout-mfe": {
+    "entry": "https://cdn.example.com/checkout/mf-manifest.json",
+    "exposes": ["./Checkout", "./CartSummary"]
+  },
+  "search-mfe": {
+    "entry": "https://cdn.example.com/search/mf-manifest.json",
+    "exposes": ["./ProductCard", "./SearchBar"]
+  }
+}

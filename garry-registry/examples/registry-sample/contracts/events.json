@@ -1,0 +1,12 @@
+{
+  "cart:item-added": {
+    "payload": { "productId": "string", "qty": "number" },
+    "producers": ["search-mfe", "checkout-mfe"],
+    "consumers": ["checkout-mfe", "shell"]
+  },
+  "auth:logged-in": {
+    "payload": { "userId": "string" },
+    "producers": ["shell"],
+    "consumers": ["checkout-mfe", "search-mfe"]
+  }
+}

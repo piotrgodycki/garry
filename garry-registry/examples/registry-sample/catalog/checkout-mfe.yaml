@@ -1,0 +1,11 @@
+name: checkout-mfe
+repo: git@github.com:example/checkout-mfe.git
+stack: react19 + vite + module-federation
+owner: team-payments
+exposes:
+  - ./Checkout
+  - ./CartSummary
+consumes:
+  search-mfe: [./ProductCard]
+  shell: [./AuthContext]
+db: null

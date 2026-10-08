@@ -1,0 +1,10 @@
+name: shell
+repo: git@github.com:example/shell.git
+stack: react19 + vite + module-federation
+owner: team-platform
+exposes:
+  - ./AuthContext
+consumes:
+  checkout-mfe: [./Checkout]
+  search-mfe: [./ProductCard]
+db: null

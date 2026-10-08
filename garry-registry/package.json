@@ -1,0 +1,25 @@
+{
+  "name": "@garry/registry",
+  "version": "0.0.0",
+  "description": "Garry Contract Registry: schemas and validation for cross service contracts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "garry-registry-validate": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "validate": "tsx src/cli.ts examples/registry-sample",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "yaml": "^2.5.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

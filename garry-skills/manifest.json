@@ -1,0 +1,222 @@
+{
+  "version": "0.0.0",
+  "skills": [
+    {
+      "name": "spec-draft",
+      "stage": "spec",
+      "path": "skills/spec/spec-draft",
+      "summary": "Turns the conversation with the human into a FEAT-x.md file in the registry.",
+      "inputs": ["conversation"],
+      "outputs": ["features/FEAT-x.md"]
+    },
+    {
+      "name": "spec-decompose",
+      "stage": "spec",
+      "path": "skills/spec/spec-decompose",
+      "summary": "Breaks a feature down into the services and contracts it touches.",
+      "inputs": ["features/FEAT-x.md", "catalog"],
+      "outputs": ["affected-services", "affected-contracts"],
+      "dependsOn": ["spec-draft"]
+    },
+    {
+      "name": "acceptance-criteria",
+      "stage": "spec",
+      "path": "skills/spec/acceptance-criteria",
+      "summary": "Generates measurable acceptance criteria for a feature.",
+      "inputs": ["features/FEAT-x.md"],
+      "outputs": ["acceptance-criteria"],
+      "dependsOn": ["spec-draft"]
+    },
+    {
+      "name": "impact-analysis",
+      "stage": "plan",
+      "path": "skills/plan/impact-analysis",
+      "summary": "Analyses the impact of contract changes on the consumers.",
+      "inputs": ["affected-contracts", "catalog", "contracts"],
+      "outputs": ["impact-report"],
+      "dependsOn": ["spec-decompose"]
+    },
+    {
+      "name": "dependency-graph",
+      "stage": "plan",
+      "path": "skills/plan/dependency-graph",
+      "summary": "Builds the dependency graph and the delegation order (contract first).",
+      "inputs": ["affected-services", "contracts"],
+      "outputs": ["dependency-graph"],
+      "dependsOn": ["impact-analysis"]
+    },
+    {
+      "name": "work-breakdown",
+      "stage": "plan",
+      "path": "skills/plan/work-breakdown",
+      "summary": "Breaks a feature into per repository tasks following the graph.",
+      "inputs": ["dependency-graph"],
+      "outputs": ["tasks-per-repo"],
+      "dependsOn": ["dependency-graph"]
+    },
+    {
+      "name": "contract-update",
+      "stage": "design",
+      "path": "skills/design/contract-update",
+      "summary": "Applies changes to the contracts in the registry (contract first).",
+      "inputs": ["impact-report"],
+      "outputs": ["contracts"],
+      "dependsOn": ["impact-analysis"]
+    },
+    {
+      "name": "contract-validate",
+      "stage": "design",
+      "path": "skills/design/contract-validate",
+      "summary": "Validates the schema and cross service consistency of the registry.",
+      "inputs": ["registry"],
+      "outputs": ["validation-report"],
+      "dependsOn": ["contract-update"]
+    },
+    {
+      "name": "version-bump",
+      "stage": "design",
+      "path": "skills/design/version-bump",
+      "summary": "Bumps the @garry/registry version after a contract change.",
+      "inputs": ["validation-report"],
+      "outputs": ["registry-version"],
+      "dependsOn": ["contract-validate"]
+    },
+    {
+      "name": "design-tokens-sync",
+      "stage": "design",
+      "path": "skills/design/design-tokens-sync",
+      "summary": "Synchronises design tokens between the contract and the microfrontends.",
+      "inputs": ["contracts/design-tokens.json"],
+      "outputs": ["tokens"]
+    },
+    {
+      "name": "scaffold-mfe-shell",
+      "stage": "implement",
+      "path": "skills/implement/scaffold-mfe-shell",
+      "summary": "Creates a microfrontend host (Vite and Module Federation).",
+      "inputs": ["catalog"],
+      "outputs": ["repo"]
+    },
+    {
+      "name": "scaffold-mfe-remote",
+      "stage": "implement",
+      "path": "skills/implement/scaffold-mfe-remote",
+      "summary": "Creates a microfrontend remote (Vite and Module Federation).",
+      "inputs": ["catalog"],
+      "outputs": ["repo"]
+    },
+    {
+      "name": "sync-contracts",
+      "stage": "implement",
+      "path": "skills/implement/sync-contracts",
+      "summary": "Injects the relevant slice of contracts into .garry/ inside a repository.",
+      "inputs": ["registry", "catalog"],
+      "outputs": [".garry/contracts"],
+      "dependsOn": ["contract-validate"]
+    },
+    {
+      "name": "generate-types",
+      "stage": "implement",
+      "path": "skills/implement/generate-types",
+      "summary": "Generates TypeScript types from the contracts for a given service.",
+      "inputs": [".garry/contracts"],
+      "outputs": [".garry/types"],
+      "dependsOn": ["sync-contracts"]
+    },
+    {
+      "name": "mf-wiring",
+      "stage": "implement",
+      "path": "skills/implement/mf-wiring",
+      "summary": "Configures remotes, exposes and shared in Module Federation.",
+      "inputs": ["contracts/remotes.json", "contracts/shared-deps.json"],
+      "outputs": ["vite.config"],
+      "dependsOn": ["sync-contracts"]
+    },
+    {
+      "name": "review-correctness",
+      "stage": "review",
+      "path": "skills/review/review-correctness",
+      "summary": "Reviews a pull request for correctness.",
+      "inputs": ["pr-diff"],
+      "outputs": ["review-report"]
+    },
+    {
+      "name": "review-spec-match",
+      "stage": "review",
+      "path": "skills/review/review-spec-match",
+      "summary": "Checks a pull request against the acceptance criteria.",
+      "inputs": ["pr-diff", "acceptance-criteria"],
+      "outputs": ["review-report"],
+      "dependsOn": ["acceptance-criteria"]
+    },
+    {
+      "name": "review-contract-compliance",
+      "stage": "review",
+      "path": "skills/review/review-contract-compliance",
+      "summary": "Verifies the implementation against the contract.",
+      "inputs": ["pr-diff", ".garry/contracts"],
+      "outputs": ["review-report"],
+      "dependsOn": ["sync-contracts"]
+    },
+    {
+      "name": "review-security",
+      "stage": "review",
+      "path": "skills/review/review-security",
+      "summary": "Security review of the changes in a pull request.",
+      "inputs": ["pr-diff"],
+      "outputs": ["review-report"]
+    },
+    {
+      "name": "test-unit",
+      "stage": "test",
+      "path": "skills/test/test-unit",
+      "summary": "Runs and evaluates the unit tests for a repository.",
+      "inputs": ["repo"],
+      "outputs": ["test-report"]
+    },
+    {
+      "name": "test-e2e",
+      "stage": "test",
+      "path": "skills/test/test-e2e",
+      "summary": "Runs the end to end tests for the assembled microfrontend.",
+      "inputs": ["repo"],
+      "outputs": ["test-report"]
+    },
+    {
+      "name": "drift-check",
+      "stage": "test",
+      "path": "skills/test/drift-check",
+      "summary": "Compares the installed contract version against the latest.",
+      "inputs": ["registry-version", ".garry/contracts"],
+      "outputs": ["drift-report"],
+      "dependsOn": ["contract-validate"]
+    },
+    {
+      "name": "cross-repo-merge",
+      "stage": "integrate",
+      "path": "skills/integrate/cross-repo-merge",
+      "summary": "Coordinates a consistent merge of the related pull requests.",
+      "inputs": ["prs", "dependency-graph"],
+      "outputs": ["merged"],
+      "dependsOn": ["dependency-graph"]
+    },
+    {
+      "name": "version-tag",
+      "stage": "integrate",
+      "path": "skills/integrate/version-tag",
+      "summary": "Tags the service versions after integration.",
+      "inputs": ["merged"],
+      "outputs": ["tags"],
+      "dependsOn": ["cross-repo-merge"]
+    },
+    {
+      "name": "changelog",
+      "stage": "integrate",
+      "path": "skills/integrate/changelog",
+      "summary": "Generates the changelog for a cross repository feature.",
+      "inputs": ["merged", "features/FEAT-x.md"],
+      "outputs": ["changelog"],
+      "dependsOn": ["cross-repo-merge"]
+    }
+  ]
+}
