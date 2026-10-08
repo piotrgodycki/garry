@@ -19,8 +19,14 @@ export function renderService(opts: ScaffoldOptions): GeneratedFile[] {
     { path: "AGENTS.md", content: agentsMd(opts, isHost) },
     { path: ".gitignore", content: gitignore() },
     { path: ".garry/README.md", content: garryReadme() },
+    { path: ".garry/service.json", content: serviceJson(opts) },
   ];
   return files;
+}
+
+function serviceJson(o: ScaffoldOptions): string {
+  // Lets `garry sync` know which service this repo is and where the registry lives.
+  return JSON.stringify({ name: o.name, kind: o.kind, registry: o.registry }, null, 2) + "\n";
 }
 
 function packageJson(o: ScaffoldOptions): string {

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { runScaffold } from "./commands/scaffold.js";
+import { runSync } from "./commands/sync.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
 
@@ -7,14 +8,18 @@ const TOP_HELP = `garry <command>
 
 Commands:
   scaffold   create a new microfrontend service (interactive wizard)
+  sync       inject the contract slice into .garry/ and generate types
 
-Run "garry scaffold --help" for scaffold options.
+Run "garry <command> --help" for command options.
 `;
 
 async function main(): Promise<void> {
   switch (cmd) {
     case "scaffold":
       await runScaffold(rest);
+      break;
+    case "sync":
+      await runSync(rest);
       break;
     case undefined:
     case "--help":
