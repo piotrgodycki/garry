@@ -40,6 +40,34 @@ export function loadFeature(registry: string, id: string): FeatureDoc {
   throw new Error(`feature ${id} not found in ${dir}`);
 }
 
+export interface FeatureSummary {
+  id: string;
+  title: string;
+  status: string;
+  services: string[];
+}
+
+/** Lists all features in the registry with their summary frontmatter. */
+export function listFeatures(registry: string): FeatureSummary[] {
+  const dir = join(registry, "features");
+  if (!existsSync(dir)) return [];
+  const out: FeatureSummary[] = [];
+  for (const f of readdirSync(dir).filter((x) => x.endsWith(".md"))) {
+    const m = /^---\r?\n([\s\S]*?)\r?\n---/.exec(readFileSync(join(dir, f), "utf8"));
+    if (!m) continue;
+    const fm = (parseYaml(m[1]) ?? {}) as Partial<FeatureDoc> & { status?: string };
+    if (fm.id) {
+      out.push({
+        id: fm.id,
+        title: fm.title ?? fm.id,
+        status: fm.status ?? "",
+        services: fm.services ?? [],
+      });
+    }
+  }
+  return out;
+}
+
 export interface Plan {
   feature: FeatureDoc;
   order: string[];
