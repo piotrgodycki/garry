@@ -332,7 +332,7 @@ Copilot reviews pull requests for free, following `.github/copilot-instructions.
 ## 14. Implementation plan (phased)
 
 - Phase 0, format foundations. Done. `garry-registry` (zod schema and validation plus a sample) and `garry-skills` (the `SKILL.md` format, `manifest.json`, a validator and the first end to end skill `contract-validate`). CI and the dash guard included.
-- Phase 1, scaffolding and wizard. The `scaffold-mfe-shell` and `scaffold-mfe-remote` skills, structured stack fields in the manifest, `garry scaffold`, a catalog entry and `AGENTS.md`, all in the interactive wizard mode (ANSI banner, stepper, loaders).
+- Phase 1, scaffolding and wizard. Done. The `scaffold-mfe-shell` and `scaffold-mfe-remote` skills, structured stack fields in the manifest, `garry scaffold`, a catalog entry and `AGENTS.md`, all in the interactive wizard mode (ANSI banner, stepper, spinner). A headless flag driven mode is available for automation and CI.
 - Phase 2, sync. The `sync-contracts` and `generate-types` skills into `.garry/`.
 - Phase 3, workspace (multicheckout). A clone cache plus a git worktree per feature, fan out (`garry ws status | sync | pr | push`) and the `feat/<FEAT-id>` branch.
 - Phase 4, SDLC orchestration. The supervisor: skill composition from `manifest.json`, the dependency graph, `delegate()` over the workspace and `garry feature`.

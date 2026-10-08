@@ -25,6 +25,11 @@ export const ServiceManifestSchema = z.object({
   name: z.string(),
   repo: z.string(),
   stack: z.string(),
+  // Structured stack fields, used by the interoperability checks and by the
+  // scaffold adapters. Optional so older manifests with only `stack` stay valid.
+  framework: z.string().optional(),
+  bundler: z.string().optional(),
+  federation: z.string().optional(),
   owner: z.string(),
   exposes: z.array(z.string()).default([]),
   consumes: ConsumesSchema.default({}),

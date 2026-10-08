@@ -11,3 +11,5 @@ dist/
 # logs and temp
 *.log
 .DS_Store
+# local scaffold output
+.garry-out/

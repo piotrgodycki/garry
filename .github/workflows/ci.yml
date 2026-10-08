@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        package: [garry-registry, garry-skills]
+        package: [garry-registry, garry-skills, garry-tool]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,7 +54,7 @@ jobs:
           node-version: 22
       - name: npm audit
         run: |
-          for pkg in garry-registry garry-skills; do
+          for pkg in garry-registry garry-skills garry-tool; do
             echo "== audit $pkg =="
             (cd "$pkg" && npm audit --audit-level=high)
           done
