@@ -319,11 +319,11 @@ The repository ships with CI, a mandatory security review and automated code rev
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash, en dash, figure dash or horizontal bar is found in tracked text files, which enforces the plain ASCII punctuation rule automatically.
 - `security`: the security review as CI steps. It runs `npm audit` (fails on a high or critical advisory) for both packages and a Semgrep static analysis scan. The repository is private, so CodeQL and dependency review are not used (both need paid GitHub Advanced Security on a private repository); Semgrep runs entirely inside the job with no token.
 
-Dependabot (`.github/dependabot.yml`) adds weekly updates for npm dependencies and GitHub Actions.
+Dependabot version updates are off for now (removed to keep the single pre MVP branch quiet). `npm audit` still covers dependency vulnerabilities; grouped Dependabot returns when `main` and `develop` are split.
 
-### Mandatory on every commit
+### Branching
 
-`main` is protected. A pull request is required and every CI job (validate, dash guard and security) must be green before a merge. This makes the security review mandatory for every commit, with no other option.
+Before the MVP the project uses a single branch (`main`) with direct commits, so iteration stays fast. CI runs on every push, so the security review still gates the work. After the MVP the project splits into `main` and `develop`, `main` becomes protected, and changes land through pull requests that must pass every CI job (validate, dash guard and security).
 
 ### Code review
 

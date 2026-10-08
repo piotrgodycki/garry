@@ -66,16 +66,18 @@ The pipeline is kept cheap on purpose:
   security under a minute each. A full run is a few minutes, which stays well inside
   the GitHub Actions free tier (2000 minutes per month on a private repository,
   unlimited on a public one).
-- Dependabot updates are grouped and capped (see below) to limit extra CI runs.
+- Dependabot version updates are off for now (pre MVP); `npm audit` covers dependency
+  vulnerabilities, and grouped Dependabot returns when `main` and `develop` are split.
 
 ## Security
 
 - Security review runs in CI: `npm audit` plus a Semgrep SAST scan (the repository is private, so no CodeQL).
-- Dependabot (`.github/dependabot.yml`) opens grouped weekly update pull requests,
-  capped at two open per ecosystem, so the noise stays low.
+- Dependabot version updates are off for now (removed to keep the single branch quiet
+  before the MVP). `npm audit` still guards dependency vulnerabilities.
 - Secrets are never committed. Tokens live in `.env` only.
-- `main` is protected: a pull request is required and every CI job must be green
-  before a merge, which makes the security review mandatory for every commit.
+- Before the MVP the project uses a single branch (`main`) with direct commits. Branch
+  protection and a pull request only flow come later, when `main` and `develop` are
+  split. CI still runs the security review on every push.
 - Copilot reviews pull requests following [`.github/copilot-instructions.md`](./.github/copilot-instructions.md).
 
 ## Conventions
