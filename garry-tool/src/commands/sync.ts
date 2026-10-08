@@ -1,11 +1,9 @@
 import { resolve, join } from "node:path";
-import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { renderBanner, tagline } from "../ui/banner.js";
-import { readManifest, readContracts, type Contracts } from "../sync/registryIO.js";
-import { computeSlice } from "../sync/slice.js";
-import { generateContractTypes } from "../sync/codegen.js";
+import { syncService } from "../sync/core.js";
 
 interface SyncOptions {
   repo: string;
@@ -25,7 +23,7 @@ Options:
   --repo <dir>          service repository (default: current directory)
   --service <name>      service name (default: from .garry/service.json)
   --registry <path>     registry root that holds catalog/ and contracts/
-  --yes, -y             skip the wizard chrome and run headless
+  --yes, -y             run headless (no wizard chrome)
   --help, -h            show this help
 `;
 
@@ -77,10 +75,7 @@ export async function runSync(argv: string[]): Promise<void> {
   const s = interactive ? p.spinner() : null;
   s?.start(`Syncing contracts for ${service}`);
 
-  const manifest = readManifest(registry, service);
-  const contracts = readContracts(registry);
-  const slice = computeSlice(manifest, contracts);
-  const written = writeSlice(repo, manifest, slice);
+  const written = syncService(repo, registry, service);
 
   if (s) {
     s.stop(`Synced ${written.length} files for ${service}`);
@@ -90,27 +85,4 @@ export async function runSync(argv: string[]): Promise<void> {
     console.log(`Synced contracts for ${service} into ${join(repo, ".garry")}`);
     for (const w of written) console.log(`  ${w}`);
   }
-}
-
-function writeSlice(repo: string, manifest: ReturnType<typeof readManifest>, slice: Contracts): string[] {
-  const written: string[] = [];
-  const contractsDir = join(repo, ".garry", "contracts");
-  mkdirSync(contractsDir, { recursive: true });
-
-  const writeJson = (name: string, data: unknown) => {
-    writeFileSync(join(contractsDir, name), JSON.stringify(data, null, 2) + "\n");
-    written.push(`contracts/${name}`);
-  };
-
-  if (slice.remotes) writeJson("remotes.json", slice.remotes);
-  if (slice.sharedDeps) writeJson("shared-deps.json", slice.sharedDeps);
-  if (slice.designTokens) writeJson("design-tokens.json", slice.designTokens);
-  if (slice.events) writeJson("events.json", slice.events);
-
-  const typesDir = join(repo, ".garry", "types");
-  mkdirSync(typesDir, { recursive: true });
-  writeFileSync(join(typesDir, "contracts.d.ts"), generateContractTypes(manifest, slice));
-  written.push("types/contracts.d.ts");
-
-  return written;
 }
