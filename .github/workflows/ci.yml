@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     name: validate (${{ matrix.package }})
@@ -43,32 +47,18 @@ jobs:
   security:
     name: security review
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: npm audit (garry-registry)
-        run: npm audit --audit-level=high
-        working-directory: garry-registry
-      - name: npm audit (garry-skills)
-        run: npm audit --audit-level=high
-        working-directory: garry-skills
-      - name: Dependency review
-        if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: javascript-typescript
-          queries: security-extended
-      - name: CodeQL analyze
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:javascript-typescript"
+      - name: npm audit
+        run: |
+          for pkg in garry-registry garry-skills; do
+            echo "== audit $pkg =="
+            (cd "$pkg" && npm audit --audit-level=high)
+          done
+      - name: Semgrep (SAST)
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check semgrep
+          semgrep scan --config p/security-audit --config p/javascript --config p/typescript --error

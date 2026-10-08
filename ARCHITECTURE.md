@@ -317,7 +317,7 @@ The repository ships with CI, a mandatory security review and automated code rev
 
 - `validate` (per package): `npm ci`, `npm run typecheck` and `npm run validate`.
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash, en dash, figure dash or horizontal bar is found in tracked text files, which enforces the plain ASCII punctuation rule automatically.
-- `security`: the security review as CI steps. It runs `npm audit` (fails on a high or critical advisory) for both packages, a dependency review on pull requests (blocks a new dependency with a known high severity vulnerability), and CodeQL static analysis for JavaScript and TypeScript.
+- `security`: the security review as CI steps. It runs `npm audit` (fails on a high or critical advisory) for both packages and a Semgrep static analysis scan. The repository is private, so CodeQL and dependency review are not used (both need paid GitHub Advanced Security on a private repository); Semgrep runs entirely inside the job with no token.
 
 Dependabot (`.github/dependabot.yml`) adds weekly updates for npm dependencies and GitHub Actions.
 
