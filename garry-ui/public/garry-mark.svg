@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 96 66" role="img" aria-label="Garry">
+<g transform="translate(8 8)">
+<ellipse cx="88.5" cy="47" rx="6.5" ry="11" fill="currentColor" transform="rotate(25 88.5 47)"/>
+<ellipse cx="77.5" cy="53" rx="11.5" ry="11" fill="currentColor"/>
+<ellipse cx="65.5" cy="43" rx="10.5" ry="14" fill="currentColor" transform="rotate(-32 65.5 43)"/>
+<ellipse cx="53.5" cy="33.5" rx="12.5" ry="12.5" fill="currentColor"/>
+<ellipse cx="41.5" cy="43" rx="10.5" ry="14" fill="currentColor" transform="rotate(32 41.5 43)"/>
+<ellipse cx="30.5" cy="51.5" rx="13.5" ry="12.5" fill="currentColor"/>
+<ellipse cx="22" cy="41.5" rx="10" ry="12.5" fill="currentColor" transform="rotate(-20 22 41.5)"/>
+<ellipse cx="19" cy="26" rx="16" ry="16" fill="currentColor"/>
+<ellipse cx="12" cy="24" rx="5" ry="6" fill="#ffffff"/>
+<ellipse cx="26" cy="24" rx="5" ry="6" fill="#ffffff"/>
+<ellipse cx="14" cy="24.5" rx="2" ry="2.5" fill="#111111"/>
+<ellipse cx="28" cy="24.5" rx="2" ry="2.5" fill="#111111"/>
+<path d="M15 34 Q15 33 16 33 H23 Q24 33 24 34 Q24 37 19.5 37 Q15 37 15 34Z" fill="#ffffff"/>
+</g>
+</svg>

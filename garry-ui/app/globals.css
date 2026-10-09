@@ -112,18 +112,43 @@ h2 {
 .brand {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 0 var(--space-sm);
+  gap: 8px;
+  padding: 4px var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--border);
 }
-.logo {
-  height: 32px;
+.brandTop {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.logoTile {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  place-items: center;
+  color: var(--color-brand-primary);
+  flex: none;
+}
+.logoMark {
+  height: 30px;
   width: auto;
   display: block;
+}
+.brandName {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text-default);
 }
 .brandSub {
   font-size: 11px;
   color: var(--color-text-muted);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 .nav {
   display: flex;

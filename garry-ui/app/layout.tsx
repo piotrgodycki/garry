@@ -15,8 +15,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <div className="shell">
           <aside className="sidebar">
             <div className="brand">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="logo" src="/garry-logo.svg" alt="Garry" />
+              <div className="brandTop">
+                <span className="logoTile">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="logoMark" src="/garry-mark.svg" alt="" />
+                </span>
+                <span className="brandName">Garry</span>
+              </div>
               <span className="brandSub">AI SDLC orchestrator</span>
             </div>
             <Nav />
