@@ -1,5 +1,24 @@
 @import "./tokens.css";
 
+/*
+ * UI layer. The brand, text, space and radius come from tokens.css, which is
+ * generated from the design-tokens.json contract (white label: override the
+ * tokens to rebrand). The values below are UI concerns derived from the brand.
+ */
+:root {
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #f1f5f9;
+  --border: #e5e7eb;
+  --border-strong: #cbd5e1;
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.08);
+  --shadow-md: 0 4px 12px rgba(17, 24, 39, 0.08);
+  --ok: #16a34a;
+  --run: var(--color-brand-secondary);
+  --wait: #9ca3af;
+  --danger: #b91c1c;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -13,42 +32,118 @@ body {
 body {
   font-family: var(--font-family-sans);
   color: var(--color-text-default);
-  background: #ffffff;
+  background: var(--surface-2);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 a {
   color: var(--color-brand-primary);
   text-decoration: none;
 }
-
 a:hover {
   text-decoration: underline;
 }
 
-.hdr {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-md);
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid #e5e7eb;
+h1 {
+  font-size: 22px;
+  margin: 0 0 var(--space-md);
+}
+h2 {
+  font-size: 15px;
+  margin: var(--space-lg) 0 var(--space-sm);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
+/* header */
+.hdr {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
 .logo {
-  height: 32px;
+  height: 30px;
   width: auto;
   display: block;
 }
-
 .nav {
   display: flex;
   gap: var(--space-md);
   font-size: 14px;
 }
-
 .nav a {
   color: var(--color-text-muted);
+  padding: 4px 2px;
+  border-bottom: 2px solid transparent;
+}
+.nav a:hover {
+  color: var(--color-brand-primary);
+  text-decoration: none;
+}
+.nav a.active {
+  color: var(--color-brand-primary);
+  border-bottom-color: var(--color-brand-primary);
 }
 
-.nav a:hover {
+/* generic surfaces */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* status dot */
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.dot.ok {
+  background: var(--ok);
+}
+.dot.run {
+  background: var(--run);
+  box-shadow: 0 0 0 0 var(--run);
+  animation: pulse 1.4s infinite;
+}
+.dot.wait {
+  background: var(--wait);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(14, 165, 233, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
+}
+
+/* small reusable chips */
+.chip {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--color-text-muted);
+}
+.chip.model {
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, white);
   color: var(--color-brand-primary);
 }

@@ -2,20 +2,32 @@
   padding: var(--space-lg);
 }
 
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
 .list {
   list-style: none;
   padding: 0;
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--space-md);
-  max-width: 720px;
 }
 
 .card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
   padding: var(--space-md);
   display: grid;
-  gap: 4px;
+  gap: 6px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
 }
 
 .status {

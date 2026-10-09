@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Nav from "./Nav";
 
 export const metadata = {
   title: "Garry",
@@ -13,14 +13,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <header className="hdr">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="logo" src="/garry-logo.svg" alt="Garry" height={32} />
-          <nav className="nav">
-            <Link href="/">Dashboard</Link>
-            <Link href="/registry">Registry</Link>
-            <Link href="/skills">Skills</Link>
-            <Link href="/routing">Routing</Link>
-            <Link href="/github">GitHub</Link>
-          </nav>
+          <img className="logo" src="/garry-logo.svg" alt="Garry" height={30} />
+          <Nav />
         </header>
         {children}
       </body>

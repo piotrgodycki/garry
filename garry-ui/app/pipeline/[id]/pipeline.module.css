@@ -1,45 +1,143 @@
 .main {
   padding: var(--space-lg);
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
-.stream {
-  display: grid;
-  gap: var(--space-sm);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  max-width: 820px;
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
 }
 
-.feature {
+.order {
   color: var(--color-text-muted);
+  font-size: 13px;
+  margin: var(--space-sm) 0 var(--space-lg);
 }
-
-.task {
-  border-left: 3px solid var(--color-brand-primary);
-  padding: 4px var(--space-md);
-  background: #f9fafb;
+.order code {
+  background: var(--surface-3);
+  padding: 1px 6px;
   border-radius: var(--radius-sm);
 }
 
-.stage {
-  font-weight: 700;
-  color: var(--color-brand-primary);
-  margin-right: var(--space-sm);
+/* global (supervisor) stages row */
+.supervisor {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-lg);
 }
-
-.who {
-  margin-right: var(--space-sm);
-}
-
-.route {
-  color: var(--color-text-muted);
-}
-
-.skills {
+.gstage {
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
   font-size: 12px;
+  display: flex;
+  align-items: center;
+}
+.gstage.active {
+  border-color: var(--run);
+  background: color-mix(in srgb, var(--run) 8%, white);
+}
+.gstage.done {
   color: var(--color-text-muted);
 }
 
+/* service swimlanes */
+.lanes {
+  display: grid;
+  gap: var(--space-md);
+}
+.lane {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  align-items: center;
+}
+.laneHead {
+  display: grid;
+  gap: 6px;
+}
+.svcName {
+  font-weight: 600;
+}
+.stages {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+.stage {
+  display: grid;
+  gap: 2px;
+  min-width: 128px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.stage.active {
+  border-color: var(--run);
+  background: color-mix(in srgb, var(--run) 8%, white);
+  box-shadow: var(--shadow-sm);
+}
+.stage.done {
+  opacity: 0.7;
+}
+.stageName {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.stageMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.skills {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 128px;
+}
+
+.select {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--color-text-default);
+}
+
+.footer {
+  margin-top: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.ghost {
+  font: inherit;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  cursor: pointer;
+}
+.ghost:hover {
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+}
+.muted {
+  color: var(--color-text-muted);
+}
 .done {
-  color: var(--color-brand-secondary);
+  color: var(--ok);
   font-weight: 600;
 }

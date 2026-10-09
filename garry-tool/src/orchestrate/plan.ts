@@ -80,6 +80,8 @@ export interface BuildPlanOptions {
   routingFile?: string;
   featureId: string;
   worktrees?: Record<string, string>;
+  /** Per service model override. Changes the model only; the agent stays from the stage route. */
+  serviceModels?: Record<string, string>;
 }
 
 /** Composes the SDLC pipeline into an ordered list of delegation tasks. */
@@ -98,13 +100,14 @@ export function buildPlan(opts: BuildPlanOptions): Plan {
 
     if (PER_SERVICE.has(stage)) {
       for (const service of order) {
+        const model = opts.serviceModels?.[service] ?? route.model;
         tasks.push({
           stage,
           scope: "service",
           service,
           repo: opts.worktrees?.[service],
           agent: route.agent,
-          model: route.model,
+          model,
           skills,
         });
       }

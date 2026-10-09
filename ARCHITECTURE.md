@@ -288,9 +288,11 @@ Alternative (lighter): Vite plus a React SPA plus a separate `garry-tool/server`
 
 Security first. A fine grained personal access token limited to the specific repositories Garry manages, with minimal permissions (`contents`, `pull_requests`). It cannot touch repositories outside the list. The token lives in `.env` and is never committed. When the project grows we can move to a GitHub App.
 
+The Activity panel is the centerpiece: a swimlane per microservice shows the SDLC stages flowing, which service an agent is working on right now (a pulsing running state, done and waiting states), the agent and model per stage, and the skills in flight. A live SSE stream drives the states. Each lane has a native model picker that sets a per service model override (it changes the model only; the agent role stays from the stage route), posted to the server and reflected in the plan immediately. The PRs panel shows one card per service for the feature branch, ready for live GitHub data in phase 6.
+
 ### Model and agent routing (the matrix)
 
-The heart of switching models and agents. Per SDLC stage (or per skill) you choose an agent profile plus a model. This lets you control cost (a cheap model for scaffolding, a strong one for review) and swap roles.
+The heart of switching models and agents. Per SDLC stage (or per skill) you choose an agent profile plus a model. This lets you control cost (a cheap model for scaffolding, a strong one for review) and swap roles. On top of the stage matrix, a per service override lets you pick the model for a specific microservice from the Activity panel.
 
 ```jsonc
 // garry.routing.json (defaults plus per feature overrides in the UI)
