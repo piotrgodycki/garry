@@ -127,10 +127,13 @@
 .rowLink {
   cursor: pointer;
 }
-.open {
-  color: var(--color-brand-primary);
-  font-size: 13px;
+.arrow {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  transition: color 0.15s, transform 0.15s;
 }
-.rowLink:hover .open {
-  text-decoration: underline;
+.rowLink:hover .arrow {
+  color: var(--color-brand-primary);
+  transform: translate(1px, -1px);
 }

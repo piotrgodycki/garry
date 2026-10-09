@@ -124,7 +124,15 @@ export default function Prs() {
               <td><span className={`${styles.badge} ${styles.draft}`}>{pr.state}</span></td>
               <td><span className={`dot ${checkDot(pr.checks)}`} />{pr.checks}</td>
               <td className={styles.repo}>{pr.repo}</td>
-              <td>{pr.url ? <span className={styles.open}>GitHub</span> : <span className={styles.muted}>n/a</span>}</td>
+              <td>
+                {pr.url ? (
+                  <svg className={styles.arrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="open on GitHub">
+                    <path d="M7 17L17 7M9 7h8v8" />
+                  </svg>
+                ) : (
+                  <span className={styles.muted}>n/a</span>
+                )}
+              </td>
             </tr>
           ))}
           {pageRows.length === 0 && (
