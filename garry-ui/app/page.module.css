@@ -1,50 +1,85 @@
 .main {
   padding: var(--space-lg);
-}
-
-.main {
-  max-width: 1100px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .list {
   list-style: none;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: var(--space-md);
 }
 
 .card {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
   padding: var(--space-md);
   display: grid;
-  gap: 6px;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  gap: var(--space-sm);
+  transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
 }
 .card:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--border-strong);
+  transform: translateY(-2px);
 }
 
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
 .status {
-  justify-self: start;
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: #ffffff;
   background: var(--color-brand-secondary);
-  padding: 2px var(--space-sm);
-  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
-
-.svc {
-  color: var(--color-text-muted);
+.id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+}
+.title {
+  font-weight: 600;
+}
+.svcs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: 4px;
+}
+.primary {
   font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-brand-primary);
+  color: #ffffff;
 }
-
+.primary:hover {
+  text-decoration: none;
+  filter: brightness(1.08);
+}
+.ghost {
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  color: var(--color-text-default);
+}
+.ghost:hover {
+  text-decoration: none;
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+}
 .error {
-  color: #b91c1c;
+  color: var(--danger);
 }

@@ -1,7 +1,6 @@
 .main {
   padding: var(--space-lg);
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .title {
@@ -10,15 +9,51 @@
   gap: var(--space-sm);
 }
 
-.picker {
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   margin: var(--space-sm) 0 var(--space-lg);
+  flex-wrap: wrap;
 }
-.picker select {
+.toolbar select,
+.search {
   font: inherit;
-  padding: 6px 10px;
+  padding: 7px 10px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   background: var(--surface);
+  color: var(--color-text-default);
+}
+.search {
+  flex: 1;
+  min-width: 200px;
+}
+.count {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  justify-content: center;
+  margin-top: var(--space-md);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.pager button {
+  font: inherit;
+  padding: 6px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--color-text-default);
+  cursor: pointer;
+}
+.pager button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .table {
@@ -80,12 +115,22 @@
 .note {
   margin-top: var(--space-lg);
   padding: var(--space-md);
-  background: color-mix(in srgb, var(--color-brand-secondary) 8%, white);
-  border: 1px solid color-mix(in srgb, var(--color-brand-secondary) 25%, white);
+  background: color-mix(in srgb, var(--color-brand-secondary) 8%, var(--tint-base));
+  border: 1px solid color-mix(in srgb, var(--color-brand-secondary) 25%, var(--tint-base));
   border-radius: var(--radius-md);
   color: var(--color-text-default);
   font-size: 13px;
 }
 .muted {
   color: var(--color-text-muted);
+}
+.rowLink {
+  cursor: pointer;
+}
+.open {
+  color: var(--color-brand-primary);
+  font-size: 13px;
+}
+.rowLink:hover .open {
+  text-decoration: underline;
 }

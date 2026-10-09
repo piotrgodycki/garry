@@ -1,0 +1,15 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 8px 1px 6px;
+  border-radius: 999px;
+  line-height: 1.6;
+}
+.spark {
+  width: 10px;
+  height: 10px;
+  flex: none;
+}

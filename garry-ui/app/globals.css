@@ -11,12 +11,43 @@
   --surface-3: #f1f5f9;
   --border: #e5e7eb;
   --border-strong: #cbd5e1;
+  --tint-base: #ffffff; /* the base color that brand tints mix into */
   --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.08);
   --shadow-md: 0 4px 12px rgba(17, 24, 39, 0.08);
   --ok: #16a34a;
   --run: var(--color-brand-secondary);
   --wait: #9ca3af;
   --danger: #b91c1c;
+}
+
+/* Dark UI. Overrides the surface, border and text layer; the brand tokens stay,
+   and brand tints mix into --tint-base so they stay readable on dark. */
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+  --surface: #0f172a;
+  --surface-2: #0b1120;
+  --surface-3: #1e293b;
+  --border: #1e293b;
+  --border-strong: #334155;
+  --tint-base: #0f172a;
+  --color-text-default: #e5e7eb;
+  --color-text-muted: #94a3b8;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface: #0f172a;
+    --surface-2: #0b1120;
+    --surface-3: #1e293b;
+    --border: #1e293b;
+    --border-strong: #334155;
+    --tint-base: #0f172a;
+    --color-text-default: #e5e7eb;
+    --color-text-muted: #94a3b8;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
+  }
 }
 
 * {
@@ -111,11 +142,44 @@ h2 {
   background: var(--surface-2);
   text-decoration: none;
 }
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .nav a.active {
   color: var(--color-brand-primary);
-  background: color-mix(in srgb, var(--color-brand-primary) 9%, white);
+  background: color-mix(in srgb, var(--color-brand-primary) 9%, var(--tint-base));
   border-left-color: var(--color-brand-primary);
   font-weight: 600;
+}
+.navIcon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+}
+.navIcon svg {
+  width: 18px;
+  height: 18px;
+}
+.sidebarFoot {
+  margin-top: auto;
+  padding: 0 var(--space-sm);
+}
+.themeToggle {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.themeToggle:hover {
+  border-color: var(--border-strong);
+  color: var(--color-brand-primary);
 }
 
 /* generic surfaces */
@@ -169,6 +233,6 @@ h2 {
   color: var(--color-text-muted);
 }
 .chip.model {
-  background: color-mix(in srgb, var(--color-brand-primary) 12%, white);
+  background: color-mix(in srgb, var(--color-brand-primary) 12%, var(--tint-base));
   color: var(--color-brand-primary);
 }

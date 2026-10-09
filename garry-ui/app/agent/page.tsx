@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import styles from "./agent.module.css";
+import ModelChip from "../ModelChip";
 import { apiBase } from "../lib/api";
 
 interface Task {
@@ -32,6 +34,7 @@ export default function AgentView() {
   const [selected, setSelected] = useState("");
   const [plan, setPlan] = useState<Plan | null>(null);
   const [models, setModels] = useState<Record<string, string>>({});
+  const [consumes, setConsumes] = useState<Record<string, string[]>>({});
   const [current, setCurrent] = useState<number | null>(null);
   const [done, setDone] = useState(0);
   const [finished, setFinished] = useState(false);
@@ -43,12 +46,24 @@ export default function AgentView() {
       .then((d) => {
         const fs = (d.features as Feature[]) ?? [];
         setFeatures(fs);
-        if (fs[0]) setSelected(fs[0].id);
+        const wanted = new URLSearchParams(window.location.search).get("feature");
+        const pick = fs.find((f) => f.id === wanted) ?? fs[0];
+        if (pick) setSelected(pick.id);
       })
       .catch(() => undefined);
     fetch(`${apiBase}/api/models`)
       .then((r) => r.json())
       .then((d) => setModels(Object.fromEntries(((d.models as Model[]) ?? []).map((m) => [m.id, m.label]))))
+      .catch(() => undefined);
+    fetch(`${apiBase}/api/registry`)
+      .then((r) => r.json())
+      .then((d) => {
+        const map: Record<string, string[]> = {};
+        for (const s of (d.services as { name: string; consumes?: Record<string, string[]> }[]) ?? []) {
+          map[s.name] = Object.keys(s.consumes ?? {});
+        }
+        setConsumes(map);
+      })
       .catch(() => undefined);
   }, []);
 
@@ -94,6 +109,19 @@ export default function AgentView() {
     });
   }, [plan]);
 
+  // Edges between services that communicate, from the consumes contract.
+  const edges = useMemo(() => {
+    const pos = new Map(nodes.map((nd) => [nd.svc, nd]));
+    const out: { from: string; to: string; x1: number; y1: number; x2: number; y2: number }[] = [];
+    for (const nd of nodes) {
+      for (const dep of consumes[nd.svc] ?? []) {
+        const target = pos.get(dep);
+        if (target) out.push({ from: nd.svc, to: dep, x1: nd.x, y1: nd.y, x2: target.x, y2: target.y });
+      }
+    }
+    return out;
+  }, [nodes, consumes]);
+
   const task = current && plan ? plan.tasks[current - 1] : null;
   const busy = task !== null;
   const coreActive = busy && task?.scope === "global";
@@ -108,28 +136,45 @@ export default function AgentView() {
 
   // The role (agent) and model a service uses right now: the live task when the
   // service is active, otherwise the baseline from its first service stage.
-  const roleModel = (svc: string): { role: string; model: string } => {
+  const roleModel = (svc: string): { role: string; modelId: string; model: string } => {
     if (task?.scope === "service" && task.service === svc) {
-      return { role: task.agent, model: models[task.model] ?? task.model };
+      return { role: task.agent, modelId: task.model, model: models[task.model] ?? task.model };
     }
     const svcTasks = plan?.tasks.filter((t) => t.scope === "service" && t.service === svc) ?? [];
     const first = svcTasks[0];
-    return { role: first?.agent ?? "", model: first ? models[first.model] ?? first.model : "" };
+    const id = first?.model ?? "";
+    return { role: first?.agent ?? "", modelId: id, model: id ? models[id] ?? id : "" };
   };
 
   return (
     <div className={styles.wrap}>
       <div className={styles.pick}>
+        <span className={styles.pickLabel}>feature</span>
         <select value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="feature">
           {features.map((f) => (
             <option key={f.id} value={f.id}>{f.id} {f.title}</option>
           ))}
         </select>
-        <button className={styles.replay} onClick={() => setRunKey((k) => k + 1)}>run</button>
+        <button className={styles.run} onClick={() => setRunKey((k) => k + 1)}>run</button>
       </div>
 
       <div className={styles.stage}>
         <svg className={styles.links} viewBox="0 0 560 560" aria-hidden="true">
+          {/* inter service communication edges from the consumes contract */}
+          {edges.map((e) => {
+            const hot = serviceStatus(e.from) === "active" || serviceStatus(e.to) === "active";
+            return (
+              <line
+                key={`${e.from}-${e.to}`}
+                x1={e.x1}
+                y1={e.y1}
+                x2={e.x2}
+                y2={e.y2}
+                className={`${styles.edge} ${hot ? styles.edgeHot : ""}`}
+              />
+            );
+          })}
+          {/* spokes from Garry in the center to each service */}
           {nodes.map((nd) => (
             <line
               key={nd.svc}
@@ -154,21 +199,24 @@ export default function AgentView() {
           const st = serviceStatus(nd.svc);
           const rm = roleModel(nd.svc);
           return (
-            <div
+            <Link
               key={nd.svc}
+              href={`/service/${nd.svc}`}
               className={`${styles.node} ${st === "active" ? styles.active : ""} ${st === "done" ? styles.done : ""}`}
               style={{ left: `${nd.left}%`, top: `${nd.top}%` }}
+              title={`open ${nd.svc}`}
             >
               <div className={styles.bubble}>
-                <span className={styles.mono}>{nd.svc.slice(0, 2).toUpperCase()}</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className={styles.icon} src="/service.svg" alt="" />
               </div>
               <span className={styles.svc}>{nd.svc}</span>
               {st === "active" && <span className={styles.stageLabel}>{task?.stage}</span>}
               <div className={styles.tags}>
                 <span className={styles.role}>{rm.role}</span>
-                <span className={styles.modelTag}>{rm.model}</span>
+                <ModelChip id={rm.modelId} label={rm.model} />
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

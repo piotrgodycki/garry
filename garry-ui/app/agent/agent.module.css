@@ -13,15 +13,54 @@
 
 .pick {
   display: flex;
-  gap: var(--space-sm);
+  gap: var(--space-md);
   align-items: center;
+  padding: 10px 12px 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+}
+.pickLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
 }
 .pick select {
   font: inherit;
+  font-weight: 600;
   padding: 6px 10px;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--color-text-default);
+  cursor: pointer;
+}
+.run {
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-brand-primary);
+  color: #ffffff;
+  cursor: pointer;
+}
+.run:hover {
+  filter: brightness(1.08);
+}
+.run::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 8px solid #ffffff;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
 }
 
 /* the stage holds the center orb and the orbiting nodes */
@@ -49,6 +88,17 @@
 .linkActive {
   stroke: var(--color-brand-secondary);
   stroke-width: 2.5;
+}
+/* inter service communication edges */
+.edge {
+  stroke: var(--border);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  transition: stroke 0.3s;
+}
+.edgeHot {
+  stroke: var(--color-brand-primary);
+  stroke-dasharray: none;
 }
 
 /* center orb */
@@ -118,6 +168,10 @@
   justify-items: center;
   text-align: center;
   z-index: 3;
+  color: inherit;
+}
+.node:hover {
+  text-decoration: none;
 }
 .bubble {
   width: 60px;
@@ -128,33 +182,29 @@
   box-shadow: var(--shadow-sm);
   display: grid;
   place-items: center;
-  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s, background 0.25s;
-}
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-weight: 700;
-  font-size: 15px;
   color: var(--color-text-muted);
-  letter-spacing: 0.02em;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s, background 0.25s, color 0.25s;
+}
+.icon {
+  width: 26px;
+  height: 26px;
+  display: block;
 }
 .node:hover .bubble {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
 }
 .node.active .bubble {
   border-color: var(--color-brand-secondary);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--color-brand-secondary) 14%, white), white);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-brand-secondary) 14%, var(--tint-base)), var(--tint-base));
+  color: var(--color-brand-primary);
   transform: scale(1.12);
   box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-brand-secondary) 16%, transparent), var(--shadow-md);
 }
-.node.active .mono {
-  color: var(--color-brand-primary);
-}
 .node.done .bubble {
   border-color: var(--ok);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--ok) 12%, white), white);
-}
-.node.done .mono {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--ok) 12%, var(--tint-base)), var(--tint-base));
   color: var(--ok);
 }
 .svc {
@@ -183,7 +233,7 @@
   font-weight: 600;
   padding: 1px 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-brand-primary) 10%, white);
+  background: color-mix(in srgb, var(--color-brand-primary) 10%, var(--tint-base));
   color: var(--color-brand-primary);
 }
 

@@ -41,7 +41,7 @@
 }
 .gstage.active {
   border-color: var(--run);
-  background: color-mix(in srgb, var(--run) 8%, white);
+  background: color-mix(in srgb, var(--run) 8%, var(--tint-base));
 }
 .gstage.done {
   color: var(--color-text-muted);
@@ -82,7 +82,7 @@
 }
 .stage.active {
   border-color: var(--run);
-  background: color-mix(in srgb, var(--run) 8%, white);
+  background: color-mix(in srgb, var(--run) 8%, var(--tint-base));
   box-shadow: var(--shadow-sm);
 }
 .stage.done {

@@ -27,18 +27,27 @@ export default function Dashboard() {
       <h1>Features</h1>
       {error && (
         <p className={styles.error}>
-          Cannot reach garry-server at {apiBase}. Start it with <code>garry serve</code>.
+          Cannot reach garry-server at {apiBase}. Start it with <code>pnpm serve</code>.
         </p>
       )}
       {!features && !error && <p>Loading...</p>}
       <ul className={styles.list}>
         {features?.map((f) => (
-          <li key={f.id} className={styles.card}>
-            <span className={styles.status}>{f.status}</span>
-            <Link href={`/pipeline/${f.id}`}>
-              <strong>{f.id}</strong> {f.title}
-            </Link>
-            <div className={styles.svc}>{f.services.join(", ")}</div>
+          <li key={f.id} className={`card ${styles.card}`}>
+            <div className={styles.row}>
+              <span className={styles.status}>{f.status}</span>
+              <span className={styles.id}>{f.id}</span>
+              <span className={styles.title}>{f.title}</span>
+            </div>
+            <div className={styles.svcs}>
+              {f.services.map((s) => (
+                <span key={s} className="chip">{s}</span>
+              ))}
+            </div>
+            <div className={styles.actions}>
+              <Link className={styles.primary} href={`/agent?feature=${f.id}`}>hand to agent</Link>
+              <Link className={styles.ghost} href={`/pipeline/${f.id}`}>pipeline</Link>
+            </div>
           </li>
         ))}
       </ul>

@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import Nav from "./Nav";
+import ThemeToggle from "./ThemeToggle";
 
 export const metadata = {
   title: "Garry",
@@ -19,6 +20,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <span className="brandSub">AI SDLC orchestrator</span>
             </div>
             <Nav />
+            <div className="sidebarFoot">
+              <ThemeToggle />
+            </div>
           </aside>
           <div className="content">{children}</div>
         </div>

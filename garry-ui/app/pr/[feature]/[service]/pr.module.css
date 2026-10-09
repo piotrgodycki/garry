@@ -1,0 +1,66 @@
+.main {
+  padding: var(--space-lg);
+  max-width: 720px;
+  margin: 0 auto;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+.head h1 {
+  margin: 0;
+  font-size: 20px;
+}
+.badge {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--color-text-muted);
+}
+.block {
+  padding: var(--space-md);
+  display: grid;
+  gap: var(--space-md);
+}
+.dl {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 8px 12px;
+  margin: 0;
+  font-size: 14px;
+}
+.dl dt {
+  color: var(--color-text-muted);
+}
+.dl dd {
+  margin: 0;
+  word-break: break-all;
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+.gh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  color: var(--color-text-default);
+  font-size: 14px;
+}
+.gh:hover {
+  text-decoration: none;
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+}
+.muted {
+  color: var(--color-text-muted);
+}
