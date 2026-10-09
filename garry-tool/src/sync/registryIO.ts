@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 
@@ -33,6 +33,18 @@ export function readManifest(registry: string, service: string): Manifest {
   if (!existsSync(file)) throw new Error(`service manifest not found: ${file}`);
   const raw = (parseYaml(readFileSync(file, "utf8")) ?? {}) as Partial<Manifest>;
   return { name: service, exposes: [], consumes: {}, ...raw } as Manifest;
+}
+
+/** Reads every service manifest from the registry catalog. */
+export function listManifests(registry: string): Manifest[] {
+  const dir = join(registry, "catalog");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => /\.ya?ml$/.test(f))
+    .map((f) => {
+      const raw = (parseYaml(readFileSync(join(dir, f), "utf8")) ?? {}) as Partial<Manifest>;
+      return { exposes: [], consumes: {}, name: f.replace(/\.ya?ml$/, ""), ...raw } as Manifest;
+    });
 }
 
 function readJson<T>(p: string): T | undefined {

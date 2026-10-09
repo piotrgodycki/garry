@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 export const metadata = {
   title: "Garry",
@@ -12,7 +13,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <header className="hdr">
           <span className="logo">GARRY</span>
-          <span className="tag">AI SDLC orchestrator</span>
+          <nav className="nav">
+            <Link href="/">Dashboard</Link>
+            <Link href="/registry">Registry</Link>
+            <Link href="/skills">Skills</Link>
+            <Link href="/routing">Routing</Link>
+            <Link href="/github">GitHub</Link>
+          </nav>
         </header>
         {children}
       </body>

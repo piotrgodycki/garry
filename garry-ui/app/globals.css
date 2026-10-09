@@ -39,7 +39,16 @@ a:hover {
   color: var(--color-brand-primary);
 }
 
-.tag {
-  color: var(--color-text-muted);
+.nav {
+  display: flex;
+  gap: var(--space-md);
   font-size: 14px;
+}
+
+.nav a {
+  color: var(--color-text-muted);
+}
+
+.nav a:hover {
+  color: var(--color-brand-primary);
 }

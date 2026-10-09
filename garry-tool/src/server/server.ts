@@ -1,10 +1,11 @@
 import { createServer, type Server, type ServerResponse } from "node:http";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { buildPlan, listFeatures } from "../orchestrate/plan.js";
 import { loadSkills } from "../orchestrate/skillsManifest.js";
 import { describe } from "../orchestrate/delegate.js";
 import { loadWorkspace } from "../workspace/workspace.js";
+import { listManifests, readContracts } from "../sync/registryIO.js";
 
 export interface ServerConfig {
   registry: string;
@@ -80,11 +81,22 @@ export function createGarryServer(cfg: ServerConfig): Server {
             "GET /api/features/:id/plan",
             "GET /api/features/:id/stream (SSE)",
             "GET /api/skills",
+            "GET /api/registry",
+            "GET /api/routing",
           ],
         });
       }
       if (path === "/api/features") return json(res, 200, { features: listFeatures(cfg.registry) });
       if (path === "/api/skills") return json(res, 200, { skills: loadSkills(cfg.skills) });
+      if (path === "/api/registry") {
+        return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });
+      }
+      if (path === "/api/routing") {
+        const data = existsSync(cfg.routing)
+          ? JSON.parse(readFileSync(cfg.routing, "utf8"))
+          : { defaults: null, stages: {} };
+        return json(res, 200, data);
+      }
 
       const plan = /^\/api\/features\/([^/]+)\/plan$/.exec(path);
       if (plan) return json(res, 200, planFor(cfg, decodeURIComponent(plan[1])));
