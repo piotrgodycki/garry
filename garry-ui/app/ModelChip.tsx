@@ -16,14 +16,12 @@ export function tierOf(modelId: string): string {
   return "sonnet";
 }
 
-/** A model chip with a small tier colored spark logo and the model label. */
+/** A clean model chip: a tier colored dot plus the model label. */
 export default function ModelChip({ id, label }: { id: string; label: string }) {
   const color = TIER_COLOR[tierOf(id)] ?? TIER_COLOR.sonnet;
   return (
-    <span className={styles.chip} style={{ color, background: `color-mix(in srgb, ${color} 12%, var(--tint-base))` }}>
-      <svg className={styles.spark} viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-        <path d="M8 0l1.9 4.9L15 7l-5.1 2.1L8 14l-1.9-4.9L1 7l5.1-2.1z" />
-      </svg>
+    <span className={styles.chip}>
+      <span className={styles.dot} style={{ background: color }} />
       {label}
     </span>
   );

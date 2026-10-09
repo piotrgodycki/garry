@@ -126,6 +126,11 @@ export default function AgentView() {
   const task = current && plan ? plan.tasks[current - 1] : null;
   const busy = task !== null;
   const coreActive = busy && task?.scope === "global";
+  const total = plan?.tasks.length ?? 0;
+  const progress = finished ? total : done;
+  const pct = total ? progress / total : 0;
+  const RING_R = 94;
+  const RING_C = 2 * Math.PI * RING_R;
 
   const serviceStatus = (svc: string): "active" | "done" | "idle" => {
     if (!plan) return "idle";
@@ -186,6 +191,16 @@ export default function AgentView() {
               className={`${styles.link} ${serviceStatus(nd.svc) === "active" ? styles.linkActive : ""}`}
             />
           ))}
+          {/* progress ring around the hub */}
+          <circle cx={C} cy={C} r={RING_R} className={styles.ringTrack} />
+          <circle
+            cx={C}
+            cy={C}
+            r={RING_R}
+            className={styles.ringProgress}
+            strokeDasharray={`${(pct * RING_C).toFixed(1)} ${RING_C.toFixed(1)}`}
+            transform={`rotate(-90 ${C} ${C})`}
+          />
         </svg>
 
         <div className={`${styles.voice} ${busy ? styles.voiceActive : ""}`}>
@@ -221,9 +236,10 @@ export default function AgentView() {
               <div className={styles.bubble}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className={styles.icon} src="/service.svg" alt="" />
+                <span className={`${styles.statusDot} ${styles[`dot_${st}`]}`} />
               </div>
               <span className={styles.svc}>{nd.svc}</span>
-              {st === "active" && <span className={styles.stageLabel}>{task?.stage}</span>}
+              <span className={styles.stageLabel}>{st === "active" ? (task?.stage ?? "") : st === "done" ? "done" : "waiting"}</span>
               <div className={styles.tags}>
                 <span className={styles.role}>{rm.role}</span>
                 <ModelChip id={rm.modelId} label={rm.model} />
@@ -233,25 +249,34 @@ export default function AgentView() {
         })}
       </div>
 
-      <Waveform bars={48} active={busy} />
-
-      <div className={styles.readout}>
-        {task ? (
-          task.scope === "service" ? (
-            <div className={styles.action}>
-              working on <span className={styles.em}>{task.service}</span>: {task.stage}
-            </div>
-          ) : (
-            <div className={styles.action}>{task.stage} <span className={styles.em}>(supervisor)</span></div>
-          )
-        ) : finished ? (
-          <div className={styles.action}>run complete</div>
-        ) : (
-          <div className={`${styles.action} ${styles.idle}`}>idle, press run</div>
-        )}
-        <div className={styles.sub}>
-          {task ? `${task.agent} · ${task.model}` : plan ? `${plan.order.length} services · ${plan.tasks.length} tasks` : "connect the server with pnpm serve"}
+      <div className={styles.statusbar}>
+        <Waveform bars={28} active={busy} />
+        <div className={styles.statusMain}>
+          <div className={styles.action}>
+            {task ? (
+              task.scope === "service" ? (
+                <>working on <span className={styles.em}>{task.service}</span> · {task.stage}</>
+              ) : (
+                <><span className={styles.em}>{task.stage}</span> · supervisor</>
+              )
+            ) : finished ? (
+              <>run complete</>
+            ) : (
+              <span className={styles.idle}>idle, press run</span>
+            )}
+          </div>
+          <div className={styles.sub}>{task ? `${task.agent} · ${models[task.model] ?? task.model}` : plan ? `${plan.order.length} services` : "connect the server with pnpm serve"}</div>
         </div>
+        <div className={styles.progressBox}>
+          <span className={styles.progressNum}>{progress}<span className={styles.progressTotal}> / {total}</span></span>
+          <span className={styles.progressLabel}>tasks</span>
+        </div>
+        <div className={styles.legend}>
+          <span><span className="dot wait" /> waiting</span>
+          <span><span className="dot run" /> running</span>
+          <span><span className="dot ok" /> done</span>
+        </div>
+        <button className={styles.replay} onClick={() => setRunKey((k) => k + 1)}>replay</button>
       </div>
     </div>
   );
