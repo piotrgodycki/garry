@@ -156,10 +156,11 @@
     color-mix(in srgb, var(--color-brand-primary) 45%, transparent) 70%,
     transparent 92%
   );
-  filter: blur(10px);
-  opacity: 0;
+  filter: blur(12px);
+  opacity: 0.28;
   z-index: 1;
   transition: opacity 0.4s;
+  animation: spin 16s linear infinite;
 }
 .voiceActive .halo {
   opacity: 0.85;
@@ -218,7 +219,7 @@
   }
 }
 
-/* center core */
+/* minimal center: just the black wave floating in space over the halo */
 .core {
   position: absolute;
   left: 50%;
@@ -226,15 +227,9 @@
   transform: translate(-50%, -50%);
   width: 150px;
   height: 150px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--color-brand-primary) 16%, var(--surface)), var(--surface));
-  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 30%, var(--border));
-  box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-brand-primary) 6%, transparent), var(--shadow-md);
   display: grid;
   place-items: center;
-  color: var(--color-brand-primary);
   z-index: 3;
-  transition: box-shadow 0.3s, border-color 0.3s;
   animation: breathe 4.5s ease-in-out infinite;
 }
 @keyframes breathe {
@@ -243,21 +238,17 @@
     transform: translate(-50%, -50%) scale(1);
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.03);
+    transform: translate(-50%, -50%) scale(1.04);
   }
 }
 .coreWave {
-  width: 86px;
-  height: 44px;
+  width: 104px;
+  height: 56px;
   display: grid;
   place-items: center;
 }
-.core.busy {
-  border-color: var(--color-brand-secondary);
-  box-shadow:
-    0 0 32px color-mix(in srgb, var(--color-brand-secondary) 45%, transparent),
-    0 0 0 8px color-mix(in srgb, var(--color-brand-secondary) 10%, transparent),
-    var(--shadow-md);
+.core.busy .coreWave {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-text-default) 25%, transparent));
 }
 
 /* orbiting service nodes */
