@@ -6,9 +6,27 @@
   justify-content: center;
   gap: var(--space-lg);
   padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(1200px 600px at 50% 40%, color-mix(in srgb, var(--color-brand-primary) 7%, transparent), transparent 70%),
+    radial-gradient(900px 500px at 50% 42%, color-mix(in srgb, var(--color-brand-primary) 10%, transparent), transparent 70%),
+    radial-gradient(600px 400px at 85% 10%, color-mix(in srgb, var(--color-brand-secondary) 8%, transparent), transparent 60%),
     var(--surface-2);
+}
+/* faint future grid */
+.wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-brand-primary) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-brand-primary) 7%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(circle at 50% 45%, black, transparent 72%);
+  pointer-events: none;
+}
+.wrap > * {
+  position: relative;
 }
 
 .pick {
@@ -101,7 +119,64 @@
   stroke-dasharray: none;
 }
 
-/* center orb */
+/* voice orb: a central core ringed by a radial audio equalizer */
+.voice {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  z-index: 2;
+}
+.eq {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.spoke {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+.eqbar {
+  position: absolute;
+  left: -1.5px;
+  bottom: 0;
+  width: 3px;
+  height: 20px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--color-brand-secondary), var(--color-brand-primary));
+  transform-origin: center bottom;
+  transform: scaleY(0.3);
+  opacity: 0.65;
+  animation: eqIdle 2.2s ease-in-out infinite;
+}
+.voiceActive .eqbar {
+  opacity: 1;
+  animation: eqActive 0.85s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-brand-secondary) 60%, transparent));
+}
+@keyframes eqIdle {
+  0%,
+  100% {
+    transform: scaleY(0.25);
+  }
+  50% {
+    transform: scaleY(0.55);
+  }
+}
+@keyframes eqActive {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1.8);
+  }
+}
+
+/* center core */
 .core {
   position: absolute;
   left: 50%;
@@ -110,52 +185,26 @@
   width: 150px;
   height: 150px;
   border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
+  background: radial-gradient(circle at 50% 32%, color-mix(in srgb, var(--color-brand-primary) 16%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 30%, var(--border));
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-brand-primary) 6%, transparent), var(--shadow-md);
   display: grid;
   place-items: center;
-  z-index: 2;
+  color: var(--color-brand-primary);
+  z-index: 3;
+  transition: box-shadow 0.3s, border-color 0.3s;
 }
-.core img {
-  width: 92px;
+.coreMark {
+  width: 86px;
   height: auto;
+  display: block;
 }
 .core.busy {
   border-color: var(--color-brand-secondary);
-}
-
-/* animated rings around the core while the agent is busy */
-.ring {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  border-radius: 50%;
-  border: 2px solid var(--color-brand-secondary);
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  z-index: 1;
-}
-.busy .ring {
-  animation: ripple 2.4s ease-out infinite;
-}
-.ring2 {
-  animation-delay: 0.8s !important;
-}
-.ring3 {
-  animation-delay: 1.6s !important;
-}
-@keyframes ripple {
-  0% {
-    width: 150px;
-    height: 150px;
-    opacity: 0.5;
-  }
-  100% {
-    width: 420px;
-    height: 420px;
-    opacity: 0;
-  }
+  box-shadow:
+    0 0 32px color-mix(in srgb, var(--color-brand-secondary) 45%, transparent),
+    0 0 0 8px color-mix(in srgb, var(--color-brand-secondary) 10%, transparent),
+    var(--shadow-md);
 }
 
 /* orbiting service nodes */

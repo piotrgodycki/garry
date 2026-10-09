@@ -7,6 +7,24 @@ import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
 import { loadWorkspace } from "../workspace/workspace.js";
 import { listManifests, readContracts } from "../sync/registryIO.js";
+import { readdirSync } from "node:fs";
+
+/** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
+function setFeatureStatus(registry: string, id: string, status: string): boolean {
+  const dir = join(registry, "features");
+  if (!existsSync(dir)) return false;
+  for (const f of readdirSync(dir).filter((x) => x.endsWith(".md"))) {
+    const file = join(dir, f);
+    const src = readFileSync(file, "utf8");
+    const m = /^(---\r?\n[\s\S]*?\r?\n---)/.exec(src);
+    if (!m) continue;
+    if (!new RegExp(`(^|\\n)\\s*id:\\s*${id}(\\s|$)`).test(m[1])) continue;
+    const updated = m[1].replace(/(\n\s*status:\s*).*/, `$1${status}`);
+    writeFileSync(file, src.replace(m[1], updated));
+    return true;
+  }
+  return false;
+}
 import { githubToken } from "../github/env.js";
 import { GitHub, parseSlug } from "../github/client.js";
 
@@ -146,6 +164,17 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     res.writeHead(204, CORS);
     res.end();
     return;
+  }
+
+  // POST a feature status change (kanban drag), persisted to the feature frontmatter
+  const postStatus = /^\/api\/features\/([^/]+)\/status$/.exec(path);
+  if (req.method === "POST" && postStatus) {
+    const id = decodeURIComponent(postStatus[1]);
+    const body = (await readBody(req)) as { status?: string };
+    if (!body.status) return json(res, 400, { error: "status is required" });
+    const ok = setFeatureStatus(cfg.registry, id, body.status);
+    if (!ok) return json(res, 404, { error: `feature ${id} not found` });
+    return json(res, 200, { ok: true, id, status: body.status });
   }
 
   // POST a routing change: set the model for a stage (the agent stays)

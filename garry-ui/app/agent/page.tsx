@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import styles from "./agent.module.css";
 import ModelChip from "../ModelChip";
+import Waveform from "../Waveform";
 import { apiBase } from "../lib/api";
 
 interface Task {
@@ -187,12 +188,21 @@ export default function AgentView() {
           ))}
         </svg>
 
-        <div className={`${styles.core} ${busy ? styles.busy : ""} ${coreActive ? styles.busy : ""}`}>
-          <span className={styles.ring} />
-          <span className={`${styles.ring} ${styles.ring2}`} />
-          <span className={`${styles.ring} ${styles.ring3}`} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/garry-logo.svg" alt="Garry" />
+        <div className={`${styles.voice} ${busy ? styles.voiceActive : ""}`}>
+          <div className={styles.eq}>
+            {Array.from({ length: 64 }).map((_, i) => {
+              const phase = Math.abs((i % 16) - 8);
+              return (
+                <span key={i} className={styles.spoke} style={{ transform: `rotate(${(i * 360) / 64}deg) translateY(-104px)` }}>
+                  <span className={styles.eqbar} style={{ animationDelay: `${(phase * 0.05).toFixed(2)}s` }} />
+                </span>
+              );
+            })}
+          </div>
+          <div className={`${styles.core} ${busy ? styles.busy : ""}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className={styles.coreMark} src="/garry-mark.svg" alt="Garry" />
+          </div>
         </div>
 
         {nodes.map((nd) => {
@@ -220,6 +230,8 @@ export default function AgentView() {
           );
         })}
       </div>
+
+      <Waveform bars={48} active={busy} />
 
       <div className={styles.readout}>
         {task ? (
