@@ -34,9 +34,9 @@ a:hover {
 }
 
 .logo {
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--color-brand-primary);
+  height: 32px;
+  width: auto;
+  display: block;
 }
 
 .nav {

@@ -12,7 +12,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body>
         <header className="hdr">
-          <span className="logo">GARRY</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="logo" src="/garry-logo.svg" alt="Garry" height={32} />
           <nav className="nav">
             <Link href="/">Dashboard</Link>
             <Link href="/registry">Registry</Link>
