@@ -189,12 +189,13 @@ export default function AgentView() {
         </svg>
 
         <div className={`${styles.voice} ${busy ? styles.voiceActive : ""}`}>
+          <span className={styles.halo} />
           <div className={styles.eq}>
-            {Array.from({ length: 64 }).map((_, i) => {
-              const phase = Math.abs((i % 16) - 8);
+            {Array.from({ length: 72 }).map((_, i) => {
+              const phase = Math.abs((i % 18) - 9);
               return (
-                <span key={i} className={styles.spoke} style={{ transform: `rotate(${(i * 360) / 64}deg) translateY(-104px)` }}>
-                  <span className={styles.eqbar} style={{ animationDelay: `${(phase * 0.05).toFixed(2)}s` }} />
+                <span key={i} className={styles.spoke} style={{ transform: `rotate(${(i * 360) / 72}deg) translateY(-104px)` }}>
+                  <span className={styles.eqbar} style={{ animationDelay: `${(phase * 0.045).toFixed(2)}s` }} />
                 </span>
               );
             })}

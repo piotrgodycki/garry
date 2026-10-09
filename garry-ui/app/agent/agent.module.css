@@ -103,9 +103,13 @@
   stroke-width: 1.5;
   transition: stroke 0.3s, stroke-width 0.3s;
 }
+/* a flowing beam of light travels from the core to the active service */
 .linkActive {
   stroke: var(--color-brand-secondary);
   stroke-width: 2.5;
+  stroke-dasharray: 5 10;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-brand-secondary) 70%, transparent));
+  animation: flow 0.7s linear infinite;
 }
 /* inter service communication edges */
 .edge {
@@ -116,7 +120,14 @@
 }
 .edgeHot {
   stroke: var(--color-brand-primary);
-  stroke-dasharray: none;
+  stroke-width: 2;
+  stroke-dasharray: 5 8;
+  animation: flow 0.9s linear infinite;
+}
+@keyframes flow {
+  to {
+    stroke-dashoffset: -30;
+  }
 }
 
 /* voice orb: a central core ringed by a radial audio equalizer */
@@ -128,10 +139,42 @@
   height: 0;
   z-index: 2;
 }
+/* rotating halo behind the core */
+.halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 230px;
+  height: 230px;
+  margin: -115px 0 0 -115px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    color-mix(in srgb, var(--color-brand-secondary) 55%, transparent) 20%,
+    transparent 45%,
+    color-mix(in srgb, var(--color-brand-primary) 45%, transparent) 70%,
+    transparent 92%
+  );
+  filter: blur(10px);
+  opacity: 0;
+  z-index: 1;
+  transition: opacity 0.4s;
+}
+.voiceActive .halo {
+  opacity: 0.85;
+  animation: spin 7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .eq {
   position: absolute;
   left: 0;
   top: 0;
+  z-index: 2;
 }
 .spoke {
   position: absolute;
@@ -193,11 +236,22 @@
   color: var(--color-brand-primary);
   z-index: 3;
   transition: box-shadow 0.3s, border-color 0.3s;
+  animation: breathe 4.5s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.03);
+  }
 }
 .coreMark {
   width: 86px;
   height: auto;
   display: block;
+  filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--color-brand-primary) 30%, transparent));
 }
 .core.busy {
   border-color: var(--color-brand-secondary);
@@ -223,15 +277,16 @@
   text-decoration: none;
 }
 .bubble {
-  width: 60px;
-  height: 60px;
+  width: 62px;
+  height: 62px;
   border-radius: 18px;
-  background: linear-gradient(145deg, var(--surface), var(--surface-3));
-  border: 1.5px solid var(--border);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--surface) 82%, transparent), color-mix(in srgb, var(--surface-3) 82%, transparent));
+  backdrop-filter: blur(8px);
+  border: 1.5px solid color-mix(in srgb, var(--color-brand-primary) 22%, var(--border));
   box-shadow: var(--shadow-sm);
   display: grid;
   place-items: center;
-  color: var(--color-text-muted);
+  color: var(--color-brand-primary);
   transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s, background 0.25s, color 0.25s;
 }
 .icon {
