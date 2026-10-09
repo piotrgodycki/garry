@@ -189,16 +189,15 @@
   width: 3px;
   height: 20px;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--color-brand-secondary), var(--color-brand-primary));
+  background: var(--color-text-default);
   transform-origin: center bottom;
   transform: scaleY(0.3);
-  opacity: 0.65;
+  opacity: 0.55;
   animation: eqIdle 2.2s ease-in-out infinite;
 }
 .voiceActive .eqbar {
   opacity: 1;
   animation: eqActive 0.85s ease-in-out infinite;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-brand-secondary) 60%, transparent));
 }
 @keyframes eqIdle {
   0%,
@@ -247,11 +246,11 @@
     transform: translate(-50%, -50%) scale(1.03);
   }
 }
-.coreMark {
+.coreWave {
   width: 86px;
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--color-brand-primary) 30%, transparent));
+  height: 44px;
+  display: grid;
+  place-items: center;
 }
 .core.busy {
   border-color: var(--color-brand-secondary);

@@ -201,8 +201,9 @@ export default function AgentView() {
             })}
           </div>
           <div className={`${styles.core} ${busy ? styles.busy : ""}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className={styles.coreMark} src="/garry-mark.svg" alt="Garry" />
+            <div className={styles.coreWave}>
+              <Waveform bars={11} active={busy} />
+            </div>
           </div>
         </div>
 

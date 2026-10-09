@@ -9,10 +9,10 @@
   width: 3px;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--color-brand-secondary), var(--color-brand-primary));
+  background: var(--color-text-default);
   transform: scaleY(0.25);
   animation: waveIdle 1.8s ease-in-out infinite;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 .active .bar {
   animation: waveActive 0.9s ease-in-out infinite;
