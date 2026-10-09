@@ -257,7 +257,7 @@ Garry gets its own panel (`garry-ui`) that talks to `garry-tool/server`. The sam
 
 | Layer | Choice | Why |
 |---|---|---|
-| Framework | Next.js 15 (App Router) plus React 19 plus TS | routing, RSC for browsing the registry, can host `garry-tool/server` in route handlers |
+| Framework | Next.js 16 (App Router) plus React 19 plus TS | routing, RSC for browsing the registry, can host `garry-tool/server` in route handlers |
 | Styling | a custom token generator (`design-tokens.json` to `tokens.css`, CSS variables) plus CSS Modules | lightweight, no dependency, white label by overriding CSS variables |
 | Components | native first: the `dialog` element, Popover API, the `details` element, native controls plus CSS Modules | lightweight, accessible, no Radix or shadcn; a fallback only when needed (Base UI) |
 | Data (REST) | TanStack Query | cache, refetch, request status against `garry-tool/server` |
@@ -338,6 +338,6 @@ Copilot reviews pull requests for free, following `.github/copilot-instructions.
 - Phase 4, SDLC orchestration. Done. `garry feature` composes the pipeline from `manifest.json`, builds the service dependency graph (contract first), resolves the model and agent routing per stage (`garry.routing.json` plus the feature override), and delegates per service over the workspace. The default executor is a dry run; the live executor on the Claude Agent SDK is wired later.
 - Phase 5, server and routing. Done. `garry serve` starts an HTTP server (`node:http`, no extra dependency) over the supervisor: `GET /api/features`, `GET /api/features/:id/plan`, `GET /api/features/:id/stream` (SSE delegation stream) and `GET /api/skills`. The model by agent matrix lives in `garry.routing.json`.
 - Phase 6, GitHub (narrow token). A fine grained PAT limited to the listed repositories; branch and pull request per feature, status checks.
-- Phase 7, UI. `garry-ui` (Next.js): Dashboard, Pipeline (live stream), Registry and Skills, GitHub and Routing.
+- Phase 7, UI. In progress. `garry-ui` (Next.js 16, App Router, React 19) with a token generator (`design-tokens.json` to `tokens.css` CSS variables) and CSS Modules, native first, no Radix. Built so far: the Dashboard (lists features from the server) and the Pipeline panel (live SSE delegation stream). Registry, Skills, GitHub and Routing panels come next.
 - Phase 8, adopt (brownfield). Reverse engineer the registry from legacy microfrontends plus stack adapters (Vite, Webpack MF, single-spa).
 - Phase 9, backend generalization. DB provisioning skills, API and event contracts, migrations.
