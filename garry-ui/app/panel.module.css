@@ -32,17 +32,36 @@
   margin-top: var(--space-md);
 }
 .modelCell {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--space-sm);
-}
-.select {
-  font: inherit;
-  font-size: 12px;
-  padding: 4px 8px;
+  gap: 8px;
+  padding: 5px 10px;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.modelCell:hover,
+.modelCell:focus-within {
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+}
+.tierDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.modelSelect {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
   color: var(--color-text-default);
   cursor: pointer;
+  padding: 0;
+  padding-right: 2px;
+  outline: none;
 }

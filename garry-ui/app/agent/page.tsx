@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./agent.module.css";
 import ModelChip from "../ModelChip";
@@ -26,6 +26,15 @@ interface Feature {
 interface Model {
   id: string;
   label: string;
+}
+interface LogEntry {
+  index: number;
+  stage: string;
+  who: string;
+  agent: string;
+  model: string;
+  skill: string;
+  action: string;
 }
 
 const C = 280; // stage center in viewBox units
@@ -54,6 +63,7 @@ export default function AgentView() {
   const [finished, setFinished] = useState(false);
   const [runKey, setRunKey] = useState(0);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
 
   useEffect(() => {
     fetch(`${apiBase}/api/features`)
@@ -96,11 +106,16 @@ export default function AgentView() {
     setCurrent(null);
     setDone(0);
     setFinished(false);
+    setLogs([]);
     const es = new EventSource(`${apiBase}/api/features/${selected}/stream`);
     es.addEventListener("task", (e) => {
       const d = JSON.parse((e as MessageEvent).data) as { index: number };
       setCurrent(d.index);
       setDone(d.index - 1);
+    });
+    es.addEventListener("log", (e) => {
+      const d = JSON.parse((e as MessageEvent).data) as LogEntry;
+      setLogs((prev) => [...prev, d]);
     });
     es.addEventListener("done", () => {
       setCurrent(null);
@@ -112,6 +127,11 @@ export default function AgentView() {
     return () => es.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, runKey, plan !== null]);
+
+  const logRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [logs]);
 
   const nodes = useMemo(() => {
     const order = plan?.order ?? [];
@@ -319,6 +339,27 @@ export default function AgentView() {
           <span><span className="dot ok" /> done</span>
         </div>
         <button className={styles.replay} onClick={() => setRunKey((k) => k + 1)}>replay</button>
+      </div>
+
+      <div className={styles.logPanel}>
+        <div className={styles.logHead}>
+          <span>agent work log</span>
+          <span className={styles.logCount}>{logs.length}</span>
+        </div>
+        <div className={styles.logBody} ref={logRef}>
+          {logs.length === 0 ? (
+            <div className={styles.logEmpty}>run a feature to see the agent work log</div>
+          ) : (
+            logs.map((l, i) => (
+              <div key={i} className={styles.logRow}>
+                <span className={styles.logStage}>{l.stage}</span>
+                <span className={styles.logWho}>{l.who}</span>
+                <span className={styles.logAction}>{l.action}</span>
+                <span className={styles.logSkill}>{l.skill}</span>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       <VoiceAgent open={voiceOpen} onClose={() => setVoiceOpen(false)} />

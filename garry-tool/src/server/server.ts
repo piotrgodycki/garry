@@ -125,6 +125,42 @@ async function prsFor(cfg: ServerConfig, id: string) {
   );
 }
 
+/** A short human readable action for a skill, for the agent work log. */
+function actionFor(skill: string): string {
+  const map: Record<string, string> = {
+    "spec-draft": "drafted the feature spec",
+    "spec-decompose": "decomposed into affected services",
+    "acceptance-criteria": "wrote acceptance criteria",
+    "impact-analysis": "analysed contract impact",
+    "dependency-graph": "built the dependency graph",
+    "work-breakdown": "broke work into per repo tasks",
+    "contract-update": "updated the registry contracts",
+    "contract-validate": "validated the contracts",
+    "version-bump": "bumped the registry version",
+    "design-tokens-sync": "synced design tokens",
+    "scaffold-mfe-shell": "scaffolded the shell host",
+    "scaffold-mfe-remote": "scaffolded the remote",
+    "sync-contracts": "injected the contract slice into .garry/",
+    "generate-types": "generated contract types",
+    "mf-wiring": "wired Module Federation",
+    "review-correctness": "reviewed for correctness",
+    "review-spec-match": "checked against acceptance criteria",
+    "review-contract-compliance": "verified contract compliance",
+    "review-security": "ran a security review",
+    "test-unit": "ran unit tests",
+    "test-e2e": "ran end to end tests",
+    "drift-check": "checked for contract drift",
+    "cross-repo-merge": "coordinated the cross repo merge",
+    "version-tag": "tagged the versions",
+    "changelog": "generated the changelog",
+    "api-contract": "updated the API contract",
+    "db-provision": "provisioned the database",
+    "db-migrate": "ran the migrations",
+    "api-compatibility": "checked API compatibility",
+  };
+  return map[skill] ?? `ran ${skill}`;
+}
+
 function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
   const plan = planFor(cfg, id); // may throw before headers are sent
   res.writeHead(200, {
@@ -135,18 +171,33 @@ function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
   });
   res.write(`event: feature\ndata: ${JSON.stringify({ id: plan.feature.id, title: plan.feature.title, order: plan.order })}\n\n`);
 
-  let i = 0;
-  const tick = () => {
-    if (i >= plan.tasks.length) {
+  let ti = 0;
+  const runTask = () => {
+    if (ti >= plan.tasks.length) {
       res.write("event: done\ndata: {}\n\n");
       res.end();
       return;
     }
-    const task = plan.tasks[i++];
-    res.write(`event: task\ndata: ${JSON.stringify({ index: i, task, text: describe(task) })}\n\n`);
-    setTimeout(tick, 350);
+    const task = plan.tasks[ti];
+    const index = ti + 1;
+    const who = task.scope === "service" ? (task.service ?? "service") : "supervisor";
+    res.write(`event: task\ndata: ${JSON.stringify({ index, task, text: describe(task) })}\n\n`);
+
+    let si = 0;
+    const runSkill = () => {
+      if (si >= task.skills.length) {
+        ti++;
+        setTimeout(runTask, 140);
+        return;
+      }
+      const skill = task.skills[si++];
+      const entry = { index, stage: task.stage, who, agent: task.agent, model: task.model, skill, action: actionFor(skill) };
+      res.write(`event: log\ndata: ${JSON.stringify(entry)}\n\n`);
+      setTimeout(runSkill, 170);
+    };
+    setTimeout(runSkill, 120);
   };
-  tick();
+  runTask();
 }
 
 /** Builds the Garry HTTP server (REST plus SSE) over the supervisor. */

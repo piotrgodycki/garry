@@ -1,8 +1,15 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import styles from "../panel.module.css";
-import ModelChip from "../ModelChip";
+import { tierOf } from "../ModelChip";
 import { apiBase } from "../lib/api";
+
+const TIER_COLOR: Record<string, string> = {
+  opus: "#7c3aed",
+  sonnet: "#0ea5e9",
+  haiku: "#16a34a",
+  fable: "#db2777",
+};
 
 interface Route {
   agent: string;
@@ -71,10 +78,10 @@ export default function Routing() {
               <td>{stage}</td>
               <td>{r.agent}</td>
               <td>
-                <div className={styles.modelCell}>
-                  <ModelChip id={r.model} label={models.find((m) => m.id === r.model)?.label ?? r.model} />
+                <label className={styles.modelCell}>
+                  <span className={styles.tierDot} style={{ background: TIER_COLOR[tierOf(r.model)] }} />
                   <select
-                    className={styles.select}
+                    className={styles.modelSelect}
                     value={r.model}
                     onChange={(e) => change(stage, e.target.value)}
                     aria-label={`model for ${stage}`}
@@ -83,7 +90,7 @@ export default function Routing() {
                       <option key={m.id} value={m.id}>{m.label}</option>
                     ))}
                   </select>
-                </div>
+                </label>
               </td>
             </tr>
           ))}
