@@ -117,36 +117,45 @@
   overflow: visible;
   pointer-events: none;
 }
-.link {
-  stroke: var(--border-strong);
+/* curved spokes from the hub to each service */
+.spoke {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
   stroke-width: 1.5;
   transition: stroke 0.3s, stroke-width 0.3s;
 }
-/* a flowing beam of light travels from the core to the active service */
-.linkActive {
-  stroke: var(--color-brand-secondary);
+.spokeActive {
+  stroke: color-mix(in srgb, var(--color-brand-secondary) 70%, transparent);
   stroke-width: 2.5;
-  stroke-dasharray: 5 10;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-brand-secondary) 70%, transparent));
-  animation: flow 0.7s linear infinite;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-brand-secondary) 55%, transparent));
 }
-/* inter service communication edges */
-.edge {
-  stroke: var(--border);
-  stroke-width: 1.5;
-  stroke-dasharray: 4 5;
-  transition: stroke 0.3s;
+.spokeDone {
+  stroke: color-mix(in srgb, var(--ok) 30%, transparent);
 }
-.edgeHot {
-  stroke: var(--color-brand-primary);
-  stroke-width: 2;
-  stroke-dasharray: 5 8;
-  animation: flow 0.9s linear infinite;
+
+/* flowing pulses that travel along the spokes */
+.pulse {
+  fill: var(--color-brand-primary);
+  opacity: 0.4;
 }
-@keyframes flow {
-  to {
-    stroke-dashoffset: -30;
-  }
+.pulseActive {
+  fill: var(--color-brand-secondary);
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--color-brand-secondary));
+}
+
+/* inter service communication arcs (only shown while active) */
+.edgePath {
+  fill: none;
+  stroke: color-mix(in srgb, var(--color-brand-primary) 40%, transparent);
+  stroke-width: 1.8;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+.pulseEdge {
+  fill: var(--color-brand-primary);
+  opacity: 0.9;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-brand-primary) 60%, transparent));
 }
 
 /* voice orb: a central core ringed by a radial audio equalizer */

@@ -30,6 +30,18 @@ interface Model {
 const C = 280; // stage center in viewBox units
 const R = 200; // orbit radius
 
+/** A gentle curved path between two points (quadratic bezier arced to one side). */
+function curve(x1: number, y1: number, x2: number, y2: number, bend = 0.1): string {
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  const cx = mx + (-dy / len) * len * bend;
+  const cy = my + (dx / len) * len * bend;
+  return `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+}
+
 export default function AgentView() {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selected, setSelected] = useState("");
@@ -166,31 +178,39 @@ export default function AgentView() {
 
       <div className={styles.stage}>
         <svg className={styles.links} viewBox="0 0 560 560" aria-hidden="true">
-          {/* inter service communication edges from the consumes contract */}
+          {/* inter service communication arcs, only while a related service is active */}
           {edges.map((e) => {
             const hot = serviceStatus(e.from) === "active" || serviceStatus(e.to) === "active";
+            if (!hot) return null;
+            const id = `e-${e.from}-${e.to}`;
+            const d = curve(e.x1, e.y1, e.x2, e.y2, 0.16);
             return (
-              <line
-                key={`${e.from}-${e.to}`}
-                x1={e.x1}
-                y1={e.y1}
-                x2={e.x2}
-                y2={e.y2}
-                className={`${styles.edge} ${hot ? styles.edgeHot : ""}`}
-              />
+              <g key={id}>
+                <path id={id} d={d} className={styles.edgePath} />
+                <circle r={3.2} className={styles.pulseEdge}>
+                  <animateMotion dur="1.1s" repeatCount="indefinite">
+                    <mpath href={`#${id}`} />
+                  </animateMotion>
+                </circle>
+              </g>
             );
           })}
-          {/* spokes from Garry in the center to each service */}
-          {nodes.map((nd) => (
-            <line
-              key={nd.svc}
-              x1={C}
-              y1={C}
-              x2={nd.x}
-              y2={nd.y}
-              className={`${styles.link} ${serviceStatus(nd.svc) === "active" ? styles.linkActive : ""}`}
-            />
-          ))}
+          {/* spokes from the hub to each service, each carrying a flowing pulse */}
+          {nodes.map((nd) => {
+            const st = serviceStatus(nd.svc);
+            const id = `s-${nd.svc}`;
+            const d = curve(C, C, nd.x, nd.y, 0.08);
+            return (
+              <g key={id}>
+                <path id={id} d={d} className={`${styles.spoke} ${st === "active" ? styles.spokeActive : ""} ${st === "done" ? styles.spokeDone : ""}`} />
+                <circle r={st === "active" ? 4 : 2.4} className={`${styles.pulse} ${st === "active" ? styles.pulseActive : ""}`}>
+                  <animateMotion dur={st === "active" ? "1s" : "3.2s"} repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+                    <mpath href={`#${id}`} />
+                  </animateMotion>
+                </circle>
+              </g>
+            );
+          })}
           {/* progress ring around the hub */}
           <circle cx={C} cy={C} r={RING_R} className={styles.ringTrack} />
           <circle
