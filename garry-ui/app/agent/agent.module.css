@@ -1,0 +1,187 @@
+.wrap {
+  min-height: calc(100vh - 56px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  background:
+    radial-gradient(1200px 600px at 50% 40%, color-mix(in srgb, var(--color-brand-primary) 7%, transparent), transparent 70%),
+    var(--surface-2);
+}
+
+.pick {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+.pick select {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+/* the stage holds the center orb and the orbiting nodes */
+.stage {
+  position: relative;
+  width: 560px;
+  height: 560px;
+  max-width: 92vw;
+  max-height: 92vw;
+}
+
+.links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.link {
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+  transition: stroke 0.3s, stroke-width 0.3s;
+}
+.linkActive {
+  stroke: var(--color-brand-secondary);
+  stroke-width: 2.5;
+}
+
+/* center orb */
+.core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+.core img {
+  width: 92px;
+  height: auto;
+}
+.core.busy {
+  border-color: var(--color-brand-secondary);
+}
+
+/* animated rings around the core while the agent is busy */
+.ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  border: 2px solid var(--color-brand-secondary);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  z-index: 1;
+}
+.busy .ring {
+  animation: ripple 2.4s ease-out infinite;
+}
+.ring2 {
+  animation-delay: 0.8s !important;
+}
+.ring3 {
+  animation-delay: 1.6s !important;
+}
+@keyframes ripple {
+  0% {
+    width: 150px;
+    height: 150px;
+    opacity: 0.5;
+  }
+  100% {
+    width: 420px;
+    height: 420px;
+    opacity: 0;
+  }
+}
+
+/* orbiting service nodes */
+.node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 118px;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  text-align: center;
+  z-index: 3;
+}
+.bubble {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: transform 0.25s, border-color 0.25s, color 0.25s, box-shadow 0.25s;
+}
+.node.active .bubble {
+  border-color: var(--color-brand-secondary);
+  color: var(--color-brand-primary);
+  transform: scale(1.14);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-brand-secondary) 18%, transparent);
+}
+.node.done .bubble {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.svc {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-default);
+}
+.stageLabel {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  min-height: 14px;
+}
+
+/* status readout under the stage */
+.readout {
+  text-align: center;
+  display: grid;
+  gap: 4px;
+}
+.action {
+  font-size: 18px;
+  font-weight: 600;
+}
+.action .em {
+  color: var(--color-brand-primary);
+}
+.sub {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.idle {
+  color: var(--color-text-muted);
+}
+.replay {
+  font: inherit;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  cursor: pointer;
+}
+.replay:hover {
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+}
