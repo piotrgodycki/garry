@@ -4,7 +4,6 @@ import Link from "next/link";
 import styles from "./agent.module.css";
 import ModelChip from "../ModelChip";
 import Waveform from "../Waveform";
-import VoiceAgent from "../VoiceAgent";
 import { apiBase } from "../lib/api";
 
 interface Task {
@@ -62,8 +61,8 @@ export default function AgentView() {
   const [done, setDone] = useState(0);
   const [finished, setFinished] = useState(false);
   const [runKey, setRunKey] = useState(0);
-  const [voiceOpen, setVoiceOpen] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [taskLog, setTaskLog] = useState<{ index: number; stage: string; who: string; agent: string; model: string }[]>([]);
 
   useEffect(() => {
     fetch(`${apiBase}/api/features`)
@@ -107,11 +106,14 @@ export default function AgentView() {
     setDone(0);
     setFinished(false);
     setLogs([]);
+    setTaskLog([]);
     const es = new EventSource(`${apiBase}/api/features/${selected}/stream`);
     es.addEventListener("task", (e) => {
-      const d = JSON.parse((e as MessageEvent).data) as { index: number };
+      const d = JSON.parse((e as MessageEvent).data) as { index: number; task: Task };
       setCurrent(d.index);
       setDone(d.index - 1);
+      const who = d.task.scope === "service" ? d.task.service ?? "service" : "supervisor";
+      setTaskLog((prev) => [...prev, { index: d.index, stage: d.task.stage, who, agent: d.task.agent, model: d.task.model }]);
     });
     es.addEventListener("log", (e) => {
       const d = JSON.parse((e as MessageEvent).data) as LogEntry;
@@ -127,6 +129,12 @@ export default function AgentView() {
     return () => es.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, runKey, plan !== null]);
+
+  // the latest detailed (per skill) action for a service, shown on its own node
+  const lastAction = (svc: string): string | null => {
+    for (let i = logs.length - 1; i >= 0; i--) if (logs[i].who === svc) return logs[i].action;
+    return null;
+  };
 
   const logRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -273,14 +281,14 @@ export default function AgentView() {
           </div>
           <button
             className={`${styles.core} ${busy ? styles.busy : ""}`}
-            onClick={() => setVoiceOpen(true)}
-            title="talk to Garry"
+            onClick={() => window.dispatchEvent(new Event("garry:voice"))}
+            title="talk to Garry (Cmd/Ctrl+K)"
             aria-label="talk to Garry"
           >
             <div className={styles.coreWave}>
               <Waveform bars={11} active={busy} />
             </div>
-            <span className={styles.coreHint}>talk</span>
+            <span className={styles.coreHint}>talk · ⌘K</span>
           </button>
         </div>
 
@@ -301,7 +309,9 @@ export default function AgentView() {
                 <span className={`${styles.statusDot} ${styles[`dot_${st}`]}`} />
               </div>
               <span className={styles.svc}>{nd.svc}</span>
-              <span className={styles.stageLabel}>{st === "active" ? (task?.stage ?? "") : st === "done" ? "done" : "waiting"}</span>
+              <span className={styles.stageLabel}>
+                {st === "active" ? (lastAction(nd.svc) ?? task?.stage ?? "") : st === "done" ? "done" : "waiting"}
+              </span>
               <div className={styles.tags}>
                 <span className={styles.role}>{rm.role}</span>
                 <ModelChip id={rm.modelId} label={rm.model} />
@@ -344,25 +354,29 @@ export default function AgentView() {
       <div className={styles.logPanel}>
         <div className={styles.logHead}>
           <span>agent work log</span>
-          <span className={styles.logCount}>{logs.length}</span>
+          <span className={styles.logCount}>{taskLog.length} / {total}</span>
         </div>
         <div className={styles.logBody} ref={logRef}>
-          {logs.length === 0 ? (
-            <div className={styles.logEmpty}>run a feature to see the agent work log</div>
+          {taskLog.length === 0 ? (
+            <div className={styles.logEmpty}>run a feature to see the high level work log</div>
           ) : (
-            logs.map((l, i) => (
-              <div key={i} className={styles.logRow}>
-                <span className={styles.logStage}>{l.stage}</span>
-                <span className={styles.logWho}>{l.who}</span>
-                <span className={styles.logAction}>{l.action}</span>
-                <span className={styles.logSkill}>{l.skill}</span>
-              </div>
-            ))
+            taskLog.map((l) => {
+              const detail = logs.filter((x) => x.index === l.index).length;
+              const live = current === l.index;
+              return (
+                <div key={l.index} className={`${styles.logRow} ${live ? styles.logRowLive : ""}`}>
+                  <span className={`dot ${live ? "run" : "ok"}`} />
+                  <span className={styles.logStage}>{l.stage}</span>
+                  <span className={styles.logWho}>{l.who}</span>
+                  <span className={styles.logAction}>{l.agent} · {models[l.model] ?? l.model}</span>
+                  <span className={styles.logSkill}>{detail} steps</span>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
 
-      <VoiceAgent open={voiceOpen} onClose={() => setVoiceOpen(false)} />
     </div>
   );
 }

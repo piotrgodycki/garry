@@ -2,6 +2,8 @@ import "./globals.css";
 import type { ReactNode } from "react";
 import Nav from "./Nav";
 import ThemeToggle from "./ThemeToggle";
+import VoiceDock from "./VoiceDock";
+import TalkButton from "./TalkButton";
 
 export const metadata = {
   title: "Garry",
@@ -26,11 +28,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </div>
             <Nav />
             <div className="sidebarFoot">
+              <TalkButton />
               <ThemeToggle />
             </div>
           </aside>
           <div className="content">{children}</div>
         </div>
+        <VoiceDock />
       </body>
     </html>
   );

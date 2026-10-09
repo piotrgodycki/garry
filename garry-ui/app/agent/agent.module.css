@@ -354,8 +354,11 @@
 .stageLabel {
   font-size: 11px;
   font-weight: 600;
-  text-transform: capitalize;
   color: var(--color-text-muted);
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .node.active .stageLabel {
   color: var(--color-brand-secondary);
@@ -566,15 +569,18 @@
 }
 .logRow {
   display: grid;
-  grid-template-columns: 92px 120px 1fr auto;
+  grid-template-columns: 12px 88px 120px 1fr auto;
   gap: var(--space-sm);
-  align-items: baseline;
-  padding: 5px var(--space-md);
+  align-items: center;
+  padding: 6px var(--space-md);
   font-size: 13px;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
 }
 .logRow:last-child {
   border-bottom: none;
+}
+.logRowLive {
+  background: color-mix(in srgb, var(--color-brand-secondary) 7%, transparent);
 }
 .logStage {
   font-size: 11px;

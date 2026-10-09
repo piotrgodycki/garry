@@ -190,6 +190,38 @@ h2 {
 .sidebarFoot {
   margin-top: auto;
   padding: 0 var(--space-sm);
+  display: grid;
+  gap: var(--space-sm);
+}
+.talkButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-secondary));
+  color: #ffffff;
+  cursor: pointer;
+}
+.talkButton:hover {
+  filter: brightness(1.06);
+}
+.talkButton svg {
+  width: 16px;
+  height: 16px;
+}
+.talkButton .kbd {
+  margin-left: auto;
+  font-size: 11px;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 5px;
+  padding: 1px 6px;
 }
 .themeToggle {
   width: 100%;
