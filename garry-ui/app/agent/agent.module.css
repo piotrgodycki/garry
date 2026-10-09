@@ -1,5 +1,5 @@
 .wrap {
-  min-height: calc(100vh - 56px);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -112,45 +112,79 @@
 .node {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 118px;
+  width: 132px;
   display: grid;
-  gap: 4px;
+  gap: 5px;
   justify-items: center;
   text-align: center;
   z-index: 3;
 }
 .bubble {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 2px solid var(--border);
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--surface), var(--surface-3));
+  border: 1.5px solid var(--border);
   box-shadow: var(--shadow-sm);
   display: grid;
   place-items: center;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 700;
+  font-size: 15px;
   color: var(--color-text-muted);
-  transition: transform 0.25s, border-color 0.25s, color 0.25s, box-shadow 0.25s;
+  letter-spacing: 0.02em;
+}
+.node:hover .bubble {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 .node.active .bubble {
   border-color: var(--color-brand-secondary);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-brand-secondary) 14%, white), white);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-brand-secondary) 16%, transparent), var(--shadow-md);
+}
+.node.active .mono {
   color: var(--color-brand-primary);
-  transform: scale(1.14);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-brand-secondary) 18%, transparent);
 }
 .node.done .bubble {
   border-color: var(--ok);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--ok) 12%, white), white);
+}
+.node.done .mono {
   color: var(--ok);
 }
 .svc {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-default);
 }
 .stageLabel {
   font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--color-brand-secondary);
+}
+.tags {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+.role {
+  font-size: 10px;
   color: var(--color-text-muted);
-  min-height: 14px;
+}
+.modelTag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-brand-primary) 10%, white);
+  color: var(--color-brand-primary);
 }
 
 /* status readout under the stage */

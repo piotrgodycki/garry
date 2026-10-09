@@ -57,40 +57,65 @@ h2 {
   letter-spacing: 0.04em;
 }
 
-/* header */
-.hdr {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-  padding: var(--space-sm) var(--space-lg);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+/* app shell with a left sidebar */
+.shell {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  min-height: 100vh;
+}
+.sidebar {
   position: sticky;
   top: 0;
-  z-index: 10;
+  align-self: start;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-md);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.content {
+  min-width: 0;
+}
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 var(--space-sm);
 }
 .logo {
-  height: 30px;
+  height: 32px;
   width: auto;
   display: block;
 }
+.brandSub {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
 .nav {
   display: flex;
-  gap: var(--space-md);
+  flex-direction: column;
+  gap: 2px;
   font-size: 14px;
 }
 .nav a {
   color: var(--color-text-muted);
-  padding: 4px 2px;
-  border-bottom: 2px solid transparent;
+  padding: 8px var(--space-sm);
+  border-radius: var(--radius-md);
+  border-left: 3px solid transparent;
 }
 .nav a:hover {
   color: var(--color-brand-primary);
+  background: var(--surface-2);
   text-decoration: none;
 }
 .nav a.active {
   color: var(--color-brand-primary);
-  border-bottom-color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-primary) 9%, white);
+  border-left-color: var(--color-brand-primary);
+  font-weight: 600;
 }
 
 /* generic surfaces */

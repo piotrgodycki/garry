@@ -17,6 +17,12 @@ interface Pr {
   live: boolean;
 }
 
+function checkDot(checks: string): string {
+  if (checks === "passing") return "ok";
+  if (checks === "failing") return "run";
+  return "wait";
+}
+
 export default function Prs() {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selected, setSelected] = useState<string>("");
@@ -46,7 +52,11 @@ export default function Prs() {
 
   return (
     <main className={styles.main}>
-      <h1>Pull requests</h1>
+      <h1 className={styles.title}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/github.svg" alt="" width={22} height={22} />
+        Pull requests
+      </h1>
       <div className={styles.picker}>
         <select value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="feature">
           {features.map((f) => (
@@ -57,27 +67,50 @@ export default function Prs() {
         </select>
       </div>
 
-      <div className={styles.board}>
-        {prs?.map((pr) => (
-          <div key={pr.service} className={`card ${styles.pr}`}>
-            <div className={styles.prTop}>
-              <span className={styles.svc}>{pr.service}</span>
-              <span className={`${styles.badge} ${styles.draft}`}>{pr.state}</span>
-            </div>
-            <span className={styles.branch}>{pr.branch}</span>
-            <span className={styles.repo}>{pr.repo}</span>
-            <div className={styles.state}>
-              <span className="dot wait" />
-              <span className={styles.checks}>checks: {pr.checks}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      <table className={`card ${styles.table}`}>
+        <thead>
+          <tr>
+            <th></th>
+            <th>service</th>
+            <th>branch</th>
+            <th>state</th>
+            <th>checks</th>
+            <th>repo</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {prs?.map((pr) => (
+            <tr key={pr.service}>
+              <td>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/github.svg" alt="" width={16} height={16} />
+              </td>
+              <td className={styles.svc}>{pr.service}</td>
+              <td className={styles.branch}>{pr.branch}</td>
+              <td>
+                <span className={`${styles.badge} ${styles.draft}`}>{pr.state}</span>
+              </td>
+              <td>
+                <span className={`dot ${checkDot(pr.checks)}`} />
+                {pr.checks}
+              </td>
+              <td className={styles.repo}>{pr.repo}</td>
+              <td>
+                {pr.url ? (
+                  <a href={pr.url} target="_blank" rel="noreferrer">open</a>
+                ) : (
+                  <span className={styles.muted}>n/a</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <p className={styles.note}>
-        These are the pull requests Garry will open for this feature, one per service on branch{" "}
-        <code>feat/{selected}</code>. Live GitHub status (open or merged, real check results) is wired
-        in phase 6 with the narrow token.
+        One pull request per service on branch <code>feat/{selected}</code>. Live GitHub status
+        (open or merged, real check results) is wired in phase 6 with the narrow token.
       </p>
     </main>
   );

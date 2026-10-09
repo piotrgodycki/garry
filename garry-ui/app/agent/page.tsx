@@ -19,6 +19,10 @@ interface Feature {
   id: string;
   title: string;
 }
+interface Model {
+  id: string;
+  label: string;
+}
 
 const C = 280; // stage center in viewBox units
 const R = 200; // orbit radius
@@ -27,6 +31,7 @@ export default function AgentView() {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selected, setSelected] = useState("");
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [models, setModels] = useState<Record<string, string>>({});
   const [current, setCurrent] = useState<number | null>(null);
   const [done, setDone] = useState(0);
   const [finished, setFinished] = useState(false);
@@ -40,6 +45,10 @@ export default function AgentView() {
         setFeatures(fs);
         if (fs[0]) setSelected(fs[0].id);
       })
+      .catch(() => undefined);
+    fetch(`${apiBase}/api/models`)
+      .then((r) => r.json())
+      .then((d) => setModels(Object.fromEntries(((d.models as Model[]) ?? []).map((m) => [m.id, m.label]))))
       .catch(() => undefined);
   }, []);
 
@@ -97,6 +106,17 @@ export default function AgentView() {
     return "idle";
   };
 
+  // The role (agent) and model a service uses right now: the live task when the
+  // service is active, otherwise the baseline from its first service stage.
+  const roleModel = (svc: string): { role: string; model: string } => {
+    if (task?.scope === "service" && task.service === svc) {
+      return { role: task.agent, model: models[task.model] ?? task.model };
+    }
+    const svcTasks = plan?.tasks.filter((t) => t.scope === "service" && t.service === svc) ?? [];
+    const first = svcTasks[0];
+    return { role: first?.agent ?? "", model: first ? models[first.model] ?? first.model : "" };
+  };
+
   return (
     <div className={styles.wrap}>
       <div className={styles.pick}>
@@ -132,16 +152,22 @@ export default function AgentView() {
 
         {nodes.map((nd) => {
           const st = serviceStatus(nd.svc);
-          const label = st === "active" ? task?.stage ?? "" : "";
+          const rm = roleModel(nd.svc);
           return (
             <div
               key={nd.svc}
               className={`${styles.node} ${st === "active" ? styles.active : ""} ${st === "done" ? styles.done : ""}`}
               style={{ left: `${nd.left}%`, top: `${nd.top}%` }}
             >
-              <div className={styles.bubble}>{nd.svc.slice(0, 2).toUpperCase()}</div>
+              <div className={styles.bubble}>
+                <span className={styles.mono}>{nd.svc.slice(0, 2).toUpperCase()}</span>
+              </div>
               <span className={styles.svc}>{nd.svc}</span>
-              <span className={styles.stageLabel}>{label}</span>
+              {st === "active" && <span className={styles.stageLabel}>{task?.stage}</span>}
+              <div className={styles.tags}>
+                <span className={styles.role}>{rm.role}</span>
+                <span className={styles.modelTag}>{rm.model}</span>
+              </div>
             </div>
           );
         })}

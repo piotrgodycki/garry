@@ -11,12 +11,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <header className="hdr">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="logo" src="/garry-logo.svg" alt="Garry" height={30} />
-          <Nav />
-        </header>
-        {children}
+        <div className="shell">
+          <aside className="sidebar">
+            <div className="brand">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img className="logo" src="/garry-logo.svg" alt="Garry" />
+              <span className="brandSub">AI SDLC orchestrator</span>
+            </div>
+            <Nav />
+          </aside>
+          <div className="content">{children}</div>
+        </div>
       </body>
     </html>
   );
