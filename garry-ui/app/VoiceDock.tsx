@@ -20,6 +20,8 @@ export default function VoiceDock() {
   const recRef = useRef<{ stop: () => void } | null>(null);
   const heardRef = useRef("");
   const feedRef = useRef<HTMLDivElement>(null);
+  const pttRef = useRef(false);
+  const startRef = useRef<() => void>(() => {});
 
   const supported =
     typeof window !== "undefined" &&
@@ -104,6 +106,37 @@ export default function VoiceDock() {
     rec.start();
   };
 
+  startRef.current = startListening;
+
+  // Push to talk: hold Space (dock open, not typing) to record; release to send.
+  useEffect(() => {
+    if (!open || !supported) return;
+    const typing = () => {
+      const el = document.activeElement as HTMLElement | null;
+      return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
+    };
+    const down = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !e.repeat && !pttRef.current && !typing()) {
+        e.preventDefault();
+        pttRef.current = true;
+        startRef.current();
+      }
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.code === "Space" && pttRef.current) {
+        e.preventDefault();
+        pttRef.current = false;
+        recRef.current?.stop();
+      }
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, [open, supported]);
+
   const onMic = () => (state === "listening" ? recRef.current?.stop() : startListening());
   const onType = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,6 +164,11 @@ export default function VoiceDock() {
         <div className={styles.state}>
           {state === "listening" ? "listening" : state === "speaking" ? "speaking" : supported ? "tap the mic or type" : "type a request"}
         </div>
+        {supported && (
+          <div className={styles.ptt}>
+            hold <kbd className={styles.kbd}>Space</kbd> to talk
+          </div>
+        )}
       </div>
 
       <div className={styles.feed} ref={feedRef}>
