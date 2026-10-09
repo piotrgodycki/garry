@@ -259,6 +259,27 @@
   place-items: center;
   z-index: 3;
   animation: breathe 4.5s ease-in-out infinite;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.coreHint {
+  position: absolute;
+  bottom: 30px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.core:hover .coreHint {
+  opacity: 1;
+}
+.core:hover .coreWave {
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--color-brand-secondary) 50%, transparent));
 }
 @keyframes breathe {
   0%,

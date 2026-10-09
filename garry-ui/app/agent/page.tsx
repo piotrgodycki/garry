@@ -4,6 +4,7 @@ import Link from "next/link";
 import styles from "./agent.module.css";
 import ModelChip from "../ModelChip";
 import Waveform from "../Waveform";
+import VoiceAgent from "../VoiceAgent";
 import { apiBase } from "../lib/api";
 
 interface Task {
@@ -52,6 +53,7 @@ export default function AgentView() {
   const [done, setDone] = useState(0);
   const [finished, setFinished] = useState(false);
   const [runKey, setRunKey] = useState(0);
+  const [voiceOpen, setVoiceOpen] = useState(false);
 
   useEffect(() => {
     fetch(`${apiBase}/api/features`)
@@ -235,11 +237,17 @@ export default function AgentView() {
               );
             })}
           </div>
-          <div className={`${styles.core} ${busy ? styles.busy : ""}`}>
+          <button
+            className={`${styles.core} ${busy ? styles.busy : ""}`}
+            onClick={() => setVoiceOpen(true)}
+            title="talk to Garry"
+            aria-label="talk to Garry"
+          >
             <div className={styles.coreWave}>
               <Waveform bars={11} active={busy} />
             </div>
-          </div>
+            <span className={styles.coreHint}>talk</span>
+          </button>
         </div>
 
         {nodes.map((nd) => {
@@ -298,6 +306,8 @@ export default function AgentView() {
         </div>
         <button className={styles.replay} onClick={() => setRunKey((k) => k + 1)}>replay</button>
       </div>
+
+      <VoiceAgent open={voiceOpen} onClose={() => setVoiceOpen(false)} />
     </div>
   );
 }
