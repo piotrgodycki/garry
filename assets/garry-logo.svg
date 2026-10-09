@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="324" height="88" viewBox="0 0 324 88" role="img" aria-label="Garry logo">
-<rect width="324" height="88" rx="12" fill="#ffffff"/>
+<rect width="324" height="88" rx="24" fill="#ffffff"/>
 <g transform="translate(8 8)">
 <ellipse cx="88.5" cy="47" rx="6.5" ry="11" fill="#000000" stroke="#363636" stroke-width="1" transform="rotate(25 88.5 47)"/>
 <ellipse cx="77.5" cy="53" rx="11.5" ry="11" fill="#000000" stroke="#363636" stroke-width="1"/>
