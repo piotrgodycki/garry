@@ -31,3 +31,18 @@
   font-size: 13px;
   margin-top: var(--space-md);
 }
+.modelCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+.select {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--color-text-default);
+  cursor: pointer;
+}

@@ -30,7 +30,7 @@ const LINKS: { href: string; label: string; icon: ReactNode }[] = [
   { href: "/registry", label: "Registry", icon: I.registry },
   { href: "/skills", label: "Skills", icon: I.skills },
   { href: "/routing", label: "Routing", icon: I.routing },
-  { href: "/github", label: "PRs", icon: I.prs },
+  { href: "/github", label: "Pull Requests", icon: I.prs },
 ];
 
 export default function Nav() {

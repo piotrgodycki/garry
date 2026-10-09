@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { buildPlan, listFeatures, loadFeature } from "../orchestrate/plan.js";
 import { loadSkills } from "../orchestrate/skillsManifest.js";
@@ -146,6 +146,24 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     res.writeHead(204, CORS);
     res.end();
     return;
+  }
+
+  // POST a routing change: set the model for a stage (the agent stays)
+  if (req.method === "POST" && path === "/api/routing") {
+    const body = (await readBody(req)) as { stage?: string; model?: string };
+    if (!body.stage || !body.model) return json(res, 400, { error: "stage and model are required" });
+    if (!isKnownModel(body.model)) return json(res, 400, { error: `unknown model: ${body.model}` });
+    const routing = existsSync(cfg.routing)
+      ? (JSON.parse(readFileSync(cfg.routing, "utf8")) as {
+          defaults?: { agent: string; model: string };
+          stages?: Record<string, { agent: string; model: string }>;
+        })
+      : { defaults: { agent: "garry-dev", model: body.model }, stages: {} };
+    routing.stages = routing.stages ?? {};
+    const agent = routing.stages[body.stage]?.agent ?? routing.defaults?.agent ?? "garry-dev";
+    routing.stages[body.stage] = { agent, model: body.model };
+    writeFileSync(cfg.routing, JSON.stringify(routing, null, 2) + "\n");
+    return json(res, 200, routing);
   }
 
   // POST per service model override
