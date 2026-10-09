@@ -53,16 +53,17 @@ on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
 | `pnpm ui` | UI only, on :3000 (needs the server) |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
-| `pnpm --filter garry-registry validate` | validate the sample registry |
-| `pnpm --filter garry-skills validate` | validate the skills manifest |
+| `pnpm -C garry-registry validate` | validate the sample registry |
+| `pnpm -C garry-skills validate` | validate the skills manifest |
 
 ## Continuous integration
 
 CI lives in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) and runs on
 every push and pull request. It has three jobs:
 
-- `validate`: `pnpm install --frozen-lockfile`, then `pnpm -r typecheck` for the tool
-  packages and `pnpm --filter garry-registry validate` plus `pnpm --filter garry-skills validate`.
+- `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the
+  tool packages and `pnpm -C garry-registry` validation of the mfe and backend samples
+  plus `pnpm -C garry-skills validate`.
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash,
   en dash, figure dash or horizontal bar appears in tracked text files.
 - `security`: the security review. It runs `pnpm audit` (fails on a high or critical

@@ -24,11 +24,16 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Typecheck (tool packages)
-        run: pnpm --filter garry-registry --filter garry-skills --filter garry-tool run typecheck
-      - name: Validate registry
-        run: pnpm --filter garry-registry run validate
+        run: |
+          pnpm -C garry-registry typecheck
+          pnpm -C garry-skills typecheck
+          pnpm -C garry-tool typecheck
+      - name: Validate registry (mfe and backend samples)
+        run: |
+          pnpm -C garry-registry exec tsx src/cli.ts examples/registry-sample
+          pnpm -C garry-registry exec tsx src/cli.ts examples/backend-sample
       - name: Validate skills
-        run: pnpm --filter garry-skills run validate
+        run: pnpm -C garry-skills validate
 
   dash-guard:
     name: dash guard

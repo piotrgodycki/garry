@@ -1,0 +1,12 @@
+{
+  "payments-api": {
+    "kind": "openapi",
+    "baseUrl": "https://payments.internal.example.com",
+    "operations": ["POST /charges", "GET /charges/{id}"]
+  },
+  "orders-api": {
+    "kind": "openapi",
+    "baseUrl": "https://orders.internal.example.com",
+    "operations": ["POST /orders", "GET /orders/{id}"]
+  }
+}

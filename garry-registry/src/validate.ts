@@ -7,7 +7,9 @@ import {
   SharedDepsContractSchema,
   DesignTokensContractSchema,
   EventsContractSchema,
+  ApiContractSchema,
   type ServiceManifest,
+  type ApiContract,
 } from "./schema.js";
 import type { ZodSchema } from "zod";
 
@@ -87,6 +89,21 @@ export function validateRegistry(root: string): ValidationIssue[] {
   loadJson("design-tokens.json", DesignTokensContractSchema);
   const events = loadJson("events.json", EventsContractSchema);
 
+  // api.json is optional (only backend registries have it). Validate it if present.
+  let api: ApiContract | null = null;
+  const apiPath = join(contractsDir, "api.json");
+  if (existsSync(apiPath)) {
+    let raw: unknown;
+    try {
+      raw = JSON.parse(readFileSync(apiPath, "utf8"));
+      const r = ApiContractSchema.safeParse(raw);
+      if (!r.success) err("contracts/api.json", zodMsg(r.error));
+      else api = r.data;
+    } catch (e) {
+      err("contracts/api.json", `invalid JSON: ${(e as Error).message}`);
+    }
+  }
+
   // cross service consistency
   for (const [name, svc] of Object.entries(services)) {
     for (const [dep, modules] of Object.entries(svc.consumes)) {
@@ -125,6 +142,18 @@ export function validateRegistry(root: string): ValidationIssue[] {
         if (!services[p])
           warn("contracts/events.json", `event ${ename} references an unknown service ${p}`);
       }
+    }
+  }
+
+  // Backend API contract: a declared api service should have a manifest, and a
+  // service that consumes an api target should consume a service that declares one.
+  if (api) {
+    for (const svc of Object.keys(api)) {
+      if (!services[svc]) warn("contracts/api.json", `api declares unknown service ${svc}`);
+    }
+    for (const [name, svc] of Object.entries(services)) {
+      if (svc.api && !api[name])
+        warn(`catalog/${name}`, `manifest declares an api but contracts/api.json has no entry for ${name}`);
     }
   }
 

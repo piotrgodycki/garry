@@ -1,0 +1,15 @@
+name: payments-api
+repo: git@github.com:example/payments-api.git
+stack: node + fastify + postgres
+kind: backend
+owner: team-payments
+exposes: ["POST /charges", "GET /charges/{id}"]
+consumes: {}
+api:
+  kind: openapi
+  path: openapi.yaml
+  version: "1.2.0"
+db:
+  engine: postgres
+  name: payments
+  migrations: db/migrations

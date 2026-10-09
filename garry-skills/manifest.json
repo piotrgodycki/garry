@@ -217,6 +217,41 @@
       "inputs": ["merged", "features/FEAT-x.md"],
       "outputs": ["changelog"],
       "dependsOn": ["cross-repo-merge"]
+    },
+    {
+      "name": "api-contract",
+      "stage": "design",
+      "path": "skills/design/api-contract",
+      "summary": "Updates the backend API contract (OpenAPI or AsyncAPI) in the registry.",
+      "inputs": ["impact-report"],
+      "outputs": ["contracts/api.json"],
+      "dependsOn": ["impact-analysis"]
+    },
+    {
+      "name": "db-provision",
+      "stage": "implement",
+      "path": "skills/implement/db-provision",
+      "summary": "Provisions a per service database from the manifest db config.",
+      "inputs": ["catalog"],
+      "outputs": ["database"]
+    },
+    {
+      "name": "db-migrate",
+      "stage": "implement",
+      "path": "skills/implement/db-migrate",
+      "summary": "Runs the per service database migrations.",
+      "inputs": ["database", "repo"],
+      "outputs": ["migrated"],
+      "dependsOn": ["db-provision"]
+    },
+    {
+      "name": "api-compatibility",
+      "stage": "test",
+      "path": "skills/test/api-compatibility",
+      "summary": "Checks the implementation against the API contract (backend drift).",
+      "inputs": ["repo", "contracts/api.json"],
+      "outputs": ["test-report"],
+      "dependsOn": ["api-contract"]
     }
   ]
 }

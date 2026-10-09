@@ -1,0 +1,12 @@
+{
+  "order:placed": {
+    "payload": { "orderId": "string", "total": "number" },
+    "producers": ["orders-api"],
+    "consumers": ["payments-api"]
+  },
+  "payment:settled": {
+    "payload": { "orderId": "string", "status": "string" },
+    "producers": ["payments-api"],
+    "consumers": ["orders-api"]
+  }
+}
