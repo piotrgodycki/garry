@@ -10,7 +10,8 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "validate": "tsx src/cli.ts --help",
-    "scaffold": "tsx src/cli.ts scaffold"
+    "scaffold": "tsx src/cli.ts scaffold",
+    "serve": "tsx src/cli.ts serve"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

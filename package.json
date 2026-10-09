@@ -1,0 +1,20 @@
+{
+  "name": "garry",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n server,ui -c blue,magenta \"pnpm serve\" \"pnpm ui\"",
+    "serve": "tsx garry-tool/src/cli.ts serve",
+    "ui": "pnpm --filter garry-ui dev",
+    "garry": "tsx garry-tool/src/cli.ts",
+    "scaffold": "tsx garry-tool/src/cli.ts scaffold",
+    "typecheck": "pnpm -r typecheck",
+    "dashcheck": "node scripts/check-no-emdash.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

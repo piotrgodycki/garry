@@ -315,11 +315,11 @@ The repository ships with CI, a mandatory security review and automated code rev
 
 ### CI workflow (`.github/workflows/ci.yml`)
 
-- `validate` (per package): `npm ci`, `npm run typecheck` and `npm run validate`.
+- `validate`: `pnpm install --frozen-lockfile`, then `pnpm -r typecheck` for the tool packages and `pnpm --filter garry-registry validate` plus `pnpm --filter garry-skills validate`.
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash, en dash, figure dash or horizontal bar is found in tracked text files, which enforces the plain ASCII punctuation rule automatically.
-- `security`: the security review as CI steps. It runs `npm audit` (fails on a high or critical advisory) for both packages and a Semgrep static analysis scan. The repository is private, so CodeQL and dependency review are not used (both need paid GitHub Advanced Security on a private repository); Semgrep runs entirely inside the job with no token.
+- `security`: the security review as CI steps. It runs `pnpm audit` (fails on a high or critical advisory) across the workspace and a Semgrep static analysis scan. The repository is private, so CodeQL and dependency review are not used (both need paid GitHub Advanced Security on a private repository); Semgrep runs entirely inside the job with no token.
 
-Dependabot version updates are off for now (removed to keep the single pre MVP branch quiet). `npm audit` still covers dependency vulnerabilities; grouped Dependabot returns when `main` and `develop` are split.
+Dependabot version updates are off for now (removed to keep the single pre MVP branch quiet). `pnpm audit` still covers dependency vulnerabilities; grouped Dependabot returns when `main` and `develop` are split.
 
 ### Branching
 

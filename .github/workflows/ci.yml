@@ -10,28 +10,25 @@ concurrency:
 
 jobs:
   validate:
-    name: validate (${{ matrix.package }})
+    name: validate
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        package: [garry-registry, garry-skills, garry-tool]
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: ${{ matrix.package }}/package-lock.json
+          cache: pnpm
       - name: Install
-        run: npm ci
-        working-directory: ${{ matrix.package }}
-      - name: Typecheck
-        run: npm run typecheck
-        working-directory: ${{ matrix.package }}
-      - name: Validate
-        run: npm run validate
-        working-directory: ${{ matrix.package }}
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck (tool packages)
+        run: pnpm --filter garry-registry --filter garry-skills --filter garry-tool run typecheck
+      - name: Validate registry
+        run: pnpm --filter garry-registry run validate
+      - name: Validate skills
+        run: pnpm --filter garry-skills run validate
 
   dash-guard:
     name: dash guard
@@ -49,15 +46,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: npm audit
-        run: |
-          for pkg in garry-registry garry-skills garry-tool; do
-            echo "== audit $pkg =="
-            (cd "$pkg" && npm audit --audit-level=high)
-          done
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Audit
+        run: pnpm audit --audit-level=high
       - name: Semgrep (SAST)
         run: |
           python3 -m pip install --quiet --disable-pip-version-check semgrep

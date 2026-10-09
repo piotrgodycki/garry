@@ -28,40 +28,45 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 |---|---|
 | `garry-registry` (`@garry/registry`) | Contract Registry: zod schemas and validation for cross service contracts |
 | `garry-skills` (`@garry/skills`) | atomic, reusable agent capabilities per SDLC stage |
+| `garry-tool` | the `garry` CLI plus the HTTP server (REST and SSE) |
+| `garry-ui` | Next.js dashboard that consumes the server |
 
-The packages are colocated here for now and will be split into separate
-repositories when they are published.
+The packages are a pnpm workspace, colocated for now and split into separate
+repositories when they are published. This repo uses **pnpm only**.
 
 ## Quick start
 
 ```bash
-cd garry-registry && npm ci && npm run validate
-cd ../garry-skills && npm ci && npm run validate
+pnpm install
+pnpm dev
 ```
 
-Expected output: `registry OK` for the sample registry, and the skills validator
-listing the planned skills as warnings (only `contract-validate` is built so far).
+`pnpm dev` starts the whole app: the server on http://localhost:8123 and the UI
+on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
 
-## Scripts
+## Commands
 
-Each package exposes the same scripts:
-
-| Script | What it does |
+| Command | What it does |
 |---|---|
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run validate` | runs the package validator over the sample data |
-| `npm run build` | compiles to `dist/` |
+| `pnpm dev` | start the server and the UI together |
+| `pnpm serve` | server only, on :8123 |
+| `pnpm ui` | UI only, on :3000 (needs the server) |
+| `pnpm scaffold` | the interactive scaffolding wizard |
+| `pnpm -r typecheck` | type check every package |
+| `pnpm --filter garry-registry validate` | validate the sample registry |
+| `pnpm --filter garry-skills validate` | validate the skills manifest |
 
 ## Continuous integration
 
 CI lives in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) and runs on
 every push and pull request. It has three jobs:
 
-- `validate` (one per package): `npm ci`, `npm run typecheck`, `npm run validate`.
+- `validate`: `pnpm install --frozen-lockfile`, then `pnpm -r typecheck` for the tool
+  packages and `pnpm --filter garry-registry validate` plus `pnpm --filter garry-skills validate`.
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash,
   en dash, figure dash or horizontal bar appears in tracked text files.
-- `security`: the security review. It runs `npm audit` (fails on a high or critical
-  advisory) for both packages and a Semgrep static analysis scan. The repository is
+- `security`: the security review. It runs `pnpm audit` (fails on a high or critical
+  advisory) across the workspace and a Semgrep static analysis scan. The repository is
   private, so CodeQL is not used (code scanning on a private repository needs paid
   GitHub Advanced Security); Semgrep runs fully inside the job and needs no token.
 
@@ -73,20 +78,18 @@ The pipeline is kept cheap on purpose:
   Windows cost 10x and 2x and are avoided).
 - Concurrency: `cancel-in-progress` stops superseded runs on the same ref, so a new
   push does not pay for a stale run.
-- Caching: npm is cached per package lockfile, so installs stay fast.
-- Node 22, a single version, so the matrix stays at two entries (one per package).
-- Rough cost per run: validate about 1 to 2 minutes per package, dash guard and
-  security under a minute each. A full run is a few minutes, which stays well inside
-  the GitHub Actions free tier (2000 minutes per month on a private repository,
-  unlimited on a public one).
-- Dependabot version updates are off for now (pre MVP); `npm audit` covers dependency
+- Caching: the pnpm store is cached, so installs stay fast.
+- Node 22 and pnpm 10, a single version each.
+- Rough cost per run: a few minutes total, which stays well inside the GitHub Actions
+  free tier (2000 minutes per month on a private repository, unlimited on a public one).
+- Dependabot version updates are off for now (pre MVP); `pnpm audit` covers dependency
   vulnerabilities, and grouped Dependabot returns when `main` and `develop` are split.
 
 ## Security
 
-- Security review runs in CI: `npm audit` plus a Semgrep SAST scan (the repository is private, so no CodeQL).
+- Security review runs in CI: `pnpm audit` plus a Semgrep SAST scan (the repository is private, so no CodeQL).
 - Dependabot version updates are off for now (removed to keep the single branch quiet
-  before the MVP). `npm audit` still guards dependency vulnerabilities.
+  before the MVP). `pnpm audit` still guards dependency vulnerabilities.
 - Secrets are never committed. Tokens live in `.env` only.
 - Before the MVP the project uses a single branch (`main`) with direct commits. Branch
   protection and a pull request only flow come later, when `main` and `develop` are
