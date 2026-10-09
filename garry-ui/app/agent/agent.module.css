@@ -117,27 +117,24 @@
   overflow: visible;
   pointer-events: none;
 }
-/* curved spokes from the hub to each service */
+/* curved spokes from the hub to each service, fading outward from the hub */
 .spoke {
   fill: none;
-  stroke: color-mix(in srgb, var(--color-brand-primary) 22%, transparent);
-  stroke-width: 1.5;
-  transition: stroke 0.3s, stroke-width 0.3s;
+  stroke: url(#spokeFade);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transition: stroke-width 0.3s;
 }
 .spokeActive {
-  stroke: color-mix(in srgb, var(--color-brand-secondary) 70%, transparent);
-  stroke-width: 2.5;
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-brand-secondary) 55%, transparent));
+  stroke: url(#spokeFadeActive);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-brand-secondary) 45%, transparent));
 }
 .spokeDone {
-  stroke: color-mix(in srgb, var(--ok) 30%, transparent);
+  opacity: 0.5;
 }
 
-/* flowing pulses that travel along the spokes */
-.pulse {
-  fill: var(--color-brand-primary);
-  opacity: 0.4;
-}
+/* a pulse of light travels along the active spoke */
 .pulseActive {
   fill: var(--color-brand-secondary);
   opacity: 1;

@@ -180,6 +180,18 @@ export default function AgentView() {
 
       <div className={styles.stage}>
         <svg className={styles.links} viewBox="0 0 560 560" aria-hidden="true">
+          <defs>
+            <radialGradient id="spokeFade" cx={C} cy={C} r={R} gradientUnits="userSpaceOnUse">
+              <stop offset="0" style={{ stopColor: "var(--color-brand-primary)", stopOpacity: 0.5 }} />
+              <stop offset="0.55" style={{ stopColor: "var(--color-brand-primary)", stopOpacity: 0.16 }} />
+              <stop offset="1" style={{ stopColor: "var(--color-brand-primary)", stopOpacity: 0 }} />
+            </radialGradient>
+            <radialGradient id="spokeFadeActive" cx={C} cy={C} r={R} gradientUnits="userSpaceOnUse">
+              <stop offset="0" style={{ stopColor: "var(--color-brand-secondary)", stopOpacity: 0.95 }} />
+              <stop offset="0.7" style={{ stopColor: "var(--color-brand-secondary)", stopOpacity: 0.5 }} />
+              <stop offset="1" style={{ stopColor: "var(--color-brand-secondary)", stopOpacity: 0.1 }} />
+            </radialGradient>
+          </defs>
           {/* inter service communication arcs, only while a related service is active */}
           {edges.map((e) => {
             const hot = serviceStatus(e.from) === "active" || serviceStatus(e.to) === "active";
@@ -205,11 +217,13 @@ export default function AgentView() {
             return (
               <g key={id}>
                 <path id={id} d={d} className={`${styles.spoke} ${st === "active" ? styles.spokeActive : ""} ${st === "done" ? styles.spokeDone : ""}`} />
-                <circle r={st === "active" ? 4 : 2.4} className={`${styles.pulse} ${st === "active" ? styles.pulseActive : ""}`}>
-                  <animateMotion dur={st === "active" ? "1s" : "3.2s"} repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
-                    <mpath href={`#${id}`} />
-                  </animateMotion>
-                </circle>
+                {st === "active" && (
+                  <circle r={4} className={styles.pulseActive}>
+                    <animateMotion dur="1s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
+                      <mpath href={`#${id}`} />
+                    </animateMotion>
+                  </circle>
+                )}
               </g>
             );
           })}
