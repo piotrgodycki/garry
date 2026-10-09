@@ -33,52 +33,71 @@
   display: flex;
   gap: var(--space-md);
   align-items: center;
-  padding: 10px 12px 10px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  padding: 8px 8px 8px 20px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 16%, var(--border));
   border-radius: 999px;
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 40%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--color-brand-primary) 5%, transparent);
 }
 .pickLabel {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
   color: var(--color-text-muted);
 }
 .pick select {
   font: inherit;
   font-weight: 600;
-  padding: 6px 10px;
-  border: 1px solid var(--border-strong);
+  padding: 9px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-brand-primary) 12%, var(--border));
   border-radius: 999px;
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
   color: var(--color-text-default);
   cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pick select:hover,
+.pick select:focus {
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-primary) 14%, transparent);
+  outline: none;
 }
 .run {
   font: inherit;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 20px;
+  gap: 8px;
+  padding: 10px 24px;
   border: none;
   border-radius: 999px;
-  background: var(--color-brand-primary);
+  background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-secondary));
   color: #ffffff;
   cursor: pointer;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--color-brand-primary) 40%, transparent);
+  transition: transform 0.12s, box-shadow 0.15s, filter 0.15s;
 }
 .run:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-brand-primary) 55%, transparent);
+}
+.run:active {
+  transform: translateY(0);
 }
 .run::before {
   content: "";
   width: 0;
   height: 0;
-  border-left: 8px solid #ffffff;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
+  border-left: 9px solid #ffffff;
+  border-top: 5.5px solid transparent;
+  border-bottom: 5.5px solid transparent;
 }
 
 /* the stage holds the center orb and the orbiting nodes */
