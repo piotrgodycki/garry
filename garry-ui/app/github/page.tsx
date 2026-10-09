@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import styles from "./prs.module.css";
 import { apiBase } from "../lib/api";
 
@@ -27,7 +26,6 @@ function checkDot(checks: string): string {
 }
 
 export default function Prs() {
-  const router = useRouter();
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selected, setSelected] = useState<string>("");
   const [prs, setPrs] = useState<Pr[] | null>(null);
@@ -113,26 +111,20 @@ export default function Prs() {
           {pageRows.map((pr) => (
             <tr
               key={pr.service}
-              className={styles.rowLink}
-              onClick={() => router.push(`/pr/${selected}/${pr.service}`)}
+              className={pr.url ? styles.rowLink : ""}
+              onClick={() => pr.url && window.open(pr.url, "_blank", "noopener")}
+              title={pr.url ? "open on GitHub" : undefined}
             >
               <td>
-                {pr.url ? (
-                  <a href={pr.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} title="open on GitHub">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/github.svg" alt="GitHub" width={16} height={16} />
-                  </a>
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/github.svg" alt="" width={16} height={16} />
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/github.svg" alt="GitHub" width={16} height={16} />
               </td>
               <td className={styles.svc}>{pr.service}</td>
               <td className={styles.branch}>{pr.branch}</td>
               <td><span className={`${styles.badge} ${styles.draft}`}>{pr.state}</span></td>
               <td><span className={`dot ${checkDot(pr.checks)}`} />{pr.checks}</td>
               <td className={styles.repo}>{pr.repo}</td>
-              <td><span className={styles.open}>details</span></td>
+              <td>{pr.url ? <span className={styles.open}>GitHub</span> : <span className={styles.muted}>n/a</span>}</td>
             </tr>
           ))}
           {pageRows.length === 0 && (
