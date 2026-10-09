@@ -7,6 +7,8 @@ import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
 import { loadWorkspace } from "../workspace/workspace.js";
 import { listManifests, readContracts } from "../sync/registryIO.js";
+import { githubToken } from "../github/env.js";
+import { GitHub, parseSlug } from "../github/client.js";
 
 export interface ServerConfig {
   registry: string;
@@ -68,23 +70,41 @@ function planFor(cfg: ServerConfig, id: string) {
   });
 }
 
-/** Derived PR view per service. Real GitHub data lands in phase 6 (narrow token). */
-function prsFor(cfg: ServerConfig, id: string) {
+/**
+ * PR view per service. With a GARRY_GITHUB_TOKEN set, it returns live state and
+ * check results from GitHub. Without a token it returns the derived view so the
+ * UI still shows the pull requests Garry would open.
+ */
+async function prsFor(cfg: ServerConfig, id: string) {
   const feature = loadFeature(cfg.registry, id);
   const manifests = new Map(listManifests(cfg.registry).map((m) => [m.name, m]));
-  return feature.services.map((svc) => {
-    const repo = (manifests.get(svc)?.repo as string) ?? "";
-    const slug = repo.replace(/^git@github\.com:/, "").replace(/\.git$/, "");
-    return {
-      service: svc,
-      branch: `feat/${id}`,
-      repo,
-      url: slug ? `https://github.com/${slug}/pull/new/feat/${id}` : "",
-      state: "draft" as const,
-      checks: "pending" as const,
-      live: false,
-    };
-  });
+  const branch = `feat/${id}`;
+  const token = githubToken();
+  const gh = token ? new GitHub(token) : null;
+
+  return Promise.all(
+    feature.services.map(async (svc) => {
+      const repo = (manifests.get(svc)?.repo as string) ?? "";
+      const slug = parseSlug(repo);
+      const base = {
+        service: svc,
+        branch,
+        repo,
+        url: slug ? `https://github.com/${slug.owner}/${slug.name}/pull/new/${branch}` : "",
+        state: "draft" as string,
+        checks: "pending" as string,
+        live: false,
+      };
+      if (!gh || !slug) return base;
+      try {
+        const pr = await gh.prForBranch(slug.owner, slug.name, branch);
+        if (!pr) return { ...base, state: "none" };
+        return { service: svc, branch, repo, url: pr.url, state: pr.draft ? "draft" : pr.state, checks: pr.checks, live: true };
+      } catch {
+        return base;
+      }
+    }),
+  );
 }
 
 function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
@@ -176,7 +196,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   if (plan) return json(res, 200, planFor(cfg, decodeURIComponent(plan[1])));
 
   const prs = /^\/api\/features\/([^/]+)\/prs$/.exec(path);
-  if (prs) return json(res, 200, { prs: prsFor(cfg, decodeURIComponent(prs[1])) });
+  if (prs) return json(res, 200, { prs: await prsFor(cfg, decodeURIComponent(prs[1])) });
 
   const getModels = /^\/api\/features\/([^/]+)\/service-models$/.exec(path);
   if (getModels) return json(res, 200, { serviceModels: serviceModels.get(decodeURIComponent(getModels[1])) ?? {} });

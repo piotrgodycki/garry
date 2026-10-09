@@ -7,10 +7,13 @@ import {
   createWorkspace,
   loadWorkspace,
   repoStatus,
+  repoUrl,
   type WorkspaceState,
 } from "../workspace/workspace.js";
 import { gitTry } from "../workspace/git.js";
 import { syncService } from "../sync/core.js";
+import { githubToken } from "../github/env.js";
+import { GitHub, parseSlug } from "../github/client.js";
 
 const FLAGS = ["registry", "cache", "root", "ws"] as const;
 
@@ -24,7 +27,7 @@ Subcommands:
   status [featId]   fan out git status across the worktrees
   sync   [featId]   run garry sync in every worktree
   push   [featId]   push every worktree (asks for confirmation)
-  pr     [featId]   show the pull requests that would be opened
+  pr     [featId]   open a pull request per service (needs GARRY_GITHUB_TOKEN)
 
 Options:
   --registry <path>  registry root (create reads services and repo urls here)
@@ -105,6 +108,8 @@ export async function runWs(argv: string[]): Promise<void> {
       return wsPush(args);
     case "pr":
       return wsPr(args);
+    case "prs":
+      return wsPr(args);
     default:
       throw new Error(`unknown ws subcommand: ${args.sub}`);
   }
@@ -155,11 +160,40 @@ async function wsPush(args: WsArgs): Promise<void> {
   }
 }
 
-function wsPr(args: WsArgs): void {
+async function wsPr(args: WsArgs): Promise<void> {
   const state = loadWorkspace(resolveWsDir(args));
-  console.log(`Pull requests for ${state.id} (${state.branch} into the default branch):`);
-  for (const r of state.repos) {
-    console.log(`  ${r.service}: ${state.branch} -> default`);
+  const token = githubToken();
+
+  if (!token) {
+    console.log(`Pull requests for ${state.id} (${state.branch} into the default branch):`);
+    for (const r of state.repos) console.log(`  ${r.service}: ${state.branch} -> default`);
+    console.log(
+      "\nNo GARRY_GITHUB_TOKEN set. Add a fine grained token to .env to open real pull requests.",
+    );
+    return;
   }
-  console.log("\nOpening real pull requests is wired in phase 6 (GitHub, narrow token).");
+
+  const gh = new GitHub(token);
+  console.log(`Opening pull requests for ${state.id} on ${state.branch}:`);
+  for (const r of state.repos) {
+    const slug = parseSlug(repoUrl(state.registry, r.service));
+    if (!slug) {
+      console.log(`  ${r.service}: ${pc.yellow("skipped")} (cannot parse repo url)`);
+      continue;
+    }
+    try {
+      const base = await gh.defaultBranch(slug.owner, slug.name);
+      const pr = await gh.ensurePr(
+        slug.owner,
+        slug.name,
+        state.branch,
+        base,
+        `${state.id}: ${r.service}`,
+        `Part of ${state.id}. Opened by Garry.`,
+      );
+      console.log(`  ${r.service}: ${pc.green(`#${pr.number}`)} ${pr.url} (checks: ${pr.checks})`);
+    } catch (e) {
+      console.log(`  ${r.service}: ${pc.red("failed")} ${(e as Error).message}`);
+    }
+  }
 }
