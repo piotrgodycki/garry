@@ -108,10 +108,10 @@ export default function VoiceDock() {
 
   startRef.current = startListening;
 
-  // Global push to talk: hold Space anywhere (not while typing or on an
-  // interactive element) to open the dock and record; release to send.
+  // Push to talk, only while the Garry dock is open: hold Space (not while typing
+  // or focused on an interactive element) to record; release to send.
   useEffect(() => {
-    if (!supported) return;
+    if (!open || !supported) return;
     const blocked = () => {
       const el = document.activeElement as HTMLElement | null;
       if (!el) return false;
@@ -122,7 +122,6 @@ export default function VoiceDock() {
       if (e.code === "Space" && !e.repeat && !pttRef.current && !blocked()) {
         e.preventDefault();
         pttRef.current = true;
-        setOpen(true);
         startRef.current();
       }
     };
@@ -139,7 +138,7 @@ export default function VoiceDock() {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };
-  }, [supported]);
+  }, [open, supported]);
 
   const onMic = () => (state === "listening" ? recRef.current?.stop() : startListening());
   const onType = (e: React.FormEvent) => {
@@ -170,7 +169,7 @@ export default function VoiceDock() {
         </div>
         {supported && (
           <div className={styles.ptt}>
-            hold <kbd className={styles.kbd}>Space</kbd> anywhere to talk
+            hold <kbd className={styles.kbd}>Space</kbd> to talk
           </div>
         )}
       </div>
