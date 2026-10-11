@@ -108,17 +108,21 @@ export default function VoiceDock() {
 
   startRef.current = startListening;
 
-  // Push to talk: hold Space (dock open, not typing) to record; release to send.
+  // Global push to talk: hold Space anywhere (not while typing or on an
+  // interactive element) to open the dock and record; release to send.
   useEffect(() => {
-    if (!open || !supported) return;
-    const typing = () => {
+    if (!supported) return;
+    const blocked = () => {
       const el = document.activeElement as HTMLElement | null;
-      return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
+      if (!el) return false;
+      const t = el.tagName;
+      return t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || t === "BUTTON" || t === "A" || el.isContentEditable;
     };
     const down = (e: KeyboardEvent) => {
-      if (e.code === "Space" && !e.repeat && !pttRef.current && !typing()) {
+      if (e.code === "Space" && !e.repeat && !pttRef.current && !blocked()) {
         e.preventDefault();
         pttRef.current = true;
+        setOpen(true);
         startRef.current();
       }
     };
@@ -135,7 +139,7 @@ export default function VoiceDock() {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };
-  }, [open, supported]);
+  }, [supported]);
 
   const onMic = () => (state === "listening" ? recRef.current?.stop() : startListening());
   const onType = (e: React.FormEvent) => {
@@ -166,7 +170,7 @@ export default function VoiceDock() {
         </div>
         {supported && (
           <div className={styles.ptt}>
-            hold <kbd className={styles.kbd}>Space</kbd> to talk
+            hold <kbd className={styles.kbd}>Space</kbd> anywhere to talk
           </div>
         )}
       </div>
