@@ -37,11 +37,20 @@ export default function VoiceDock() {
       }
     };
     const onOpen = () => setOpen(true);
+    // An idea captured on the dashboard opens the dock prefilled, so the human can
+    // talk it through with Garry before it ever becomes a feature.
+    const onIdea = (e: Event) => {
+      const text = (e as CustomEvent<string>).detail;
+      setOpen(true);
+      if (typeof text === "string") setTyped(text);
+    };
     window.addEventListener("keydown", onKey);
     window.addEventListener("garry:voice", onOpen);
+    window.addEventListener("garry:idea", onIdea as EventListener);
     return () => {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("garry:voice", onOpen);
+      window.removeEventListener("garry:idea", onIdea as EventListener);
     };
   }, []);
 
@@ -175,7 +184,7 @@ export default function VoiceDock() {
       </div>
 
       <div className={styles.feed} ref={feedRef}>
-        {turns.length === 0 && !heard && <div className={styles.empty}>Ask Garry to plan or run a feature.</div>}
+        {turns.length === 0 && !heard && <div className={styles.empty}>Talk an idea through. Garry turns it into a feature.</div>}
         {turns.map((t, i) => (
           <div key={i} className={`${styles.turn} ${t.role === "you" ? styles.you : styles.garry}`}>{t.text}</div>
         ))}

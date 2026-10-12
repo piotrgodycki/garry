@@ -60,9 +60,17 @@ export default function AgentView() {
   const [current, setCurrent] = useState<number | null>(null);
   const [done, setDone] = useState(0);
   const [finished, setFinished] = useState(false);
-  const [runKey, setRunKey] = useState(0);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [taskLog, setTaskLog] = useState<{ index: number; stage: string; who: string; agent: string; model: string }[]>([]);
+  const [stopped, setStopped] = useState(false);
+  const esRef = useRef<EventSource | null>(null);
+
+  // User placed positions for the service nodes (percent of the stage box). When a
+  // service has no override it falls back to its computed orbit position.
+  const [pos, setPos] = useState<Record<string, { left: number; top: number }>>({});
+  const stageRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ svc: string; sx: number; sy: number; baseLeft: number; baseTop: number; moved: boolean } | null>(null);
+  const draggedRef = useRef(false);
 
   useEffect(() => {
     fetch(`${apiBase}/api/features`)
@@ -105,9 +113,11 @@ export default function AgentView() {
     setCurrent(null);
     setDone(0);
     setFinished(false);
+    setStopped(false);
     setLogs([]);
     setTaskLog([]);
     const es = new EventSource(`${apiBase}/api/features/${selected}/stream`);
+    esRef.current = es;
     es.addEventListener("task", (e) => {
       const d = JSON.parse((e as MessageEvent).data) as { index: number; task: Task };
       setCurrent(d.index);
@@ -128,7 +138,50 @@ export default function AgentView() {
     es.onerror = () => es.close();
     return () => es.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, runKey, plan !== null]);
+  }, [selected, plan !== null]);
+
+  // Stop every agent on this feature: close the live stream and halt. Best effort
+  // POST so the backend can abort delegation once that endpoint exists.
+  const stopAll = () => {
+    esRef.current?.close();
+    esRef.current = null;
+    setCurrent(null);
+    setStopped(true);
+    fetch(`${apiBase}/api/features/${selected}/stop`, { method: "POST" }).catch(() => undefined);
+  };
+
+  // Drag the service nodes around the stage. Positions are percent of the stage box.
+  const clampPct = (v: number) => Math.max(5, Math.min(95, v));
+  const onNodeDown = (e: React.PointerEvent, svc: string, curLeft: number, curTop: number) => {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { svc, sx: e.clientX, sy: e.clientY, baseLeft: curLeft, baseTop: curTop, moved: false };
+  };
+  const onNodeMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const dx = ((e.clientX - d.sx) / rect.width) * 100;
+    const dy = ((e.clientY - d.sy) / rect.height) * 100;
+    if (Math.abs(e.clientX - d.sx) > 3 || Math.abs(e.clientY - d.sy) > 3) {
+      d.moved = true;
+      draggedRef.current = true;
+    }
+    setPos((p) => ({ ...p, [d.svc]: { left: clampPct(d.baseLeft + dx), top: clampPct(d.baseTop + dy) } }));
+  };
+  const onNodeUp = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    dragRef.current = null;
+    if (d?.moved) setTimeout(() => (draggedRef.current = false), 0);
+    else draggedRef.current = false;
+  };
+  const onNodeClick = (e: React.MouseEvent) => {
+    if (draggedRef.current) {
+      e.preventDefault();
+      draggedRef.current = false;
+    }
+  };
 
   // the latest detailed (per skill) action for a service, shown on its own node
   const lastAction = (svc: string): string | null => {
@@ -141,7 +194,7 @@ export default function AgentView() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [logs]);
 
-  const nodes = useMemo(() => {
+  const baseNodes = useMemo(() => {
     const order = plan?.order ?? [];
     const n = order.length || 1;
     return order.map((svc, i) => {
@@ -152,13 +205,27 @@ export default function AgentView() {
     });
   }, [plan]);
 
+  // Effective node positions: the user override wins over the computed orbit. The
+  // spokes and arcs read from here too, so the lines follow a dragged node.
+  const nodes = useMemo(
+    () =>
+      baseNodes.map((nd) => {
+        const p = pos[nd.svc];
+        if (!p) return nd;
+        const left = p.left;
+        const top = p.top;
+        return { svc: nd.svc, left, top, x: (left / 100) * (C * 2), y: (top / 100) * (C * 2) };
+      }),
+    [baseNodes, pos],
+  );
+
   // Edges between services that communicate, from the consumes contract.
   const edges = useMemo(() => {
-    const pos = new Map(nodes.map((nd) => [nd.svc, nd]));
+    const posMap = new Map(nodes.map((nd) => [nd.svc, nd]));
     const out: { from: string; to: string; x1: number; y1: number; x2: number; y2: number }[] = [];
     for (const nd of nodes) {
       for (const dep of consumes[nd.svc] ?? []) {
-        const target = pos.get(dep);
+        const target = posMap.get(dep);
         if (target) out.push({ from: nd.svc, to: dep, x1: nd.x, y1: nd.y, x2: target.x, y2: target.y });
       }
     }
@@ -197,16 +264,16 @@ export default function AgentView() {
   return (
     <div className={styles.wrap}>
       <div className={styles.pick}>
+        <Link className={styles.back} href="/" aria-label="back to the board">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+        </Link>
         <span className={styles.pickLabel}>feature</span>
-        <select value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="feature">
-          {features.map((f) => (
-            <option key={f.id} value={f.id}>{f.id} {f.title}</option>
-          ))}
-        </select>
-        <button className={styles.run} onClick={() => setRunKey((k) => k + 1)}>run</button>
+        <span className={styles.featureName}>
+          {plan ? `${plan.feature.id} ${plan.feature.title}` : (features.find((f) => f.id === selected) ? `${selected}` : "loading")}
+        </span>
       </div>
 
-      <div className={styles.stage}>
+      <div className={styles.stage} ref={stageRef}>
         <svg className={styles.links} viewBox="0 0 560 560" aria-hidden="true">
           <defs>
             <radialGradient id="spokeFade" cx={C} cy={C} r={R} gradientUnits="userSpaceOnUse">
@@ -298,14 +365,19 @@ export default function AgentView() {
           return (
             <Link
               key={nd.svc}
-              href={`/service/${nd.svc}`}
-              className={`${styles.node} ${st === "active" ? styles.active : ""} ${st === "done" ? styles.done : ""}`}
+              href={`/service/${nd.svc}?feature=${selected}`}
+              className={`${styles.node} ${st === "active" ? styles.active : ""} ${st === "done" ? styles.done : ""} ${pos[nd.svc] ? styles.moved : ""}`}
               style={{ left: `${nd.left}%`, top: `${nd.top}%` }}
-              title={`open ${nd.svc}`}
+              title={`drag to reposition, click to open ${nd.svc}`}
+              draggable={false}
+              onPointerDown={(e) => onNodeDown(e, nd.svc, nd.left, nd.top)}
+              onPointerMove={onNodeMove}
+              onPointerUp={onNodeUp}
+              onClick={onNodeClick}
             >
               <div className={styles.bubble}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className={styles.icon} src="/service.svg" alt="" />
+                <img className={styles.icon} src="/service.svg" alt="" draggable={false} />
                 <span className={`${styles.statusDot} ${styles[`dot_${st}`]}`} />
               </div>
               <span className={styles.svc}>{nd.svc}</span>
@@ -325,16 +397,18 @@ export default function AgentView() {
         <Waveform bars={28} active={busy} />
         <div className={styles.statusMain}>
           <div className={styles.action}>
-            {task ? (
+            {stopped ? (
+              <><span className={styles.em}>stopped</span> · agents halted</>
+            ) : task ? (
               task.scope === "service" ? (
                 <>working on <span className={styles.em}>{task.service}</span> · {task.stage}</>
               ) : (
                 <><span className={styles.em}>{task.stage}</span> · supervisor</>
               )
             ) : finished ? (
-              <>run complete</>
+              <>shipped</>
             ) : (
-              <span className={styles.idle}>idle, press run</span>
+              <span className={styles.idle}>waiting for the agents</span>
             )}
           </div>
           <div className={styles.sub}>{task ? `${task.agent} · ${models[task.model] ?? task.model}` : plan ? `${plan.order.length} services` : "connect the server with pnpm serve"}</div>
@@ -348,7 +422,16 @@ export default function AgentView() {
           <span><span className="dot run" /> running</span>
           <span><span className="dot ok" /> done</span>
         </div>
-        <button className={styles.replay} onClick={() => setRunKey((k) => k + 1)}>replay</button>
+        <button
+          className={styles.stop}
+          onClick={stopAll}
+          disabled={stopped || finished}
+          aria-label="stop all agents"
+          title="stop all agents"
+        >
+          <span className={styles.stopGlyph} aria-hidden="true" />
+          {stopped ? "stopped" : "stop all"}
+        </button>
       </div>
 
       <div className={styles.logPanel}>
@@ -358,7 +441,7 @@ export default function AgentView() {
         </div>
         <div className={styles.logBody} ref={logRef}>
           {taskLog.length === 0 ? (
-            <div className={styles.logEmpty}>run a feature to see the high level work log</div>
+            <div className={styles.logEmpty}>the high level work log appears as the agents work</div>
           ) : (
             taskLog.map((l) => {
               const detail = logs.filter((x) => x.index === l.index).length;

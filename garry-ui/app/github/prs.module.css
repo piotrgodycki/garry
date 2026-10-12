@@ -8,6 +8,19 @@
   align-items: center;
   gap: var(--space-sm);
 }
+/* the GitHub mark is a black <img> SVG, invert it on the dark theme */
+:global(html[data-theme="dark"]) .title img,
+:global(html[data-theme="dark"]) .table img,
+:global(:root[data-theme="dark"]) .title img,
+:global(:root[data-theme="dark"]) .table img {
+  filter: invert(1);
+}
+@media (prefers-color-scheme: dark) {
+  :global(html:not([data-theme="light"])) .title img,
+  :global(html:not([data-theme="light"])) .table img {
+    filter: invert(1);
+  }
+}
 
 .toolbar {
   display: flex;
@@ -19,19 +32,56 @@
 .toolbar select,
 .search {
   font: inherit;
-  padding: 7px 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  font-size: 13px;
+  padding: 9px 12px;
+  border: 2px solid var(--border-strong);
+  border-radius: 0;
   background: var(--surface);
   color: var(--color-text-default);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+/* custom chevron: the native arrow is invisible on the dark theme */
+.toolbar select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 13px;
+  cursor: pointer;
+}
+:global(html[data-theme="dark"]) .toolbar select,
+:global(:root[data-theme="dark"]) .toolbar select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :global(html:not([data-theme="light"])) .toolbar select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  }
+}
+.toolbar select:focus,
+.search:focus {
+  outline: none;
+  box-shadow: 3px 3px 0 var(--color-brand-secondary);
+  transform: translate(-1px, -1px);
 }
 .search {
   flex: 1;
   min-width: 200px;
 }
-.count {
+.search::placeholder {
   color: var(--color-text-muted);
-  font-size: 13px;
+}
+.count {
+  color: var(--color-text-default);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 2px solid var(--border-strong);
+  padding: 7px 12px;
 }
 .pager {
   display: flex;
@@ -39,20 +89,31 @@
   gap: var(--space-md);
   justify-content: center;
   margin-top: var(--space-md);
-  font-size: 13px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--color-text-muted);
 }
 .pager button {
   font: inherit;
-  padding: 6px 14px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  border: 2px solid var(--border-strong);
+  border-radius: 0;
   background: var(--surface);
   color: var(--color-text-default);
   cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+}
+.pager button:hover:not(:disabled) {
+  background: var(--color-text-default);
+  color: var(--surface);
 }
 .pager button:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: default;
 }
 
@@ -66,27 +127,32 @@
 .table th,
 .table td {
   text-align: left;
-  padding: 10px var(--space-sm);
+  padding: 13px var(--space-md);
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
 .table thead th {
-  color: var(--color-text-muted);
-  font-weight: 600;
-  font-size: 12px;
+  color: var(--on-brand);
+  font-weight: 800;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  background: var(--surface-2);
+  letter-spacing: 0.1em;
+  background: var(--color-brand-primary);
+  border-bottom: none;
 }
 .table tbody tr:last-child td {
   border-bottom: none;
 }
+.table tbody tr {
+  transition: background 0.14s;
+}
 .table tbody tr:hover td {
-  background: var(--surface-2);
+  background: var(--surface-3);
 }
 
 .svc {
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 .branch {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -94,6 +160,7 @@
   color: var(--color-text-muted);
 }
 .repo {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   color: var(--color-text-muted);
   max-width: 260px;
@@ -102,24 +169,28 @@
   white-space: nowrap;
 }
 .badge {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 0;
+  border: 1.5px solid var(--border-strong);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.08em;
 }
 .draft {
-  background: var(--surface-3);
+  background: transparent;
   color: var(--color-text-muted);
 }
 .note {
   margin-top: var(--space-lg);
   padding: var(--space-md);
-  background: color-mix(in srgb, var(--color-brand-secondary) 8%, var(--tint-base));
-  border: 1px solid color-mix(in srgb, var(--color-brand-secondary) 25%, var(--tint-base));
-  border-radius: var(--radius-md);
-  color: var(--color-text-default);
-  font-size: 13px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-left: 4px solid var(--color-brand-secondary);
+  border-radius: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 .muted {
   color: var(--color-text-muted);

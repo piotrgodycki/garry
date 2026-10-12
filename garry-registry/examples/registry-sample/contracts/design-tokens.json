@@ -1,9 +1,9 @@
 {
   "color": {
-    "brand": { "primary": "#4f46e5", "secondary": "#0ea5e9" },
-    "text": { "default": "#111827", "muted": "#6b7280" }
+    "brand": { "primary": "#0a0a0a", "secondary": "#ff2200" },
+    "text": { "default": "#0a0a0a", "muted": "#6b6b6b" }
   },
   "space": { "sm": "8px", "md": "16px", "lg": "24px" },
-  "radius": { "sm": "4px", "md": "8px" },
+  "radius": { "sm": "0px", "md": "2px" },
   "font": { "family": { "sans": "Inter, system-ui, sans-serif" } }
 }

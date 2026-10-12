@@ -14,6 +14,16 @@
   height: 40px;
   color: var(--color-brand-primary);
 }
+/* <img> SVG renders black in isolation, so invert it on the dark theme. */
+:global(html[data-theme="dark"]) .icon,
+:global(:root[data-theme="dark"]) .icon {
+  filter: invert(1);
+}
+@media (prefers-color-scheme: dark) {
+  :global(html:not([data-theme="light"])) .icon {
+    filter: invert(1);
+  }
+}
 .head h1 {
   margin: 0;
 }
@@ -60,4 +70,129 @@
 }
 .muted {
   color: var(--color-text-muted);
+}
+
+/* detailed agent work log */
+.logCard {
+  margin-top: var(--space-md);
+  overflow: hidden;
+}
+.logHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px var(--space-md);
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--surface-2);
+}
+.logTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 800;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--wait);
+}
+.liveDot.liveOn {
+  background: var(--color-brand-secondary);
+  box-shadow: none;
+  animation: logPulse 1.2s infinite;
+}
+@keyframes logPulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brand-secondary) 55%, transparent); }
+  70% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-brand-secondary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-brand-secondary) 0%, transparent); }
+}
+.logState {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+.logCount {
+  border: 1.5px solid var(--border-strong);
+  padding: 2px 8px;
+  color: var(--color-text-default);
+}
+.logBody {
+  max-height: 420px;
+  overflow-y: auto;
+}
+.logEmpty {
+  margin: 0;
+  padding: var(--space-lg) var(--space-md);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.logList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.logRow {
+  display: grid;
+  grid-template-columns: 16px 86px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px var(--space-md);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  animation: logIn 0.3s ease both;
+}
+.logText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+@keyframes logIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.logRow:last-child {
+  border-bottom: none;
+}
+.logRowLive {
+  background: color-mix(in srgb, var(--color-brand-secondary) 8%, var(--surface));
+}
+.logStage {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+.logAction {
+  font-weight: 600;
+  color: var(--color-text-default);
+}
+.logSkill {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+.logMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .logRow {
+    grid-template-columns: 16px 1fr;
+  }
+  .logStage, .logText, .logMeta {
+    grid-column: 2;
+  }
 }

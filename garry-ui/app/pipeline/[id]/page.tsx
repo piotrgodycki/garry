@@ -168,8 +168,7 @@ export default function Activity({ params }: { params: Promise<{ id: string }> }
       </div>
 
       <div className={styles.footer}>
-        <button className={styles.ghost} onClick={() => setRunKey((k) => k + 1)}>replay</button>
-        {finished ? <span className={styles.done}>run complete (dry run)</span> : running !== null ? <span className="muted">running task {running} of {plan.tasks.length}</span> : <span className="muted">idle</span>}
+        {finished ? <span className={styles.done}>shipped (dry run)</span> : running !== null ? <span className="muted">running task {running} of {plan.tasks.length}</span> : <span className="muted">waiting for the agents</span>}
       </div>
     </main>
   );

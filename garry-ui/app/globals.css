@@ -1,57 +1,92 @@
 @import "./tokens.css";
 
 /*
- * UI layer. The brand, text, space and radius come from tokens.css, which is
- * generated from the design-tokens.json contract (white label: override the
- * tokens to rebrand). The values below are UI concerns derived from the brand.
+ * UI layer. Brutalist monochrome: stark black on white, hard edges, hard shadows.
+ * The only raw color is signal red (--color-brand-secondary), reserved for things
+ * that are alive: running agents, live pulses, errors. Brand, text, space and
+ * radius come from tokens.css (white label: override the tokens to rebrand).
  */
 :root {
   --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --surface-3: #f1f5f9;
-  --border: #e5e7eb;
-  --border-strong: #cbd5e1;
+  --surface-2: #fafafa;
+  --surface-3: #f0f0f0;
+  --border: #e6e6e6;
+  --border-strong: #0a0a0a;
   --tint-base: #ffffff; /* the base color that brand tints mix into */
-  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.08);
-  --shadow-md: 0 4px 12px rgba(17, 24, 39, 0.08);
-  --ok: #16a34a;
+  --on-brand: #ffffff;  /* text/icon color on a brand-filled surface */
+  --shadow-sm: 0 1px 2px rgba(10, 10, 10, 0.05);
+  --shadow-md: 0 2px 0 rgba(10, 10, 10, 0.1);
+  --shadow-hard: 4px 4px 0 var(--color-brand-primary);
+  --ok: #0a0a0a;
   --run: var(--color-brand-secondary);
-  --wait: #9ca3af;
-  --danger: #b91c1c;
+  --wait: #b4b4b4;
+  --danger: #ff2200;
 }
 
-/* Dark UI. Overrides the surface, border and text layer; the brand tokens stay,
-   and brand tints mix into --tint-base so they stay readable on dark. */
+/* Dark UI: inverted brutalism. Brand flips to paper so black-on-white chrome
+   becomes white-on-black; signal red stays the one live accent. */
 :root[data-theme="dark"],
 html[data-theme="dark"] {
-  --surface: #0f172a;
-  --surface-2: #0b1120;
-  --surface-3: #1e293b;
-  --border: #1e293b;
-  --border-strong: #334155;
-  --tint-base: #0f172a;
-  --color-text-default: #e5e7eb;
-  --color-text-muted: #94a3b8;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
+  --surface: #0a0a0a;
+  --surface-2: #000000;
+  --surface-3: #161616;
+  --border: #242424;
+  --border-strong: #fafafa;
+  --tint-base: #0a0a0a;
+  --on-brand: #0a0a0a;
+  --color-brand-primary: #fafafa;
+  --color-brand-secondary: #ff3a1a;
+  --color-text-default: #fafafa;
+  --color-text-muted: #a3a3a3;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 0 rgba(255, 255, 255, 0.08);
+  --shadow-hard: 4px 4px 0 var(--color-brand-primary);
+  --ok: #fafafa;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --surface: #0f172a;
-    --surface-2: #0b1120;
-    --surface-3: #1e293b;
-    --border: #1e293b;
-    --border-strong: #334155;
-    --tint-base: #0f172a;
-    --color-text-default: #e5e7eb;
-    --color-text-muted: #94a3b8;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
+    --surface: #0a0a0a;
+    --surface-2: #000000;
+    --surface-3: #161616;
+    --border: #242424;
+    --border-strong: #fafafa;
+    --tint-base: #0a0a0a;
+    --on-brand: #0a0a0a;
+    --color-brand-primary: #fafafa;
+    --color-brand-secondary: #ff3a1a;
+    --color-text-default: #fafafa;
+    --color-text-muted: #a3a3a3;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 2px 0 rgba(255, 255, 255, 0.08);
+    --shadow-hard: 4px 4px 0 var(--color-brand-primary);
+    --ok: #fafafa;
   }
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Every native select gets the same custom chevron. The OS arrow is invisible on
+   the dark theme, so we draw our own and recolor it per theme. */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 32px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 13px;
+}
+:root[data-theme="dark"] select,
+html[data-theme="dark"] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fafafa' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  }
 }
 
 html,
@@ -66,6 +101,7 @@ body {
   background: var(--surface-2);
   font-size: 14px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -77,15 +113,55 @@ a:hover {
 }
 
 h1 {
-  font-size: 22px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin: 0 0 var(--space-md);
 }
 h2 {
-  font-size: 15px;
+  font-size: 12px;
+  font-weight: 700;
   margin: var(--space-lg) 0 var(--space-sm);
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.14em;
+}
+
+/* ---- motion library ---------------------------------------------------- */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--run) 60%, transparent); }
+  70%  { box-shadow: 0 0 0 7px color-mix(in srgb, var(--run) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--run) 0%, transparent); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+@keyframes sweep {
+  from { transform: translateX(-120%); }
+  to   { transform: translateX(120%); }
+}
+@keyframes flare {
+  0%, 100% { opacity: 0.35; transform: scaleX(0.4); }
+  50%      { opacity: 1; transform: scaleX(1); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 /* app shell with a left sidebar */
@@ -104,17 +180,30 @@ h2 {
   gap: var(--space-lg);
   padding: var(--space-lg) var(--space-md);
   background: var(--surface);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border-strong);
 }
 .content {
   min-width: 0;
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .brand {
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 4px var(--space-sm) var(--space-md);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border-strong);
+  position: relative;
+}
+.brand::after {
+  content: "";
+  position: absolute;
+  left: var(--space-sm);
+  right: var(--space-sm);
+  bottom: -2px;
+  height: 2px;
+  background: var(--color-brand-secondary);
+  transform-origin: left;
+  animation: flare 3.2s ease-in-out infinite;
 }
 .brandTop {
   display: flex;
@@ -124,59 +213,87 @@ h2 {
 .logoTile {
   width: 44px;
   height: 44px;
-  border-radius: 13px;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-sm);
+  border-radius: 0;
+  background: var(--color-brand-primary);
+  border: 2px solid var(--border-strong);
   display: grid;
   place-items: center;
-  color: var(--color-brand-primary);
+  color: var(--on-brand);
   flex: none;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.logoTile:hover {
+  transform: rotate(-4deg) scale(1.05);
 }
 .logoMark {
   height: 30px;
   width: auto;
   display: block;
+  filter: invert(1);
+}
+:root[data-theme="dark"] .logoMark {
+  filter: none;
 }
 .brandName {
   font-size: 22px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
   color: var(--color-text-default);
 }
 .brandSub {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-muted);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 .nav {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 14px;
+  font-size: 13px;
 }
 .nav a {
   color: var(--color-text-muted);
-  padding: 8px var(--space-sm);
-  border-radius: var(--radius-md);
+  padding: 9px var(--space-sm);
+  border-radius: 0;
   border-left: 3px solid transparent;
-}
-.nav a:hover {
-  color: var(--color-brand-primary);
-  background: var(--surface-2);
-  text-decoration: none;
-}
-.nav a {
   display: flex;
   align-items: center;
   gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  position: relative;
+  transition: color 0.15s, background 0.15s, padding-left 0.15s;
+  animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.nav a:nth-child(1) { animation-delay: 0.02s; }
+.nav a:nth-child(2) { animation-delay: 0.06s; }
+.nav a:nth-child(3) { animation-delay: 0.10s; }
+.nav a:nth-child(4) { animation-delay: 0.14s; }
+.nav a:nth-child(5) { animation-delay: 0.18s; }
+.nav a:nth-child(6) { animation-delay: 0.22s; }
+.nav a:hover {
+  color: var(--color-text-default);
+  background: var(--surface-3);
+  padding-left: calc(var(--space-sm) + 4px);
+  text-decoration: none;
 }
 .nav a.active {
-  color: var(--color-brand-primary);
-  background: color-mix(in srgb, var(--color-brand-primary) 9%, var(--tint-base));
-  border-left-color: var(--color-brand-primary);
-  font-weight: 600;
+  color: var(--color-text-default);
+  background: var(--surface-3);
+  border-left-color: var(--color-brand-secondary);
+  font-weight: 800;
+}
+.nav a.active::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  background: var(--color-brand-secondary);
+  animation: blink 1.4s steps(1, end) infinite;
 }
 .navIcon {
   display: inline-flex;
@@ -199,17 +316,42 @@ h2 {
   gap: 8px;
   width: 100%;
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 9px 12px;
-  border: none;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-secondary));
-  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 11px 12px;
+  border: 2px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--color-brand-primary);
+  color: var(--on-brand);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.12s, box-shadow 0.15s;
+}
+.talkButton::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-brand-secondary);
+  transform: translateX(-120%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+.talkButton:hover::before {
+  transform: translateX(0);
 }
 .talkButton:hover {
-  filter: brightness(1.06);
+  box-shadow: var(--shadow-hard);
+  transform: translate(-2px, -2px);
+}
+.talkButton > * {
+  position: relative;
+  z-index: 1;
+}
+.talkButton:hover {
+  color: #ffffff;
 }
 .talkButton svg {
   width: 16px;
@@ -218,31 +360,35 @@ h2 {
 .talkButton .kbd {
   margin-left: auto;
   font-size: 11px;
-  font-family: inherit;
-  background: rgba(255, 255, 255, 0.22);
-  border-radius: 5px;
+  font-family: ui-monospace, Menlo, monospace;
+  background: color-mix(in srgb, var(--on-brand) 20%, transparent);
+  border-radius: 0;
   padding: 1px 6px;
 }
 .themeToggle {
   width: 100%;
   font: inherit;
-  font-size: 13px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 9px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--surface);
   color: var(--color-text-muted);
   cursor: pointer;
+  transition: color 0.15s, background 0.15s;
 }
 .themeToggle:hover {
-  border-color: var(--border-strong);
-  color: var(--color-brand-primary);
+  background: var(--color-text-default);
+  color: var(--surface);
 }
 
 /* generic surfaces */
 .card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
@@ -261,35 +407,28 @@ h2 {
 }
 .dot.run {
   background: var(--run);
-  box-shadow: 0 0 0 0 var(--run);
-  animation: pulse 1.4s infinite;
+  animation: pulse 1.3s infinite;
 }
 .dot.wait {
-  background: var(--wait);
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(14, 165, 233, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
-  }
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--wait);
 }
 
 /* small reusable chips */
 .chip {
   display: inline-block;
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--surface-3);
-  color: var(--color-text-muted);
+  border-radius: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--color-text-default);
 }
 .chip.model {
-  background: color-mix(in srgb, var(--color-brand-primary) 12%, var(--tint-base));
-  color: var(--color-brand-primary);
+  background: var(--color-brand-primary);
+  color: var(--on-brand);
+  border-color: var(--color-brand-primary);
 }
