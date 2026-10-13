@@ -1,7 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import styles from "../panel.module.css";
 import { apiBase } from "../lib/api";
+import { Icon } from "../icons";
+import { PageHeader, ServerNotice, Skeleton } from "../ui";
 
 interface Service {
   name: string;
@@ -31,41 +34,76 @@ export default function Registry() {
       .catch((e: unknown) => setError(String(e)));
   }, []);
 
-  if (error) return <main className={styles.main}><p className={styles.muted}>Cannot reach garry-server. Run garry serve.</p></main>;
-  if (!data) return <main className={styles.main}><p>Loading...</p></main>;
+  const contracts = data
+    ? [
+        { label: "Remotes", value: Object.keys(data.contracts.remotes ?? {}).length },
+        { label: "Shared dependencies", value: Object.keys(data.contracts.sharedDeps ?? {}).length },
+        { label: "Events", value: Object.keys(data.contracts.events ?? {}).length },
+      ]
+    : [];
 
   return (
-    <main className={styles.main}>
-      <h1>Registry</h1>
-      <h2>Services</h2>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>name</th>
-            <th>stack</th>
-            <th>owner</th>
-            <th>exposes</th>
-            <th>consumes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.services.map((s) => (
-            <tr key={s.name}>
-              <td>{s.name}</td>
-              <td className={styles.muted}>{s.stack}</td>
-              <td className={styles.muted}>{s.owner}</td>
-              <td>{s.exposes.join(", ")}</td>
-              <td className={styles.muted}>{Object.keys(s.consumes).join(", ")}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <h2>Contracts</h2>
-      <p className={styles.muted}>
-        remotes: {Object.keys(data.contracts.remotes ?? {}).length}, shared deps:{" "}
-        {Object.keys(data.contracts.sharedDeps ?? {}).length}, events:{" "}
-        {Object.keys(data.contracts.events ?? {}).length}
-      </p>
+    <main className="page">
+      <PageHeader
+        eyebrow="Configure"
+        title="Contract registry"
+        lede="Every service, what it exposes and what it consumes. Agents read this before they touch a repository, so no change can break a contract."
+      />
+
+      {error && <ServerNotice />}
+      {!data && !error && <Skeleton rows={2} height={140} />}
+
+      {data && (
+        <>
+          <div className="stats">
+            <div className="card stat">
+              <span className="statLabel">Services</span>
+              <span className="statValue">{data.services.length}</span>
+            </div>
+            {contracts.map((c) => (
+              <div key={c.label} className="card stat">
+                <span className="statLabel">{c.label}</span>
+                <span className="statValue">{c.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <section className="section">
+            <div className="sectionHead">
+              <h2>Services</h2>
+              <span className="count">{data.services.length} registered</span>
+            </div>
+            <div className={styles.grid}>
+              {data.services.map((s) => {
+                const deps = Object.keys(s.consumes);
+                return (
+                  <Link key={s.name} href={`/service/${s.name}`} className={`card cardLink ${styles.svcCard}`}>
+                    <div className={styles.svcHead}>
+                      <span className={styles.svcIcon}>{Icon.service}</span>
+                      <div className={styles.svcTitle}>
+                        <span className={styles.svcName}>{s.name}</span>
+                        {s.owner && <span className={styles.svcMeta}>{s.owner}</span>}
+                      </div>
+                      <span className={styles.chevron}>{Icon.chevron}</span>
+                    </div>
+                    {s.stack && <div className={styles.stack}>{s.stack}</div>}
+                    <dl className={styles.facts}>
+                      <dt>Exposes</dt>
+                      <dd>
+                        {s.exposes.length ? s.exposes.map((e) => <span key={e} className="chip mono">{e}</span>) : <span className="muted">nothing</span>}
+                      </dd>
+                      <dt>Consumes</dt>
+                      <dd>
+                        {deps.length ? deps.map((d) => <span key={d} className="chip">{d}</span>) : <span className="muted">nothing</span>}
+                      </dd>
+                    </dl>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        </>
+      )}
     </main>
   );
 }

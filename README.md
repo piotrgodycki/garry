@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="assets/garry-logo.svg" alt="Garry logo" width="324" height="88" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/garry-logo-dark.svg" />
+    <img src="assets/garry-logo.svg" alt="Garry logo" width="300" height="88" />
+  </picture>
 </p>
 
 <p align="center">

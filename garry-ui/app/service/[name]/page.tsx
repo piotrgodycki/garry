@@ -3,6 +3,9 @@ import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./service.module.css";
 import { apiBase } from "../../lib/api";
+import { Icon } from "../../icons";
+import ModelChip from "../../ModelChip";
+import { Empty, PageHeader, Skeleton } from "../../ui";
 
 interface Service {
   name: string;
@@ -97,72 +100,98 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [log]);
 
-  if (missing) return <main className={styles.main}><p><Link href="/agent">back</Link></p><p className={styles.muted}>Service {name} not found.</p></main>;
-  if (!svc) return <main className={styles.main}><p className={styles.muted}>Loading...</p></main>;
+  const back = { href: featureId ? `/agent?feature=${featureId}` : "/agent", label: "Live agents" };
+
+  if (missing)
+    return (
+      <main className="page">
+        <PageHeader back={back} title={name} />
+        <div className="card"><Empty icon={Icon.service}>Service {name} is not in the registry.</Empty></div>
+      </main>
+    );
+  if (!svc)
+    return (
+      <main className="page">
+        <PageHeader back={back} title={name} />
+        <Skeleton rows={2} height={120} />
+      </main>
+    );
+
+  const logTone = streaming ? "run" : finished ? "ok" : "";
+  const logLabel = streaming ? "Live" : finished ? "Complete" : featureId ? "Idle" : "No feature";
 
   return (
-    <main className={styles.main}>
-      <p><Link href={featureId ? `/agent?feature=${featureId}` : "/agent"}>back to agent</Link></p>
-      <div className={styles.head}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className={styles.icon} src="/service.svg" alt="" />
-        <div>
-          <h1>{svc.name}</h1>
-          <span className={styles.sub}>{svc.stack}</span>
-        </div>
-        {svc.kind && <span className="chip">{svc.kind}</span>}
-      </div>
+    <main className="page">
+      <PageHeader
+        back={back}
+        title={
+          <span className={styles.title}>
+            <span className={styles.icon}>{Icon.service}</span>
+            {svc.name}
+          </span>
+        }
+        lede={svc.stack}
+        actions={
+          <>
+            {svc.kind && <span className="badge">{svc.kind}</span>}
+            {svc.owner && <span className="badge">{svc.owner}</span>}
+          </>
+        }
+      />
 
       <div className={styles.grid}>
-        <div className={`card ${styles.block}`}>
-          <h2>Overview</h2>
+        <div className="card cardPad">
+          <h2 className={styles.blockTitle}>Overview</h2>
           <dl className={styles.dl}>
-            <dt>owner</dt><dd>{svc.owner}</dd>
-            <dt>repo</dt><dd className={styles.mono}>{svc.repo}</dd>
-            {svc.db && <><dt>database</dt><dd>{svc.db.engine}{svc.db.name ? ` (${svc.db.name})` : ""}</dd></>}
-            {svc.api && <><dt>api</dt><dd>{svc.api.kind} {svc.api.version ?? ""}</dd></>}
+            <dt>Owner</dt><dd>{svc.owner ?? "unknown"}</dd>
+            <dt>Repository</dt><dd className="mono">{svc.repo ?? "n/a"}</dd>
+            {svc.db && <><dt>Database</dt><dd>{svc.db.engine}{svc.db.name ? ` (${svc.db.name})` : ""}</dd></>}
+            {svc.api && <><dt>API</dt><dd>{svc.api.kind} {svc.api.version ?? ""}</dd></>}
           </dl>
         </div>
 
-        <div className={`card ${styles.block}`}>
-          <h2>Exposes</h2>
+        <div className="card cardPad">
+          <h2 className={styles.blockTitle}>Exposes</h2>
           {svc.exposes.length ? (
-            <ul className={styles.list}>{svc.exposes.map((e) => <li key={e} className={styles.mono}>{e}</li>)}</ul>
-          ) : <p className={styles.muted}>nothing</p>}
+            <div className={styles.chips}>{svc.exposes.map((e) => <span key={e} className="chip mono">{e}</span>)}</div>
+          ) : <p className="muted">Nothing exposed.</p>}
         </div>
 
-        <div className={`card ${styles.block}`}>
-          <h2>Communicates with</h2>
+        <div className="card cardPad">
+          <h2 className={styles.blockTitle}>Communicates with</h2>
           {Object.keys(svc.consumes).length ? (
             <ul className={styles.list}>
               {Object.entries(svc.consumes).map(([dep, mods]) => (
                 <li key={dep}>
-                  <Link href={`/service/${dep}`}>{dep}</Link>
-                  <span className={styles.mono}> {mods.join(", ")}</span>
+                  <Link href={`/service/${dep}${featureId ? `?feature=${featureId}` : ""}`} className={styles.dep}>
+                    {dep}
+                    <span className={styles.chev}>{Icon.chevron}</span>
+                  </Link>
+                  <span className={styles.mods}>{mods.join(", ")}</span>
                 </li>
               ))}
             </ul>
-          ) : <p className={styles.muted}>nothing</p>}
+          ) : <p className="muted">No dependencies.</p>}
         </div>
       </div>
 
       {/* Detailed work log: exactly what the agent did on this service, step by step. */}
-      <div className={`card ${styles.logCard}`}>
-        <div className={styles.logHead}>
-          <div className={styles.logTitle}>
-            <span className={`${styles.liveDot} ${streaming ? styles.liveOn : ""}`} />
-            Work log
-          </div>
+      <div className="card">
+        <div className="cardHead">
+          <h2>Work log</h2>
           <span className={styles.logState}>
-            {streaming ? "live" : finished ? "complete" : featureId ? "idle" : "no feature"}
-            <span className={styles.logCount}>{log.length} steps</span>
+            <span className={`badge ${logTone}`}>
+              {logTone && <span className={`dot ${logTone}`} />}
+              {logLabel}
+            </span>
+            <span className="badge">{log.length} steps</span>
           </span>
         </div>
         <div className={styles.logBody} ref={logRef}>
           {log.length === 0 ? (
-            <p className={styles.logEmpty}>
-              {featureId ? "waiting for the agent to touch this service" : "no feature references this service yet"}
-            </p>
+            <Empty icon={Icon.inbox}>
+              {featureId ? "Waiting for an agent to touch this service." : "No feature references this service yet."}
+            </Empty>
           ) : (
             <ol className={styles.logList}>
               {log.map((l, i) => {
@@ -175,7 +204,10 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
                       <span className={styles.logAction}>{l.action}</span>
                       <span className={styles.logSkill}>{l.skill}</span>
                     </span>
-                    <span className={styles.logMeta}>{l.agent} · {models[l.model] ?? l.model}</span>
+                    <span className={styles.logMeta}>
+                      {l.agent}
+                      <ModelChip id={l.model} label={models[l.model] ?? l.model} />
+                    </span>
                   </li>
                 );
               })}

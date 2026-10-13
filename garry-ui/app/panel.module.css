@@ -1,67 +1,196 @@
-.main {
-  padding: var(--space-lg);
-  max-width: 960px;
+/* shared by the Configure pages: registry, skills, routing */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
 }
 
-.table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 14px;
+/* registry service card */
+.svcCard {
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
 }
-
-.table th,
-.table td {
-  text-align: left;
-  padding: 6px var(--space-sm);
-  border-bottom: 1px solid #e5e7eb;
-  vertical-align: top;
+.svcHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-
-.table th {
+.svcIcon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.svcIcon svg {
+  width: 18px;
+  height: 18px;
+}
+.svcTitle {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+}
+.svcName {
+  font-weight: 600;
+  font-size: 15px;
+}
+.svcMeta {
+  font-size: 12.5px;
   color: var(--color-text-muted);
+}
+.chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  transition: transform 0.15s var(--ease);
+}
+.svcCard:hover .chevron {
+  transform: translateX(2px);
+  color: var(--accent);
+}
+.stack {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.facts {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 8px 10px;
+  margin: 0;
+  font-size: 13px;
+}
+.facts dt {
+  color: var(--color-text-muted);
+  padding-top: 3px;
+}
+.facts dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+/* skills */
+.stageTitle {
+  text-transform: capitalize;
+}
+.skill {
+  padding: 16px 18px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.skillHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.skillIcon {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 0;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.skillIcon svg {
+  width: 15px;
+  height: 15px;
+}
+.skillName {
+  font-family: var(--font-family-mono);
+  font-size: 13px;
   font-weight: 600;
 }
-
-.muted {
+.skillSummary {
+  margin: 0;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 
-.note {
+/* routing */
+.defaultRoute {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+}
+.defaultIcon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.defaultIcon svg {
+  width: 18px;
+  height: 18px;
+}
+.defaultLabel {
+  font-size: 12px;
   color: var(--color-text-muted);
-  font-size: 13px;
-  margin-top: var(--space-md);
+}
+.defaultValue {
+  font-weight: 600;
+}
+.cap {
+  text-transform: capitalize;
 }
 .modelCell {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 10px;
+  padding: 0 4px 0 12px;
+  height: 34px;
   border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   background: var(--surface);
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.modelCell:hover,
-.modelCell:focus-within {
-  border-color: var(--color-brand-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-primary) 12%, transparent);
+.modelCell:hover {
+  border-color: var(--accent-line);
 }
-.tierDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex: none;
+.modelCell:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
 }
 .modelSelect {
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   border: none;
-  background: transparent;
+  background-color: transparent;
   color: var(--color-text-default);
   cursor: pointer;
-  padding: 0;
-  padding-right: 2px;
+  height: 100%;
+  padding-left: 0;
   outline: none;
+}
+.modelSelect:focus-visible {
+  box-shadow: none;
+}
+.savedCell {
+  width: 110px;
+  text-align: right;
+}
+.savedCell svg {
+  width: 13px;
+  height: 13px;
 }

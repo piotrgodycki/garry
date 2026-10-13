@@ -4,7 +4,10 @@ import Link from "next/link";
 import styles from "./agent.module.css";
 import ModelChip from "../ModelChip";
 import Waveform from "../Waveform";
+import GarryMark from "../GarryMark";
 import { apiBase } from "../lib/api";
+import { Icon } from "../icons";
+import { Empty, PageHeader } from "../ui";
 
 interface Task {
   stage: string;
@@ -63,6 +66,7 @@ export default function AgentView() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [taskLog, setTaskLog] = useState<{ index: number; stage: string; who: string; agent: string; model: string }[]>([]);
   const [stopped, setStopped] = useState(false);
+  const [offline, setOffline] = useState(false);
   const esRef = useRef<EventSource | null>(null);
 
   // User placed positions for the service nodes (percent of the stage box). When a
@@ -82,7 +86,7 @@ export default function AgentView() {
         const pick = fs.find((f) => f.id === wanted) ?? fs[0];
         if (pick) setSelected(pick.id);
       })
-      .catch(() => undefined);
+      .catch(() => setOffline(true));
     fetch(`${apiBase}/api/models`)
       .then((r) => r.json())
       .then((d) => setModels(Object.fromEntries(((d.models as Model[]) ?? []).map((m) => [m.id, m.label]))))
@@ -148,6 +152,12 @@ export default function AgentView() {
     setCurrent(null);
     setStopped(true);
     fetch(`${apiBase}/api/features/${selected}/stop`, { method: "POST" }).catch(() => undefined);
+  };
+
+  const pickFeature = (id: string) => {
+    setSelected(id);
+    setPos({});
+    window.history.replaceState(null, "", `/agent?feature=${id}`);
   };
 
   // Drag the service nodes around the stage. Positions are percent of the stage box.
@@ -261,32 +271,64 @@ export default function AgentView() {
     return { role: first?.agent ?? "", modelId: id, model: id ? models[id] ?? id : "" };
   };
 
-  return (
-    <div className={styles.wrap}>
-      <div className={styles.pick}>
-        <Link className={styles.back} href="/" aria-label="back to the board">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
-        </Link>
-        <span className={styles.pickLabel}>feature</span>
-        <span className={styles.featureName}>
-          {plan ? `${plan.feature.id} ${plan.feature.title}` : (features.find((f) => f.id === selected) ? `${selected}` : "loading")}
-        </span>
-      </div>
+  const featureTitle = plan?.feature.title ?? (offline ? "Live agents" : "Loading feature");
+  const statusTone = stopped ? "danger" : finished ? "ok" : busy ? "run" : "wait";
+  const statusText = stopped ? "Stopped" : finished ? "Shipped" : busy ? "Running" : "Waiting";
 
+  return (
+    <main className={`page ${styles.page}`}>
+      <PageHeader
+        back={{ href: "/", label: "Dashboard" }}
+        title={
+          <span className={styles.titleRow}>
+            {plan && <span className={styles.featureId}>{plan.feature.id}</span>}
+            {featureTitle}
+          </span>
+        }
+        lede="Garry sits at the center and delegates each stage to one agent per service. Drag a service to rearrange the map, click it for its detailed work log."
+        actions={
+          <>
+            {features.length > 1 && (
+              <select className="select" value={selected} onChange={(e) => pickFeature(e.target.value)} aria-label="feature">
+                {features.map((f) => (
+                  <option key={f.id} value={f.id}>{f.id} {f.title}</option>
+                ))}
+              </select>
+            )}
+            <button className="btn btnDanger" onClick={stopAll} disabled={stopped || finished || !plan} aria-label="stop all agents">
+              {Icon.stop}
+              {stopped ? "Stopped" : "Stop all agents"}
+            </button>
+          </>
+        }
+      />
+
+      {offline && (
+        <div className="notice" role="alert">
+          {Icon.alert}
+          <div>
+            <strong>Cannot reach garry-server</strong>
+            <span>Start it with <code>pnpm serve</code>, then reload.</span>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.layout}>
+      <div className={`card ${styles.stageCard}`}>
       <div className={styles.stage} ref={stageRef}>
         <svg className={styles.links} viewBox="0 0 560 560" aria-hidden="true">
           <defs>
             <radialGradient id="spokeFade" cx={C} cy={C} r={R} gradientUnits="userSpaceOnUse">
-              <stop offset="0" style={{ stopColor: "var(--color-brand-primary)", stopOpacity: 0.5 }} />
-              <stop offset="0.55" style={{ stopColor: "var(--color-brand-primary)", stopOpacity: 0.16 }} />
-              <stop offset="1" style={{ stopColor: "var(--color-brand-primary)", stopOpacity: 0 }} />
+              <stop offset="0" style={{ stopColor: "var(--color-text-muted)", stopOpacity: 0.55 }} />
+              <stop offset="1" style={{ stopColor: "var(--color-text-muted)", stopOpacity: 0.12 }} />
             </radialGradient>
-            <radialGradient id="spokeFadeActive" cx={C} cy={C} r={R} gradientUnits="userSpaceOnUse">
-              <stop offset="0" style={{ stopColor: "var(--color-brand-secondary)", stopOpacity: 0.95 }} />
-              <stop offset="0.7" style={{ stopColor: "var(--color-brand-secondary)", stopOpacity: 0.5 }} />
-              <stop offset="1" style={{ stopColor: "var(--color-brand-secondary)", stopOpacity: 0.1 }} />
-            </radialGradient>
+            <linearGradient id="brandStroke" x1="0" y1="0" x2="560" y2="560" gradientUnits="userSpaceOnUse">
+              <stop offset="0" style={{ stopColor: "var(--color-brand-primary)" }} />
+              <stop offset="1" style={{ stopColor: "var(--color-brand-secondary)" }} />
+            </linearGradient>
           </defs>
+          {/* orbit guide the services sit on */}
+          <circle cx={C} cy={C} r={R} className={styles.orbitGuide} />
           {/* inter service communication arcs, only while a related service is active */}
           {edges.map((e) => {
             const hot = serviceStatus(e.from) === "active" || serviceStatus(e.to) === "active";
@@ -337,11 +379,11 @@ export default function AgentView() {
         <div className={`${styles.voice} ${busy ? styles.voiceActive : ""}`}>
           <span className={styles.halo} />
           <div className={styles.eq}>
-            {Array.from({ length: 72 }).map((_, i) => {
-              const phase = Math.abs((i % 18) - 9);
+            {Array.from({ length: 60 }).map((_, i) => {
+              const phase = Math.abs((i % 15) - 7);
               return (
-                <span key={i} className={styles.spoke} style={{ transform: `rotate(${(i * 360) / 72}deg) translateY(-104px)` }}>
-                  <span className={styles.eqbar} style={{ animationDelay: `${(phase * 0.045).toFixed(2)}s` }} />
+                <span key={i} className={styles.eqSpoke} style={{ transform: `rotate(${(i * 360) / 60}deg) translateY(-84px)` }}>
+                  <span className={styles.eqbar} style={{ animationDelay: `${(phase * 0.05).toFixed(2)}s` }} />
                 </span>
               );
             })}
@@ -352,10 +394,9 @@ export default function AgentView() {
             title="talk to Garry (Cmd/Ctrl+K)"
             aria-label="talk to Garry"
           >
-            <div className={styles.coreWave}>
-              <Waveform bars={11} active={busy} />
-            </div>
-            <span className={styles.coreHint}>talk · ⌘K</span>
+            <GarryMark size={58} busy={busy} />
+            <span className={styles.corePct}>{Math.round(pct * 100)}%</span>
+            <span className={styles.coreHint}>talk ⌘K</span>
           </button>
         </div>
 
@@ -375,91 +416,111 @@ export default function AgentView() {
               onPointerUp={onNodeUp}
               onClick={onNodeClick}
             >
-              <div className={styles.bubble}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className={styles.icon} src="/service.svg" alt="" draggable={false} />
-                <span className={`${styles.statusDot} ${styles[`dot_${st}`]}`} />
+              <div className={styles.nodeHead}>
+                <span className={styles.icon}>{Icon.service}</span>
+                <span className={styles.svc}>{nd.svc}</span>
+                <span className={`dot ${st === "active" ? "run" : st === "done" ? "ok" : "wait"}`} />
               </div>
-              <span className={styles.svc}>{nd.svc}</span>
               <span className={styles.stageLabel}>
-                {st === "active" ? (lastAction(nd.svc) ?? task?.stage ?? "") : st === "done" ? "done" : "waiting"}
+                {st === "active" ? (lastAction(nd.svc) ?? task?.stage ?? "") : st === "done" ? "Done" : "Waiting"}
               </span>
-              <div className={styles.tags}>
-                <span className={styles.role}>{rm.role}</span>
-                <ModelChip id={rm.modelId} label={rm.model} />
-              </div>
+              {rm.model && (
+                <div className={styles.tags}>
+                  <ModelChip id={rm.modelId} label={rm.model} />
+                </div>
+              )}
             </Link>
           );
         })}
       </div>
+      <div className={styles.legend}>
+        <span><span className="dot wait" /> Waiting</span>
+        <span><span className="dot run" /> Running</span>
+        <span><span className="dot ok" /> Done</span>
+      </div>
+      </div>
 
-      <div className={styles.statusbar}>
-        <Waveform bars={28} active={busy} />
-        <div className={styles.statusMain}>
+      <div className={styles.side}>
+        <div className={`card ${styles.status}`}>
+          <div className={styles.statusTop}>
+            <span className={`badge ${statusTone}`}>
+              <span className={`dot ${statusTone}`} />
+              {statusText}
+            </span>
+            <span className={styles.progressNum}>
+              {progress}<span className={styles.progressTotal}> / {total} tasks</span>
+            </span>
+          </div>
           <div className={styles.action}>
             {stopped ? (
-              <><span className={styles.em}>stopped</span> · agents halted</>
+              <>All agents halted</>
             ) : task ? (
               task.scope === "service" ? (
-                <>working on <span className={styles.em}>{task.service}</span> · {task.stage}</>
+                <><span className={styles.em}>{task.stage}</span> on {task.service}</>
               ) : (
-                <><span className={styles.em}>{task.stage}</span> · supervisor</>
+                <><span className={styles.em}>{task.stage}</span> by the supervisor</>
               )
             ) : finished ? (
-              <>shipped</>
+              <>Every stage is done</>
             ) : (
-              <span className={styles.idle}>waiting for the agents</span>
+              <span className={styles.idle}>Waiting for the agents</span>
             )}
           </div>
-          <div className={styles.sub}>{task ? `${task.agent} · ${models[task.model] ?? task.model}` : plan ? `${plan.order.length} services` : "connect the server with pnpm serve"}</div>
+          <div className={styles.sub}>
+            {task ? (
+              <>
+                <span>{task.agent}</span>
+                <ModelChip id={task.model} label={models[task.model] ?? task.model} />
+              </>
+            ) : plan ? (
+              `${plan.order.length} services in this feature`
+            ) : (
+              "Connect the server with pnpm serve"
+            )}
+          </div>
+          <div className={styles.bar} role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={progress}>
+            <span style={{ width: `${pct * 100}%` }} />
+          </div>
+          <div className={styles.wave}>
+            <Waveform bars={36} active={busy} />
+          </div>
         </div>
-        <div className={styles.progressBox}>
-          <span className={styles.progressNum}>{progress}<span className={styles.progressTotal}> / {total}</span></span>
-          <span className={styles.progressLabel}>tasks</span>
-        </div>
-        <div className={styles.legend}>
-          <span><span className="dot wait" /> waiting</span>
-          <span><span className="dot run" /> running</span>
-          <span><span className="dot ok" /> done</span>
-        </div>
-        <button
-          className={styles.stop}
-          onClick={stopAll}
-          disabled={stopped || finished}
-          aria-label="stop all agents"
-          title="stop all agents"
-        >
-          <span className={styles.stopGlyph} aria-hidden="true" />
-          {stopped ? "stopped" : "stop all"}
-        </button>
-      </div>
 
-      <div className={styles.logPanel}>
-        <div className={styles.logHead}>
-          <span>agent work log</span>
-          <span className={styles.logCount}>{taskLog.length} / {total}</span>
-        </div>
-        <div className={styles.logBody} ref={logRef}>
-          {taskLog.length === 0 ? (
-            <div className={styles.logEmpty}>the high level work log appears as the agents work</div>
-          ) : (
-            taskLog.map((l) => {
-              const detail = logs.filter((x) => x.index === l.index).length;
-              const live = current === l.index;
-              return (
-                <div key={l.index} className={`${styles.logRow} ${live ? styles.logRowLive : ""}`}>
-                  <span className={`dot ${live ? "run" : "ok"}`} />
-                  <span className={styles.logStage}>{l.stage}</span>
-                  <span className={styles.logWho}>{l.who}</span>
-                  <span className={styles.logAction}>{l.agent} · {models[l.model] ?? l.model}</span>
-                  <span className={styles.logSkill}>{detail} steps</span>
-                </div>
-              );
-            })
-          )}
+        <div className={`card ${styles.logPanel}`}>
+          <div className="cardHead">
+            <h2>Work log</h2>
+            <span className="badge">{taskLog.length} / {total}</span>
+          </div>
+          <div className={styles.logBody} ref={logRef}>
+            {taskLog.length === 0 ? (
+              <Empty icon={Icon.inbox}>The high level work log appears as the agents work.</Empty>
+            ) : (
+              <ol className={styles.timeline}>
+                {taskLog.map((l) => {
+                  const detail = logs.filter((x) => x.index === l.index).length;
+                  const live = current === l.index;
+                  return (
+                    <li key={l.index} className={`${styles.logRow} ${live ? styles.logRowLive : ""}`}>
+                      <span className={`dot ${live ? "run" : "ok"}`} />
+                      <div className={styles.logMain}>
+                        <div className={styles.logLine}>
+                          <span className={styles.logStage}>{l.stage}</span>
+                          <span className={styles.logWho}>{l.who}</span>
+                        </div>
+                        <div className={styles.logAction}>
+                          {l.agent} · {models[l.model] ?? l.model}
+                        </div>
+                      </div>
+                      <span className={styles.logSkill}>{detail} {detail === 1 ? "step" : "steps"}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
         </div>
       </div>
-
-    </div>
+      </div>
+    </main>
   );
 }

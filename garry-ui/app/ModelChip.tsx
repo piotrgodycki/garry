@@ -1,12 +1,3 @@
-import styles from "./modelchip.module.css";
-
-const TIER_COLOR: Record<string, string> = {
-  opus: "#7c3aed",
-  sonnet: "#0ea5e9",
-  haiku: "#16a34a",
-  fable: "#db2777",
-};
-
 /** Infers the tier from a model id so the chip can be colored without extra data. */
 export function tierOf(modelId: string): string {
   if (modelId.includes("opus")) return "opus";
@@ -16,12 +7,12 @@ export function tierOf(modelId: string): string {
   return "sonnet";
 }
 
-/** A clean model chip: a tier colored dot plus the model label. */
+/** A model chip: a tier colored dot (tokens in globals.css) plus the model label. */
 export default function ModelChip({ id, label }: { id: string; label: string }) {
-  const color = TIER_COLOR[tierOf(id)] ?? TIER_COLOR.sonnet;
+  if (!label) return null;
   return (
-    <span className={styles.chip}>
-      <span className={styles.dot} style={{ background: color }} />
+    <span className="chip" title={id}>
+      <span className={`tier ${tierOf(id)}`} />
       {label}
     </span>
   );

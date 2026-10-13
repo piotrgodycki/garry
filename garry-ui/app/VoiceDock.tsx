@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./voicedock.module.css";
 import Waveform from "./Waveform";
+import { Icon } from "./icons";
+import GarryMark from "./GarryMark";
 
 type State = "idle" | "listening" | "speaking";
 interface Turn {
@@ -23,9 +25,13 @@ export default function VoiceDock() {
   const pttRef = useRef(false);
   const startRef = useRef<() => void>(() => {});
 
-  const supported =
-    typeof window !== "undefined" &&
-    Boolean((window as unknown as Record<string, unknown>).SpeechRecognition || (window as unknown as Record<string, unknown>).webkitSpeechRecognition);
+  // Resolved after mount: the server cannot know, and guessing caused a hydration mismatch.
+  const [supported, setSupported] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const w = window as unknown as Record<string, unknown>;
+    setSupported(Boolean(w.SpeechRecognition || w.webkitSpeechRecognition));
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -55,7 +61,9 @@ export default function VoiceDock() {
   }, []);
 
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 120);
+    } else {
       recRef.current?.stop();
       setState("idle");
       setHeard("");
@@ -157,34 +165,66 @@ export default function VoiceDock() {
     setTyped("");
   };
 
+  const stateLabel =
+    state === "listening" ? "Listening" : state === "speaking" ? "Garry is speaking" : "Ready";
+  const SUGGESTIONS = ["What is Garry working on?", "Add dark mode to checkout", "Why did search-mfe fail?"];
+
   return (
-    <aside className={`${styles.dock} ${open ? styles.open : ""}`} aria-hidden={!open}>
+    <aside
+      className={`${styles.dock} ${open ? styles.open : ""}`}
+      aria-hidden={!open}
+      inert={!open}
+      role="dialog"
+      aria-label="Talk to Garry"
+    >
       <div className={styles.head}>
         <div className={styles.title}>
-          <span className={`${styles.live} ${state !== "idle" ? styles.liveOn : ""}`} />
-          Talk to Garry
+          <GarryMark size={34} busy={state !== "idle"} />
+          <div className={styles.titleText}>
+            <span className={styles.name}>Garry</span>
+            <span className={styles.state}>
+              <span className={`dot ${state !== "idle" ? "run" : "ok"}`} />
+              {stateLabel}
+            </span>
+          </div>
         </div>
-        <button className={styles.close} onClick={() => setOpen(false)} aria-label="close">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        <button className="btn btnGhost iconBtn" onClick={() => setOpen(false)} aria-label="close">
+          {Icon.close}
         </button>
       </div>
 
       <div className={styles.orbWrap}>
-        <div className={`${styles.orb} ${state !== "idle" ? styles.orbLive : ""}`}>
+        <button
+          type="button"
+          className={`${styles.orb} ${state !== "idle" ? styles.orbLive : ""}`}
+          onClick={onMic}
+          disabled={!supported}
+          aria-label={state === "listening" ? "stop listening" : "start listening"}
+        >
           <Waveform bars={18} active={state !== "idle"} />
+        </button>
+        <div className={styles.ptt}>
+          {supported ? (
+            <>Hold <kbd className="kbd">Space</kbd> to talk, or type below</>
+          ) : (
+            <>Voice is not available in this browser. Type below.</>
+          )}
         </div>
-        <div className={styles.state}>
-          {state === "listening" ? "listening" : state === "speaking" ? "speaking" : supported ? "tap the mic or type" : "type a request"}
-        </div>
-        {supported && (
-          <div className={styles.ptt}>
-            hold <kbd className={styles.kbd}>Space</kbd> to talk
-          </div>
-        )}
       </div>
 
-      <div className={styles.feed} ref={feedRef}>
-        {turns.length === 0 && !heard && <div className={styles.empty}>Talk an idea through. Garry turns it into a feature.</div>}
+      <div className={styles.feed} ref={feedRef} aria-live="polite">
+        {turns.length === 0 && !heard && (
+          <div className={styles.empty}>
+            <p>Talk an idea through. Garry turns it into a feature and drives it to production.</p>
+            <div className={styles.suggest}>
+              {SUGGESTIONS.map((q) => (
+                <button key={q} type="button" className={styles.suggestion} onClick={() => setTyped(q)}>
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {turns.map((t, i) => (
           <div key={i} className={`${styles.turn} ${t.role === "you" ? styles.you : styles.garry}`}>{t.text}</div>
         ))}
@@ -192,12 +232,25 @@ export default function VoiceDock() {
       </div>
 
       <form className={styles.inputRow} onSubmit={onType}>
-        <button type="button" className={`${styles.mic} ${state === "listening" ? styles.micOn : ""}`} onClick={onMic} disabled={!supported} aria-label="microphone">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg>
+        <button
+          type="button"
+          className={`${styles.mic} ${state === "listening" ? styles.micOn : ""}`}
+          onClick={onMic}
+          disabled={!supported}
+          aria-label="microphone"
+        >
+          {Icon.mic}
         </button>
-        <input className={styles.input} placeholder="message Garry" value={typed} onChange={(e) => setTyped(e.target.value)} />
-        <button className={styles.send} type="submit" aria-label="send">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12h15M13 6l6 6-6 6" /></svg>
+        <input
+          ref={inputRef}
+          className={styles.input}
+          placeholder="Message Garry"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          aria-label="message"
+        />
+        <button className={styles.send} type="submit" aria-label="send" disabled={!typed.trim()}>
+          {Icon.send}
         </button>
       </form>
     </aside>

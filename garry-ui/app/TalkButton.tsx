@@ -1,14 +1,12 @@
 "use client";
+import { Icon } from "./icons";
 
 /** Sidebar trigger that opens the voice dock. The dock also listens for Cmd/Ctrl+K. */
 export default function TalkButton() {
   return (
-    <button className="talkButton" onClick={() => window.dispatchEvent(new Event("garry:voice"))}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="9" y="3" width="6" height="11" rx="3" />
-        <path d="M5 11a7 7 0 0014 0M12 18v3" />
-      </svg>
-      Talk to Garry
+    <button className="talkButton" onClick={() => window.dispatchEvent(new Event("garry:voice"))} aria-label="talk to Garry">
+      {Icon.mic}
+      <span className="talkLabel">Talk to Garry</span>
       <kbd className="kbd">⌘K</kbd>
     </button>
   );

@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
-import Waveform from "./Waveform";
 import { apiBase } from "./lib/api";
+import { Icon } from "./icons";
+import { Empty, PageHeader, ServerNotice, Skeleton } from "./ui";
 
 interface Feature {
   id: string;
@@ -55,87 +56,120 @@ export default function Dashboard() {
 
   const running = (features ?? []).filter((f) => f.status !== "done");
   const shipped = (features ?? []).filter((f) => f.status === "done");
+  const services = new Set((features ?? []).flatMap((f) => f.services));
+  const loading = !features && !error;
+
+  const STATS = [
+    { label: "Ideas waiting", value: ideas.length, dot: "wait" },
+    { label: "Agents at work", value: running.length, dot: running.length ? "run" : "wait" },
+    { label: "Shipped", value: shipped.length, dot: "ok" },
+    { label: "Services involved", value: services.size, dot: "" },
+  ];
 
   return (
-    <main className={styles.main}>
-      <div className={styles.header}>
-        <div>
-          <h1>Garry</h1>
-          <p className={styles.sub}>drop an idea, talk it through, then Garry builds, ships and fixes it. you watch.</p>
-        </div>
-        <Waveform bars={28} />
-      </div>
+    <main className="page">
+      <PageHeader
+        eyebrow="Overview"
+        title="Dashboard"
+        lede="Drop an idea and talk it through with Garry. The agents build, review, test and ship it on their own. You watch."
+        actions={
+          <Link className="btn" href="/agent">
+            {Icon.agent}
+            Open live agents
+          </Link>
+        }
+      />
 
       {/* Idea intake: the only thing the human drives. No feature picker, no run. */}
-      <form className={styles.intake} onSubmit={captureIdea}>
-        <span className={styles.intakeIcon} aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 6.3L21 9l-5 4.2L17.6 20 12 16.3 6.4 20 8 13.2 3 9l6.6-.7z" /></svg>
-        </span>
+      <form className={`card ${styles.intake}`} onSubmit={captureIdea}>
+        <span className={styles.intakeIcon} aria-hidden="true">{Icon.idea}</span>
         <input
           className={styles.intakeInput}
-          placeholder="an idea, a feature, a rough thought, drop it here"
+          placeholder="An idea, a feature, a rough thought. Drop it here."
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
           aria-label="new idea"
         />
-        <button className={styles.intakeBtn} type="submit" disabled={!idea.trim()}>
-          capture idea
+        <span className={styles.intakeHint}>
+          <kbd className="kbd">Enter</kbd>
+        </span>
+        <button className="btn btnPrimary" type="submit" disabled={!idea.trim()}>
+          Capture idea
         </button>
       </form>
 
-      {error && <p className={styles.error}>Cannot reach garry-server. Start it with <code>pnpm serve</code>.</p>}
-      {!features && !error && <p>Loading...</p>}
+      {error && <ServerNotice />}
+
+      <div className="stats">
+        {STATS.map((s) => (
+          <div key={s.label} className="card stat">
+            <span className="statLabel">
+              {s.dot && <span className={`dot ${s.dot}`} />}
+              {s.label}
+            </span>
+            <span className="statValue">{loading ? "..." : s.value}</span>
+          </div>
+        ))}
+      </div>
 
       <div className={styles.lanes}>
         {/* Ideas: raw, not yet features. They become features only after a chat with Garry. */}
-        <section className={styles.lane}>
+        <section className={styles.lane} aria-label="ideas">
           <div className={styles.laneHead}>
-            <span className={styles.laneName}>Ideas</span>
+            <span className={styles.laneName}><span className="dot wait" />Ideas</span>
             <span className={styles.laneCount}>{ideas.length}</span>
           </div>
-          <p className={styles.laneHint}>talk each one through with Garry, then it becomes a feature</p>
+          <p className={styles.laneHint}>Talk each one through with Garry. Then it becomes a feature.</p>
           {ideas.length === 0 ? (
-            <p className={styles.quiet}>no ideas yet. drop one above.</p>
-          ) : (
-            <div className={styles.report}>
-              {ideas.map((it) => (
-                <div key={it.key} className={styles.ideaCard}>
-                  <div className={styles.ideaText}>{it.text}</div>
-                  <div className={styles.ideaFoot}>
-                    <span className={styles.ideaStatus}>needs a chat</span>
-                    <button className={styles.ideaBtn} onClick={() => discuss(it.text)}>talk to Garry</button>
-                  </div>
-                </div>
-              ))}
+            <div className={styles.laneEmpty}>
+              <Empty icon={Icon.idea}>No ideas yet. Capture one above.</Empty>
             </div>
+          ) : (
+            ideas.map((it) => (
+              <div key={it.key} className={`card ${styles.ideaCard}`}>
+                <div className={styles.ideaText}>{it.text}</div>
+                <div className={styles.cardFoot}>
+                  <span className="badge warn">Needs a chat</span>
+                  <button className="btn btnSm" onClick={() => discuss(it.text)}>
+                    {Icon.mic}
+                    Talk it through
+                  </button>
+                </div>
+              </div>
+            ))
           )}
         </section>
 
         {/* Agents at work: autonomous. Read only report, no controls. */}
-        <section className={styles.lane}>
+        <section className={styles.lane} aria-label="agents at work">
           <div className={styles.laneHead}>
-            <span className={styles.laneName}>Agents at work</span>
+            <span className={styles.laneName}><span className={`dot ${running.length ? "run" : "wait"}`} />Agents at work</span>
             <span className={styles.laneCount}>{running.length}</span>
           </div>
-          <p className={styles.laneHint}>building, reviewing, testing, shipping on their own</p>
-          {features && running.length === 0 ? (
-            <p className={styles.quiet}>nothing in flight</p>
+          <p className={styles.laneHint}>Building, reviewing, testing and shipping on their own.</p>
+          {loading ? (
+            <Skeleton rows={1} height={150} />
+          ) : running.length === 0 ? (
+            <div className={styles.laneEmpty}>
+              <Empty icon={Icon.agent}>Nothing in flight.</Empty>
+            </div>
           ) : (
-            <div className={styles.report}>
-              {running.map((f) => {
-                const idx = stageIndex(f.status);
-                return (
-                  <Link key={f.id} href={`/agent?feature=${f.id}`} className={styles.row}>
-                    <div className={styles.rowTop}>
-                      <span className={styles.id}>{f.id}</span>
-                      <span className={styles.stageNow}>{f.status}</span>
-                    </div>
-                    <div className={styles.title}>{f.title}</div>
-                    <div className={styles.svcs}>
-                      {f.services.map((s) => <span key={s} className="chip">{s}</span>)}
-                    </div>
-                    <div className={styles.track} aria-label={`stage ${f.status}`}>
-                      {STAGES.slice(0, STAGES.length - 1).map((s, i) => (
+            running.map((f) => {
+              const idx = stageIndex(f.status);
+              const steps = STAGES.slice(0, STAGES.length - 1);
+              return (
+                <Link key={f.id} href={`/agent?feature=${f.id}`} className={`card cardLink ${styles.row}`}>
+                  <div className={styles.rowTop}>
+                    <span className={styles.id}>{f.id}</span>
+                    <span className="badge run"><span className="dot run" />{f.status}</span>
+                  </div>
+                  <div className={styles.title}>{f.title}</div>
+                  <div className={styles.svcs}>
+                    {f.services.map((s) => <span key={s} className="chip mono">{s}</span>)}
+                  </div>
+                  <div className={styles.progress}>
+                    <div className={styles.track} aria-label={`stage ${idx + 1} of ${steps.length}: ${f.status}`}>
+                      {steps.map((s, i) => (
                         <span
                           key={s}
                           className={`${styles.step} ${i < idx ? styles.stepDone : ""} ${i === idx ? styles.stepLive : ""}`}
@@ -143,37 +177,42 @@ export default function Dashboard() {
                         />
                       ))}
                     </div>
-                  </Link>
-                );
-              })}
-            </div>
+                    <span className={styles.progressLabel}>
+                      Stage {idx + 1} of {steps.length}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })
           )}
         </section>
 
         {/* Shipped: done and deployed by the agents. */}
-        <section className={styles.lane}>
+        <section className={styles.lane} aria-label="shipped">
           <div className={styles.laneHead}>
-            <span className={styles.laneName}>Shipped</span>
+            <span className={styles.laneName}><span className="dot ok" />Shipped</span>
             <span className={styles.laneCount}>{shipped.length}</span>
           </div>
-          <p className={styles.laneHint}>merged, tagged and deployed</p>
-          {features && shipped.length === 0 ? (
-            <p className={styles.quiet}>nothing shipped yet</p>
-          ) : (
-            <div className={styles.report}>
-              {shipped.map((f) => (
-                <Link key={f.id} href={`/agent?feature=${f.id}`} className={`${styles.row} ${styles.rowDone}`}>
-                  <div className={styles.rowTop}>
-                    <span className={styles.id}>{f.id}</span>
-                    <span className={styles.stageShipped}>shipped</span>
-                  </div>
-                  <div className={styles.title}>{f.title}</div>
-                  <div className={styles.svcs}>
-                    {f.services.map((s) => <span key={s} className="chip">{s}</span>)}
-                  </div>
-                </Link>
-              ))}
+          <p className={styles.laneHint}>Merged, tagged and deployed.</p>
+          {loading ? (
+            <Skeleton rows={1} height={110} />
+          ) : shipped.length === 0 ? (
+            <div className={styles.laneEmpty}>
+              <Empty icon={Icon.check}>Nothing shipped yet.</Empty>
             </div>
+          ) : (
+            shipped.map((f) => (
+              <Link key={f.id} href={`/agent?feature=${f.id}`} className={`card cardLink ${styles.row}`}>
+                <div className={styles.rowTop}>
+                  <span className={styles.id}>{f.id}</span>
+                  <span className="badge ok">{Icon.check}Shipped</span>
+                </div>
+                <div className={styles.title}>{f.title}</div>
+                <div className={styles.svcs}>
+                  {f.services.map((s) => <span key={s} className="chip mono">{s}</span>)}
+                </div>
+              </Link>
+            ))
           )}
         </section>
       </div>

@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./prs.module.css";
 import { apiBase } from "../lib/api";
+import { Icon } from "../icons";
+import { Empty, PageHeader, ServerNotice } from "../ui";
 
 interface Feature {
   id: string;
@@ -19,10 +21,18 @@ interface Pr {
 
 const PAGE = 25;
 
-function checkDot(checks: string): string {
+// Checks: green passes, red fails, amber is still running. Never reuse the brand color for failure.
+function checkTone(checks: string): string {
   if (checks === "passing") return "ok";
-  if (checks === "failing") return "run";
-  return "wait";
+  if (checks === "failing") return "danger";
+  if (checks === "pending" || checks === "running") return "warn";
+  return "";
+}
+function stateTone(state: string): string {
+  if (state === "merged") return "ok";
+  if (state === "open") return "run";
+  if (state === "closed") return "danger";
+  return "";
 }
 
 export default function Prs() {
@@ -67,92 +77,108 @@ export default function Prs() {
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE));
   const pageRows = filtered.slice(page * PAGE, page * PAGE + PAGE);
 
-  if (error) return <main className={styles.main}><p className={styles.muted}>Cannot reach garry-server. Run pnpm serve.</p></main>;
-
   return (
-    <main className={styles.main}>
-      <h1 className={styles.title}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/github.svg" alt="" width={22} height={22} />
-        Pull requests
-      </h1>
+    <main className="page">
+      <PageHeader
+        eyebrow="Deliver"
+        title="Pull requests"
+        lede={<>One pull request per service on branch <code>feat/{selected || "FEATURE"}</code>. Search, filter and paging keep the view usable at hundreds of PRs.</>}
+      />
 
-      <div className={styles.toolbar}>
-        <select value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="feature">
+      {error && <ServerNotice />}
+
+      <div className="toolbar">
+        <select className="select" value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="feature">
           {features.map((f) => (
             <option key={f.id} value={f.id}>{f.id} {f.title}</option>
           ))}
         </select>
-        <input
-          className={styles.search}
-          placeholder="search service, repo or branch"
-          value={query}
-          onChange={(e) => { setQuery(e.target.value); setPage(0); }}
-        />
-        <select value={stateFilter} onChange={(e) => { setStateFilter(e.target.value); setPage(0); }} aria-label="state">
-          {states.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <span className={styles.count}>{filtered.length} PRs</span>
+        <label className="searchField">
+          {Icon.search}
+          <input
+            className="input"
+            placeholder="Search service, repo or branch"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setPage(0); }}
+            aria-label="search pull requests"
+          />
+        </label>
+        <div className={styles.segmented} role="group" aria-label="state">
+          {states.map((s) => (
+            <button key={s} type="button" aria-pressed={stateFilter === s} onClick={() => { setStateFilter(s); setPage(0); }}>
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <table className={`card ${styles.table}`}>
-        <thead>
-          <tr>
-            <th></th>
-            <th>service</th>
-            <th>branch</th>
-            <th>state</th>
-            <th>checks</th>
-            <th>repo</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {pageRows.map((pr) => (
-            <tr
-              key={pr.service}
-              className={pr.url ? styles.rowLink : ""}
-              onClick={() => pr.url && window.open(pr.url, "_blank", "noopener")}
-              title={pr.url ? "open on GitHub" : undefined}
-            >
-              <td>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/github.svg" alt="GitHub" width={16} height={16} />
-              </td>
-              <td className={styles.svc}>{pr.service}</td>
-              <td className={styles.branch}>{pr.branch}</td>
-              <td><span className={`${styles.badge} ${styles.draft}`}>{pr.state}</span></td>
-              <td><span className={`dot ${checkDot(pr.checks)}`} />{pr.checks}</td>
-              <td className={styles.repo}>{pr.repo}</td>
-              <td>
-                {pr.url ? (
-                  <svg className={styles.arrow} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="open on GitHub">
-                    <path d="M7 17L17 7M9 7h8v8" />
-                  </svg>
-                ) : (
-                  <span className={styles.muted}>n/a</span>
-                )}
-              </td>
+      <div className="card tableWrap">
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Branch</th>
+              <th>State</th>
+              <th>Checks</th>
+              <th>Repository</th>
+              <th aria-label="open"></th>
             </tr>
-          ))}
-          {pageRows.length === 0 && (
-            <tr><td colSpan={7} className={styles.muted}>no pull requests match</td></tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pageRows.map((pr) => (
+              <tr
+                key={pr.service}
+                className={pr.url ? styles.rowLink : ""}
+                onClick={() => pr.url && window.open(pr.url, "_blank", "noopener")}
+                title={pr.url ? "open on GitHub" : undefined}
+              >
+                <td>
+                  <span className={styles.svc}>
+                    <span className={styles.gh}>{Icon.github}</span>
+                    {pr.service}
+                  </span>
+                </td>
+                <td><span className="chip mono">{pr.branch}</span></td>
+                <td><span className={`badge ${stateTone(pr.state)}`}>{pr.state}</span></td>
+                <td>
+                  <span className={`badge ${checkTone(pr.checks)}`}>
+                    <span className={`dot ${checkTone(pr.checks) || "wait"}`} />
+                    {pr.checks}
+                  </span>
+                </td>
+                <td className={styles.repo}>{pr.repo}</td>
+                <td className={styles.open}>
+                  {pr.url ? (
+                    <a href={pr.url} target="_blank" rel="noopener noreferrer" className="btn btnGhost iconBtn" aria-label={`open ${pr.service} on GitHub`} onClick={(e) => e.stopPropagation()}>
+                      {Icon.external}
+                    </a>
+                  ) : (
+                    <span className="muted" title="not opened yet">n/a</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {prs && pageRows.length === 0 && <Empty icon={Icon.prs}>No pull requests match.</Empty>}
+        {!prs && !error && <Empty icon={Icon.prs}>Loading pull requests...</Empty>}
+      </div>
 
-      {pageCount > 1 && (
-        <div className={styles.pager}>
-          <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>prev</button>
-          <span>page {page + 1} of {pageCount}</span>
-          <button disabled={page >= pageCount - 1} onClick={() => setPage((p) => p + 1)}>next</button>
-        </div>
-      )}
+      <div className={styles.foot}>
+        <span className="muted">{filtered.length} {filtered.length === 1 ? "pull request" : "pull requests"}</span>
+        {pageCount > 1 && (
+          <div className={styles.pager}>
+            <button className="btn btnSm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</button>
+            <span className="muted">Page {page + 1} of {pageCount}</span>
+            <button className="btn btnSm" disabled={page >= pageCount - 1} onClick={() => setPage((p) => p + 1)}>Next</button>
+          </div>
+        )}
+      </div>
 
-      <p className={styles.note}>
-        One pull request per service on branch <code>feat/{selected}</code>. Live GitHub status is wired
-        in phase 6 with the narrow token. Search, filter and paging keep the view usable at hundreds of PRs.
-      </p>
+      <div className="hint">
+        {Icon.alert}
+        Live GitHub status is wired in phase 6 with the narrow token.
+      </div>
     </main>
   );
 }

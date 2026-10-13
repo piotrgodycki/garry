@@ -3,13 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import styles from "../panel.module.css";
 import { tierOf } from "../ModelChip";
 import { apiBase } from "../lib/api";
-
-const TIER_COLOR: Record<string, string> = {
-  opus: "#7c3aed",
-  sonnet: "#0ea5e9",
-  haiku: "#16a34a",
-  fable: "#db2777",
-};
+import { Icon } from "../icons";
+import { PageHeader, ServerNotice, Skeleton } from "../ui";
 
 interface Route {
   agent: string;
@@ -28,6 +23,7 @@ export default function Routing() {
   const [data, setData] = useState<RoutingData | null>(null);
   const [models, setModels] = useState<Model[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
 
   const load = useCallback(() => {
     Promise.all([
@@ -49,54 +45,93 @@ export default function Routing() {
       body: JSON.stringify({ stage, model }),
     })
       .then((r) => r.json())
-      .then((r: RoutingData) => setData(r))
+      .then((r: RoutingData) => {
+        setData(r);
+        setSaved(stage);
+        setTimeout(() => setSaved((s) => (s === stage ? null : s)), 2000);
+      })
       .catch(() => undefined);
   };
 
-  if (error) return <main className={styles.main}><p className={styles.muted}>Cannot reach garry-server. Run pnpm serve.</p></main>;
-  if (!data) return <main className={styles.main}><p>Loading...</p></main>;
-
-  const stages = Object.entries(data.stages ?? {});
+  const label = (id: string) => models.find((m) => m.id === id)?.label ?? id;
+  const stages = Object.entries(data?.stages ?? {});
 
   return (
-    <main className={styles.main}>
-      <h1>Routing</h1>
-      <p className={styles.muted}>
-        default: {data.defaults ? `${data.defaults.agent} · ${data.defaults.model}` : "(none)"}
-      </p>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>stage</th>
-            <th>agent</th>
-            <th>model</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stages.map(([stage, r]) => (
-            <tr key={stage}>
-              <td>{stage}</td>
-              <td>{r.agent}</td>
-              <td>
-                <label className={styles.modelCell}>
-                  <span className={styles.tierDot} style={{ background: TIER_COLOR[tierOf(r.model)] }} />
-                  <select
-                    className={styles.modelSelect}
-                    value={r.model}
-                    onChange={(e) => change(stage, e.target.value)}
-                    aria-label={`model for ${stage}`}
-                  >
-                    {models.map((m) => (
-                      <option key={m.id} value={m.id}>{m.label}</option>
-                    ))}
-                  </select>
-                </label>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p className={styles.note}>Changing a model updates garry.routing.json and applies to the next run. The agent role stays.</p>
+    <main className="page">
+      <PageHeader
+        eyebrow="Configure"
+        title="Model routing"
+        lede="Which agent role and which model handle each SDLC stage. A change is saved to garry.routing.json and applies to the next run. The agent role stays."
+      />
+
+      {error && <ServerNotice />}
+      {!data && !error && <Skeleton rows={4} height={48} />}
+
+      {data && (
+        <>
+          <div className={`card ${styles.defaultRoute}`}>
+            <span className={styles.defaultIcon}>{Icon.routing}</span>
+            <div>
+              <div className={styles.defaultLabel}>Default route</div>
+              <div className={styles.defaultValue}>
+                {data.defaults ? (
+                  <>
+                    {data.defaults.agent} · <span className={`tier ${tierOf(data.defaults.model)}`} style={{ display: "inline-block" }} /> {label(data.defaults.model)}
+                  </>
+                ) : (
+                  "None, every stage is routed explicitly"
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="card tableWrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Stage</th>
+                  <th>Agent</th>
+                  <th>Model</th>
+                  <th aria-label="status"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {stages.map(([stage, r]) => (
+                  <tr key={stage}>
+                    <td className={`strong ${styles.cap}`}>{stage}</td>
+                    <td><span className="chip mono">{r.agent}</span></td>
+                    <td>
+                      <label className={styles.modelCell}>
+                        <span className={`tier ${tierOf(r.model)}`} />
+                        <select
+                          className={styles.modelSelect}
+                          value={r.model}
+                          onChange={(e) => change(stage, e.target.value)}
+                          aria-label={`model for ${stage}`}
+                        >
+                          {models.map((m) => (
+                            <option key={m.id} value={m.id}>{m.label}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </td>
+                    <td className={styles.savedCell}>
+                      {saved === stage && <span className="badge ok">{Icon.check}Saved</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="hint">
+            <span className="tier opus" /> Opus
+            <span className="tier sonnet" /> Sonnet
+            <span className="tier haiku" /> Haiku
+            <span className="tier fable" /> Fable
+          </div>
+        </>
+      )}
     </main>
   );
 }

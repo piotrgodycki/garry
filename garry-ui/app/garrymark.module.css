@@ -1,0 +1,46 @@
+.mark {
+  --crawl: 1.4s;
+  display: block;
+  overflow: visible;
+  color: var(--color-text-default);
+}
+.busy,
+:global(a:hover) .mark {
+  --crawl: 0.45s;
+}
+
+/* rings: one dash per segment, the dash period is 8.5 units */
+.rings {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 22;
+  stroke-dasharray: 1.1 7.4;
+  animation: crawl var(--crawl) linear infinite;
+}
+@keyframes crawl {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -8.5; }
+}
+
+/* the clitellum: smooth, no rings, signal red. It throbs while the agents work. */
+.clitellum {
+  fill: none;
+  stroke: var(--color-brand-secondary);
+  stroke-width: 22;
+}
+.busy .clitellum {
+  animation: throb 0.9s ease-in-out infinite;
+}
+@keyframes throb {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* a slow peristaltic squeeze of the whole body */
+.mark {
+  animation: squeeze calc(var(--crawl) * 2) ease-in-out infinite;
+}
+@keyframes squeeze {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.025, 0.975); }
+}

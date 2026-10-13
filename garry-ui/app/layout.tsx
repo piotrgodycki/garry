@@ -1,35 +1,44 @@
 import "./globals.css";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import Nav from "./Nav";
 import ThemeToggle from "./ThemeToggle";
 import VoiceDock from "./VoiceDock";
 import TalkButton from "./TalkButton";
+import ServerStatus from "./ServerStatus";
+import GarryMark from "./GarryMark";
 
 export const metadata = {
-  title: "Garry",
+  title: { default: "Garry", template: "%s · Garry" },
   description: "AI SDLC orchestrator",
 };
 
+// Applies the stored theme before first paint so there is no light flash on a dark choice.
+const themeScript = `try{var t=localStorage.getItem("garry-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <div className="shell">
           <aside className="sidebar">
-            <div className="brand">
-              <div className="brandTop">
-                <span className="logoTile">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className="logoMark" src="/garry-mark.svg" alt="" />
-                </span>
-                <span className="brandName">Garry</span>
-              </div>
-              <span className="brandSub">AI SDLC orchestrator</span>
-            </div>
+            <Link href="/" className="brand" aria-label="Garry home">
+              <span className="brandMark"><GarryMark size={40} /></span>
+              <span className="brandText">
+                <span className="brandName">garry</span>
+                <span className="brandSub">AI SDLC orchestrator</span>
+              </span>
+            </Link>
             <Nav />
             <div className="sidebarFoot">
               <TalkButton />
-              <ThemeToggle />
+              <div className="footRow">
+                <ServerStatus />
+                <ThemeToggle />
+              </div>
             </div>
           </aside>
           <div className="content">{children}</div>

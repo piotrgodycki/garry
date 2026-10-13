@@ -3,36 +3,26 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  height: 36px;
+  height: 32px;
 }
 .bar {
   width: 3px;
   height: 100%;
-  border-radius: 999px;
-  background: var(--color-text-default);
+  border-radius: 0;
+  background: currentColor;
   transform: scaleY(0.25);
   animation: waveIdle 1.8s ease-in-out infinite;
-  opacity: 0.85;
+  opacity: 0.8;
 }
 .active .bar {
   animation: waveActive 0.9s ease-in-out infinite;
   opacity: 1;
 }
 @keyframes waveIdle {
-  0%,
-  100% {
-    transform: scaleY(0.18);
-  }
-  50% {
-    transform: scaleY(0.4);
-  }
+  0%, 100% { transform: scaleY(0.18); }
+  50% { transform: scaleY(0.4); }
 }
 @keyframes waveActive {
-  0%,
-  100% {
-    transform: scaleY(0.2);
-  }
-  50% {
-    transform: scaleY(1);
-  }
+  0%, 100% { transform: scaleY(0.2); }
+  50% { transform: scaleY(1); }
 }

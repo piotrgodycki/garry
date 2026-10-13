@@ -1,143 +1,116 @@
-.main {
-  padding: var(--space-lg);
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.head {
+.stepper {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
+  gap: 8px;
   flex-wrap: wrap;
-}
-
-.order {
-  color: var(--color-text-muted);
-  font-size: 13px;
-  margin: var(--space-sm) 0 var(--space-lg);
-}
-.order code {
-  background: var(--surface-3);
-  padding: 1px 6px;
-  border-radius: var(--radius-sm);
-}
-
-/* global (supervisor) stages row */
-.supervisor {
-  display: flex;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-lg);
 }
 .gstage {
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: var(--surface);
-  font-size: 12px;
-  display: flex;
-  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
 }
 .gstage.active {
-  border-color: var(--run);
-  background: color-mix(in srgb, var(--run) 8%, var(--tint-base));
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .gstage.done {
   color: var(--color-text-muted);
 }
-
-/* service swimlanes */
 .lanes {
   display: grid;
-  gap: var(--space-md);
+  gap: 12px;
 }
 .lane {
   display: grid;
-  grid-template-columns: 180px 1fr;
+  grid-template-columns: 200px minmax(0, 1fr);
   gap: var(--space-md);
-  padding: var(--space-md);
+  padding: 16px;
   align-items: center;
+}
+@media (max-width: 760px) {
+  .lane {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .laneHead {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+  justify-items: start;
 }
 .svcName {
   font-weight: 600;
+  font-family: var(--font-family-mono);
+  font-size: 13.5px;
+}
+.modelPick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 10px;
+  height: 30px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.modelPick select {
+  font: inherit;
+  font-size: 12.5px;
+  border: none;
+  background-color: transparent;
+  color: var(--color-text-default);
+  height: 100%;
+  cursor: pointer;
 }
 .stages {
   display: flex;
-  gap: var(--space-sm);
+  gap: 8px;
   flex-wrap: wrap;
 }
 .stage {
   display: grid;
-  gap: 2px;
-  min-width: 128px;
-  padding: 8px 10px;
+  gap: 3px;
+  min-width: 150px;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface-2);
 }
 .stage.active {
-  border-color: var(--run);
-  background: color-mix(in srgb, var(--run) 8%, var(--tint-base));
+  border-color: var(--accent);
+  background: var(--accent-soft);
   box-shadow: var(--shadow-sm);
 }
 .stage.done {
-  opacity: 0.7;
+  opacity: 0.75;
 }
 .stageName {
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
   font-weight: 600;
   text-transform: capitalize;
 }
 .stageMeta {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
 }
 .skills {
-  font-size: 10px;
+  font-family: var(--font-family-mono);
+  font-size: 11px;
   color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 128px;
-}
-
-.select {
-  font: inherit;
-  font-size: 12px;
-  padding: 4px 6px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  color: var(--color-text-default);
-}
-
-.footer {
-  margin-top: var(--space-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-.ghost {
-  font: inherit;
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  cursor: pointer;
-}
-.ghost:hover {
-  border-color: var(--color-brand-primary);
-  color: var(--color-brand-primary);
-}
-.muted {
-  color: var(--color-text-muted);
-}
-.done {
-  color: var(--ok);
-  font-weight: 600;
+  max-width: 180px;
 }

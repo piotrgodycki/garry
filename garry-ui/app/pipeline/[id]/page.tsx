@@ -1,8 +1,9 @@
 "use client";
 import { use, useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import styles from "./pipeline.module.css";
 import { apiBase } from "../../lib/api";
+import { tierOf } from "../../ModelChip";
+import { PageHeader, Skeleton } from "../../ui";
 
 interface Task {
   stage: string;
@@ -84,92 +85,112 @@ export default function Activity({ params }: { params: Promise<{ id: string }> }
       });
   };
 
-  if (!plan) return <main className={styles.main}><p className={styles.muted}>Loading, or start the server with pnpm serve.</p></main>;
+  if (!plan)
+    return (
+      <main className="page">
+        <PageHeader back={{ href: "/", label: "Dashboard" }} title="Pipeline" lede="Loading the plan. If this takes long, start the server with pnpm serve." />
+        <Skeleton rows={3} height={90} />
+      </main>
+    );
 
   const statusOf = (index1: number): "done" | "active" | "wait" => {
     if (running === index1) return "active";
     if (index1 <= doneCount) return "done";
     return "wait";
   };
+  const dotOf = (st: string) => (st === "active" ? "run" : st === "done" ? "ok" : "wait");
   const indexOf = (t: Task) => plan.tasks.indexOf(t) + 1;
+  const label = (id: string) => models.find((m) => m.id === id)?.label ?? id;
 
   const globalTasks = plan.tasks.filter((t) => t.scope === "global");
   const serviceTasks = (svc: string) => plan.tasks.filter((t) => t.scope === "service" && t.service === svc);
 
   return (
-    <main className={styles.main}>
-      <div className={styles.head}>
-        <div>
-          <p><Link href="/">back</Link></p>
-          <h1>{plan.feature.title}</h1>
+    <main className="page">
+      <PageHeader
+        back={{ href: "/", label: "Dashboard" }}
+        title={plan.feature.title}
+        lede={
+          <>
+            Delegation order:{" "}
+            {plan.order.map((s, i) => (
+              <span key={s}>{i > 0 && " → "}<code>{s}</code></span>
+            ))}
+          </>
+        }
+        actions={
+          finished ? (
+            <span className="badge ok">Shipped (dry run)</span>
+          ) : running !== null ? (
+            <span className="badge run"><span className="dot run" />Task {running} of {plan.tasks.length}</span>
+          ) : (
+            <span className="badge">Waiting for the agents</span>
+          )
+        }
+      />
+
+      <section className="section">
+        <div className="sectionHead">
+          <h2>Supervisor</h2>
+          <span className="count">global stages</span>
         </div>
-        <span className="chip">{plan.tasks.length} tasks</span>
-      </div>
-      <p className={styles.order}>
-        delegation order: {plan.order.map((s, i) => (
-          <span key={s}>{i > 0 && " -> "}<code>{s}</code></span>
-        ))}
-      </p>
+        <ol className={styles.stepper}>
+          {GLOBAL_STAGES.map((stage) => {
+            const t = globalTasks.find((x) => x.stage === stage);
+            if (!t) return null;
+            const st = statusOf(indexOf(t));
+            return (
+              <li key={stage} className={`${styles.gstage} ${styles[st]}`}>
+                <span className={`dot ${dotOf(st)}`} />
+                {stage}
+              </li>
+            );
+          })}
+        </ol>
+      </section>
 
-      <h2>Supervisor</h2>
-      <div className={styles.supervisor}>
-        {GLOBAL_STAGES.map((stage) => {
-          const t = globalTasks.find((x) => x.stage === stage);
-          if (!t) return null;
-          const st = statusOf(indexOf(t));
-          return (
-            <div key={stage} className={`${styles.gstage} ${st === "active" ? styles.active : ""} ${st === "done" ? styles.done : ""}`}>
-              <span className={`dot ${st === "active" ? "run" : st === "done" ? "ok" : "wait"}`} />
-              {stage}
-            </div>
-          );
-        })}
-      </div>
-
-      <h2>Services</h2>
-      <div className={styles.lanes}>
-        {plan.order.map((svc) => {
-          const tasks = serviceTasks(svc);
-          const model = overrides[svc] ?? tasks[0]?.model ?? "";
-          return (
-            <div key={svc} className={`card ${styles.lane}`}>
-              <div className={styles.laneHead}>
-                <span className={styles.svcName}>{svc}</span>
-                <select
-                  className={styles.select}
-                  value={model}
-                  onChange={(e) => changeModel(svc, e.target.value)}
-                  aria-label={`model for ${svc}`}
-                >
-                  {models.map((m) => (
-                    <option key={m.id} value={m.id}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className={styles.stages}>
-                {tasks.map((t) => {
-                  const st = statusOf(indexOf(t));
-                  return (
-                    <div key={t.stage} className={`${styles.stage} ${st === "active" ? styles.active : ""} ${st === "done" ? styles.done : ""}`}>
-                      <div className={styles.stageName}>
-                        <span className={`dot ${st === "active" ? "run" : st === "done" ? "ok" : "wait"}`} />
-                        {t.stage}
+      <section className="section">
+        <div className="sectionHead">
+          <h2>Services</h2>
+          <span className="count">{plan.order.length} lanes · {plan.tasks.length} tasks</span>
+        </div>
+        <div className={styles.lanes}>
+          {plan.order.map((svc) => {
+            const tasks = serviceTasks(svc);
+            const model = overrides[svc] ?? tasks[0]?.model ?? "";
+            return (
+              <div key={svc} className={`card ${styles.lane}`}>
+                <div className={styles.laneHead}>
+                  <span className={styles.svcName}>{svc}</span>
+                  <label className={styles.modelPick}>
+                    <span className={`tier ${tierOf(model)}`} />
+                    <select value={model} onChange={(e) => changeModel(svc, e.target.value)} aria-label={`model for ${svc}`}>
+                      {models.map((m) => (
+                        <option key={m.id} value={m.id}>{m.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <div className={styles.stages}>
+                  {tasks.map((t) => {
+                    const st = statusOf(indexOf(t));
+                    return (
+                      <div key={t.stage} className={`${styles.stage} ${styles[st]}`}>
+                        <div className={styles.stageName}>
+                          <span className={`dot ${dotOf(st)}`} />
+                          {t.stage}
+                        </div>
+                        <div className={styles.stageMeta}>{t.agent} · {label(t.model)}</div>
+                        <div className={styles.skills} title={t.skills.join(", ")}>{t.skills.join(", ")}</div>
                       </div>
-                      <div className={styles.stageMeta}>{t.agent}</div>
-                      <span className="chip model">{t.model}</span>
-                      <div className={styles.skills} title={t.skills.join(", ")}>{t.skills.join(", ")}</div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className={styles.footer}>
-        {finished ? <span className={styles.done}>shipped (dry run)</span> : running !== null ? <span className="muted">running task {running} of {plan.tasks.length}</span> : <span className="muted">waiting for the agents</span>}
-      </div>
+            );
+          })}
+        </div>
+      </section>
     </main>
   );
 }
