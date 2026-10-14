@@ -42,6 +42,17 @@
   .intakeHint {
     display: none;
   }
+  .intake {
+    flex-wrap: wrap;
+    padding: 8px 8px 8px 14px;
+  }
+  .intakeInput {
+    flex-basis: calc(100% - 40px);
+  }
+  .intake > button {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
 }
 
 /* three report lanes: Ideas, Agents at work, Shipped */

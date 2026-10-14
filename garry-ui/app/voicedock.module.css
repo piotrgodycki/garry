@@ -238,3 +238,35 @@
   opacity: 0.35;
   cursor: not-allowed;
 }
+
+/* touch screens: no Space key, so point at the orb instead */
+.pttTouch {
+  display: none;
+}
+@media (hover: none) {
+  .pttKeys {
+    display: none;
+  }
+  .pttTouch {
+    display: inline;
+  }
+}
+
+/* phones: the dock takes the whole screen, clear of the notch and home bar */
+@media (max-width: 640px) {
+  .dock {
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    border: none;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    transform: translateY(24px);
+  }
+  .open {
+    transform: none;
+  }
+  .input {
+    font-size: 16px;
+  }
+}

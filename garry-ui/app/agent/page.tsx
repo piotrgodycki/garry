@@ -41,6 +41,7 @@ interface LogEntry {
 
 const C = 280; // stage center in viewBox units
 const R = 200; // orbit radius
+const STAGE = 2 * C; // stage size in px at full scale
 
 /** A gentle curved path between two points (quadratic bezier arced to one side). */
 function curve(x1: number, y1: number, x2: number, y2: number, bend = 0.1): string {
@@ -73,6 +74,20 @@ export default function AgentView() {
   // service has no override it falls back to its computed orbit position.
   const [pos, setPos] = useState<Record<string, { left: number; top: number }>>({});
   const stageRef = useRef<HTMLDivElement>(null);
+  // The stage is drawn at 560px and scaled down to fit narrow screens (phones,
+  // portrait tablets), so the hub, the orbit and the nodes keep their proportions.
+  const stageCardRef = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState(1);
+  useEffect(() => {
+    const card = stageCardRef.current;
+    if (!card) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const pad = parseFloat(getComputedStyle(card).paddingLeft) + parseFloat(getComputedStyle(card).paddingRight);
+      setFit(Math.min(1, (entry.contentRect.width + pad - 16) / STAGE));
+    });
+    ro.observe(card);
+    return () => ro.disconnect();
+  }, []);
   const dragRef = useRef<{ svc: string; sx: number; sy: number; baseLeft: number; baseTop: number; moved: boolean } | null>(null);
   const draggedRef = useRef(false);
 
@@ -314,8 +329,8 @@ export default function AgentView() {
       )}
 
       <div className={styles.layout}>
-      <div className={`card ${styles.stageCard}`}>
-      <div className={styles.stage} ref={stageRef}>
+      <div className={`card ${styles.stageCard}`} ref={stageCardRef}>
+      <div className={styles.stage} ref={stageRef} style={{ zoom: fit }}>
         <svg className={styles.links} viewBox="0 0 560 560" aria-hidden="true">
           <defs>
             <radialGradient id="spokeFade" cx={C} cy={C} r={R} gradientUnits="userSpaceOnUse">

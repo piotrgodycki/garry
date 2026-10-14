@@ -205,7 +205,10 @@ export default function VoiceDock() {
         </button>
         <div className={styles.ptt}>
           {supported ? (
-            <>Hold <kbd className="kbd">Space</kbd> to talk, or type below</>
+            <>
+              <span className={styles.pttKeys}>Hold <kbd className="kbd">Space</kbd> to talk, or type below</span>
+              <span className={styles.pttTouch}>Tap the orb to talk, or type below</span>
+            </>
           ) : (
             <>Voice is not available in this browser. Type below.</>
           )}

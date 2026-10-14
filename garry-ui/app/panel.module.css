@@ -190,6 +190,26 @@
   width: 110px;
   text-align: right;
 }
+/* phones: the agent sits under the stage name, so the model picker gets the room */
+.agentInline {
+  display: none;
+}
+@media (max-width: 640px) {
+  .agentCol {
+    display: none;
+  }
+  .agentInline {
+    display: flex;
+    width: fit-content;
+    margin-top: 6px;
+    font-weight: 400;
+    text-transform: none;
+  }
+  .savedCell {
+    width: auto;
+    padding-left: 0 !important;
+  }
+}
 .savedCell svg {
   width: 13px;
   height: 13px;

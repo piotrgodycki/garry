@@ -90,7 +90,7 @@ export default function Routing() {
               <thead>
                 <tr>
                   <th>Stage</th>
-                  <th>Agent</th>
+                  <th className={styles.agentCol}>Agent</th>
                   <th>Model</th>
                   <th aria-label="status"></th>
                 </tr>
@@ -98,8 +98,11 @@ export default function Routing() {
               <tbody>
                 {stages.map(([stage, r]) => (
                   <tr key={stage}>
-                    <td className={`strong ${styles.cap}`}>{stage}</td>
-                    <td><span className="chip mono">{r.agent}</span></td>
+                    <td className={`strong ${styles.cap}`}>
+                      {stage}
+                      <span className={`chip mono ${styles.agentInline}`}>{r.agent}</span>
+                    </td>
+                    <td className={styles.agentCol}><span className="chip mono">{r.agent}</span></td>
                     <td>
                       <label className={styles.modelCell}>
                         <span className={`tier ${tierOf(r.model)}`} />

@@ -23,9 +23,9 @@ export default function ServerStatus() {
   const cls = up === null ? "wait" : up ? "ok" : "danger";
   const label = up === null ? "Connecting" : up ? "Server online" : "Server offline";
   return (
-    <span className="serverStatus" title={apiBase}>
+    <span className="serverStatus" title={`${label}: ${apiBase}`} aria-label={label}>
       <span className={`dot ${cls}`} />
-      {label}
+      <span className="serverLabel">{label}</span>
     </span>
   );
 }

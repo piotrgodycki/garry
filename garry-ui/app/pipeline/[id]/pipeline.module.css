@@ -41,6 +41,12 @@
   .lane {
     grid-template-columns: minmax(0, 1fr);
   }
+  .stage {
+    max-width: none;
+  }
+  .skills {
+    max-width: none;
+  }
 }
 .laneHead {
   display: grid;
@@ -79,7 +85,9 @@
 .stage {
   display: grid;
   gap: 3px;
-  min-width: 150px;
+  flex: 1 1 150px;
+  min-width: 0;
+  max-width: 260px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);

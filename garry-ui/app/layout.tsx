@@ -8,6 +8,17 @@ import TalkButton from "./TalkButton";
 import ServerStatus from "./ServerStatus";
 import GarryMark from "./GarryMark";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // lets the layout reach under the notch and home bar; the CSS pads with safe-area insets
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+};
+
 export const metadata = {
   title: { default: "Garry", template: "%s · Garry" },
   description: "AI SDLC orchestrator",

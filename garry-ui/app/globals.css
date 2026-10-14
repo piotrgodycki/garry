@@ -312,6 +312,9 @@ select {
   width: 18px;
   height: 18px;
 }
+.navShort {
+  display: none;
+}
 
 .sidebarFoot {
   margin-top: auto;
@@ -413,7 +416,8 @@ select {
   box-shadow: var(--shadow-xs);
 }
 
-/* Narrow screens: the sidebar becomes a top bar with a scrollable nav. */
+/* Tablets and narrow windows: the sidebar becomes a sticky top bar with a
+   horizontally scrollable nav. */
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
@@ -426,6 +430,7 @@ select {
     align-items: center;
     gap: var(--space-sm);
     padding: 8px var(--space-md);
+    padding-top: max(8px, env(safe-area-inset-top));
     border-right: none;
     border-bottom: 1px solid var(--border);
     background: color-mix(in srgb, var(--surface) 88%, transparent);
@@ -442,6 +447,9 @@ select {
     flex: 1;
     min-width: 0;
   }
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
   .navGroup {
     display: contents;
   }
@@ -450,7 +458,7 @@ select {
   }
   .nav a {
     white-space: nowrap;
-    padding: 7px 10px;
+    padding: 10px 12px;
   }
   .navIcon {
     display: none;
@@ -458,15 +466,84 @@ select {
   .sidebarFoot {
     margin: 0;
     display: flex;
+    align-items: center;
+    gap: 8px;
     flex: none;
   }
   .talkButton {
     width: auto;
-    padding: 9px;
+    padding: 10px;
   }
   .talkButton .talkLabel,
   .talkButton .kbd,
   .footRow {
+    display: none;
+  }
+}
+
+/* Phones: brand, server status, theme and talk stay on top; the nav moves to a
+   bottom tab bar within thumb reach, with icons and short labels. */
+@media (max-width: 640px) {
+  :root {
+    --tabbar-h: 60px;
+  }
+  body {
+    padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  }
+  .sidebar {
+    justify-content: space-between;
+    /* a backdrop filter would make the fixed tab bar position against the top bar */
+    backdrop-filter: none;
+    background: var(--surface);
+  }
+  .brandText {
+    display: grid;
+  }
+  .brandSub {
+    display: none;
+  }
+  .nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 45;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    overflow: visible;
+    padding: 0 4px env(safe-area-inset-bottom);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .nav a {
+    height: var(--tabbar-h);
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 2px;
+    font-size: 10.5px;
+    border-radius: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .navIcon {
+    display: inline-flex;
+  }
+  .navText {
+    display: none;
+  }
+  .navShort {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .footRow {
+    display: flex;
+    gap: 8px;
+    padding: 0;
+  }
+  .serverLabel {
     display: none;
   }
 }
@@ -682,6 +759,9 @@ select {
 .select {
   padding-right: 30px;
   cursor: pointer;
+  max-width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
 }
 .input::placeholder {
   color: var(--color-text-muted);
@@ -767,6 +847,16 @@ select {
 }
 .table .strong {
   font-weight: 600;
+}
+@media (max-width: 640px) {
+  .table th,
+  .table td {
+    padding: 10px 10px;
+  }
+  .table th:first-child,
+  .table td:first-child {
+    padding-left: 14px;
+  }
 }
 
 /* ---- badges, chips, dots -------------------------------------------------- */
@@ -1103,4 +1193,39 @@ h1 {
 .themeToggle button[aria-pressed="true"] {
   background: var(--color-brand-primary);
   color: var(--on-brand);
+}
+
+/* Touch screens have no hover and no keyboard shortcuts. */
+@media (hover: none) {
+  .kbd {
+    display: none;
+  }
+  .talkButton:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* iOS zooms into any form control under 16px on focus; keep them at 16px on phones. */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
+
+/* Phone tab bar: the active tab is marked by a signal red bar on top, not on the left. */
+@media (max-width: 640px) {
+  .nav a {
+    border-left: none;
+    border-top: 3px solid transparent;
+  }
+  .nav a.active {
+    background: none;
+    border-top-color: var(--color-brand-secondary);
+  }
+  .sidebarFoot .footRow {
+    order: -1;
+  }
 }

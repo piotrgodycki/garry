@@ -50,13 +50,14 @@
   mask-image: radial-gradient(circle at 50% 46%, black, transparent 75%);
   pointer-events: none;
 }
+.stageCard {
+  grid-template-columns: minmax(0, 1fr);
+}
+/* fixed size; the page scales it with zoom to fit narrow screens */
 .stage {
   position: relative;
   width: 560px;
   height: 560px;
-  max-width: 100%;
-  aspect-ratio: 1;
-  height: auto;
 }
 
 .links {
@@ -462,4 +463,11 @@
   color: var(--color-text-muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+
+/* touch screens: no Cmd+K hint on the hub */
+@media (hover: none) {
+  .coreHint {
+    display: none;
+  }
 }
