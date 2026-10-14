@@ -7,6 +7,8 @@
     "dev": "concurrently -n server,ui -c blue,magenta \"pnpm serve\" \"pnpm ui\"",
     "serve": "tsx garry-tool/src/cli.ts serve",
     "ui": "pnpm --filter garry-ui dev",
+    "phone": "tailscale serve --bg 3000 && tailscale serve --bg --set-path /api http://127.0.0.1:8123/api && tailscale serve status",
+    "phone:off": "tailscale serve reset",
     "garry": "tsx garry-tool/src/cli.ts",
     "scaffold": "tsx garry-tool/src/cli.ts scaffold",
     "typecheck": "pnpm -r typecheck",

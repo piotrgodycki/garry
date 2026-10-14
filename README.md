@@ -47,6 +47,34 @@ pnpm dev
 `pnpm dev` starts the whole app: the server on http://localhost:8123 and the UI
 on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
 
+## Use from a phone (Tailscale)
+
+Garry can be opened from a phone on your tailnet with
+[Tailscale Serve](https://tailscale.com/kb/1312/serve). Serve gives the UI a real
+HTTPS address (`https://<machine>.<tailnet>.ts.net`), which the phone browser needs
+before it allows the microphone for the voice dock. Nothing is exposed to the public
+internet: only devices signed in to your tailnet can reach it.
+
+1. Install Tailscale on the computer that runs Garry and on the phone, sign in to
+   the same tailnet, and enable HTTPS certificates for the tailnet (admin console,
+   DNS, HTTPS Certificates).
+2. Start Garry as usual: `pnpm dev`.
+3. Publish it on the tailnet: `pnpm phone`. This runs `tailscale serve` in the
+   background with two routes:
+   - `/` goes to the UI on `localhost:3000`
+   - `/api` goes to the server on `localhost:8123`
+4. Open the printed `https://...ts.net` address on the phone.
+5. Stop sharing with `pnpm phone:off` (runs `tailscale serve reset`).
+
+The UI and the API share one origin behind Serve, so no CORS or mixed content issues
+arise; the UI finds the API on its own (see `garry-ui/app/lib/api.ts`). `next dev`
+accepts `*.ts.net` origins (see `allowedDevOrigins` in `garry-ui/next.config.mjs`);
+add other hosts with `GARRY_DEV_ORIGINS=host1,host2`. Hold Space push to talk needs
+a keyboard; on the phone tap the mic button instead.
+
+The server has no login of its own, so treat everyone on the tailnet as trusted. Do
+not use `tailscale funnel` for Garry, which would publish it to the internet.
+
 ## Commands
 
 | Command | What it does |
@@ -54,6 +82,8 @@ on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
 | `pnpm dev` | start the server and the UI together |
 | `pnpm serve` | server only, on :8123 |
 | `pnpm ui` | UI only, on :3000 (needs the server) |
+| `pnpm phone` | share the running app on your tailnet over HTTPS (Tailscale Serve) |
+| `pnpm phone:off` | stop sharing on the tailnet |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
 | `pnpm -C garry-registry validate` | validate the sample registry |
