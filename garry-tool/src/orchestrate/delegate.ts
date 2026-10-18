@@ -6,6 +6,8 @@ export interface Task {
   agent: string;
   model: string;
   skills: string[];
+  /** project lessons injected into this task, so a known mistake is not repeated */
+  lessons?: { id: string; rule: string }[];
 }
 
 export interface Delegate {
@@ -16,7 +18,8 @@ export interface Delegate {
 export function describe(task: Task): string {
   const who = task.scope === "service" ? (task.service ?? "service") : "supervisor";
   const loc = task.repo ? `  (${task.repo})` : "";
-  return `[${task.stage}] ${who} via ${task.agent}:${task.model}${loc}\n    skills: ${task.skills.join(", ") || "(none)"}`;
+  const lessons = task.lessons?.length ? `\n    lessons: ${task.lessons.map((l) => l.id).join(", ")}` : "";
+  return `[${task.stage}] ${who} via ${task.agent}:${task.model}${loc}\n    skills: ${task.skills.join(", ") || "(none)"}${lessons}`;
 }
 
 /**

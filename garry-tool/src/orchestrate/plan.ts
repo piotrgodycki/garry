@@ -5,6 +5,7 @@ import { loadSkills, skillsForStage } from "./skillsManifest.js";
 import { loadServices, delegationOrder } from "./graph.js";
 import { resolveRouting, routeFor, type Route } from "./routing.js";
 import type { Delegate, Task } from "./delegate.js";
+import { loadLessons, lessonsFor } from "../learn/lessons.js";
 
 export const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"] as const;
 export type Stage = (typeof STAGES)[number];
@@ -91,6 +92,9 @@ export function buildPlan(opts: BuildPlanOptions): Plan {
   const order = delegationOrder(nodes);
   const routing = resolveRouting(opts.routingFile, feature.routingOverride);
   const allSkills = loadSkills(opts.skillsRoot);
+  const lessons = loadLessons(opts.registry);
+  const inject = (stage: string, skills: string[], service?: string) =>
+    lessonsFor(lessons, { stage, service, skills }).map((l) => ({ id: l.id, rule: l.rule }));
 
   const tasks: Task[] = [];
   for (const stage of STAGES) {
@@ -109,10 +113,11 @@ export function buildPlan(opts: BuildPlanOptions): Plan {
           agent: route.agent,
           model,
           skills,
+          lessons: inject(stage, skills, service),
         });
       }
     } else {
-      tasks.push({ stage, scope: "global", agent: route.agent, model: route.model, skills });
+      tasks.push({ stage, scope: "global", agent: route.agent, model: route.model, skills, lessons: inject(stage, skills) });
     }
   }
 

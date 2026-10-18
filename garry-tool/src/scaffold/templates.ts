@@ -166,6 +166,8 @@ ${role}
   \`garry sync\` from the Contract Registry. Treat them as the source of truth.
 - Contract first: if a change needs a new or different contract, it is updated in
   the registry before any code here changes.
+- Read \`.garry/lessons.md\` before you start. It lists the mistakes Garry already
+  made in this project and the rule that prevents each one. Follow every rule.
 - Keep everything in English with plain ASCII punctuation.
 `;
 }
@@ -184,7 +186,8 @@ function garryReadme(): string {
   return `# .garry
 
 This directory is managed by Garry. \`garry sync\` writes the slice of contracts
-this service may rely on (remotes, shared dependencies, design tokens, events)
-plus the generated types. Do not edit it by hand.
+this service may rely on (remotes, shared dependencies, design tokens, events),
+the generated types and lessons.md (what Garry learned in this project). Do not
+edit it by hand.
 `;
 }

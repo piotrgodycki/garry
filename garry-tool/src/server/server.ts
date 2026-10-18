@@ -1,13 +1,14 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { buildPlan, listFeatures, loadFeature } from "../orchestrate/plan.js";
+import { STAGES, buildPlan, listFeatures, loadFeature } from "../orchestrate/plan.js";
 import { loadSkills } from "../orchestrate/skillsManifest.js";
 import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
 import { loadWorkspace } from "../workspace/workspace.js";
 import { listManifests, readContracts } from "../sync/registryIO.js";
 import { readdirSync } from "node:fs";
+import { isRecurring, loadLessons, recordLesson, type RecordInput } from "../learn/lessons.js";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
 function setFeatureStatus(registry: string, id: string, status: string): boolean {
@@ -228,6 +229,25 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return json(res, 200, { ok: true, id, status: body.status });
   }
 
+  // POST a mistake: a new lesson, or one more incident of a known one (lessonId)
+  if (req.method === "POST" && path === "/api/lessons") {
+    const body = (await readBody(req)) as Partial<RecordInput>;
+    const inc = body.incident;
+    if (!inc?.feature || !inc.stage || !inc.source || !inc.summary)
+      return json(res, 400, { error: "incident.feature, stage, source and summary are required" });
+    if (!(STAGES as readonly string[]).includes(inc.stage)) return json(res, 400, { error: `unknown stage: ${inc.stage}` });
+    if (!["review", "test", "ci", "drift", "human"].includes(inc.source))
+      return json(res, 400, { error: `unknown source: ${inc.source}` });
+    if (!body.lessonId && (!body.title || !body.rule))
+      return json(res, 400, { error: "a new lesson needs a title and a rule" });
+    try {
+      const lesson = recordLesson(cfg.registry, body as RecordInput);
+      return json(res, 200, { lesson: { ...lesson, recurring: isRecurring(lesson) } });
+    } catch (e) {
+      return json(res, 404, { error: String((e as Error).message) });
+    }
+  }
+
   // POST a routing change: set the model for a stage (the agent stays)
   if (req.method === "POST" && path === "/api/routing") {
     const body = (await readBody(req)) as { stage?: string; model?: string };
@@ -273,6 +293,8 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "GET /api/features/:id/service-models",
         "POST /api/features/:id/service-models {service, model}",
         "GET /api/skills",
+        "GET /api/lessons",
+        "POST /api/lessons",
         "GET /api/registry",
         "GET /api/routing",
         "GET /api/models",
@@ -281,6 +303,10 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   }
   if (path === "/api/features") return json(res, 200, { features: listFeatures(cfg.registry) });
   if (path === "/api/skills") return json(res, 200, { skills: loadSkills(cfg.skills) });
+  if (path === "/api/lessons") {
+    const lessons = loadLessons(cfg.registry).map((l) => ({ ...l, recurring: isRecurring(l) }));
+    return json(res, 200, { lessons });
+  }
   if (path === "/api/models") return json(res, 200, { models: MODELS });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });

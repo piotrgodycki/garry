@@ -12,6 +12,7 @@ const GROUPS: { label: string; links: { href: string; label: string; short: stri
     links: [
       { href: "/", label: "Dashboard", short: "Home", icon: Icon.dashboard },
       { href: "/agent", label: "Live agents", short: "Agents", icon: Icon.agent },
+      { href: "/lessons", label: "Lessons", short: "Lessons", icon: Icon.lesson },
     ],
   },
   {

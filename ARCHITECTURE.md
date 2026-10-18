@@ -12,6 +12,7 @@ The starting point is microfrontends (React 19 with Vite and Module Federation).
 | Where to keep the specification? | A separate, versioned repository published as the npm package `@garry/registry`, never inside a service repository. |
 | How to build features that span several services? | Contract first plus orchestration. A change to a contract drives a dependency graph, which drives delegation to agents in the right order. |
 | How to avoid losing context between lifecycle stages? | The state of a feature lives in the registry (`features/FEAT-x.md` as a living document), not in the memory of a single subagent. |
+| How to stop agents from repeating the same mistake? | Every mistake becomes a lesson in the project's registry (`lessons/`), and the supervisor injects the matching lessons into every later task. |
 
 ## 2. High level architecture
 
@@ -50,6 +51,8 @@ garry-registry/            (the @garry/registry package)
   features/                living state documents for cross service features
     FEAT-123-new-checkout.md
   adr/                     architectural decision records
+  lessons/                 what Garry learned in this project (see section 8)
+    L-001-event-payload-names.md
 ```
 
 ### Service manifest (`catalog/checkout-mfe.yaml`)
@@ -80,7 +83,7 @@ Garry drives each feature through its lifecycle. A stage is not a monolith. It i
 | 4 | Implement | `scaffold-mfe-shell`, `scaffold-mfe-remote`, `sync-contracts`, `generate-types`, `mf-wiring` | service repo |
 | 5 | Review | `review-correctness`, `review-spec-match`, `review-contract-compliance`, `review-security` | pull request |
 | 6 | Test | `test-unit`, `test-e2e`, `drift-check` | repo plus registry |
-| 7 | Integrate | `cross-repo-merge`, `version-tag`, `changelog` | registry plus repo |
+| 7 | Integrate | `cross-repo-merge`, `version-tag`, `changelog`, `lesson-capture` | registry plus repo |
 
 Guiding rule: nobody touches code until the contract in the registry is updated and validated (contract first).
 
@@ -99,7 +102,7 @@ garry-skills/             (the @garry/skills package)
     implement/ scaffold-mfe-shell, scaffold-mfe-remote, sync-contracts, generate-types, mf-wiring
     review/    review-correctness, review-spec-match, review-contract-compliance, review-security
     test/      test-unit, test-e2e, drift-check
-    integrate/ cross-repo-merge, version-tag, changelog
+    integrate/ cross-repo-merge, version-tag, changelog, lesson-capture
   manifest.json           index of skills: name, stage, inputs, outputs, dependencies
 ```
 
@@ -114,6 +117,7 @@ Each skill is atomic (one responsibility), has a `SKILL.md` (instructions for th
 | `garry feature <FEAT-id>` | composes the full SDLC pipeline from skills and delegates per repository following the graph |
 | `garry doctor` | runs the `drift-check` skill: the installed contract version against the latest in the registry |
 | `garry skills` | lists and validates the available skills from `@garry/skills` |
+| `garry lessons` | lists what Garry learned in this project; `garry lessons add` records a mistake |
 
 Delegation (Implement, Review, Test) uses a `delegate(repo, task, skills[])` tool that spawns a Claude Code subagent in the given repository with the injected set of skills.
 
@@ -144,7 +148,83 @@ Stack (lightweight, audited before install): the interaction engine is `@clack/p
 3. The whole state is tracked in FEAT-123.md the entire time
 ```
 
-## 8. Workspace (multicheckout)
+## 8. Learning per project (lessons)
+
+Garry learns in every project. Each mistake it makes becomes a lesson in that
+project's registry, so the next agent, in the next feature or the next session,
+does not repeat it. Like the feature state, a lesson lives in the registry, not in
+the memory of a subagent.
+
+### Where a lesson comes from
+
+The `lesson-capture` skill records a lesson when evidence shows Garry got something
+wrong:
+
+| Source | Example |
+|---|---|
+| `review` | a reviewer finding the author had to fix |
+| `test` | a failing unit or end to end test caused by the change |
+| `ci` | a red check on the feature branch caused by the change |
+| `drift` | `drift-check` finds code that does not match the contract |
+| `human` | the human corrects Garry or rejects a result |
+
+Flakes and outages that the change did not cause are not lessons. The skill also
+runs once as a retrospective at the end of Integrate.
+
+### The lesson file (`lessons/L-001-*.md`)
+
+```yaml
+id: L-001
+title: Event payload fields follow events.json exactly
+kind: mistake            # or practice: a convention the human taught
+status: active           # retired: kept in history, no longer injected
+rule: >-                 # the one instruction the agents get
+  Copy event payload field names from .garry/contracts/events.json and use the
+  generated types; never retype or rename a field.
+appliesTo:               # every list narrows the match; empty matches everything
+  stages: [implement, review]
+  services: []
+  skills: [generate-types, review-contract-compliance]
+incidents:               # every time it happened
+  - { feature: FEAT-123, stage: test, service: search-mfe, date: "2026-10-09", source: drift, summary: "..." }
+```
+
+The markdown body keeps the longer story: what happened, why, and how to avoid it.
+`contract-validate` checks `lessons/` with `LessonFrontmatterSchema` from
+`@garry/registry` (the id format, unique ids, known services).
+
+The same mistake again does not create a new file. It adds an incident to the
+existing lesson (`garry lessons add --id L-001 ...`), so the count shows how often
+it happens.
+
+### How a lesson reaches the agents
+
+```
+review / test / ci / human --> lesson-capture --> registry/lessons/L-xxx.md
+                                                         |
+         +-----------------------------------------------+
+         v                                               v
+  buildPlan(): every task gets              garry sync: .garry/lessons.md in
+  the active lessons that match             each repo, read by the subagent
+  its stage, service and skills             (AGENTS.md points to it)
+```
+
+- Plan: `buildPlan` attaches the matching lessons to each task (`task.lessons`), so
+  the delegation carries them and the dry run prints them. A supervisor task gets
+  the lessons for every service, because it plans for all of them.
+- Repository: `garry sync` writes `.garry/lessons.md` with the active lessons for
+  that service, next to the contract slice.
+
+### From one project to every project
+
+Lessons are per project on purpose: a rule that is right for one registry can be
+wrong for another. A lesson with two or more incidents is recurring, and
+`garry lessons` and the Lessons panel flag it as a candidate for `@garry/skills`.
+Promoting it means adding the rule to the relevant `SKILL.md`, through a reviewed
+pull request to the skills repository, so every project gets it. The human approves
+every promotion; it is never automatic.
+
+## 9. Workspace (multicheckout)
 
 A workspace is the materialization of a feature on disk: a set of services plus a shared branch, handled as one unit. The list of services comes from `features/FEAT-x.md`. It is the physical base on which the supervisor delegates subagents, each in its own directory, on the shared branch.
 
@@ -180,7 +260,7 @@ In a legacy project the worktree is non invasive: it adds a separate working dir
 
 Legacy edge cases Garry handles: a different base branch (`main`, `master` or `develop`, detected per repo), a MF variant other than Vite (an adapter), a service with no changes in the feature (read only in the workspace), and a local clone with uncommitted changes (the worktree is separate anyway).
 
-## 9. Heterogeneous stacks and interoperability
+## 10. Heterogeneous stacks and interoperability
 
 Each service chooses its own technology stack. The scaffold wizard asks for the stack separately for every service. Integration is guaranteed by the contract, not by the stack. The registry contracts are the common language, so services that are built differently still connect.
 
@@ -200,7 +280,7 @@ What this changes in Garry:
 
 Scope for now: the project starts with microfrontends. Backend services are allowed later. When they arrive, interoperability also runs through API and event contracts (OpenAPI and AsyncAPI), not only through Module Federation.
 
-## 10. Why start with microfrontends
+## 11. Why start with microfrontends
 
 Microfrontends are simpler for the first iteration because the contract is explicit and static:
 
@@ -211,7 +291,7 @@ Microfrontends are simpler for the first iteration because the contract is expli
 
 On microfrontends we refine the registry, the sync and the SDLC orchestration. Moving to the backend only adds DB provisioning, API and event contracts (OpenAPI and AsyncAPI), and migrations.
 
-## 11. Repositories (four)
+## 12. Repositories (four)
 
 Garry is not one project but four independently versioned repositories (WHAT, HOW, WHO, FACE) plus templates.
 
@@ -229,7 +309,7 @@ garry-tool/                (WHO, the orchestrator, a headless core)
     registry-sample/   catalog and contracts for two sample microfrontends
 
 garry-registry/            (WHAT, published as @garry/registry)
-  catalog/ contracts/ features/ adr/        schema (zod) and validation
+  catalog/ contracts/ features/ adr/ lessons/  schema (zod) and validation
 
 garry-skills/              (HOW, published as @garry/skills)
   skills/ manifest.json    atomic skills and index
@@ -242,7 +322,7 @@ Tooling stack: TypeScript and Node. UI: Next.js (React 19).
 
 Why separate repositories: the registry changes per project or client, the skills are reusable globally, the tool and the UI have their own release cycles. Splitting them lets each layer be versioned and swapped independently. The CLI and the UI are two layers over the same supervisor, so there is no duplicated logic.
 
-## 12. UI, GitHub, model and agent routing
+## 13. UI, GitHub, model and agent routing
 
 Garry gets its own panel (`garry-ui`) that talks to `garry-tool/server`. The same core (the supervisor) serves both the CLI and the UI.
 
@@ -283,6 +363,7 @@ Alternative (lighter): Vite plus a React SPA plus a separate `garry-tool/server`
 | Skills | the list of skills from `@garry/skills`, enable or disable, a view of `SKILL.md` |
 | GitHub | repositories, pull requests, status checks, the branch per feature |
 | Routing | the model by agent matrix per stage or skill |
+| Lessons | what Garry learned in this project: each rule, where it applies, every incident, and the recurring ones to promote |
 
 ### GitHub (narrow token)
 
@@ -311,7 +392,7 @@ The heart of switching models and agents. Per SDLC stage (or per skill) you choo
 - A model is a specific Claude model (Opus 4.8, Sonnet 4.6, Haiku 4.5, Fable 5), switchable from the UI at runtime.
 - An override per feature or per single run is stored next to the feature state in the registry.
 
-## 13. Continuous integration, security review and code review
+## 14. Continuous integration, security review and code review
 
 The repository ships with CI, a mandatory security review and automated code review from the start. The security review is a job inside the CI workflow, not a separate pipeline.
 
@@ -331,7 +412,7 @@ Before the MVP the project uses a single branch (`main`) with direct commits, so
 
 Copilot reviews pull requests for free, following `.github/copilot-instructions.md` (English only, no em dashes, contract first, security notes). Automatic review is requested on every pull request in the repository settings.
 
-## 14. Implementation plan (phased)
+## 15. Implementation plan (phased)
 
 - Phase 0, format foundations. Done. `garry-registry` (zod schema and validation plus a sample) and `garry-skills` (the `SKILL.md` format, `manifest.json`, a validator and the first end to end skill `contract-validate`). CI and the dash guard included.
 - Phase 1, scaffolding and wizard. Done. The `scaffold-mfe-shell` and `scaffold-mfe-remote` skills, structured stack fields in the manifest, `garry scaffold`, a catalog entry and `AGENTS.md`, all in the interactive wizard mode (ANSI banner, stepper, spinner). A headless flag driven mode is available for automation and CI.
@@ -343,3 +424,4 @@ Copilot reviews pull requests for free, following `.github/copilot-instructions.
 - Phase 7, UI. Done. `garry-ui` (Next.js 16, App Router, React 19) with a token generator (`design-tokens.json` to `tokens.css` CSS variables) and CSS Modules, native first, no Radix. Panels: Dashboard, Pipeline (live SSE delegation stream), Registry, Skills, Routing and GitHub, backed by the server endpoints from phase 5 plus `GET /api/registry` and `GET /api/routing`. The GitHub panel lists the managed repos; opening pull requests and reading checks is wired in phase 6.
 - Phase 8, adopt (brownfield). Done. `garry adopt <repo>` detects the stack (framework, bundler, federation) from package.json and config files, statically extracts the Module Federation surface (exposes, remotes, shared) without evaluating the config, and derives a service manifest plus a remotes entry. It is a dry run by default; `--write` applies it and runs `validateRegistry` to surface drift. A human approves before it becomes the source of truth.
 - Phase 9, backend generalization. Done. The manifest gains a `kind` (mfe-shell, mfe-remote, backend), a per service `db` block (engine, name, migrations) and an `api` reference. A new `contracts/api.json` is the backend cross service contract (OpenAPI for REST, AsyncAPI for events), the equivalent of remotes.json, validated and cross checked. New skills: `api-contract`, `db-provision`, `db-migrate` and `api-compatibility`. A backend sample registry (orders-api and payments-api with their own databases) validates clean.
+- Phase 10, learning per project. Done. Lessons in the registry (`lessons/`, validated by `LessonFrontmatterSchema`), the `lesson-capture` skill, `garry lessons` (list and add), lesson injection into every matching task in the plan and into `.garry/lessons.md` by `garry sync`, `GET` and `POST /api/lessons`, and a Lessons panel in the UI. Recurring lessons are flagged for promotion into `@garry/skills`.

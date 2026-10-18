@@ -47,6 +47,16 @@ pnpm dev
 `pnpm dev` starts the whole app: the server on http://localhost:8123 and the UI
 on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
 
+## Learning from mistakes
+
+Garry learns in every project. Each mistake (a review finding, a failed test, a red
+CI run, a drift or a human correction) becomes a lesson in the project's registry,
+`lessons/L-xxx-*.md`, with one rule and every incident. The supervisor injects the
+matching lessons into each task of the plan, and `garry sync` writes them into
+`.garry/lessons.md` in each repository. A lesson that keeps happening is flagged as
+a candidate for `@garry/skills`, so every project can get it after a human review.
+See section 8 of [ARCHITECTURE.md](./ARCHITECTURE.md).
+
 ## Use from a phone (Tailscale)
 
 Garry can be opened from a phone on your tailnet with
@@ -85,6 +95,8 @@ not use `tailscale funnel` for Garry, which would publish it to the internet.
 | `pnpm phone` | share the running app on your tailnet over HTTPS (Tailscale Serve) |
 | `pnpm phone:off` | stop sharing on the tailnet |
 | `pnpm scaffold` | the interactive scaffolding wizard |
+| `pnpm garry lessons` | list what Garry learned in this project |
+| `pnpm garry lessons add ...` | record a mistake (see `--help`) |
 | `pnpm -r typecheck` | type check every package |
 | `pnpm -C garry-registry validate` | validate the sample registry |
 | `pnpm -C garry-skills validate` | validate the skills manifest |

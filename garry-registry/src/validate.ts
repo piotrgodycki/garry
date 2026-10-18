@@ -8,6 +8,7 @@ import {
   DesignTokensContractSchema,
   EventsContractSchema,
   ApiContractSchema,
+  LessonFrontmatterSchema,
   type ServiceManifest,
   type ApiContract,
 } from "./schema.js";
@@ -154,6 +155,47 @@ export function validateRegistry(root: string): ValidationIssue[] {
     for (const [name, svc] of Object.entries(services)) {
       if (svc.api && !api[name])
         warn(`catalog/${name}`, `manifest declares an api but contracts/api.json has no entry for ${name}`);
+    }
+  }
+
+  // lessons/ is optional: a new project has learned nothing yet.
+  const lessonsDir = join(root, "lessons");
+  if (existsSync(lessonsDir)) {
+    const seen = new Map<string, string>();
+    for (const f of readdirSync(lessonsDir).filter((f) => f.endsWith(".md"))) {
+      const where = `lessons/${f}`;
+      const m = /^---\r?\n([\s\S]*?)\r?\n---/.exec(readFileSync(join(lessonsDir, f), "utf8"));
+      if (!m) {
+        err(where, "missing frontmatter");
+        continue;
+      }
+      let raw: unknown;
+      try {
+        raw = parseYaml(m[1]);
+      } catch (e) {
+        err(where, `invalid YAML: ${(e as Error).message}`);
+        continue;
+      }
+      const r = LessonFrontmatterSchema.safeParse(raw);
+      if (!r.success) {
+        err(where, zodMsg(r.error));
+        continue;
+      }
+      const lesson = r.data;
+      const prev = seen.get(lesson.id);
+      if (prev) err(where, `duplicate lesson id ${lesson.id}, also used in ${prev}`);
+      seen.set(lesson.id, where);
+      if (!f.startsWith(`${lesson.id}-`) && f !== `${lesson.id}.md`)
+        warn(where, `file name should start with the id (${lesson.id})`);
+      for (const svc of lesson.appliesTo.services) {
+        if (!services[svc]) warn(where, `appliesTo references an unknown service ${svc}`);
+      }
+      for (const inc of lesson.incidents) {
+        if (inc.service && !services[inc.service])
+          warn(where, `incident references an unknown service ${inc.service}`);
+      }
+      if (lesson.kind === "mistake" && lesson.incidents.length === 0)
+        warn(where, "a mistake should record at least one incident");
     }
   }
 

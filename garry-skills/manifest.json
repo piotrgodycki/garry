@@ -219,6 +219,14 @@
       "dependsOn": ["cross-repo-merge"]
     },
     {
+      "name": "lesson-capture",
+      "stage": "integrate",
+      "path": "skills/integrate/lesson-capture",
+      "summary": "Turns every review finding, failed test, red CI run and human correction into a project lesson, so Garry does not repeat the mistake.",
+      "inputs": ["review-findings", "test-results", "ci-results", "human-corrections", "lessons"],
+      "outputs": ["lessons/L-xxx.md"]
+    },
+    {
       "name": "api-contract",
       "stage": "design",
       "path": "skills/design/api-contract",

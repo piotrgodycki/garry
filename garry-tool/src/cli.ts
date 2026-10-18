@@ -5,6 +5,7 @@ import { runWs } from "./commands/ws.js";
 import { runFeature } from "./commands/feature.js";
 import { runServe } from "./commands/serve.js";
 import { runAdopt } from "./commands/adopt.js";
+import { runLessons } from "./commands/lessons.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
 
@@ -16,6 +17,7 @@ Commands:
   sync       inject the contract slice into .garry/ and generate types
   ws         work on several services at once (multicheckout worktrees)
   feature    orchestrate a cross service feature through the SDLC
+  lessons    list or record what Garry learned in this project
   serve      start the HTTP server (REST plus SSE) over the supervisor
 
 Run "garry <command> --help" for command options.
@@ -37,6 +39,9 @@ async function main(): Promise<void> {
       break;
     case "feature":
       await runFeature(rest);
+      break;
+    case "lessons":
+      await runLessons(rest);
       break;
     case "serve":
       await runServe(rest);

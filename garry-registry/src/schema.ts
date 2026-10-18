@@ -130,3 +130,48 @@ export const FeatureFrontmatterSchema = z.object({
   routingOverride: RoutingOverrideSchema.optional(),
 });
 export type FeatureFrontmatter = z.infer<typeof FeatureFrontmatterSchema>;
+
+// lessons/ : what Garry learned in this project, mostly from its own mistakes
+
+/** Where the evidence for a lesson came from. */
+export const LessonSourceSchema = z.enum(["review", "test", "ci", "drift", "human"]);
+
+/**
+ * One occurrence of the mistake. A lesson keeps every incident, so a repeated
+ * mistake adds an incident to the existing lesson instead of a new file.
+ */
+export const LessonIncidentSchema = z.object({
+  feature: z.string(),
+  stage: z.enum(SDLC_STAGES),
+  service: z.string().optional(),
+  date: z.string(),
+  source: LessonSourceSchema,
+  summary: z.string(),
+});
+export type LessonIncident = z.infer<typeof LessonIncidentSchema>;
+
+/**
+ * Which tasks a lesson is injected into. Every list narrows the match; an empty
+ * list matches everything (for example no services means the whole project).
+ */
+export const LessonScopeSchema = z.object({
+  stages: z.array(z.enum(SDLC_STAGES)).default([]),
+  services: z.array(z.string()).default([]),
+  skills: z.array(z.string()).default([]),
+});
+
+/**
+ * lessons/L-xxx-*.md frontmatter. `rule` is the one instruction the agents get;
+ * the markdown body keeps the longer story (what happened, why, how to avoid it).
+ * A mistake is an error Garry made; a practice is a convention it learned.
+ */
+export const LessonFrontmatterSchema = z.object({
+  id: z.string().regex(/^L-\d{3,}$/, "id must look like L-001"),
+  title: z.string(),
+  kind: z.enum(["mistake", "practice"]).default("mistake"),
+  status: z.enum(["active", "retired"]).default("active"),
+  rule: z.string(),
+  appliesTo: LessonScopeSchema.default({}),
+  incidents: z.array(LessonIncidentSchema).default([]),
+});
+export type LessonFrontmatter = z.infer<typeof LessonFrontmatterSchema>;
