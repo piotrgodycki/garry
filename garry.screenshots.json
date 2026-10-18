@@ -1,0 +1,19 @@
+{
+  "$comment": "Views garry shots captures for pull request screenshots. Live views stream data while agents run, so they are shown but never diffed.",
+  "wait": 900,
+  "themeStorageKey": "garry-theme",
+  "themes": ["light", "dark"],
+  "viewports": [
+    { "name": "desktop", "width": 1440, "height": 900 },
+    { "name": "mobile", "width": 390, "height": 844, "scale": 2 }
+  ],
+  "routes": [
+    { "name": "dashboard", "path": "/" },
+    { "name": "live-agents", "path": "/agent", "wait": 2500, "live": true },
+    { "name": "registry", "path": "/registry" },
+    { "name": "skills", "path": "/skills" },
+    { "name": "routing", "path": "/routing" },
+    { "name": "pull-requests", "path": "/github" },
+    { "name": "service", "path": "/service/checkout-mfe", "wait": 1500, "live": true }
+  ]
+}

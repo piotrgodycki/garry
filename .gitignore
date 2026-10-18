@@ -21,3 +21,6 @@ garry-ui/AGENTS.md
 .DS_Store
 # local scaffold output
 .garry-out/
+
+# local PR screenshot runs (garry shots)
+/shots/

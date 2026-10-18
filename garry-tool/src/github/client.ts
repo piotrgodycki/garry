@@ -60,6 +60,27 @@ export class GitHub {
     return { number: pr.number, state: pr.state, draft: pr.draft, url: pr.html_url, checks: await this.checks(owner, name, pr.head.sha) };
   }
 
+  /**
+   * Creates or updates the one comment that carries a marker, so a bot that
+   * reports on every push edits its comment instead of piling up new ones.
+   */
+  async upsertComment(owner: string, name: string, issue: number, marker: string, body: string): Promise<{ url: string; created: boolean }> {
+    for (let page = 1; page <= 10; page++) {
+      const comments = await this.api<{ id: number; body?: string; html_url: string }[]>(
+        "GET",
+        `/repos/${owner}/${name}/issues/${issue}/comments?per_page=100&page=${page}`,
+      );
+      const mine = comments.find((c) => c.body?.includes(marker));
+      if (mine) {
+        const c = await this.api<{ html_url: string }>("PATCH", `/repos/${owner}/${name}/issues/comments/${mine.id}`, { body });
+        return { url: c.html_url, created: false };
+      }
+      if (comments.length < 100) break;
+    }
+    const c = await this.api<{ html_url: string }>("POST", `/repos/${owner}/${name}/issues/${issue}/comments`, { body });
+    return { url: c.html_url, created: true };
+  }
+
   /** Rolls up the check runs for a commit into one status. */
   private async checks(owner: string, name: string, sha: string): Promise<PrState["checks"]> {
     const runs = await this.api<{ check_runs: { conclusion: string | null }[] }>(

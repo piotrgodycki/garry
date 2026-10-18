@@ -463,3 +463,94 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---- phones: hub summary plus a service list instead of the orbit map ---- */
+.mobile {
+  display: none;
+}
+@media (max-width: 640px) {
+  .mobile {
+    display: grid;
+    gap: 10px;
+  }
+  .stageCard {
+    display: none;
+  }
+  .mHub {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+  }
+  .mHubText {
+    flex: 1;
+    display: grid;
+    line-height: 1.2;
+  }
+  .mHubPct {
+    font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .mHubSub {
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+  .mList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .mRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 14px;
+    min-height: 60px;
+    color: inherit;
+  }
+  .mRow:hover {
+    text-decoration: none;
+  }
+  .mRowActive {
+    border-left: 4px solid var(--color-brand-secondary);
+  }
+  .mMain {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .mName {
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .mAction {
+    font-size: 12.5px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mRowActive .mAction {
+    color: var(--color-brand-secondary);
+  }
+  .mChevron {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    color: var(--color-text-muted);
+    flex: none;
+  }
+  .status .wave {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  /* the intro talks about dragging the map, which phones do not show */
+  .page :global(.lede) {
+    display: none;
+  }
+}

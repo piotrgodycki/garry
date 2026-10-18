@@ -313,6 +313,42 @@ export default function AgentView() {
         </div>
       )}
 
+      {/* Phones get a list instead of the orbit map: same data, readable at 360px. */}
+      <div className={styles.mobile}>
+        <div className={`card ${styles.mHub}`}>
+          <GarryMark size={44} busy={busy} />
+          <div className={styles.mHubText}>
+            <span className={styles.mHubPct}>{Math.round(pct * 100)}%</span>
+            <span className={styles.mHubSub}>{progress} of {total} tasks</span>
+          </div>
+          <button className="btn btnSm" onClick={() => window.dispatchEvent(new Event("garry:voice"))} aria-label="talk to Garry">
+            {Icon.mic}
+            Talk
+          </button>
+        </div>
+        <ul className={styles.mList}>
+          {nodes.map((nd) => {
+            const st = serviceStatus(nd.svc);
+            const rm = roleModel(nd.svc);
+            return (
+              <li key={nd.svc}>
+                <Link href={`/service/${nd.svc}?feature=${selected}`} className={`card ${styles.mRow} ${st === "active" ? styles.mRowActive : ""}`}>
+                  <span className={`dot ${st === "active" ? "run" : st === "done" ? "ok" : "wait"}`} />
+                  <span className={styles.mMain}>
+                    <span className={styles.mName}>{nd.svc}</span>
+                    <span className={styles.mAction}>
+                      {st === "active" ? (lastAction(nd.svc) ?? task?.stage ?? "") : st === "done" ? "Done" : "Waiting"}
+                    </span>
+                  </span>
+                  <ModelChip id={rm.modelId} label={rm.model} />
+                  <span className={styles.mChevron}>{Icon.chevron}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
       <div className={styles.layout}>
       <div className={`card ${styles.stageCard}`}>
       <div className={styles.stage} ref={stageRef}>

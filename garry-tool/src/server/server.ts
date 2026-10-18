@@ -147,6 +147,7 @@ function actionFor(skill: string): string {
     "review-spec-match": "checked against acceptance criteria",
     "review-contract-compliance": "verified contract compliance",
     "review-security": "ran a security review",
+    "review-screenshots": "posted screenshots of the change on the PR",
     "test-unit": "ran unit tests",
     "test-e2e": "ran end to end tests",
     "drift-check": "checked for contract drift",

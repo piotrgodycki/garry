@@ -74,6 +74,32 @@ every push and pull request. It has three jobs:
   private, so CodeQL is not used (code scanning on a private repository needs paid
   GitHub Advanced Security); Semgrep runs fully inside the job and needs no token.
 
+### Screenshots on pull requests
+
+[`.github/workflows/pr-screenshots.yml`](./.github/workflows/pr-screenshots.yml) runs
+when a pull request goes to code review: opened as ready, moved out of draft, or a
+review requested from a person or a review agent, then again on every push while it
+is in review. Drafts are skipped. It builds the base and the head, captures every
+view listed in [`garry.screenshots.json`](./garry.screenshots.json) in headless
+Chromium (desktop and mobile, light and dark), diffs them pixel by pixel and keeps
+one comment on the pull request up to date with before, after and the diff of each
+changed view. Run it by hand for any pull request from the Actions tab
+(`workflow_dispatch`).
+
+The images live on the orphan branch `garry-screenshots` (one folder per pull
+request, removed when it closes), so they never enter the code history. Pull
+requests from forks get the screenshots as a workflow artifact only, because their
+token cannot write.
+
+The same steps run locally:
+
+```bash
+pnpm -C garry-tool exec playwright install chromium   # once
+pnpm garry shots capture --url http://localhost:3000 --out shots/head
+pnpm garry shots compare --base shots/base --head shots/head --out shots/report
+pnpm garry shots comment --report shots/report/report.json --images-url "file://$PWD/shots/report/{path}" --dry-run
+```
+
 ### CI budget
 
 The pipeline is kept cheap on purpose:
@@ -84,6 +110,9 @@ The pipeline is kept cheap on purpose:
   push does not pay for a stale run.
 - Caching: the pnpm store is cached, so installs stay fast.
 - Node 22 and pnpm 10, a single version each.
+- PR screenshots are the heaviest job (two production builds plus a Chromium
+  install, roughly 6 to 8 minutes), so they only run for pull requests in review
+  that touch the UI, the server or the sample registry.
 - Rough cost per run: a few minutes total, which stays well inside the GitHub Actions
   free tier (2000 minutes per month on a private repository, unlimited on a public one).
 - Dependabot version updates are off for now (pre MVP); `pnpm audit` covers dependency

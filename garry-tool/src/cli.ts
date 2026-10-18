@@ -5,6 +5,7 @@ import { runWs } from "./commands/ws.js";
 import { runFeature } from "./commands/feature.js";
 import { runServe } from "./commands/serve.js";
 import { runAdopt } from "./commands/adopt.js";
+import { runShots } from "./commands/shots.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
 
@@ -17,6 +18,7 @@ Commands:
   ws         work on several services at once (multicheckout worktrees)
   feature    orchestrate a cross service feature through the SDLC
   serve      start the HTTP server (REST plus SSE) over the supervisor
+  shots      screenshots for code review: capture, compare, comment on the PR
 
 Run "garry <command> --help" for command options.
 `;
@@ -40,6 +42,9 @@ async function main(): Promise<void> {
       break;
     case "serve":
       await runServe(rest);
+      break;
+    case "shots":
+      await runShots(rest);
       break;
     case undefined:
     case "--help":

@@ -167,6 +167,14 @@
       "outputs": ["review-report"]
     },
     {
+      "name": "review-screenshots",
+      "stage": "review",
+      "path": "skills/review/review-screenshots",
+      "summary": "Posts before and after screenshots of every changed view on the pull request when it goes to code review.",
+      "inputs": ["garry.screenshots.json", "pull-request"],
+      "outputs": ["pr-screenshots-comment"]
+    },
+    {
       "name": "test-unit",
       "stage": "test",
       "path": "skills/test/test-unit",
