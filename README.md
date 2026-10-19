@@ -47,6 +47,12 @@ pnpm dev
 `pnpm dev` starts the whole app: the server on http://localhost:8123 and the UI
 on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
 
+## Guides
+
+- [The Garry SDLC](./docs/sdlc.md): how a feature goes from an idea to production,
+  stage by stage, and what you do at each one.
+- [The garry CLI](./docs/cli.md): every command with its options and examples.
+
 ## Commands
 
 | Command | What it does |
