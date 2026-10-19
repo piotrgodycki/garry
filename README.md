@@ -25,6 +25,30 @@ its own repository, database and stack.
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 
+## How Garry works
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/garry-sdlc-dark.svg" />
+    <img src="assets/garry-sdlc.svg" alt="The Garry SDLC: a human describes an idea; Garry runs Spec, Plan and Design against the registry; the contract first gate; Implement, Review and Test are delegated to one subagent per repository in dependency graph order; Integrate merges the pull requests; mistakes become lessons in the registry." width="100%" />
+  </picture>
+</p>
+
+- **Spec, Plan, Design (supervisor).** Garry works on the Contract Registry itself:
+  the feature document, the dependency graph and the contract change with a
+  version bump.
+- **Contract first gate.** Nobody touches code until the contract is updated and
+  validated.
+- **Implement, Review, Test (one subagent per repository).** Garry calls
+  `delegate(repo, task, skills)` for each service on the shared `feat/<FEAT-id>`
+  branch, in dependency graph order. A subagent reads only its slice of the
+  contracts and the project lessons in `.garry/`, never the code of other repos.
+- **Integrate.** The pull requests merge as one release with a version tag.
+- **Learning from mistakes.** Review findings, failed tests, red CI, drift and human
+  corrections become lessons in `lessons/` and are injected into later tasks.
+- The agent and model per stage come from `garry.routing.json`. The feature state
+  lives in `features/FEAT-x.md`, not in the memory of any agent.
+
 ## Packages
 
 | Package | Role |
