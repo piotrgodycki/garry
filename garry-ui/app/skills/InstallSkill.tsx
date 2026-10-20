@@ -20,7 +20,23 @@ type Mode = "upload" | "folder";
  * folder on this machine), check the preview the server parsed, then install.
  * Nothing is written before the second step.
  */
-export default function InstallSkill({ onClose, onInstalled }: { onClose: () => void; onInstalled: (name: string) => void }) {
+export interface ProposeInfo {
+  repo: string | null;
+  ready: boolean;
+}
+
+export default function InstallSkill({
+  onClose,
+  onInstalled,
+  policy,
+  propose,
+}: {
+  onClose: () => void;
+  onInstalled: (name: string) => void;
+  /** "ci-only" turns local installs off: skills only arrive through a reviewed pull request */
+  policy: "local" | "ci-only";
+  propose: ProposeInfo;
+}) {
   const ref = useRef<HTMLDialogElement>(null);
   const [mode, setMode] = useState<Mode>("upload");
   const [content, setContent] = useState("");
@@ -33,6 +49,26 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
   const [ack, setAck] = useState(false);
+  const [proposed, setProposed] = useState<{ url: string; number: number; branch: string } | null>(null);
+
+  const doPropose = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fetch(`${apiBase}/api/skills/propose`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...source, stage: stage || undefined, acknowledge: ack }),
+      });
+      const d = await r.json();
+      if (!r.ok) return setError(d.error ?? "the pull request could not be opened");
+      setProposed(d as { url: string; number: number; branch: string });
+    } catch {
+      setError("cannot reach garry-server");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   useEffect(() => {
     ref.current?.showModal();
@@ -87,7 +123,7 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
   return (
     <dialog ref={ref} className={styles.dialog} onClose={onClose} aria-labelledby="install-title">
       <form method="dialog" className={styles.dialogHead}>
-        <h2 id="install-title">Install a skill</h2>
+        <h2 id="install-title">{policy === "ci-only" ? "Propose a skill" : "Add a skill"}</h2>
         <button className="btn btnGhost iconBtn" aria-label="close">{Icon.close}</button>
       </form>
 
@@ -95,8 +131,24 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
         <p className={styles.help}>
           A skill is a folder with a <code>SKILL.md</code>: YAML frontmatter with <code>name</code> and{" "}
           <code>description</code> (and optionally <code>stage</code>), then the instructions for the agent. It is
-          installed on this machine only and joins its stage in every feature&apos;s plan.
+          audited first. <b>Install locally</b> adds it on this machine only. <b>Propose to team</b> opens a pull request
+          {propose.repo ? <> to <code>{propose.repo}</code></> : null}: CI audits it again with a secret scanner and
+          Semgrep, a code owner reviews it, and after the merge every teammate gets it pre-installed.
         </p>
+        {policy === "ci-only" && (
+          <p className={styles.policy}>Local installs are turned off for this team: skills only arrive through a reviewed pull request.</p>
+        )}
+        {proposed && (
+          <div className={styles.proposed} role="status">
+            {Icon.check}
+            <div>
+              <b>Pull request #{proposed.number} opened</b>
+              <span>
+                The skill-audit check and a code owner review it now. <a href={proposed.url} target="_blank" rel="noopener noreferrer">Open it on GitHub</a>
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className={styles.tabs} role="tablist">
           <button type="button" role="tab" aria-selected={mode === "upload"} onClick={() => setMode("upload")}>
@@ -185,6 +237,9 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
             This skill cannot be installed. Remove what the audit found from the skill, then try again.
           </p>
         )}
+        {!propose.ready && preview && preview.audit.verdict !== "fail" && (
+          <p className={styles.hint}>To propose it to the team, add GARRY_GITHUB_TOKEN to .env and restart the server.</p>
+        )}
         {preview?.audit.verdict === "warn" && (
           <label className={styles.check}>
             <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} />
@@ -194,15 +249,33 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
       </div>
 
       <div className={styles.dialogFoot}>
-        <button type="button" className="btn btnGhost" onClick={() => ref.current?.close()}>Cancel</button>
-        <button
-          type="button"
-          className="btn btnPrimary"
-          disabled={!preview || busy || preview.audit.verdict === "fail" || (preview.audit.verdict === "warn" && !ack)}
-          onClick={() => void call(false)}
-        >
-          {busy ? "Checking..." : preview?.audit.verdict === "fail" ? "Blocked" : "Install"}
+        <button type="button" className="btn btnGhost" onClick={() => ref.current?.close()}>
+          {proposed ? "Close" : "Cancel"}
         </button>
+        {!proposed && (
+          <>
+            <button
+              type="button"
+              className={`btn ${policy === "ci-only" ? "btnPrimary" : ""}`}
+              disabled={!preview || busy || !propose.ready || preview.audit.verdict === "fail" || (preview.audit.verdict === "warn" && !ack)}
+              title={propose.ready ? "Open a pull request so CI and a code owner review it for the whole team" : "Set GARRY_GITHUB_TOKEN in .env to open pull requests"}
+              onClick={() => void doPropose()}
+            >
+              {Icon.prs}
+              Propose to team
+            </button>
+            {policy !== "ci-only" && (
+              <button
+                type="button"
+                className="btn btnPrimary"
+                disabled={!preview || busy || preview.audit.verdict === "fail" || (preview.audit.verdict === "warn" && !ack)}
+                onClick={() => void call(false)}
+              >
+                {busy ? "Checking..." : preview?.audit.verdict === "fail" ? "Blocked" : "Install locally"}
+              </button>
+            )}
+          </>
+        )}
       </div>
     </dialog>
   );

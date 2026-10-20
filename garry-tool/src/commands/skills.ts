@@ -1,9 +1,11 @@
 import pc from "picocolors";
 import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { SkillError, installSkill, listLocalSkills, localSkillsDir, removeSkill, STAGES } from "../skills/local.js";
 import { auditFiles, readSkillFolder, type AuditReport } from "../skills/audit.js";
+import { proposeSkill } from "../skills/propose.js";
+import { githubToken } from "../github/env.js";
 
 const HELP = `garry skills <list|add|remove> [options]
 
@@ -17,8 +19,12 @@ GARRY_SKILLS_HOME). A local skill joins its SDLC stage in every feature's plan.
       [--replace]            overwrite a local skill with the same name
       [--accept-warnings]    install despite medium findings, after reading them
   remove <name>              remove a local skill
+  propose <folder|SKILL.md>  audit, then open a pull request that adds the skill
+      [--stage <stage>]      to the pre-installed skills for the whole team; CI
+      [--accept-warnings]    and a CODEOWNERS reviewer must pass it before merge
   audit [folder ...]         security audit; without folders, every installed
                              skill. Exits 1 when any skill fails (use it in CI)
+      [--report <file>]      also write the result as Markdown
 
 Every skill is audited for prompt injection, hidden text, remote code execution,
 destructive commands, secret exfiltration, persistence, safety bypasses,
@@ -77,6 +83,20 @@ export async function runSkills(argv: string[]): Promise<void> {
       }
       return;
     }
+    if (sub === "propose") {
+      if (!target || target.startsWith("--")) throw new SkillError("garry skills propose needs a folder or a SKILL.md path");
+      const token = githubToken();
+      if (!token) throw new SkillError("set GARRY_GITHUB_TOKEN in .env to open pull requests");
+      const reserved = new Set(loadBuiltinSkills(skillsRoot).map((s) => s.name));
+      try {
+        const res = await proposeSkill({ path: target, stage: opt("stage"), acknowledge: has("accept-warnings") }, reserved, { token });
+        console.log(`${pc.green("proposed")} ${res.skill.name}: ${res.url} (branch ${res.branch})`);
+      } catch (e) {
+        if (e instanceof SkillError && e.audit) printAudit(target, e.audit);
+        throw e;
+      }
+      return;
+    }
     if (sub === "remove") {
       if (!target) throw new SkillError("garry skills remove needs a skill name");
       removeSkill(target);
@@ -84,7 +104,10 @@ export async function runSkills(argv: string[]): Promise<void> {
       return;
     }
     if (sub === "audit") {
-      const folders = [target, ...rest].filter((a): a is string => Boolean(a) && !a.startsWith("--") && a !== opt("skills"));
+      const reportFile = opt("report");
+      const folders = [target, ...rest].filter(
+        (a): a is string => Boolean(a) && !a.startsWith("--") && a !== opt("skills") && a !== reportFile,
+      );
       const reports: { name: string; audit: AuditReport }[] = [];
       if (folders.length) {
         for (const f of folders) {
@@ -102,6 +125,7 @@ export async function runSkills(argv: string[]): Promise<void> {
         for (const s of listLocalSkills()) reports.push({ name: `${s.name} (local)`, audit: s.audit });
       }
       for (const r of reports) printAudit(r.name, r.audit);
+      if (reportFile) writeFileSync(reportFile, auditMarkdown(reports));
       const failed = reports.filter((r) => r.audit.verdict === "fail").length;
       const warned = reports.filter((r) => r.audit.verdict === "warn").length;
       console.log(`\n${reports.length} skill(s) audited: ${reports.length - failed - warned} passed, ${warned} with warnings, ${failed} failed`);
@@ -129,4 +153,23 @@ function printAudit(name: string, audit: AuditReport): void {
     console.log(`  ${sev} ${f.title} [${f.rule}] ${pc.dim(`${f.file}:${f.line}`)}`);
     console.log(pc.dim(`    ${f.excerpt}`));
   }
+}
+
+/** The audit as Markdown, for a pull request comment. */
+function auditMarkdown(reports: { name: string; audit: AuditReport }[]): string {
+  const icon = { pass: "PASS", warn: "WARN", fail: "FAIL" } as const;
+  const out = ["| Skill | Verdict | Critical | High | Medium |", "| --- | --- | --- | --- | --- |"];
+  for (const r of reports) {
+    const c = r.audit.counts;
+    out.push(`| \`${r.name}\` | **${icon[r.audit.verdict]}** | ${c.critical} | ${c.high} | ${c.medium} |`);
+  }
+  for (const r of reports.filter((x) => x.audit.findings.length)) {
+    out.push("", `<details${r.audit.verdict === "fail" ? " open" : ""}><summary><b>${r.name}</b>: ${r.audit.findings.length} finding(s)</summary>`, "");
+    for (const f of r.audit.findings) {
+      out.push(`- **${f.severity}** ${f.title} \`${f.file}:${f.line}\`: ${f.why}`);
+      if (f.excerpt) out.push(`  \`${f.excerpt.replace(/`/g, "'")}\``);
+    }
+    out.push("</details>");
+  }
+  return out.join("\n") + "\n";
 }

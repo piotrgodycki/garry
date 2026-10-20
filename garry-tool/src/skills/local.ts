@@ -1,4 +1,4 @@
-import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
@@ -130,19 +130,33 @@ export interface InstallResult {
   audit: AuditReport;
 }
 
+/** Where a team wants skills to come from: anywhere (local installs allowed) or only through CI review. */
+export function skillsPolicy(): "local" | "ci-only" {
+  return process.env.GARRY_SKILLS_POLICY?.trim() === "ci-only" ? "ci-only" : "local";
+}
+
+export interface PreparedSkill {
+  skill: ParsedSkill & { stage: Stage };
+  /** "upload" or the folder it came from */
+  source: string;
+  files: { rel: string; data: Buffer }[];
+  audit: AuditReport;
+}
+
 /**
- * Installs a skill from uploaded SKILL.md text or from a folder on this machine.
- * Pre-installed names are reserved, so a local skill can never silently replace
- * one that ships with the project.
+ * Reads a skill from uploaded SKILL.md text or from a folder on this machine,
+ * parses it and audits every file. Local install and team proposal both go
+ * through here, so they always apply the same audit. Pre-installed names are
+ * reserved, so a skill can never silently replace one that ships with the project.
  */
-export function installSkill(req: InstallRequest, reserved: Set<string>, dir = localSkillsDir()): InstallResult {
+export function prepareSkill(req: InstallRequest, reserved: Set<string>): PreparedSkill {
   let source: string;
-  let files: { rel: string; abs?: string }[] = [];
+  let files: { rel: string; data: Buffer }[];
   let text: string;
   if (typeof req.content === "string" && req.content.trim()) {
     text = req.content;
     source = "upload";
-    files = [{ rel: "SKILL.md" }];
+    files = [{ rel: "SKILL.md", data: Buffer.from(text, "utf8") }];
   } else if (typeof req.path === "string" && req.path.trim()) {
     const p = resolve(req.path.trim().replace(/^~(?=$|\/)/, homedir()));
     if (!existsSync(p)) throw new SkillError(`nothing at ${p}`);
@@ -152,7 +166,7 @@ export function installSkill(req: InstallRequest, reserved: Set<string>, dir = l
     if (!existsSync(md)) throw new SkillError(`no SKILL.md in ${folder}`);
     text = readFileSync(md, "utf8");
     source = folder;
-    files = collectFiles(folder);
+    files = collectFiles(folder).map((f) => ({ rel: f.rel, data: readFileSync(f.abs) }));
   } else {
     throw new SkillError("send the SKILL.md content or a path");
   }
@@ -161,36 +175,45 @@ export function installSkill(req: InstallRequest, reserved: Set<string>, dir = l
   const stage = isStage(req.stage) ? req.stage : parsed.stage;
   if (!stage) throw new SkillError(`pick a stage (${STAGES.join(", ")}): the SKILL.md frontmatter does not set one`);
   if (reserved.has(parsed.name)) throw new SkillError(`"${parsed.name}" is a pre-installed skill; rename yours`, 409);
-  const target = join(dir, parsed.name);
-  if (existsSync(target) && !req.replace) throw new SkillError(`"${parsed.name}" is already installed locally`, 409);
+  return { skill: { ...parsed, stage }, source, files, audit: auditFiles(files) };
+}
 
-  // Every skill is audited before it can be installed. A dry run returns the
-  // report whatever it says, so the preview can show the findings.
-  const audit = auditFiles(
-    source === "upload" ? [{ rel: "SKILL.md", data: Buffer.from(text, "utf8") }] : files.map((f) => ({ rel: f.rel, data: readFileSync(f.abs!) })),
-  );
-  const result: InstallResult = { skill: { ...parsed, stage }, files: files.map((f) => f.rel), installed: false, audit };
-  if (req.dryRun) return result;
+/** Refuses a skill whose audit failed, and one with warnings nobody acknowledged. */
+export function enforceAudit(prepared: PreparedSkill, acknowledge: boolean | undefined, action: string): void {
+  const { audit } = prepared;
   if (audit.verdict === "fail") {
-    throw new SkillError(`the security audit failed (${audit.counts.critical} critical, ${audit.counts.high} high): this skill cannot be installed`, 422, audit);
+    throw new SkillError(`the security audit failed (${audit.counts.critical} critical, ${audit.counts.high} high): this skill cannot be ${action}`, 422, audit);
   }
-  if (audit.verdict === "warn" && !req.acknowledge) {
-    throw new SkillError(`the security audit has ${audit.counts.medium} warning(s): review them and confirm to install`, 409, audit);
+  if (audit.verdict === "warn" && !acknowledge) {
+    throw new SkillError(`the security audit has ${audit.counts.medium} warning(s): review them and confirm`, 409, audit);
   }
+}
+
+/** Installs a skill on this machine after the audit; a dry run only previews it. */
+export function installSkill(req: InstallRequest, reserved: Set<string>, dir = localSkillsDir()): InstallResult {
+  const prepared = prepareSkill(req, reserved);
+  const { skill, files, audit, source } = prepared;
+  const target = join(dir, skill.name);
+  const result: InstallResult = { skill, files: files.map((f) => f.rel), installed: false, audit };
+  if (existsSync(target) && !req.replace) throw new SkillError(`"${skill.name}" is already installed locally`, 409, audit);
+  // a dry run returns the report whatever it says, so the preview can show the findings
+  if (req.dryRun) return result;
+  if (skillsPolicy() === "ci-only") {
+    throw new SkillError("local installs are turned off (GARRY_SKILLS_POLICY=ci-only): propose the skill to the team instead", 403, audit);
+  }
+  enforceAudit(prepared, req.acknowledge, "installed");
 
   mkdirSync(dir, { recursive: true });
   rmSync(target, { recursive: true, force: true });
-  mkdirSync(target, { recursive: true });
-  if (source === "upload") writeFileSync(join(target, "SKILL.md"), text);
-  else for (const f of files) {
+  for (const f of files) {
     mkdirSync(dirname(join(target, f.rel)), { recursive: true });
-    cpSync(f.abs!, join(target, f.rel));
+    writeFileSync(join(target, f.rel), f.data);
   }
   writeFileSync(
     join(target, "garry.json"),
     JSON.stringify(
       {
-        stage,
+        stage: skill.stage,
         installedAt: new Date().toISOString(),
         from: source,
         audit: { version: audit.version, verdict: audit.verdict, counts: audit.counts, hash: audit.hash, acknowledged: audit.verdict === "warn" },

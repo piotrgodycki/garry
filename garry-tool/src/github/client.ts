@@ -19,10 +19,13 @@ export function parseSlug(repo: string): { owner: string; name: string } | null 
 
 /** Minimal GitHub REST client over fetch, scoped to what Garry needs. */
 export class GitHub {
+  /** GARRY_GITHUB_API points at GitHub Enterprise (or a test double) instead of github.com. */
+  private base = (process.env.GARRY_GITHUB_API?.trim() || "https://api.github.com").replace(/\/$/, "");
+
   constructor(private token: string) {}
 
   private async api<T>(method: string, path: string, body?: unknown): Promise<T> {
-    const res = await fetch(`https://api.github.com${path}`, {
+    const res = await fetch(`${this.base}${path}`, {
       method,
       headers: {
         authorization: `Bearer ${this.token}`,
@@ -79,6 +82,58 @@ export class GitHub {
     }
     const c = await this.api<{ html_url: string }>("POST", `/repos/${owner}/${name}/issues/${issue}/comments`, { body });
     return { url: c.html_url, created: true };
+  }
+
+  /** A text file on a branch, or null when it does not exist. */
+  async fileText(owner: string, name: string, path: string, ref: string): Promise<string | null> {
+    try {
+      const f = await this.api<{ content: string; encoding: string }>(
+        "GET",
+        `/repos/${owner}/${name}/contents/${path.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(ref)}`,
+      );
+      return Buffer.from(f.content, f.encoding === "base64" ? "base64" : "utf8").toString("utf8");
+    } catch (e) {
+      if (/ 404 /.test((e as Error).message)) return null;
+      throw e;
+    }
+  }
+
+  /**
+   * Commits a set of files onto a new branch cut from base, in one commit, through
+   * the Git Data API (no local clone needed). Fails if the branch already exists.
+   */
+  async commitToNewBranch(
+    owner: string,
+    name: string,
+    base: string,
+    branch: string,
+    message: string,
+    files: { path: string; content: Buffer }[],
+  ): Promise<string> {
+    const ref = await this.api<{ object: { sha: string } }>("GET", `/repos/${owner}/${name}/git/ref/heads/${encodeURIComponent(base)}`);
+    const parent = await this.api<{ tree: { sha: string } }>("GET", `/repos/${owner}/${name}/git/commits/${ref.object.sha}`);
+    const tree = [];
+    for (const f of files) {
+      const blob = await this.api<{ sha: string }>("POST", `/repos/${owner}/${name}/git/blobs`, {
+        content: f.content.toString("base64"),
+        encoding: "base64",
+      });
+      tree.push({ path: f.path, mode: "100644", type: "blob", sha: blob.sha });
+    }
+    const newTree = await this.api<{ sha: string }>("POST", `/repos/${owner}/${name}/git/trees`, { base_tree: parent.tree.sha, tree });
+    const commit = await this.api<{ sha: string }>("POST", `/repos/${owner}/${name}/git/commits`, {
+      message,
+      tree: newTree.sha,
+      parents: [ref.object.sha],
+    });
+    await this.api("POST", `/repos/${owner}/${name}/git/refs`, { ref: `refs/heads/${branch}`, sha: commit.sha });
+    return commit.sha;
+  }
+
+  /** Opens a pull request ready for review (not a draft), so review workflows run at once. */
+  async openPr(owner: string, name: string, head: string, base: string, title: string, body: string): Promise<{ number: number; url: string }> {
+    const pr = await this.api<GhPr>("POST", `/repos/${owner}/${name}/pulls`, { title, head, base, body, draft: false });
+    return { number: pr.number, url: pr.html_url };
   }
 
   /** Rolls up the check runs for a commit into one status. */

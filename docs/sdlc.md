@@ -104,6 +104,12 @@ Instructions for the agent...
 
 `stage` is optional in the file; the Install dialog and `--stage` can set it.
 
+For the whole team, propose the skill instead (Propose to team, or
+`garry skills propose`): Garry opens a pull request, the `skill-audit` check audits
+it again with a secret scanner and Semgrep, a code owner approves it, and after the
+merge it is pre-installed for everyone. With `GARRY_SKILLS_POLICY=ci-only` this is
+the only way in.
+
 Every skill passes a security audit before an agent may use it (prompt injection,
 hidden text, remote code, destructive commands, secret exfiltration, persistence,
 safety bypasses, obfuscation, supply chain). A skill that fails cannot be

@@ -3,8 +3,9 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { buildPlan, listFeatures, loadFeature } from "../orchestrate/plan.js";
 import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
-import { SkillError, installSkill, listLocalSkills, localSkillsDir, readLocalSkillMd, removeSkill, type InstallRequest } from "../skills/local.js";
+import { SkillError, installSkill, listLocalSkills, localSkillsDir, readLocalSkillMd, removeSkill, skillsPolicy, type InstallRequest } from "../skills/local.js";
 import { AUDIT_RULES, auditFiles, readSkillFolder } from "../skills/audit.js";
+import { proposeSkill, skillsRepo } from "../skills/propose.js";
 import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
 import { loadWorkspace } from "../workspace/workspace.js";
@@ -252,6 +253,19 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
       throw e;
     }
   }
+  // Propose a skill to the team: a pull request that the skill-audit workflow and a reviewer must pass
+  if (req.method === "POST" && path === "/api/skills/propose") {
+    const body = (await readBody(req)) as InstallRequest;
+    const token = githubToken();
+    if (!token) return json(res, 400, { error: "set GARRY_GITHUB_TOKEN in .env to open pull requests" });
+    try {
+      const reserved = new Set(loadBuiltinSkills(cfg.skills).map((sk) => sk.name));
+      return json(res, 200, await proposeSkill(body, reserved, { token }));
+    } catch (e) {
+      if (e instanceof SkillError) return json(res, e.status, { error: e.message, audit: e.audit });
+      throw e;
+    }
+  }
   const delSkill = /^\/api\/skills\/([^/]+)$/.exec(path);
   if (req.method === "DELETE" && delSkill) {
     try {
@@ -348,6 +362,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "GET /api/skills/audit-rules",
         "POST /api/skills/install {content | path, stage?, replace?, dryRun?}",
         "DELETE /api/skills/:name (local skills only)",
+        "POST /api/skills/propose {content | path, stage?, acknowledge?} (opens a pull request)",
         "GET /api/registry",
         "GET /api/routing",
         "GET /api/models",
@@ -355,7 +370,15 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     });
   }
   if (path === "/api/features") return json(res, 200, { features: listFeatures(cfg.registry) });
-  if (path === "/api/skills") return json(res, 200, { skills: loadSkills(cfg.skills), localDir: localSkillsDir() });
+  if (path === "/api/skills") {
+    const repo = skillsRepo();
+    return json(res, 200, {
+      skills: loadSkills(cfg.skills),
+      localDir: localSkillsDir(),
+      policy: skillsPolicy(),
+      propose: { repo: repo ? `${repo.owner}/${repo.name}` : null, ready: Boolean(githubToken() && repo) },
+    });
+  }
   if (path === "/api/models") return json(res, 200, { models: MODELS });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });

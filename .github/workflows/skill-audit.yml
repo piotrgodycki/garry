@@ -1,0 +1,161 @@
+name: Skill audit
+
+# A skill is instructions an agent follows with access to the code, the tokens and
+# a shell. Every pull request that adds or changes a skill (or the audit itself)
+# is checked three ways, and the result is posted on the pull request:
+#   1. the Garry skill security audit (prompt injection, hidden text, remote code,
+#      exfiltration, persistence, safety bypasses, obfuscation, supply chain)
+#   2. gitleaks, a secret scanner (keys and tokens pasted into a skill)
+#   3. Semgrep, static analysis of any scripts that ship with a skill
+# Make "skill audit" a required status check and keep CODEOWNERS review on, so a
+# skill reaches main only when all three pass and a named reviewer approved it.
+on:
+  pull_request:
+    paths:
+      - "garry-skills/**"
+      - "garry-tool/src/skills/**"
+      - ".github/workflows/skill-audit.yml"
+
+concurrency:
+  group: skill-audit-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  GITLEAKS_VERSION: 8.30.1
+  # sha256 of gitleaks_8.30.1_linux_x64.tar.gz, from the release's checksums file
+  GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+
+jobs:
+  audit:
+    name: skill audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Find the changed skills
+        id: changed
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # skill folders are garry-skills/skills/<stage>/<name>/
+          dirs=$(git diff --name-only --diff-filter=ACMR "$BASE_SHA" HEAD -- garry-skills/skills \
+            | awk -F/ 'NF >= 5 { print $1"/"$2"/"$3"/"$4 }' | sort -u \
+            | while read -r d; do [ -f "$d/SKILL.md" ] && echo "$d"; done || true)
+          echo "dirs<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$dirs" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          if [ -n "$dirs" ]; then echo "Changed skills:"; echo "$dirs"; else echo "No skill folder changed: auditing every skill."; fi
+
+      - name: Validate the skills manifest
+        id: validate
+        continue-on-error: true
+        run: pnpm -C garry-skills validate
+
+      - name: Garry skill security audit
+        id: audit
+        continue-on-error: true
+        env:
+          DIRS: ${{ steps.changed.outputs.dirs }}
+        run: |
+          set -euo pipefail
+          pnpm -C garry-tool test:audit
+          # the changed skills, or every skill when only the audit or manifest changed
+          # shellcheck disable=SC2086
+          pnpm garry skills audit $DIRS --report "$RUNNER_TEMP/audit.md"
+
+      - name: Secret scan (gitleaks)
+        id: secrets
+        continue-on-error: true
+        env:
+          DIRS: ${{ steps.changed.outputs.dirs }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl -sSLf -o gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tgz" | sha256sum -c -
+          tar -xzf gitleaks.tgz gitleaks
+          cd "$GITHUB_WORKSPACE"
+          targets="${DIRS:-garry-skills/skills}"
+          status=0
+          for t in $targets; do
+            "$RUNNER_TEMP/gitleaks" dir "$t" --no-banner --redact || status=1
+          done
+          exit $status
+
+      - name: Static analysis of skill scripts (Semgrep)
+        id: semgrep
+        continue-on-error: true
+        env:
+          DIRS: ${{ steps.changed.outputs.dirs }}
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --disable-pip-version-check semgrep
+          # shellcheck disable=SC2086
+          semgrep scan --config p/security-audit --config p/secrets --error --metrics=off ${DIRS:-garry-skills/skills}
+
+      - name: Report on the pull request
+        if: always() && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          VALIDATE: ${{ steps.validate.outcome }}
+          AUDIT: ${{ steps.audit.outcome }}
+          SECRETS: ${{ steps.secrets.outcome }}
+          SEMGREP: ${{ steps.semgrep.outcome }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          mark() { if [ "$1" = "success" ]; then echo "pass"; else echo "**FAIL**"; fi; }
+          {
+            echo "<!-- garry:skill-audit -->"
+            echo "## Skill audit"
+            echo
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+            echo "| Manifest valid | $(mark "$VALIDATE") |"
+            echo "| Garry security audit | $(mark "$AUDIT") |"
+            echo "| Secret scan (gitleaks) | $(mark "$SECRETS") |"
+            echo "| Static analysis (Semgrep) | $(mark "$SEMGREP") |"
+            echo
+            if [ -f "$RUNNER_TEMP/audit.md" ]; then cat "$RUNNER_TEMP/audit.md"; fi
+            echo
+            echo "A reviewer from CODEOWNERS still has to read the skill: the checks catch known attack patterns, not every one."
+            echo
+            echo "_[Workflow run](${RUN_URL}). Updated on every push._"
+          } > "$RUNNER_TEMP/comment.md"
+          id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" --paginate \
+            --jq '.[] | select(.body | startswith("<!-- garry:skill-audit -->")) | .id' | head -n1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" -F body=@"$RUNNER_TEMP/comment.md" > /dev/null
+          else
+            gh api -X POST "repos/${GITHUB_REPOSITORY}/issues/${PR}/comments" -F body=@"$RUNNER_TEMP/comment.md" > /dev/null
+          fi
+
+      - name: Fail when any check failed
+        if: always()
+        env:
+          VALIDATE: ${{ steps.validate.outcome }}
+          AUDIT: ${{ steps.audit.outcome }}
+          SECRETS: ${{ steps.secrets.outcome }}
+          SEMGREP: ${{ steps.semgrep.outcome }}
+        run: |
+          for s in "$VALIDATE" "$AUDIT" "$SECRETS" "$SEMGREP"; do
+            [ "$s" = "success" ] || { echo "a skill check failed: see the steps above"; exit 1; }
+          done

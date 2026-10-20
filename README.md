@@ -81,6 +81,29 @@ every push and pull request. It has three jobs:
   private, so CodeQL is not used (code scanning on a private repository needs paid
   GitHub Advanced Security); Semgrep runs fully inside the job and needs no token.
 
+### Skills reach the team through a reviewed pull request
+
+[`.github/workflows/skill-audit.yml`](./.github/workflows/skill-audit.yml) runs on
+every pull request that adds or changes a skill, the audit code or the workflow
+itself. It validates the manifest, runs the Garry skill security audit and its
+regression corpus, a secret scan (gitleaks, pinned and checksum verified) and
+Semgrep over the changed skill folders, then posts one comment with the results.
+[`CODEOWNERS`](./.github/CODEOWNERS) names who must approve skills, and also the
+audit code and `.github/`, so a pull request cannot weaken the gate it is judged
+by. Such pull requests come from "Propose to team" on the Skills page or
+`garry skills propose <folder>`.
+
+To make it a hard gate, a repository admin turns on, in Settings, Branches, a
+branch protection rule (or ruleset) for `main`:
+
+1. Require a pull request before merging, with at least 1 approval.
+2. Require review from Code Owners.
+3. Require status checks to pass: `skill audit`, `validate`, `dash guard`, `security review`.
+4. Do not allow bypassing the above settings (include administrators).
+
+`GARRY_SKILLS_POLICY=ci-only` on the server turns local installs off, so this
+review is the only way a skill reaches an agent.
+
 ### Screenshots on pull requests
 
 [`.github/workflows/pr-screenshots.yml`](./.github/workflows/pr-screenshots.yml) runs

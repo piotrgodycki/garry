@@ -172,7 +172,8 @@ pnpm garry sync --repo ~/garry-workspaces/FEAT-123/checkout-mfe
 garry skills list
 garry skills add <folder|SKILL.md> [--stage <stage>] [--replace] [--accept-warnings]
 garry skills remove <name>
-garry skills audit [folder ...]
+garry skills propose <folder|SKILL.md> [--stage <stage>] [--accept-warnings]
+garry skills audit [folder ...] [--report <file>]
 ```
 
 The skills the agents use: the pre-installed ones in `garry-skills`, plus the ones
@@ -190,6 +191,26 @@ pnpm garry skills remove a11y-audit
 `stage` and `dependsOn`), refuses a name a pre-installed skill already uses, and
 copies the folder without symlinks, up to 50 files and 2 MB. Pass `--stage` when
 the frontmatter has none and `--replace` to overwrite a local skill.
+
+### Proposing a skill to the team
+
+`propose` (or Propose to team in the dashboard) runs the same audit, then opens a
+pull request that adds the skill to the pre-installed ones:
+`garry-skills/skills/<stage>/<name>/` plus a `manifest.json` entry, on the branch
+`skills/add-<name>`, ready for review. The `skill-audit` workflow audits it again
+with a secret scanner and Semgrep, a code owner approves it, and after the merge
+every teammate gets it. A skill that fails the audit is never proposed.
+
+It needs `GARRY_GITHUB_TOKEN` with contents and pull request write access on the
+repository. The repository is `GARRY_SKILLS_REPO` (`owner/name`) or, by default,
+the `origin` of this checkout.
+
+| Variable | |
+|---|---|
+| `GARRY_SKILLS_POLICY` | `ci-only` turns local installs off: skills only arrive through a reviewed pull request |
+| `GARRY_SKILLS_REPO` | where proposals go, `owner/name` |
+| `GARRY_SKILLS_HOME` | where local skills live, default `~/.garry/skills` |
+| `GARRY_GITHUB_API` | GitHub Enterprise API url, default `https://api.github.com` |
 
 ### Security audit
 
@@ -238,6 +259,7 @@ by `pnpm dev`. Main endpoints:
 | `POST /api/skills/install` `{content or path, stage?, replace?, dryRun?, acknowledge?}` | audit, then install a local skill (`dryRun` previews the skill and its audit) |
 | `GET /api/skills/:name/audit` | a skill's full security audit |
 | `DELETE /api/skills/:name` | remove a local skill |
+| `POST /api/skills/propose` `{content or path, stage?, acknowledge?}` | audit, then open a pull request that proposes the skill to the team |
 | `POST /api/routing` `{stage, model}` | change a stage's model in `garry.routing.json` |
 | `POST /api/features/:id/service-models` `{service, model}` | change one service's model |
 

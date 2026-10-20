@@ -5,7 +5,7 @@ import s2 from "./skills.module.css";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
-import InstallSkill from "./InstallSkill";
+import InstallSkill, { type ProposeInfo } from "./InstallSkill";
 import { AuditBadge, AuditFindings, type AuditReport } from "./AuditView";
 
 interface Skill {
@@ -23,6 +23,8 @@ const STAGE_ORDER = ["spec", "plan", "design", "implement", "review", "test", "i
 export default function Skills() {
   const [skills, setSkills] = useState<Skill[] | null>(null);
   const [localDir, setLocalDir] = useState("");
+  const [policy, setPolicy] = useState<"local" | "ci-only">("local");
+  const [propose, setPropose] = useState<ProposeInfo>({ repo: null, ready: false });
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
@@ -46,6 +48,8 @@ export default function Skills() {
       .then((d) => {
         setSkills(d.skills as Skill[]);
         setLocalDir((d.localDir as string) ?? "");
+        setPolicy(d.policy === "ci-only" ? "ci-only" : "local");
+        setPropose((d.propose as ProposeInfo) ?? { repo: null, ready: false });
       })
       .catch((e: unknown) => setError(String(e)));
   }, []);
@@ -214,6 +218,8 @@ export default function Skills() {
 
       {installing && (
         <InstallSkill
+          policy={policy}
+          propose={propose}
           onClose={() => setInstalling(false)}
           onInstalled={(name) => {
             setInstalling(false);

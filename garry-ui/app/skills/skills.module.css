@@ -398,3 +398,35 @@
   word-break: break-all;
   background: var(--surface-2);
 }
+
+/* team proposal */
+.policy {
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px solid var(--border-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+.proposed {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 2px solid var(--border-strong);
+  background: var(--surface-3);
+}
+.proposed svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 2px;
+}
+.proposed div {
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+}
+.proposed a {
+  font-weight: 700;
+  text-decoration: underline;
+}
