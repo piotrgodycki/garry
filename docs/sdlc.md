@@ -65,7 +65,8 @@ therefore has 4 + 3 x 3 = 13 tasks.
 | 6 | Test | per service | garry-dev, Sonnet | `test-unit`, `test-e2e`, `drift-check`, `api-compatibility` | green tests, no contract drift |
 | 7 | Integrate | once | garry-dev, Sonnet | `cross-repo-merge`, `version-tag`, `changelog` | all pull requests merged together, a version tag, a changelog |
 
-The skill lists come from `garry-skills/manifest.json`; adding a skill there adds
+The skill lists come from `garry-skills/manifest.json` (the pre-installed skills)
+plus the skills installed locally on your machine (see below); adding a skill adds
 it to its stage everywhere. Some skills are planned (no `SKILL.md` yet);
 `pnpm -C garry-skills validate` lists them as warnings.
 
@@ -79,6 +80,31 @@ it to its stage everywhere. Some skills are planned (no `SKILL.md` yet);
 | Review | Review the pull requests. Each one shows before and after screenshots of every changed view. Approve or request changes. |
 | Test | Nothing, unless a test fails and Garry asks. |
 | Integrate | Approve the merge. Garry merges every repo together and tags the version. |
+
+## Adding your own skills
+
+Skills that ship with the project are marked **Pre-installed**. You can add your
+own on your machine, marked **Local**: on the Skills page press Install skill and
+upload a `SKILL.md` or point at a folder, or run `garry skills add <folder>`. A
+local skill joins its stage in every feature's plan from the next run.
+
+A skill is a folder with a `SKILL.md` that starts with YAML frontmatter:
+
+```markdown
+---
+name: a11y-audit
+description: Checks every changed view for accessibility issues before review.
+stage: review
+---
+
+# a11y-audit
+
+Instructions for the agent...
+```
+
+`stage` is optional in the file; the Install dialog and `--stage` can set it.
+Local skills live in `~/.garry/skills/<name>/` (or `GARRY_SKILLS_HOME`), never in
+the repository. A local skill cannot take the name of a pre-installed one.
 
 ## Choosing models: routing
 
@@ -134,4 +160,5 @@ push while the pull request is in review. Details in the
 | Dashboard and live view of the plan | built (simulated stream) |
 | Screenshots on pull requests | built |
 | Agents that call a model and write code | planned (Claude Agent SDK executor) |
-| `garry doctor`, `garry skills` | planned |
+| Local skills: install your own from the Skills page or `garry skills add` | built |
+| `garry doctor` | planned |

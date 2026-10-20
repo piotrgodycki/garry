@@ -37,6 +37,7 @@ Most commands read the sample registry by default
 | `garry scaffold [name]` | create a new microfrontend and register it |
 | `garry adopt <repo>` | derive a registry entry from an existing repo |
 | `garry sync` | put a service's contracts and generated types into `.garry/` |
+| `garry skills <sub>` | list skills, install or remove local ones |
 | `garry serve` | start the HTTP server the dashboard talks to |
 | `garry shots <sub>` | screenshots for code review |
 
@@ -165,6 +166,30 @@ service name comes from `.garry/service.json` when not given.
 pnpm garry sync --repo ~/garry-workspaces/FEAT-123/checkout-mfe
 ```
 
+## garry skills
+
+```
+garry skills list
+garry skills add <folder|SKILL.md> [--stage <stage>] [--replace]
+garry skills remove <name>
+```
+
+The skills the agents use: the pre-installed ones in `garry-skills`, plus the ones
+installed locally on this machine in `~/.garry/skills` (or `GARRY_SKILLS_HOME`).
+A local skill joins its stage in every feature's plan. The same is available on
+the dashboard's Skills page (Install skill).
+
+```bash
+pnpm garry skills add ~/my-skills/a11y-audit
+pnpm garry skills list            # a11y-audit shows as local under review
+pnpm garry skills remove a11y-audit
+```
+
+`add` reads the YAML frontmatter of `SKILL.md` (`name`, `description`, optional
+`stage` and `dependsOn`), refuses a name a pre-installed skill already uses, and
+copies the folder without symlinks, up to 50 files and 2 MB. Pass `--stage` when
+the frontmatter has none and `--replace` to overwrite a local skill.
+
 ## garry serve
 
 ```
@@ -181,11 +206,20 @@ by `pnpm dev`. Main endpoints:
 | `GET /api/features/:id/stream` | the live delegation stream (SSE) |
 | `GET /api/features/:id/prs` | one pull request per service |
 | `GET /api/registry`, `/api/skills`, `/api/models`, `/api/routing` | registry, skills, models, routing |
+| `GET /api/skills/:name/doc` | a skill's `SKILL.md` |
+| `POST /api/skills/install` `{content or path, stage?, replace?, dryRun?}` | install a local skill (`dryRun` only previews) |
+| `DELETE /api/skills/:name` | remove a local skill |
 | `POST /api/routing` `{stage, model}` | change a stage's model in `garry.routing.json` |
 | `POST /api/features/:id/service-models` `{service, model}` | change one service's model |
 
 The dashboard reads the server url from `NEXT_PUBLIC_GARRY_SERVER`
 (default `http://localhost:8123`).
+
+Writes (`POST`, `DELETE`) are accepted only from the dashboard's origin
+(`http://localhost:3000`) or with no `Origin` header (the CLI, curl), so another
+website open in your browser cannot change routing or install a skill through
+localhost. Serve the dashboard from somewhere else and list it in
+`GARRY_UI_ORIGINS` (comma separated).
 
 ## garry shots
 
@@ -221,6 +255,7 @@ Set `GARRY_CHROMIUM_PATH` to use an already installed Chromium.
 | `garry.routing.json` | `feature`, `serve` | agent and model per stage |
 | `garry.screenshots.json` | `shots` | routes, viewports and themes to capture |
 | `.env` | `ws pr`, `shots comment` | `GARRY_GITHUB_TOKEN` |
+| `~/.garry/skills/` | `skills`, `feature`, `serve` | locally installed skills |
 | `garry-skills/manifest.json` | `feature`, `serve` | the skills per stage |
 | `garry-registry/.../features/*.md` | `feature`, `ws`, `serve` | the features |
 | `garry-registry/.../catalog/*.yaml` | everything | the services |

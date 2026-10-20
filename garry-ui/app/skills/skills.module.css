@@ -1,0 +1,268 @@
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+}
+.segmented button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  height: 30px;
+  padding: 0 12px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.segmented button[aria-pressed="true"] {
+  background: var(--color-brand-primary);
+  color: var(--on-brand);
+}
+.count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+/* source badges: pre-installed is quiet, local stands out */
+.pre {
+  margin-left: auto;
+  border-color: var(--border-strong) !important;
+  color: var(--color-text-default) !important;
+  font-size: 10px !important;
+}
+.mine {
+  margin-left: auto;
+  background: var(--color-brand-secondary) !important;
+  border-color: var(--color-brand-secondary) !important;
+  color: #ffffff !important;
+  font-size: 10px !important;
+}
+.local {
+  border-left: 4px solid var(--color-brand-secondary);
+}
+.foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.link {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-default);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.remove {
+  color: var(--color-brand-secondary);
+}
+.planned {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.doc {
+  margin: 4px 0 0;
+  max-height: 280px;
+  overflow: auto;
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-family: var(--font-family-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.emptyLocal {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding-bottom: 24px;
+}
+.where {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 13.5px;
+  animation: rise 0.25s var(--ease) both;
+}
+.toast svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* install dialog */
+.dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--color-text-default);
+  box-shadow: var(--shadow-lg);
+}
+.dialog::backdrop {
+  background: rgba(10, 10, 10, 0.45);
+}
+.dialogHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 14px 20px;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+}
+.dialogBody {
+  padding: 18px 20px;
+  display: grid;
+  gap: 14px;
+}
+.dialogFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+.help {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border-strong);
+}
+.tabs button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  margin-bottom: -2px;
+  border-bottom: 3px solid transparent;
+}
+.tabs button[aria-selected="true"] {
+  color: var(--color-text-default);
+  border-bottom-color: var(--color-brand-secondary);
+}
+.drop {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 28px 16px;
+  border: 2px dashed var(--border-strong);
+  text-align: center;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.drop:hover,
+.dropOn {
+  background: var(--surface-3);
+}
+.drop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.dropIcon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-muted);
+}
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+.field input,
+.field select {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--color-text-default);
+}
+.hint {
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-muted);
+}
+.error {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-left: 4px solid var(--color-brand-secondary);
+  background: var(--surface-3);
+  font-size: 13px;
+}
+.error svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--color-brand-secondary);
+  margin-top: 1px;
+}
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.preview {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 2px solid var(--border-strong);
+}
+.preview p {
+  margin: 0;
+  font-size: 13.5px;
+}
+.previewHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.previewHead .mine {
+  margin-left: 0;
+}
+.previewName {
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+  margin-right: auto;
+}

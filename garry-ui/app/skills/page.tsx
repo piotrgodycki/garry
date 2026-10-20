@@ -1,55 +1,143 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "../panel.module.css";
+import s2 from "./skills.module.css";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
+import InstallSkill from "./InstallSkill";
 
 interface Skill {
   name: string;
   stage: string;
   summary: string;
+  source: "builtin" | "local";
+  hasDoc: boolean;
 }
+
+type Filter = "all" | "builtin" | "local";
+const STAGE_ORDER = ["spec", "plan", "design", "implement", "review", "test", "integrate"];
 
 export default function Skills() {
   const [skills, setSkills] = useState<Skill[] | null>(null);
+  const [localDir, setLocalDir] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [installing, setInstalling] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(null);
+  const [docs, setDocs] = useState<Record<string, string | null>>({});
 
-  useEffect(() => {
+  const load = useCallback(() => {
     fetch(`${apiBase}/api/skills`)
       .then((r) => r.json())
-      .then((d) => setSkills(d.skills as Skill[]))
+      .then((d) => {
+        setSkills(d.skills as Skill[]);
+        setLocalDir((d.localDir as string) ?? "");
+      })
       .catch((e: unknown) => setError(String(e)));
   }, []);
+  useEffect(() => load(), [load]);
 
+  const flash = (msg: string) => {
+    setNotice(msg);
+    setTimeout(() => setNotice((n) => (n === msg ? null : n)), 4000);
+  };
+
+  const remove = async (name: string) => {
+    if (!window.confirm(`Remove the local skill "${name}"? Agents stop using it in the next plan.`)) return;
+    const r = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}`, { method: "DELETE" });
+    const d = await r.json();
+    if (!r.ok) return flash(d.error ?? "could not remove the skill");
+    flash(`Removed ${name}`);
+    load();
+  };
+
+  const toggleDoc = async (name: string) => {
+    if (open === name) return setOpen(null);
+    setOpen(name);
+    if (name in docs) return;
+    const d = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/doc`).then((r) => r.json()).catch(() => ({}));
+    setDocs((m) => ({ ...m, [name]: (d as { doc?: string | null }).doc ?? null }));
+  };
+
+  const counts = useMemo(
+    () => ({
+      all: skills?.length ?? 0,
+      builtin: skills?.filter((s) => s.source === "builtin").length ?? 0,
+      local: skills?.filter((s) => s.source === "local").length ?? 0,
+    }),
+    [skills],
+  );
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (skills ?? []).filter((s) => !q || s.name.includes(q) || s.summary.toLowerCase().includes(q) || s.stage.includes(q));
-  }, [skills, query]);
-  const stages = [...new Set(filtered.map((s) => s.stage))];
+    return (skills ?? []).filter(
+      (s) =>
+        (filter === "all" || s.source === filter) &&
+        (!q || s.name.includes(q) || s.summary.toLowerCase().includes(q) || s.stage.includes(q)),
+    );
+  }, [skills, query, filter]);
+  const stages = STAGE_ORDER.filter((st) => filtered.some((s) => s.stage === st));
 
   return (
     <main className="page">
       <PageHeader
         eyebrow="Configure"
         title="Skills"
-        lede="Atomic capabilities the agents can use, grouped by the SDLC stage they belong to. One skill, one responsibility."
+        lede="Atomic capabilities the agents use, grouped by SDLC stage. Pre-installed skills ship with the project; install your own locally and they join their stage in every feature's plan."
         actions={
-          skills && (
-            <label className="searchField" style={{ minWidth: 260 }}>
-              {Icon.search}
-              <input className="input" placeholder="Search skills" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="search skills" />
-            </label>
-          )
+          <button className="btn btnPrimary" onClick={() => setInstalling(true)} disabled={!skills}>
+            {Icon.bolt}
+            Install skill
+          </button>
         }
       />
 
       {error && <ServerNotice />}
+      {notice && (
+        <div className={s2.toast} role="status">
+          {Icon.check}
+          {notice}
+        </div>
+      )}
+
+      {skills && (
+        <div className="toolbar">
+          <div className={s2.segmented} role="group" aria-label="source">
+            {(
+              [
+                ["all", "All"],
+                ["builtin", "Pre-installed"],
+                ["local", "Local"],
+              ] as [Filter, string][]
+            ).map(([v, label]) => (
+              <button key={v} type="button" aria-pressed={filter === v} onClick={() => setFilter(v)}>
+                {label} <span className={s2.count}>{counts[v]}</span>
+              </button>
+            ))}
+          </div>
+          <label className="searchField">
+            {Icon.search}
+            <input className="input" placeholder="Search skills" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="search skills" />
+          </label>
+        </div>
+      )}
+
       {!skills && !error && <Skeleton rows={3} height={90} />}
-      {skills && filtered.length === 0 && (
+
+      {skills && filter === "local" && counts.local === 0 && (
         <div className="card">
-          <Empty icon={Icon.search}>No skill matches "{query}".</Empty>
+          <div className={s2.emptyLocal}>
+            <Empty icon={Icon.bolt}>No local skills yet. Install one to teach the agents something new.</Empty>
+            <button className="btn btnPrimary" onClick={() => setInstalling(true)}>Install skill</button>
+            {localDir && <span className={s2.where}>They are stored in <code>{localDir}</code></span>}
+          </div>
+        </div>
+      )}
+      {skills && filtered.length === 0 && !(filter === "local" && counts.local === 0) && (
+        <div className="card">
+          <Empty icon={Icon.search}>No skill matches.</Empty>
         </div>
       )}
 
@@ -63,18 +151,52 @@ export default function Skills() {
             </div>
             <div className={styles.grid}>
               {items.map((s) => (
-                <div key={s.name} className={`card ${styles.skill}`}>
+                <div key={s.name} className={`card ${styles.skill} ${s.source === "local" ? s2.local : ""}`}>
                   <div className={styles.skillHead}>
                     <span className={styles.skillIcon}>{Icon.bolt}</span>
                     <span className={styles.skillName}>{s.name}</span>
+                    {s.source === "builtin" ? (
+                      <span className={`badge ${s2.pre}`} title="Ships with the project">Pre-installed</span>
+                    ) : (
+                      <span className={`badge ${s2.mine}`} title="Installed on this machine">Local</span>
+                    )}
                   </div>
                   <p className={styles.skillSummary}>{s.summary}</p>
+                  <div className={s2.foot}>
+                    {s.hasDoc ? (
+                      <button className={s2.link} onClick={() => toggleDoc(s.name)} aria-expanded={open === s.name}>
+                        {open === s.name ? "Hide instructions" : "View instructions"}
+                      </button>
+                    ) : (
+                      <span className={s2.planned}>Planned, instructions not written yet</span>
+                    )}
+                    {s.source === "local" && (
+                      <button className={`${s2.link} ${s2.remove}`} onClick={() => remove(s.name)}>
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  {open === s.name && (
+                    <pre className={s2.doc}>{s.name in docs ? docs[s.name] ?? "No SKILL.md yet." : "Loading..."}</pre>
+                  )}
                 </div>
               ))}
             </div>
           </section>
         );
       })}
+
+      {installing && (
+        <InstallSkill
+          onClose={() => setInstalling(false)}
+          onInstalled={(name) => {
+            setInstalling(false);
+            flash(`Installed ${name}. Agents use it from the next plan.`);
+            setFilter("all");
+            load();
+          }}
+        />
+      )}
     </main>
   );
 }

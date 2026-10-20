@@ -2,7 +2,8 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { buildPlan, listFeatures, loadFeature } from "../orchestrate/plan.js";
-import { loadSkills } from "../orchestrate/skillsManifest.js";
+import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
+import { SkillError, installSkill, localSkillsDir, readLocalSkillMd, removeSkill, type InstallRequest } from "../skills/local.js";
 import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
 import { loadWorkspace } from "../workspace/workspace.js";
@@ -37,12 +38,29 @@ export interface ServerConfig {
 
 const CORS = {
   "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, OPTIONS",
+  "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type",
 } as const;
 
 // In memory per service model overrides, keyed by feature id. Resets on restart.
 const serviceModels = new Map<string, Record<string, string>>();
+
+/**
+ * Pages Garry serves from may write; any other site the user happens to have open
+ * in the browser may not (a request to localhost would otherwise be enough to
+ * install a skill, that is instructions for the agents). Requests with no Origin
+ * (the CLI, curl) are allowed. GARRY_UI_ORIGINS adds origins, comma separated.
+ */
+function writeAllowed(req: IncomingMessage): boolean {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  const allowed = new Set([
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    ...(process.env.GARRY_UI_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean),
+  ]);
+  return allowed.has(origin);
+}
 
 function json(res: ServerResponse, code: number, body: unknown): void {
   res.writeHead(code, { "content-type": "application/json", ...CORS });
@@ -218,6 +236,43 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return;
   }
 
+  if ((req.method === "POST" || req.method === "DELETE") && !writeAllowed(req)) {
+    return json(res, 403, { error: `writes are not allowed from ${req.headers.origin}; add it to GARRY_UI_ORIGINS` });
+  }
+
+  // Skills: install a local skill (upload or folder), remove one, read its instructions
+  if (req.method === "POST" && path === "/api/skills/install") {
+    const body = (await readBody(req)) as InstallRequest;
+    try {
+      const reserved = new Set(loadBuiltinSkills(cfg.skills).map((sk) => sk.name));
+      return json(res, 200, installSkill(body, reserved));
+    } catch (e) {
+      if (e instanceof SkillError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+  const delSkill = /^\/api\/skills\/([^/]+)$/.exec(path);
+  if (req.method === "DELETE" && delSkill) {
+    try {
+      removeSkill(decodeURIComponent(delSkill[1]));
+      return json(res, 200, { ok: true });
+    } catch (e) {
+      if (e instanceof SkillError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+  const skillDoc = /^\/api\/skills\/([^/]+)\/doc$/.exec(path);
+  if (req.method === "GET" && skillDoc) {
+    const name = decodeURIComponent(skillDoc[1]);
+    const local = readLocalSkillMd(name);
+    if (local !== null) return json(res, 200, { name, source: "local", doc: local });
+    const raw = JSON.parse(readFileSync(join(cfg.skills, "manifest.json"), "utf8")) as { skills: { name: string; path?: string }[] };
+    const entry = raw.skills.find((sk) => sk.name === name);
+    const md = entry?.path ? join(cfg.skills, entry.path, "SKILL.md") : "";
+    if (!entry) return json(res, 404, { error: `no skill ${name}` });
+    return json(res, 200, { name, source: "builtin", doc: md && existsSync(md) ? readFileSync(md, "utf8") : null });
+  }
+
   // POST a feature status change (kanban drag), persisted to the feature frontmatter
   const postStatus = /^\/api\/features\/([^/]+)\/status$/.exec(path);
   if (req.method === "POST" && postStatus) {
@@ -274,6 +329,9 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "GET /api/features/:id/service-models",
         "POST /api/features/:id/service-models {service, model}",
         "GET /api/skills",
+        "GET /api/skills/:name/doc",
+        "POST /api/skills/install {content | path, stage?, replace?, dryRun?}",
+        "DELETE /api/skills/:name (local skills only)",
         "GET /api/registry",
         "GET /api/routing",
         "GET /api/models",
@@ -281,7 +339,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     });
   }
   if (path === "/api/features") return json(res, 200, { features: listFeatures(cfg.registry) });
-  if (path === "/api/skills") return json(res, 200, { skills: loadSkills(cfg.skills) });
+  if (path === "/api/skills") return json(res, 200, { skills: loadSkills(cfg.skills), localDir: localSkillsDir() });
   if (path === "/api/models") return json(res, 200, { models: MODELS });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });
