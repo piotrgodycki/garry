@@ -2,6 +2,12 @@
   "name": "@garry/registry",
   "version": "0.0.0",
   "description": "Garry Contract Registry: schemas and validation for cross service contracts",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piotrgodycki/garry.git",
+    "directory": "garry-registry"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

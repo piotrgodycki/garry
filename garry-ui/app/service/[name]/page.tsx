@@ -2,7 +2,7 @@
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./service.module.css";
-import { apiBase } from "../../lib/api";
+import { api, apiUrl } from "../../lib/api";
 import { Icon } from "../../icons";
 import ModelChip from "../../ModelChip";
 import { Empty, PageHeader, Skeleton } from "../../ui";
@@ -44,7 +44,7 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch(`${apiBase}/api/registry`)
+    api(`/api/registry`)
       .then((r) => r.json())
       .then((d) => {
         const found = (d.services as Service[]).find((s) => s.name === name);
@@ -52,7 +52,7 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
         else setMissing(true);
       })
       .catch(() => setMissing(true));
-    fetch(`${apiBase}/api/models`)
+    api(`/api/models`)
       .then((r) => r.json())
       .then((d) => setModels(Object.fromEntries(((d.models as Model[]) ?? []).map((m) => [m.id, m.label]))))
       .catch(() => undefined);
@@ -62,7 +62,7 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
   // first feature that lists this service.
   useEffect(() => {
     const wanted = new URLSearchParams(window.location.search).get("feature");
-    fetch(`${apiBase}/api/features`)
+    api(`/api/features`)
       .then((r) => r.json())
       .then((d) => {
         const fs = (d.features as { id: string; services?: string[] }[]) ?? [];
@@ -78,7 +78,7 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
     setLog([]);
     setFinished(false);
     setStreaming(true);
-    const es = new EventSource(`${apiBase}/api/features/${featureId}/stream`);
+    const es = new EventSource(apiUrl(`/api/features/${featureId}/stream`));
     es.addEventListener("log", (e) => {
       const d = JSON.parse((e as MessageEvent).data) as LogEntry;
       if (d.who !== name) return;

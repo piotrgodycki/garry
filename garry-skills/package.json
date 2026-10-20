@@ -2,6 +2,12 @@
   "name": "@garry/skills",
   "version": "0.0.0",
   "description": "Garry Skills: atomic, reusable agent capabilities per SDLC stage",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piotrgodycki/garry.git",
+    "directory": "garry-skills"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

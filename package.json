@@ -1,12 +1,18 @@
 {
   "name": "garry",
   "version": "0.0.0",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piotrgodycki/garry.git"
+  },
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "concurrently -n server,ui -c blue,magenta \"pnpm serve\" \"pnpm ui\"",
     "serve": "tsx garry-tool/src/cli.ts serve",
     "ui": "pnpm --filter garry-ui dev",
+    "start": "pnpm --filter garry-ui build && concurrently -n server,ui -c blue,magenta \"pnpm serve\" \"pnpm --filter garry-ui start\"",
     "phone": "tailscale serve --bg 3000 && tailscale serve --bg --set-path /api http://127.0.0.1:8123/api && tailscale serve status",
     "phone:off": "tailscale serve reset",
     "garry": "tsx garry-tool/src/cli.ts",

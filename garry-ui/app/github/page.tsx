@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import styles from "./prs.module.css";
-import { apiBase } from "../lib/api";
+import { api } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader, ServerNotice } from "../ui";
 
@@ -45,7 +45,7 @@ export default function Prs() {
   const [page, setPage] = useState(0);
 
   useEffect(() => {
-    fetch(`${apiBase}/api/features`)
+    api(`/api/features`)
       .then((r) => r.json())
       .then((d) => {
         const fs = (d.features as Feature[]) ?? [];
@@ -58,7 +58,7 @@ export default function Prs() {
   useEffect(() => {
     if (!selected) return;
     setPage(0);
-    fetch(`${apiBase}/api/features/${selected}/prs`)
+    api(`/api/features/${selected}/prs`)
       .then((r) => r.json())
       .then((d) => setPrs(d.prs as Pr[]))
       .catch((e: unknown) => setError(String(e)));

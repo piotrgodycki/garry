@@ -367,7 +367,9 @@ Alternative (lighter): Vite plus a React SPA plus a separate `garry-tool/server`
 
 ### GitHub (narrow token)
 
-Security first. A fine grained personal access token limited to the specific repositories Garry manages, with minimal permissions (`contents`, `pull_requests`). It cannot touch repositories outside the list. The token lives in `.env` and is never committed. When the project grows we can move to a GitHub App.
+Security first. The Garry server itself listens on `127.0.0.1` by default; reaching it from a phone or another device needs `GARRY_ACCESS_TOKEN` (every `/api` request carries it as a bearer token, or as `access_token` for the SSE stream), and the server refuses a network address without one.
+
+A fine grained personal access token limited to the specific repositories Garry manages, with minimal permissions (`contents`, `pull_requests`). It cannot touch repositories outside the list. The token lives in `.env` and is never committed. When the project grows we can move to a GitHub App.
 
 The Activity panel is the centerpiece: a swimlane per microservice shows the SDLC stages flowing, which service an agent is working on right now (a pulsing running state, done and waiting states), the agent and model per stage, and the skills in flight. A live SSE stream drives the states. Each lane has a native model picker that sets a per service model override (it changes the model only; the agent role stays from the stage route), posted to the server and reflected in the plan immediately. The PRs panel shows one card per service for the feature branch, ready for live GitHub data in phase 6.
 
@@ -400,7 +402,7 @@ The repository ships with CI, a mandatory security review and automated code rev
 
 - `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the tool packages and `pnpm -C garry-registry` validation of the mfe and backend samples plus `pnpm -C garry-skills validate`.
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash, en dash, figure dash or horizontal bar is found in tracked text files, which enforces the plain ASCII punctuation rule automatically.
-- `security`: the security review as CI steps. It runs `pnpm audit` (fails on a high or critical advisory) across the workspace and a Semgrep static analysis scan. The repository is private, so CodeQL and dependency review are not used (both need paid GitHub Advanced Security on a private repository); Semgrep runs entirely inside the job with no token.
+- `security`: the security review as CI steps. It runs `pnpm audit` (fails on a high or critical advisory) across the workspace and a Semgrep static analysis scan. Semgrep runs entirely inside the job with no token. CodeQL code scanning runs in its own workflow (`codeql.yml`), free on the public repository.
 
 Dependabot version updates are off for now (removed to keep the single pre MVP branch quiet). `pnpm audit` still covers dependency vulnerabilities; grouped Dependabot returns when `main` and `develop` are split.
 

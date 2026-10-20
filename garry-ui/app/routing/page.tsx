@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import styles from "../panel.module.css";
 import { tierOf } from "../ModelChip";
-import { apiBase } from "../lib/api";
+import { api } from "../lib/api";
 import { Icon } from "../icons";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 
@@ -27,8 +27,8 @@ export default function Routing() {
 
   const load = useCallback(() => {
     Promise.all([
-      fetch(`${apiBase}/api/routing`).then((r) => r.json()),
-      fetch(`${apiBase}/api/models`).then((r) => r.json()),
+      api(`/api/routing`).then((r) => r.json()),
+      api(`/api/models`).then((r) => r.json()),
     ])
       .then(([r, m]) => {
         setData(r as RoutingData);
@@ -39,7 +39,7 @@ export default function Routing() {
   useEffect(() => load(), [load]);
 
   const change = (stage: string, model: string) => {
-    fetch(`${apiBase}/api/routing`, {
+    api(`/api/routing`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ stage, model }),

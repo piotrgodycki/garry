@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import styles from "../panel.module.css";
-import { apiBase } from "../lib/api";
+import { api } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 
@@ -17,7 +17,7 @@ export default function Skills() {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    fetch(`${apiBase}/api/skills`)
+    api(`/api/skills`)
       .then((r) => r.json())
       .then((d) => setSkills(d.skills as Skill[]))
       .catch((e: unknown) => setError(String(e)));

@@ -14,6 +14,7 @@ garry-ui/AGENTS.md
 .env
 .env.local
 .env.*
+!.env.example
 *.key
 *.pem
 # logs and temp

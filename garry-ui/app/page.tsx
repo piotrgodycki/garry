@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./page.module.css";
-import { apiBase } from "./lib/api";
+import { api } from "./lib/api";
 import { Icon } from "./icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "./ui";
 
@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [seq, setSeq] = useState(1);
 
   useEffect(() => {
-    fetch(`${apiBase}/api/features`)
+    api(`/api/features`)
       .then((r) => r.json())
       .then((d) => setFeatures(d.features as Feature[]))
       .catch((e: unknown) => setError(String(e)));

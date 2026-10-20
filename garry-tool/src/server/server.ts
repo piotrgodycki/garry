@@ -27,6 +27,7 @@ function setFeatureStatus(registry: string, id: string, status: string): boolean
   return false;
 }
 import { githubToken } from "../github/env.js";
+import { authorized } from "./auth.js";
 import { GitHub, parseSlug } from "../github/client.js";
 
 export interface ServerConfig {
@@ -34,12 +35,14 @@ export interface ServerConfig {
   skills: string;
   routing: string;
   root?: string;
+  /** when set, every /api request must carry this token */
+  accessToken?: string;
 }
 
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, OPTIONS",
-  "access-control-allow-headers": "content-type",
+  "access-control-allow-headers": "content-type, authorization",
 } as const;
 
 // In memory per service model overrides, keyed by feature id. Resets on restart.
@@ -216,6 +219,10 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     res.writeHead(204, CORS);
     res.end();
     return;
+  }
+
+  if (path.startsWith("/api") && !authorized(req, url, cfg.accessToken)) {
+    return json(res, 401, { error: "access token required" });
   }
 
   // POST a feature status change (kanban drag), persisted to the feature frontmatter

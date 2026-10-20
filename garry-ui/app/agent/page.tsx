@@ -5,7 +5,7 @@ import styles from "./agent.module.css";
 import ModelChip from "../ModelChip";
 import Waveform from "../Waveform";
 import GarryMark from "../GarryMark";
-import { apiBase } from "../lib/api";
+import { api, apiUrl } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader } from "../ui";
 
@@ -92,7 +92,7 @@ export default function AgentView() {
   const draggedRef = useRef(false);
 
   useEffect(() => {
-    fetch(`${apiBase}/api/features`)
+    api(`/api/features`)
       .then((r) => r.json())
       .then((d) => {
         const fs = (d.features as Feature[]) ?? [];
@@ -102,11 +102,11 @@ export default function AgentView() {
         if (pick) setSelected(pick.id);
       })
       .catch(() => setOffline(true));
-    fetch(`${apiBase}/api/models`)
+    api(`/api/models`)
       .then((r) => r.json())
       .then((d) => setModels(Object.fromEntries(((d.models as Model[]) ?? []).map((m) => [m.id, m.label]))))
       .catch(() => undefined);
-    fetch(`${apiBase}/api/registry`)
+    api(`/api/registry`)
       .then((r) => r.json())
       .then((d) => {
         const map: Record<string, string[]> = {};
@@ -120,7 +120,7 @@ export default function AgentView() {
 
   const loadPlan = useCallback(() => {
     if (!selected) return;
-    fetch(`${apiBase}/api/features/${selected}/plan`)
+    api(`/api/features/${selected}/plan`)
       .then((r) => r.json())
       .then((p: Plan) => setPlan(p))
       .catch(() => undefined);
@@ -135,7 +135,7 @@ export default function AgentView() {
     setStopped(false);
     setLogs([]);
     setTaskLog([]);
-    const es = new EventSource(`${apiBase}/api/features/${selected}/stream`);
+    const es = new EventSource(apiUrl(`/api/features/${selected}/stream`));
     esRef.current = es;
     es.addEventListener("task", (e) => {
       const d = JSON.parse((e as MessageEvent).data) as { index: number; task: Task };
@@ -166,7 +166,7 @@ export default function AgentView() {
     esRef.current = null;
     setCurrent(null);
     setStopped(true);
-    fetch(`${apiBase}/api/features/${selected}/stop`, { method: "POST" }).catch(() => undefined);
+    api(`/api/features/${selected}/stop`, { method: "POST" }).catch(() => undefined);
   };
 
   const pickFeature = (id: string) => {

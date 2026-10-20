@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import styles from "./lessons.module.css";
-import { apiBase } from "../lib/api";
+import { api } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 
@@ -41,7 +41,7 @@ export default function Lessons() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${apiBase}/api/lessons`)
+    api(`/api/lessons`)
       .then((r) => r.json())
       .then((d) => setLessons(d.lessons as Lesson[]))
       .catch((e: unknown) => setError(String(e)));

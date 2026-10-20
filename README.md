@@ -7,11 +7,12 @@
 
 <p align="center">
   <a href="https://github.com/piotrgodycki/garry/actions/workflows/ci.yml"><img src="https://github.com/piotrgodycki/garry/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-111827" alt="License Apache 2.0" /></a>
   <img src="https://img.shields.io/badge/node-%3E%3D22-0ea5e9" alt="Node >=22" />
   <img src="https://img.shields.io/badge/TypeScript-strict-6366f1" alt="TypeScript strict" />
   <img src="https://img.shields.io/badge/design-contract%20first-0ea5e9" alt="contract first" />
-  <img src="https://img.shields.io/badge/security-npm%20audit%20%2B%20Semgrep-6366f1" alt="security npm audit plus Semgrep" />
-  <img src="https://img.shields.io/badge/roadmap-phase%204%2F9-111827" alt="roadmap phase 4 of 9" />
+  <img src="https://img.shields.io/badge/security-audit%20%2B%20Semgrep%20%2B%20CodeQL-6366f1" alt="security npm audit, Semgrep and CodeQL" />
+  <img src="https://img.shields.io/badge/status-pre%20release-111827" alt="status pre release" />
 </p>
 
 # Garry
@@ -81,33 +82,62 @@ matching lessons into each task of the plan, and `garry sync` writes them into
 a candidate for `@garry/skills`, so every project can get it after a human review.
 See section 8 of [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## Use from a phone (Tailscale)
+## Use from a phone or tablet
 
-Garry can be opened from a phone on your tailnet with
-[Tailscale Serve](https://tailscale.com/kb/1312/serve). Serve gives the UI a real
-HTTPS address (`https://<machine>.<tailnet>.ts.net`), which the phone browser needs
-before it allows the microphone for the voice dock. Nothing is exposed to the public
-internet: only devices signed in to your tailnet can reach it.
+The UI works on phones and tablets (a bottom tab bar on phones, full screen voice
+dock) and can be installed like an app: open it in the phone browser and choose
+**Add to Home Screen**. Garry runs on your computer; the phone is a remote control.
 
-1. Install Tailscale on the computer that runs Garry and on the phone, sign in to
-   the same tailnet, and enable HTTPS certificates for the tailnet (admin console,
-   DNS, HTTPS Certificates).
-2. Start Garry as usual: `pnpm dev`.
-3. Publish it on the tailnet: `pnpm phone`. This runs `tailscale serve` in the
-   background with two routes:
-   - `/` goes to the UI on `localhost:3000`
-   - `/api` goes to the server on `localhost:8123`
-4. Open the printed `https://...ts.net` address on the phone.
-5. Stop sharing with `pnpm phone:off` (runs `tailscale serve reset`).
+The server is safe by default: it listens on `127.0.0.1` only, so nothing else can
+reach it. Pick one of three ways to open it from another device.
 
-The UI and the API share one origin behind Serve, so no CORS or mixed content issues
-arise; the UI finds the API on its own (see `garry-ui/app/lib/api.ts`). `next dev`
-accepts `*.ts.net` origins (see `allowedDevOrigins` in `garry-ui/next.config.mjs`);
-add other hosts with `GARRY_DEV_ORIGINS=host1,host2`. Hold Space push to talk needs
-a keyboard; on the phone tap the mic button instead.
+### 1. Same Wi-Fi, with an access token (no extra software)
 
-The server has no login of its own, so treat everyone on the tailnet as trusted. Do
-not use `tailscale funnel` for Garry, which would publish it to the internet.
+```bash
+cp .env.example .env
+# in .env: GARRY_ACCESS_TOKEN=<output of: openssl rand -hex 24>
+#          GARRY_HOST=0.0.0.0
+pnpm start        # production build of the UI plus the server
+```
+
+The server prints a sign-in link for each network address, for example
+`http://192.168.1.20:3000/#garry-token=...`. Open it on the phone once: the UI stores
+the token in that browser and removes it from the address bar. Every `/api` request
+then carries the token; without it the server answers 401 and the UI asks for it.
+The server refuses to listen on a network address without a token of at least 24
+characters.
+
+On plain HTTP the phone browser blocks the microphone, so the voice dock falls back
+to typing. For voice, use option 2 or 3, which give you HTTPS.
+
+### 2. A private network: Tailscale (or Headscale, NetBird, ZeroTier)
+
+Only devices signed in to your private network can reach Garry, and Tailscale Serve
+adds HTTPS. With Tailscale on the computer and the phone, and HTTPS certificates
+enabled for the tailnet:
+
+```bash
+pnpm dev          # or pnpm start
+pnpm phone        # tailscale serve: / to the UI, /api to the server
+pnpm phone:off    # stop sharing
+```
+
+Open the printed `https://<machine>.<tailnet>.ts.net` address. The server stays on
+`127.0.0.1` behind it. Setting `GARRY_ACCESS_TOKEN` as well is recommended. Do not
+use `tailscale funnel`, which would publish Garry to the internet.
+
+### 3. An identity aware tunnel: Cloudflare Tunnel with Access (or similar)
+
+For access without an app on the phone, or for a team: a tunnel publishes Garry on
+your own domain with HTTPS, and the access policy asks for a login (Google, GitHub,
+an email code) before any request reaches your machine. Route `/` to `localhost:3000`
+and `/api` to `localhost:8123`, keep `GARRY_ACCESS_TOKEN` set, and add your domain to
+`GARRY_DEV_ORIGINS` if you run `pnpm dev` instead of `pnpm start`. Pomerium,
+oauth2-proxy or Authentik in front of a reverse proxy work the same way.
+
+Behind any proxy the UI finds the API on its own origin (`garry-ui/app/lib/api.ts`),
+so `/` and `/api` only need to share one address. Hold Space push to talk needs a
+keyboard; on a phone tap the orb or the mic button.
 
 ## Commands
 
@@ -116,7 +146,8 @@ not use `tailscale funnel` for Garry, which would publish it to the internet.
 | `pnpm dev` | start the server and the UI together |
 | `pnpm serve` | server only, on :8123 |
 | `pnpm ui` | UI only, on :3000 (needs the server) |
-| `pnpm phone` | share the running app on your tailnet over HTTPS (Tailscale Serve) |
+| `pnpm start` | production build of the UI plus the server (faster on a phone) |
+| `pnpm phone` | share the running app on your tailnet over HTTPS (Tailscale Serve, optional) |
 | `pnpm phone:off` | stop sharing on the tailnet |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm garry lessons` | list what Garry learned in this project |
@@ -136,9 +167,12 @@ every push and pull request. It has three jobs:
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash,
   en dash, figure dash or horizontal bar appears in tracked text files.
 - `security`: the security review. It runs `pnpm audit` (fails on a high or critical
-  advisory) across the workspace and a Semgrep static analysis scan. The repository is
-  private, so CodeQL is not used (code scanning on a private repository needs paid
-  GitHub Advanced Security); Semgrep runs fully inside the job and needs no token.
+  advisory) across the workspace and a Semgrep static analysis scan, which runs fully
+  inside the job and needs no token.
+
+CodeQL code scanning lives in [`.github/workflows/codeql.yml`](./.github/workflows/codeql.yml).
+It is free on a public repository and runs on pushes to `main`, on pull requests and
+weekly; the job skips itself while the repository is private.
 
 ### CI budget
 
@@ -157,7 +191,10 @@ The pipeline is kept cheap on purpose:
 
 ## Security
 
-- Security review runs in CI: `pnpm audit` plus a Semgrep SAST scan (the repository is private, so no CodeQL).
+- Report vulnerabilities privately, never in a public issue. See [SECURITY.md](./SECURITY.md).
+- Security review runs in CI: `pnpm audit`, a Semgrep SAST scan and CodeQL.
+- The server listens on `127.0.0.1` by default and refuses a network address without
+  `GARRY_ACCESS_TOKEN`; with a token every `/api` request must carry it.
 - Dependabot version updates are off for now (removed to keep the single branch quiet
   before the MVP). `pnpm audit` still guards dependency vulnerabilities.
 - Secrets are never committed. Tokens live in `.env` only.
@@ -173,6 +210,12 @@ The pipeline is kept cheap on purpose:
 - Contract first: nothing touches code until the contract in the registry is updated
   and validated.
 
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md) for the setup,
+the checks CI runs and the conventions, and follow the
+[Code of Conduct](./CODE_OF_CONDUCT.md).
+
 ## License
 
-To be decided before the first public release.
+Garry is open source under the [Apache License 2.0](./LICENSE). See [NOTICE](./NOTICE).

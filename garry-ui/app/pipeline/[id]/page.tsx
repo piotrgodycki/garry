@@ -1,7 +1,7 @@
 "use client";
 import { use, useCallback, useEffect, useState } from "react";
 import styles from "./pipeline.module.css";
-import { apiBase } from "../../lib/api";
+import { api, apiUrl } from "../../lib/api";
 import { tierOf } from "../../ModelChip";
 import { PageHeader, Skeleton } from "../../ui";
 
@@ -37,9 +37,9 @@ export default function Activity({ params }: { params: Promise<{ id: string }> }
 
   const loadPlan = useCallback(() => {
     Promise.all([
-      fetch(`${apiBase}/api/features/${id}/plan`).then((r) => r.json()),
-      fetch(`${apiBase}/api/models`).then((r) => r.json()),
-      fetch(`${apiBase}/api/features/${id}/service-models`).then((r) => r.json()),
+      api(`/api/features/${id}/plan`).then((r) => r.json()),
+      api(`/api/models`).then((r) => r.json()),
+      api(`/api/features/${id}/service-models`).then((r) => r.json()),
     ]).then(([p, m, sm]) => {
       setPlan(p as Plan);
       setModels((m.models as Model[]) ?? []);
@@ -55,7 +55,7 @@ export default function Activity({ params }: { params: Promise<{ id: string }> }
     setRunning(null);
     setDoneCount(0);
     setFinished(false);
-    const es = new EventSource(`${apiBase}/api/features/${id}/stream`);
+    const es = new EventSource(apiUrl(`/api/features/${id}/stream`));
     es.addEventListener("task", (e) => {
       const d = JSON.parse((e as MessageEvent).data) as { index: number };
       setRunning(d.index);
@@ -73,7 +73,7 @@ export default function Activity({ params }: { params: Promise<{ id: string }> }
   }, [id, runKey, plan !== null]);
 
   const changeModel = (service: string, model: string) => {
-    fetch(`${apiBase}/api/features/${id}/service-models`, {
+    api(`/api/features/${id}/service-models`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ service, model }),

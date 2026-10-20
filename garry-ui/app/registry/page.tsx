@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "../panel.module.css";
-import { apiBase } from "../lib/api";
+import { api } from "../lib/api";
 import { Icon } from "../icons";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 
@@ -28,7 +28,7 @@ export default function Registry() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${apiBase}/api/registry`)
+    api(`/api/registry`)
       .then((r) => r.json())
       .then((d: RegistryData) => setData(d))
       .catch((e: unknown) => setError(String(e)));

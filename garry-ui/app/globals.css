@@ -1229,3 +1229,44 @@ h1 {
     order: -1;
   }
 }
+
+/* access token prompt (native dialog) */
+.accessGate {
+  width: min(440px, calc(100vw - 32px));
+  padding: 0;
+  border: 2px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--color-text-default);
+  box-shadow: var(--shadow-lg);
+}
+.accessGate::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+.accessForm {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+}
+.accessForm h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.accessForm p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.accessForm .input {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+}
+.accessActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.serverStatus[role="button"] {
+  cursor: pointer;
+}
