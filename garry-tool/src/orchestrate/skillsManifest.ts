@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { listLocalSkills, localSkillsDir } from "../skills/local.js";
+import { auditFiles, readSkillFolder, type Severity, type Verdict } from "../skills/audit.js";
 
 export interface SkillEntry {
   name: string;
@@ -13,6 +14,8 @@ export interface SkillEntry {
   source: "builtin" | "local";
   /** whether the instructions (SKILL.md) exist; a builtin without them is planned */
   hasDoc: boolean;
+  /** security audit summary; null for a planned skill with nothing to audit yet */
+  audit: { verdict: Verdict; counts: Record<Severity, number> } | null;
 }
 
 /** The skills that ship with a @garry/skills repository (the pre-installed ones). */
@@ -29,7 +32,15 @@ export function loadBuiltinSkills(skillsRoot: string): SkillEntry[] {
     outputs: s.outputs ?? [],
     source: "builtin" as const,
     hasDoc: Boolean(s.path && existsSync(join(skillsRoot, s.path, "SKILL.md"))),
+    audit: s.path && existsSync(join(skillsRoot, s.path, "SKILL.md")) ? summary(auditFiles(readSkillFolder(join(skillsRoot, s.path)))) : null,
   }));
+}
+
+const summary = (r: { verdict: Verdict; counts: Record<Severity, number> }) => ({ verdict: r.verdict, counts: r.counts });
+
+/** Skills an agent may be given: a skill that fails its security audit never is. */
+export function usableSkills(all: SkillEntry[]): SkillEntry[] {
+  return all.filter((s) => s.audit?.verdict !== "fail");
 }
 
 /**
@@ -50,6 +61,7 @@ export function loadSkills(skillsRoot: string, localDir = localSkillsDir()): Ski
       outputs: [],
       source: "local" as const,
       hasDoc: true,
+      audit: summary(s.audit),
     }));
   return [...builtin, ...local];
 }

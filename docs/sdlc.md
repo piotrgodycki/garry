@@ -103,6 +103,12 @@ Instructions for the agent...
 ```
 
 `stage` is optional in the file; the Install dialog and `--stage` can set it.
+
+Every skill passes a security audit before an agent may use it (prompt injection,
+hidden text, remote code, destructive commands, secret exfiltration, persistence,
+safety bypasses, obfuscation, supply chain). A skill that fails cannot be
+installed, and an installed one that starts failing is left out of every plan. See
+[the audit in cli.md](./cli.md#security-audit).
 Local skills live in `~/.garry/skills/<name>/` (or `GARRY_SKILLS_HOME`), never in
 the repository. A local skill cannot take the name of a pre-installed one.
 

@@ -6,6 +6,7 @@ import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 import InstallSkill from "./InstallSkill";
+import { AuditBadge, AuditFindings, type AuditReport } from "./AuditView";
 
 interface Skill {
   name: string;
@@ -13,6 +14,7 @@ interface Skill {
   summary: string;
   source: "builtin" | "local";
   hasDoc: boolean;
+  audit: AuditReport | null;
 }
 
 type Filter = "all" | "builtin" | "local";
@@ -28,6 +30,15 @@ export default function Skills() {
   const [notice, setNotice] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const [docs, setDocs] = useState<Record<string, string | null>>({});
+  const [auditOpen, setAuditOpen] = useState<string | null>(null);
+  const [audits, setAudits] = useState<Record<string, AuditReport | null>>({});
+
+  const toggleAudit = async (name: string) => {
+    if (auditOpen === name) return setAuditOpen(null);
+    setAuditOpen(name);
+    const d = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/audit`).then((r) => r.json()).catch(() => ({}));
+    setAudits((m) => ({ ...m, [name]: (d as { audit?: AuditReport | null }).audit ?? null }));
+  };
 
   const load = useCallback(() => {
     fetch(`${apiBase}/api/skills`)
@@ -151,7 +162,10 @@ export default function Skills() {
             </div>
             <div className={styles.grid}>
               {items.map((s) => (
-                <div key={s.name} className={`card ${styles.skill} ${s.source === "local" ? s2.local : ""}`}>
+                <div
+                  key={s.name}
+                  className={`card ${styles.skill} ${s.source === "local" ? s2.local : ""} ${s.audit?.verdict === "fail" ? s2.blocked : ""}`}
+                >
                   <div className={styles.skillHead}>
                     <span className={styles.skillIcon}>{Icon.bolt}</span>
                     <span className={styles.skillName}>{s.name}</span>
@@ -162,6 +176,18 @@ export default function Skills() {
                     )}
                   </div>
                   <p className={styles.skillSummary}>{s.summary}</p>
+                  <div className={s2.foot}>
+                    <AuditBadge audit={s.audit} />
+                    {s.audit && (
+                      <button className={s2.link} onClick={() => toggleAudit(s.name)} aria-expanded={auditOpen === s.name}>
+                        {auditOpen === s.name ? "Hide audit" : "View audit"}
+                      </button>
+                    )}
+                  </div>
+                  {s.audit?.verdict === "fail" && (
+                    <span className={s2.planned}>Left out of every plan until it passes the audit.</span>
+                  )}
+                  {auditOpen === s.name && (audits[s.name] ? <AuditFindings audit={audits[s.name]!} /> : <span className={s2.planned}>Auditing...</span>)}
                   <div className={s2.foot}>
                     {s.hasDoc ? (
                       <button className={s2.link} onClick={() => toggleDoc(s.name)} aria-expanded={open === s.name}>

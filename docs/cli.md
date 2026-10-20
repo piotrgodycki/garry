@@ -170,8 +170,9 @@ pnpm garry sync --repo ~/garry-workspaces/FEAT-123/checkout-mfe
 
 ```
 garry skills list
-garry skills add <folder|SKILL.md> [--stage <stage>] [--replace]
+garry skills add <folder|SKILL.md> [--stage <stage>] [--replace] [--accept-warnings]
 garry skills remove <name>
+garry skills audit [folder ...]
 ```
 
 The skills the agents use: the pre-installed ones in `garry-skills`, plus the ones
@@ -190,6 +191,33 @@ pnpm garry skills remove a11y-audit
 copies the folder without symlinks, up to 50 files and 2 MB. Pass `--stage` when
 the frontmatter has none and `--replace` to overwrite a local skill.
 
+### Security audit
+
+Every skill is audited before an agent may use it: on `add` (and in the
+dashboard's Install dialog), every time local skills are loaded, so a file edited
+on disk after install is caught, and the pre-installed ones in CI. The audit reads
+every file of the skill and looks for:
+
+| Severity | Finds |
+|---|---|
+| critical | code downloaded and run (`curl ... \| sh`), decoded payloads run, reverse shells, destructive commands, secrets sent over the network, "ignore previous instructions", invisible Unicode that hides text (bidirectional overrides, tag characters) |
+| high | hiding actions from the human, role or persona overrides, safety bypasses (`--no-verify`, force push, `sudo`, skipping review), persistence (shell profiles, cron, `authorized_keys`), raw IPs, paste sites and tunnels, encoded blobs, zero width characters, edits to CI workflows or git hooks, binary files |
+| medium | reading secrets or credential files, installing packages, scripts that start processes, sites outside a list of known documentation and package hosts, text hidden in HTML comments, unrestricted `allowed-tools` |
+
+A critical or high finding fails the audit: the skill cannot be installed, and an
+installed one that starts failing is left out of every plan. Medium findings are
+warnings: `add` needs `--accept-warnings` (the dialog, a checkbox) after you read
+them.
+
+```bash
+pnpm garry skills audit                    # every installed skill, exit 1 on a failure
+pnpm garry skills audit ~/downloads/skill  # a folder before you install it
+pnpm -C garry-tool test:audit              # the audit's own regression corpus
+```
+
+The audit is static: rules over the text, no model. It catches known attack
+shapes, not every possible one, so read a skill from an unknown source anyway.
+
 ## garry serve
 
 ```
@@ -207,7 +235,8 @@ by `pnpm dev`. Main endpoints:
 | `GET /api/features/:id/prs` | one pull request per service |
 | `GET /api/registry`, `/api/skills`, `/api/models`, `/api/routing` | registry, skills, models, routing |
 | `GET /api/skills/:name/doc` | a skill's `SKILL.md` |
-| `POST /api/skills/install` `{content or path, stage?, replace?, dryRun?}` | install a local skill (`dryRun` only previews) |
+| `POST /api/skills/install` `{content or path, stage?, replace?, dryRun?, acknowledge?}` | audit, then install a local skill (`dryRun` previews the skill and its audit) |
+| `GET /api/skills/:name/audit` | a skill's full security audit |
 | `DELETE /api/skills/:name` | remove a local skill |
 | `POST /api/routing` `{stage, model}` | change a stage's model in `garry.routing.json` |
 | `POST /api/features/:id/service-models` `{service, model}` | change one service's model |

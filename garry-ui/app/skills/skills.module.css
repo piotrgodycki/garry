@@ -266,3 +266,135 @@
   font-weight: 700;
   margin-right: auto;
 }
+
+/* security audit */
+.audit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.audit svg {
+  width: 13px;
+  height: 13px;
+}
+.audit_pass {
+  color: var(--color-text-default);
+}
+.audit_warn {
+  color: var(--color-text-default);
+  border-bottom: 2px dashed var(--border-strong);
+}
+.audit_fail {
+  color: var(--color-brand-secondary);
+}
+.auditNone {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+.blocked {
+  opacity: 0.75;
+  border-color: var(--color-brand-secondary) !important;
+  border-style: dashed !important;
+}
+.report {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 2px solid var(--border-strong);
+}
+.report_fail {
+  border-color: var(--color-brand-secondary);
+}
+.report_warn {
+  border-style: dashed;
+}
+.reportHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.reportHead svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.report_fail .reportHead {
+  color: var(--color-brand-secondary);
+}
+.reportMeta {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.reportNote {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.findings li {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.sev {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 3px 0;
+  border: 1.5px solid var(--border-strong);
+}
+.sev_critical {
+  background: var(--color-brand-secondary);
+  border-color: var(--color-brand-secondary);
+  color: #ffffff;
+}
+.sev_high {
+  border-color: var(--color-brand-secondary);
+  color: var(--color-brand-secondary);
+}
+.sev_medium {
+  border-style: dashed;
+}
+.findingText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.findingTitle {
+  font-weight: 700;
+  font-size: 13px;
+}
+.findingTitle code {
+  font-weight: 400;
+  font-size: 11px;
+}
+.findingWhy {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.excerpt {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: var(--surface-2);
+}

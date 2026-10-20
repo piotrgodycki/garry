@@ -3,7 +3,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { buildPlan, listFeatures, loadFeature } from "../orchestrate/plan.js";
 import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
-import { SkillError, installSkill, localSkillsDir, readLocalSkillMd, removeSkill, type InstallRequest } from "../skills/local.js";
+import { SkillError, installSkill, listLocalSkills, localSkillsDir, readLocalSkillMd, removeSkill, type InstallRequest } from "../skills/local.js";
+import { AUDIT_RULES, auditFiles, readSkillFolder } from "../skills/audit.js";
 import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
 import { loadWorkspace } from "../workspace/workspace.js";
@@ -247,7 +248,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
       const reserved = new Set(loadBuiltinSkills(cfg.skills).map((sk) => sk.name));
       return json(res, 200, installSkill(body, reserved));
     } catch (e) {
-      if (e instanceof SkillError) return json(res, e.status, { error: e.message });
+      if (e instanceof SkillError) return json(res, e.status, { error: e.message, audit: e.audit });
       throw e;
     }
   }
@@ -260,6 +261,19 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
       if (e instanceof SkillError) return json(res, e.status, { error: e.message });
       throw e;
     }
+  }
+  if (req.method === "GET" && path === "/api/skills/audit-rules") return json(res, 200, { rules: AUDIT_RULES });
+  const skillAudit = /^\/api\/skills\/([^/]+)\/audit$/.exec(path);
+  if (req.method === "GET" && skillAudit) {
+    const name = decodeURIComponent(skillAudit[1]);
+    const local = listLocalSkills().find((sk) => sk.name === name);
+    if (local) return json(res, 200, { name, source: "local", audit: local.audit });
+    const raw = JSON.parse(readFileSync(join(cfg.skills, "manifest.json"), "utf8")) as { skills: { name: string; path?: string }[] };
+    const entry = raw.skills.find((sk) => sk.name === name);
+    if (!entry) return json(res, 404, { error: `no skill ${name}` });
+    const folder = entry.path ? join(cfg.skills, entry.path) : "";
+    if (!folder || !existsSync(join(folder, "SKILL.md"))) return json(res, 200, { name, source: "builtin", audit: null });
+    return json(res, 200, { name, source: "builtin", audit: auditFiles(readSkillFolder(folder)) });
   }
   const skillDoc = /^\/api\/skills\/([^/]+)\/doc$/.exec(path);
   if (req.method === "GET" && skillDoc) {
@@ -330,6 +344,8 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "POST /api/features/:id/service-models {service, model}",
         "GET /api/skills",
         "GET /api/skills/:name/doc",
+        "GET /api/skills/:name/audit",
+        "GET /api/skills/audit-rules",
         "POST /api/skills/install {content | path, stage?, replace?, dryRun?}",
         "DELETE /api/skills/:name (local skills only)",
         "GET /api/registry",

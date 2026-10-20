@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
-import { loadSkills, skillsForStage } from "./skillsManifest.js";
+import { loadSkills, skillsForStage, usableSkills } from "./skillsManifest.js";
 import { loadServices, delegationOrder } from "./graph.js";
 import { resolveRouting, routeFor, type Route } from "./routing.js";
 import type { Delegate, Task } from "./delegate.js";
@@ -90,7 +90,8 @@ export function buildPlan(opts: BuildPlanOptions): Plan {
   const nodes = loadServices(opts.registry, feature.services);
   const order = delegationOrder(nodes);
   const routing = resolveRouting(opts.routingFile, feature.routingOverride);
-  const allSkills = loadSkills(opts.skillsRoot);
+  // a skill that fails its security audit is never handed to an agent
+  const allSkills = usableSkills(loadSkills(opts.skillsRoot));
 
   const tasks: Task[] = [];
   for (const stage of STAGES) {

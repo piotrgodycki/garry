@@ -3,12 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./skills.module.css";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
+import { AuditFindings, type AuditReport } from "./AuditView";
 
 const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"];
 
 interface Preview {
   skill: { name: string; description: string; stage: string };
   files: string[];
+  audit: AuditReport;
 }
 
 type Mode = "upload" | "folder";
@@ -30,6 +32,7 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
+  const [ack, setAck] = useState(false);
 
   useEffect(() => {
     ref.current?.showModal();
@@ -45,7 +48,7 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
       const r = await fetch(`${apiBase}/api/skills/install`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...source, stage: stage || undefined, replace, dryRun }),
+        body: JSON.stringify({ ...source, stage: stage || undefined, replace, dryRun, acknowledge: ack }),
       });
       const d = await r.json();
       if (!r.ok) {
@@ -65,6 +68,7 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
   // re-check whenever the source or the stage changes, so the preview never goes stale
   useEffect(() => {
     setPreview(null);
+    setAck(false);
     if (!ready) return;
     const t = setTimeout(() => void call(true), 250);
     return () => clearTimeout(t);
@@ -174,12 +178,30 @@ export default function InstallSkill({ onClose, onInstalled }: { onClose: () => 
             </span>
           </div>
         )}
+
+        {preview && <AuditFindings audit={preview.audit} />}
+        {preview?.audit.verdict === "fail" && (
+          <p className={styles.help}>
+            This skill cannot be installed. Remove what the audit found from the skill, then try again.
+          </p>
+        )}
+        {preview?.audit.verdict === "warn" && (
+          <label className={styles.check}>
+            <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} />
+            I have read these warnings and trust this skill
+          </label>
+        )}
       </div>
 
       <div className={styles.dialogFoot}>
         <button type="button" className="btn btnGhost" onClick={() => ref.current?.close()}>Cancel</button>
-        <button type="button" className="btn btnPrimary" disabled={!preview || busy} onClick={() => void call(false)}>
-          {busy ? "Checking..." : "Install"}
+        <button
+          type="button"
+          className="btn btnPrimary"
+          disabled={!preview || busy || preview.audit.verdict === "fail" || (preview.audit.verdict === "warn" && !ack)}
+          onClick={() => void call(false)}
+        >
+          {busy ? "Checking..." : preview?.audit.verdict === "fail" ? "Blocked" : "Install"}
         </button>
       </div>
     </dialog>

@@ -72,7 +72,8 @@ every push and pull request. It has three jobs:
 
 - `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the
   tool packages and `pnpm -C garry-registry` validation of the mfe and backend samples
-  plus `pnpm -C garry-skills validate`.
+  plus `pnpm -C garry-skills validate`, and the skill security audit: every
+  pre-installed skill must pass it, and the audit's regression corpus must behave.
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash,
   en dash, figure dash or horizontal bar appears in tracked text files.
 - `security`: the security review. It runs `pnpm audit` (fails on a high or critical

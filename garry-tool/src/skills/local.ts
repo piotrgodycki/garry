@@ -2,6 +2,7 @@ import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rm
 import { homedir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
+import { auditFiles, readSkillFolder, type AuditReport } from "./audit.js";
 
 /**
  * Locally installed skills: skills a user adds on their machine on top of the
@@ -23,7 +24,7 @@ const MAX_FILES = 50;
 const MAX_TOTAL = 2_000_000;
 
 export class SkillError extends Error {
-  constructor(message: string, readonly status = 400) {
+  constructor(message: string, readonly status = 400, readonly audit?: AuditReport) {
     super(message);
   }
 }
@@ -39,6 +40,8 @@ export interface LocalSkill extends ParsedSkill {
   stage: Stage;
   installedAt: string;
   from: string;
+  /** audited again on every load, so a file changed on disk after install is caught */
+  audit: AuditReport;
 }
 
 /** Where local skills live: GARRY_SKILLS_HOME, else ~/.garry/skills. */
@@ -81,7 +84,8 @@ export function listLocalSkills(dir = localSkillsDir()): LocalSkill[] {
       const side = readSidecar(join(dir, name));
       const stage = side.stage ?? parsed.stage;
       if (!stage) continue;
-      out.push({ ...parsed, name, stage, installedAt: side.installedAt ?? "", from: side.from ?? "" });
+      const audit = auditFiles(readSkillFolder(join(dir, name)));
+      out.push({ ...parsed, name, stage, installedAt: side.installedAt ?? "", from: side.from ?? "", audit });
     } catch {
       // an unreadable skill is left out of the pipeline
     }
@@ -115,12 +119,15 @@ export interface InstallRequest {
   replace?: boolean;
   /** validate and preview only, write nothing */
   dryRun?: boolean;
+  /** the human reviewed the audit warnings (medium findings) and accepts them */
+  acknowledge?: boolean;
 }
 
 export interface InstallResult {
   skill: ParsedSkill & { stage: Stage };
   files: string[];
   installed: boolean;
+  audit: AuditReport;
 }
 
 /**
@@ -157,8 +164,19 @@ export function installSkill(req: InstallRequest, reserved: Set<string>, dir = l
   const target = join(dir, parsed.name);
   if (existsSync(target) && !req.replace) throw new SkillError(`"${parsed.name}" is already installed locally`, 409);
 
-  const result: InstallResult = { skill: { ...parsed, stage }, files: files.map((f) => f.rel), installed: false };
+  // Every skill is audited before it can be installed. A dry run returns the
+  // report whatever it says, so the preview can show the findings.
+  const audit = auditFiles(
+    source === "upload" ? [{ rel: "SKILL.md", data: Buffer.from(text, "utf8") }] : files.map((f) => ({ rel: f.rel, data: readFileSync(f.abs!) })),
+  );
+  const result: InstallResult = { skill: { ...parsed, stage }, files: files.map((f) => f.rel), installed: false, audit };
   if (req.dryRun) return result;
+  if (audit.verdict === "fail") {
+    throw new SkillError(`the security audit failed (${audit.counts.critical} critical, ${audit.counts.high} high): this skill cannot be installed`, 422, audit);
+  }
+  if (audit.verdict === "warn" && !req.acknowledge) {
+    throw new SkillError(`the security audit has ${audit.counts.medium} warning(s): review them and confirm to install`, 409, audit);
+  }
 
   mkdirSync(dir, { recursive: true });
   rmSync(target, { recursive: true, force: true });
@@ -168,7 +186,19 @@ export function installSkill(req: InstallRequest, reserved: Set<string>, dir = l
     mkdirSync(dirname(join(target, f.rel)), { recursive: true });
     cpSync(f.abs!, join(target, f.rel));
   }
-  writeFileSync(join(target, "garry.json"), JSON.stringify({ stage, installedAt: new Date().toISOString(), from: source }, null, 2) + "\n");
+  writeFileSync(
+    join(target, "garry.json"),
+    JSON.stringify(
+      {
+        stage,
+        installedAt: new Date().toISOString(),
+        from: source,
+        audit: { version: audit.version, verdict: audit.verdict, counts: audit.counts, hash: audit.hash, acknowledged: audit.verdict === "warn" },
+      },
+      null,
+      2,
+    ) + "\n",
+  );
   return { ...result, installed: true };
 }
 

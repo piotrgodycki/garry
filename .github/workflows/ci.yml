@@ -34,6 +34,13 @@ jobs:
           pnpm -C garry-registry exec tsx src/cli.ts examples/backend-sample
       - name: Validate skills
         run: pnpm -C garry-skills validate
+      # Every skill is a set of instructions an agent follows with access to code
+      # and tokens: the pre-installed ones must pass the security audit, and the
+      # audit itself must keep catching the known attacks.
+      - name: Skill security audit
+        run: |
+          pnpm -C garry-tool test:audit
+          pnpm garry skills audit
 
   dash-guard:
     name: dash guard
