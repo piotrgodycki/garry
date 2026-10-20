@@ -1,0 +1,180 @@
+.panel {
+  overflow: hidden;
+}
+.more {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+.body {
+  padding: 16px 20px 18px;
+  display: grid;
+  gap: 18px;
+}
+.label {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  width: 100%;
+}
+.changes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.changeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 10px;
+  border: 2px solid var(--border-strong);
+}
+.changeChip code {
+  font-size: 11px;
+}
+
+/* the three steps of a contract's life */
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.step {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 12px;
+  padding-bottom: 14px;
+  position: relative;
+}
+.step:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 26px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+.step.done:not(:last-child)::before {
+  background: var(--border-strong);
+}
+.num {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  border: 2px solid var(--border);
+  color: var(--color-text-muted);
+  background: var(--surface);
+  position: relative;
+}
+.done .num {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+  color: var(--on-brand);
+}
+.active .num {
+  border-color: var(--color-brand-secondary);
+  color: var(--color-brand-secondary);
+  animation: pulse 1.4s infinite;
+  --run: var(--color-brand-secondary);
+}
+.stepText {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.stepTitle {
+  font-weight: 700;
+  font-size: 14px;
+}
+.wait .stepTitle {
+  color: var(--color-text-muted);
+}
+.active .stepTitle {
+  color: var(--color-brand-secondary);
+}
+.stepDetail {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.per {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 4px;
+}
+.perItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-family-mono);
+  font-size: 12px;
+}
+
+/* delegation order with the reason for each place */
+.order {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.order li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.orderNum {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--surface-3);
+}
+.orderText {
+  display: grid;
+  gap: 1px;
+  font-size: 13px;
+}
+.orderText b {
+  font-family: var(--font-family-mono);
+  font-size: 12.5px;
+}
+.orderText :global(.muted) {
+  font-size: 12px;
+}
+
+.eventsBlock {
+  display: grid;
+  gap: 8px;
+}
+.eventLine {
+  display: grid;
+  gap: 2px;
+  font-size: 12.5px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+}
+.eventLine code {
+  justify-self: start;
+  font-weight: 700;
+}
+.fields {
+  font-family: var(--font-family-mono);
+  font-size: 11.5px;
+}

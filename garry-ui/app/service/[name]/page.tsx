@@ -6,6 +6,8 @@ import { apiBase } from "../../lib/api";
 import { Icon } from "../../icons";
 import ModelChip from "../../ModelChip";
 import { Empty, PageHeader, Skeleton } from "../../ui";
+import ContractEvent from "../../ContractEvent";
+import { eventsFor, type Contracts } from "../../lib/contracts";
 
 interface Service {
   name: string;
@@ -36,6 +38,7 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
   const { name } = use(params);
   const [svc, setSvc] = useState<Service | null>(null);
   const [missing, setMissing] = useState(false);
+  const [contracts, setContracts] = useState<Contracts>({});
   const [featureId, setFeatureId] = useState<string | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [models, setModels] = useState<Record<string, string>>({});
@@ -48,6 +51,7 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
       .then((r) => r.json())
       .then((d) => {
         const found = (d.services as Service[]).find((s) => s.name === name);
+        setContracts((d.contracts as Contracts) ?? {});
         if (found) setSvc(found);
         else setMissing(true);
       })
@@ -174,6 +178,24 @@ export default function ServicePage({ params }: { params: Promise<{ name: string
           ) : <p className="muted">No dependencies.</p>}
         </div>
       </div>
+
+      <section className="section">
+        <div className="sectionHead">
+          <h2>Events</h2>
+          <span className="count">from the contract in the registry</span>
+        </div>
+        {eventsFor(contracts, [svc.name]).length ? (
+          eventsFor(contracts, [svc.name]).map(([evName, e]) => (
+            <div key={evName} className="card">
+              <ContractEvent name={evName} event={e} highlight={svc.name} />
+            </div>
+          ))
+        ) : (
+          <div className="card">
+            <Empty icon={Icon.link}>This service neither sends nor receives events.</Empty>
+          </div>
+        )}
+      </section>
 
       {/* Detailed work log: exactly what the agent did on this service, step by step. */}
       <div className="card">

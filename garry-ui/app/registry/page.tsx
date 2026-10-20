@@ -5,23 +5,8 @@ import styles from "../panel.module.css";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
-
-interface Service {
-  name: string;
-  stack?: string;
-  owner?: string;
-  exposes: string[];
-  consumes: Record<string, string[]>;
-}
-
-interface RegistryData {
-  services: Service[];
-  contracts: {
-    remotes?: Record<string, unknown>;
-    sharedDeps?: Record<string, unknown>;
-    events?: Record<string, unknown>;
-  };
-}
+import ContractEvent from "../ContractEvent";
+import { flattenTokens, type RegistryData } from "../lib/contracts";
 
 export default function Registry() {
   const [data, setData] = useState<RegistryData | null>(null);
@@ -100,6 +85,108 @@ export default function Registry() {
                   </Link>
                 );
               })}
+            </div>
+          </section>
+
+          <section className="section" id="contracts">
+            <div className="sectionHead">
+              <h2>Contracts</h2>
+              <span className="count">the agreements between services</span>
+            </div>
+            <p className={styles.explain}>
+              A contract is what one service promises the others: the events it sends and their exact data, the
+              modules it exposes, the libraries everyone shares. Services code against the contract, never against
+              each other&apos;s internals. Garry changes a contract first, validates it, and only then lets the
+              agents touch code.
+            </p>
+
+            <h3 className={styles.subhead}>Events <code>events.json</code></h3>
+            <div className={styles.eventList}>
+              {Object.entries(data.contracts.events ?? {}).map(([name, e]) => (
+                <div key={name} className="card">
+                  <ContractEvent name={name} event={e} />
+                </div>
+              ))}
+              {Object.keys(data.contracts.events ?? {}).length === 0 && <p className="muted">No events.</p>}
+            </div>
+
+            <h3 className={styles.subhead}>Remote modules <code>remotes.json</code></h3>
+            <div className="card tableWrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Service</th>
+                    <th>Exposes</th>
+                    <th>Used by</th>
+                    <th>Entry</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(data.contracts.remotes ?? {}).map(([svc, r]) => {
+                    const usedBy = data.services.filter((x) => x.consumes[svc]?.length);
+                    return (
+                      <tr key={svc}>
+                        <td className="strong"><Link href={`/service/${svc}`}>{svc}</Link></td>
+                        <td><span className={styles.chips}>{(r.exposes ?? []).map((m) => <span key={m} className="chip mono">{m}</span>)}</span></td>
+                        <td>
+                          {usedBy.length ? (
+                            <span className={styles.usedBy}>
+                              {usedBy.map((x) => (
+                                <span key={x.name}>
+                                  <b>{x.name}</b> <span className="muted">{x.consumes[svc].join(", ")}</span>
+                                </span>
+                              ))}
+                            </span>
+                          ) : (
+                            <span className="muted">nobody yet</span>
+                          )}
+                        </td>
+                        <td className={styles.entry}>{r.entry}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className={styles.twoCol}>
+              <div>
+                <h3 className={styles.subhead}>Shared dependencies <code>shared-deps.json</code></h3>
+                <div className="card tableWrap">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Library</th>
+                        <th>Version</th>
+                        <th>One copy</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(data.contracts.sharedDeps ?? {}).map(([lib, d]) => (
+                        <tr key={lib}>
+                          <td className="strong mono">{lib}</td>
+                          <td className="mono">{d.requiredVersion ?? d.version}</td>
+                          <td>{d.singleton ? <span className="badge ok">singleton</span> : <span className="muted">no</span>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <h3 className={styles.subhead}>Design tokens <code>design-tokens.json</code></h3>
+                <div className="card">
+                  <ul className={styles.tokens}>
+                    {flattenTokens(data.contracts.designTokens).map(([k, v]) => (
+                      <li key={k}>
+                        {/^#[0-9a-f]{3,8}$/i.test(v) && <span className={styles.swatch} style={{ background: v }} />}
+                        <span className="mono">{k}</span>
+                        <span className={`muted ${styles.tokenValue}`}>{v}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </section>
         </>

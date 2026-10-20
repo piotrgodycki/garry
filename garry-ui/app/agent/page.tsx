@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import styles from "./agent.module.css";
 import ModelChip from "../ModelChip";
+import ContractPanel from "./ContractPanel";
 import Waveform from "../Waveform";
 import GarryMark from "../GarryMark";
 import { apiBase } from "../lib/api";
@@ -17,7 +18,7 @@ interface Task {
   model: string;
 }
 interface Plan {
-  feature: { id: string; title: string };
+  feature: { id: string; title: string; contractChanges?: string[] };
   order: string[];
   tasks: Task[];
 }
@@ -521,6 +522,16 @@ export default function AgentView() {
             <Waveform bars={36} active={busy} />
           </div>
         </div>
+
+        {plan && (
+          <ContractPanel
+            contractChanges={plan.feature.contractChanges ?? []}
+            order={plan.order}
+            tasks={plan.tasks}
+            current={current}
+            done={finished ? plan.tasks.length : done}
+          />
+        )}
 
         <div className={`card ${styles.logPanel}`}>
           <div className="cardHead">
