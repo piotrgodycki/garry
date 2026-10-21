@@ -42,6 +42,26 @@ jobs:
           pnpm -C garry-tool test:audit
           pnpm garry skills audit
 
+  # The garry package as npm will ship it: bundle, pack, install the tarball into an
+  # empty project and run the CLI there. The release workflow publishes only after
+  # this (and every other job) is green on main.
+  package:
+    name: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Pack and smoke test
+        run: pnpm -C garry-tool smoke
+
   dash-guard:
     name: dash guard
     runs-on: ubuntu-latest

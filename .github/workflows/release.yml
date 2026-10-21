@@ -1,0 +1,109 @@
+name: Release
+
+# Publishes the garry CLI to npm automatically, with no manual step: when CI is
+# green on a push to main (validate, package smoke test, dash guard, security
+# review) and garry-tool/package.json carries a version npm does not have yet.
+# Bumping that version in a pull request is the release decision; the merge does
+# the rest. The package is published with provenance, then tagged v<version>.
+#
+# npm auth, either one:
+#   - the NPM_TOKEN repository secret (an npm granular token, publish rights on garry)
+#   - npm trusted publishing (OIDC, no secret): add this workflow as a trusted
+#     publisher on npmjs.com, then set the repository variable NPM_TRUSTED_PUBLISHING=true
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    name: publish to npm
+    # only a green CI run of a push to this repository's main: never a pull
+    # request, which could come from a fork branch that is also named main
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Is there something to publish?
+        id: check
+        env:
+          HAS_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
+          TRUSTED: ${{ vars.NPM_TRUSTED_PUBLISHING }}
+        run: |
+          set -euo pipefail
+          name=$(node -p "require('./garry-tool/package.json').name")
+          version=$(node -p "require('./garry-tool/package.json').version")
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          # a version with a pre-release part (0.2.0-beta.1) goes to the next tag
+          case "$version" in *-*) echo "tag=next" >> "$GITHUB_OUTPUT" ;; *) echo "tag=latest" >> "$GITHUB_OUTPUT" ;; esac
+          status=$(curl -s -o /dev/null -w '%{http_code}' "https://registry.npmjs.org/${name}/${version}")
+          if [ "$status" = "200" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "$name@$version is already on npm: bump garry-tool/package.json to release."
+          elif [ "$HAS_TOKEN" != "true" ] && [ "$TRUSTED" != "true" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=npm release skipped::$name@$version is ready, but neither the NPM_TOKEN secret nor NPM_TRUSTED_PUBLISHING=true is set."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Publishing $name@$version."
+          fi
+
+      - name: Install
+        if: steps.check.outputs.publish == 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Pack and smoke test
+        if: steps.check.outputs.publish == 'true'
+        run: pnpm -C garry-tool smoke
+
+      - name: Publish
+        if: steps.check.outputs.publish == 'true'
+        working-directory: garry-tool
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TAG: ${{ steps.check.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # trusted publishing (OIDC) needs npm 11.5.1 or newer; Node 22 ships npm 10
+          npm install -g npm@11.6.2
+          npm publish --provenance --access public --tag "$TAG"
+
+      - name: Tag the release
+        if: steps.check.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ steps.check.outputs.version }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          TAG: ${{ steps.check.outputs.tag }}
+        run: |
+          set -euo pipefail
+          prerelease=""
+          [ "$TAG" = "next" ] && prerelease="--prerelease"
+          # shellcheck disable=SC2086
+          gh release create "v${VERSION}" --target "$SHA" --title "garry ${VERSION}" --generate-notes $prerelease
+          echo "Published https://www.npmjs.com/package/garry/v/${VERSION}" >> "$GITHUB_STEP_SUMMARY"

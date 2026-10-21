@@ -5,12 +5,20 @@ into a feature's lifecycle see [sdlc.md](./sdlc.md).
 
 ## Running it
 
-The CLI lives in `garry-tool` and is not published yet, so run it from the root of
-this repository through pnpm:
+From npm (Node 22 or newer):
+
+```bash
+npx garry --help          # no install
+npm install -g garry      # or install the garry command
+garry feature FEAT-123
+```
+
+Inside this repository run it from the root through pnpm instead, so you use the
+code you are working on:
 
 ```bash
 pnpm install          # once
-pnpm garry --help     # the same as "garry --help" once published
+pnpm garry --help     # the same as "garry --help"
 ```
 
 Shortcuts in the root `package.json`:
@@ -22,11 +30,19 @@ Shortcuts in the root `package.json`:
 | `pnpm ui` | the dashboard only (needs the server) |
 | `pnpm scaffold` | `garry scaffold` |
 
-Requirements: Node 22 or newer and pnpm 10.
+Requirements: Node 22 or newer, and pnpm 10 inside the repository.
 
-Most commands read the sample registry by default
-(`garry-registry/examples/registry-sample`); point them at your own with
-`--registry <path>`.
+Where the commands look when you pass no flag:
+
+| What | Inside this repository | Anywhere else |
+|---|---|---|
+| registry (`--registry`) | `garry-registry/examples/registry-sample` | `./registry` if it has a `catalog/`, else a copy of the bundled sample in `~/.garry/sample-registry` |
+| pre-installed skills (`--skills`) | `garry-skills` | the skills bundled with the package |
+| routing (`--routing`) | `garry.routing.json` | `garry.routing.json` in the current folder (optional) |
+
+The npm package is the CLI and the server (`garry serve`); the dashboard runs from
+this repository (`pnpm ui`). `garry shots` needs Playwright as well
+(`npm install playwright`, then `npx playwright install chromium`).
 
 ## Commands at a glance
 

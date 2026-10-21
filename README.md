@@ -31,11 +31,12 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 |---|---|
 | `garry-registry` (`@garry/registry`) | Contract Registry: zod schemas and validation for cross service contracts |
 | `garry-skills` (`@garry/skills`) | atomic, reusable agent capabilities per SDLC stage |
-| `garry-tool` | the `garry` CLI plus the HTTP server (REST and SSE) |
+| `garry-tool` (`garry` on npm) | the `garry` CLI plus the HTTP server (REST and SSE) |
 | `garry-ui` | Next.js dashboard that consumes the server |
 
-The packages are a pnpm workspace, colocated for now and split into separate
-repositories when they are published. This repo uses **pnpm only**.
+The packages are a pnpm workspace. This repo uses **pnpm only**. The CLI is
+published to npm as [`garry`](https://www.npmjs.com/package/garry), with the
+registry and skills code bundled in: `npx garry --help`.
 
 ## Quick start
 
@@ -68,18 +69,42 @@ on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
 ## Continuous integration
 
 CI lives in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) and runs on
-every push and pull request. It has three jobs:
+every push and pull request. It has four jobs:
 
 - `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the
   tool packages and `pnpm -C garry-registry` validation of the mfe and backend samples
   plus `pnpm -C garry-skills validate`, and the skill security audit: every
   pre-installed skill must pass it, and the audit's regression corpus must behave.
+- `package`: builds the `garry` npm package, packs it, installs the tarball into an
+  empty project and runs the CLI there (`pnpm -C garry-tool smoke`).
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash,
   en dash, figure dash or horizontal bar appears in tracked text files.
 - `security`: the security review. It runs `pnpm audit` (fails on a high or critical
   advisory) across the workspace and a Semgrep static analysis scan. The repository is
   private, so CodeQL is not used (code scanning on a private repository needs paid
   GitHub Advanced Security); Semgrep runs fully inside the job and needs no token.
+
+### Publishing to npm
+
+[`.github/workflows/release.yml`](./.github/workflows/release.yml) publishes the
+`garry` package with no manual step. It runs after CI on every push to `main`, and
+publishes only when every CI job is green and `garry-tool/package.json` carries a
+version that npm does not have yet. So a release is a version bump in a pull
+request: once it is merged and CI passes, the job runs the package smoke test
+again, publishes with provenance (npm shows which commit and workflow built it) and
+creates the GitHub release `v<version>`. A version with a pre-release part, such as
+`0.2.0-beta.1`, goes to the `next` tag instead of `latest`.
+
+It needs npm credentials, one of:
+
+- the `NPM_TOKEN` repository secret: an npm granular access token with publish
+  rights on `garry` (needed for the very first publish, since npm can only trust a
+  workflow for a package that exists);
+- npm trusted publishing: on npmjs.com add `piotrgodycki/garry`,
+  `release.yml` as a trusted publisher, set the repository variable
+  `NPM_TRUSTED_PUBLISHING=true` and delete the token.
+
+Without either, the job ends with a warning and publishes nothing.
 
 ### Skills reach the team through a reviewed pull request
 
@@ -100,7 +125,7 @@ request: with a single code owner, one strict ruleset would block that owner too
 1. **main: checks** (no bypass list): target the default branch; turn on
    Restrict deletions, Block force pushes, Require a pull request before merging
    (0 required approvals) and Require status checks to pass with `validate`,
-   `dash guard`, `security review` and `skill audit`. Every change, including the
+   `package`, `dash guard`, `security review` and `skill audit`. Every change, including the
    owner's, goes through a pull request with green checks.
 2. **main: review** (bypass list: Repository admin, for pull requests only):
    Require a pull request before merging with 1 required approval and Require

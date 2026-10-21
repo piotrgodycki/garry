@@ -1,13 +1,44 @@
 {
-  "name": "garry-tool",
-  "version": "0.0.0",
-  "description": "Garry tool: the garry CLI (interactive scaffolding wizard and SDLC orchestration)",
+  "name": "garry",
+  "version": "0.1.0",
+  "description": "Garry: one supervisor agent that drives a feature through the AI SDLC across many repositories (CLI and server)",
+  "keywords": [
+    "ai",
+    "agents",
+    "sdlc",
+    "microfrontends",
+    "contracts",
+    "cli"
+  ],
+  "homepage": "https://github.com/piotrgodycki/garry#readme",
+  "bugs": "https://github.com/piotrgodycki/garry/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piotrgodycki/garry.git",
+    "directory": "garry-tool"
+  },
+  "license": "UNLICENSED",
   "type": "module",
   "bin": {
     "garry": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "skills",
+    "examples",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "node scripts/bundle.mjs",
+    "prepack": "node scripts/bundle.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "typecheck": "tsc --noEmit",
     "validate": "tsx src/cli.ts --help",
     "scaffold": "tsx src/cli.ts scaffold",
@@ -19,12 +50,22 @@
     "figlet": "^1.7.0",
     "gradient-string": "^2.0.2",
     "picocolors": "^1.1.0",
-    "yaml": "^2.5.0"
+    "yaml": "^2.5.0",
+    "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "playwright": "^1.50.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/figlet": "^1.5.8",
     "@types/gradient-string": "^1.1.5",
     "@types/node": "^22.7.0",
+    "esbuild": "^0.28.2",
     "playwright": "1.64.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"

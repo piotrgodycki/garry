@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { defaultRegistry } from "../paths.js";
 import pc from "picocolors";
 import { renderBanner, tagline } from "../ui/banner.js";
 import { discoverRepos } from "../adopt/detect.js";
@@ -53,7 +54,7 @@ function parse(argv: string[]): AdoptArgs {
   }
   return {
     repo: positional[0],
-    registry: values.registry ?? "garry-registry/examples/registry-sample",
+    registry: values.registry ?? defaultRegistry(),
     write,
     help,
   };

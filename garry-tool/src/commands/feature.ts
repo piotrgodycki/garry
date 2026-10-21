@@ -1,4 +1,5 @@
 import { resolve, join } from "node:path";
+import { defaultRegistry, defaultSkillsRoot } from "../paths.js";
 import { existsSync } from "node:fs";
 import pc from "picocolors";
 import { renderBanner, tagline } from "../ui/banner.js";
@@ -16,8 +17,8 @@ resolves the model and agent routing per stage, and delegates per service across
 the workspace.
 
 Options:
-  --registry <path>  registry root (default: garry-registry/examples/registry-sample)
-  --skills <path>    skills repo root (default: garry-skills)
+  --registry <path>  registry root (default: the monorepo sample, ./registry or a sample copy)
+  --skills <path>    skills root (default: ./garry-skills or the bundled skills)
   --routing <file>   routing matrix (default: garry.routing.json)
   --root <dir>       workspaces root, used to locate the worktrees
   --ws <dir>         explicit workspace directory
@@ -57,8 +58,8 @@ function parse(argv: string[]): FeatureArgs {
   }
   return {
     featId: positional[0],
-    registry: values.registry ?? "garry-registry/examples/registry-sample",
-    skills: values.skills ?? "garry-skills",
+    registry: values.registry ?? defaultRegistry(),
+    skills: values.skills ?? defaultSkillsRoot(),
     routing: values.routing ?? "garry.routing.json",
     root: values.root,
     ws: values.ws,

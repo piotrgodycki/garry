@@ -24,3 +24,8 @@ garry-ui/AGENTS.md
 
 # local PR screenshot runs (garry shots)
 /shots/
+
+# garry package build output (copied from the monorepo by scripts/bundle.mjs)
+/garry-tool/skills/
+/garry-tool/examples/
+*.tgz

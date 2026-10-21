@@ -1,4 +1,5 @@
 import pc from "picocolors";
+import { defaultSkillsRoot } from "../paths.js";
 import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
 import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -32,7 +33,7 @@ obfuscation and supply chain risk. Critical or high findings block a skill;
 medium findings are warnings a human has to accept.
 
 Options:
-  --skills <path>  skills repo root (default: garry-skills)
+  --skills <path>  skills root (default: ./garry-skills or the bundled skills)
 `;
 
 export async function runSkills(argv: string[]): Promise<void> {
@@ -42,7 +43,7 @@ export async function runSkills(argv: string[]): Promise<void> {
     return i >= 0 ? [target, ...rest][i + 1] : undefined;
   };
   const has = (k: string) => [target, ...rest].includes(`--${k}`);
-  const skillsRoot = opt("skills") ?? "garry-skills";
+  const skillsRoot = opt("skills") ?? defaultSkillsRoot();
 
   if (!sub || sub === "--help" || sub === "-h") {
     console.log(HELP);
