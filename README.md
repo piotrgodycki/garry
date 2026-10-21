@@ -93,13 +93,24 @@ audit code and `.github/`, so a pull request cannot weaken the gate it is judged
 by. Such pull requests come from "Propose to team" on the Skills page or
 `garry skills propose <folder>`.
 
-To make it a hard gate, a repository admin turns on, in Settings, Branches, a
-branch protection rule (or ruleset) for `main`:
+To make it a hard gate, a repository admin adds two rulesets for `main` (Settings,
+Rules, Rulesets). Two, because a pull request author cannot approve their own pull
+request: with a single code owner, one strict ruleset would block that owner too.
 
-1. Require a pull request before merging, with at least 1 approval.
-2. Require review from Code Owners.
-3. Require status checks to pass: `skill audit`, `validate`, `dash guard`, `security review`.
-4. Do not allow bypassing the above settings (include administrators).
+1. **main: checks** (no bypass list): target the default branch; turn on
+   Restrict deletions, Block force pushes, Require a pull request before merging
+   (0 required approvals) and Require status checks to pass with `validate`,
+   `dash guard`, `security review` and `skill audit`. Every change, including the
+   owner's, goes through a pull request with green checks.
+2. **main: review** (bypass list: Repository admin, for pull requests only):
+   Require a pull request before merging with 1 required approval and Require
+   review from Code Owners. Everyone else, people and agents, needs the code
+   owner's approval; the admin can merge their own green pull request.
+
+`skill audit` runs on every pull request and passes at once when no skill changed,
+so it can be required without blocking unrelated work. Rulesets on a private
+repository are only enforced on a paid plan (GitHub shows a warning on the ruleset
+page until then).
 
 `GARRY_SKILLS_POLICY=ci-only` on the server turns local installs off, so this
 review is the only way a skill reaches an agent.
