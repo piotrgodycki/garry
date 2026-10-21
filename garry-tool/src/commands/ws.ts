@@ -1,4 +1,5 @@
 import { resolve, join } from "node:path";
+import { defaultRegistry } from "../paths.js";
 import { homedir } from "node:os";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
@@ -72,7 +73,7 @@ function parse(argv: string[]): WsArgs {
   return {
     sub: positional[0],
     featId: positional[1],
-    registry: values.registry ?? "garry-registry/examples/registry-sample",
+    registry: values.registry ?? defaultRegistry(),
     cache: values.cache ?? join(homedir(), ".garry", "cache"),
     root: values.root ?? join(homedir(), "garry-workspaces"),
     ws: values.ws,

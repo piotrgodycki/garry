@@ -1,3 +1,4 @@
+import { defaultRegistry } from "../paths.js";
 export type ServiceKind = "shell" | "remote";
 
 export interface ScaffoldOptions {
@@ -64,12 +65,11 @@ const DEFAULTS = {
   bundler: "vite",
   federation: "module-federation-2",
   owner: "team-unknown",
-  registry: "garry-registry/examples/registry-sample",
 };
 
 /** Fills the optional fields with sensible defaults, keeping any provided values. */
 export function applyDefaults(v: Partial<ScaffoldOptions>): Partial<ScaffoldOptions> {
-  return { ...DEFAULTS, ...v };
+  return { ...DEFAULTS, registry: v.registry ?? defaultRegistry(), ...v };
 }
 
 /** Builds the human readable stack string from the structured fields. */

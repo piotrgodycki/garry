@@ -1,4 +1,5 @@
 import pc from "picocolors";
+import { defaultRegistry, defaultSkillsRoot } from "../paths.js";
 import { renderBanner, tagline } from "../ui/banner.js";
 import { createGarryServer, type ServerConfig } from "../server/server.js";
 
@@ -11,8 +12,8 @@ to list features, fetch a plan and watch the live delegation stream.
 
 Options:
   --port <n>         port (default: 8123)
-  --registry <path>  registry root (default: garry-registry/examples/registry-sample)
-  --skills <path>    skills repo root (default: garry-skills)
+  --registry <path>  registry root (default: the monorepo sample, ./registry or a sample copy)
+  --skills <path>    skills root (default: ./garry-skills or the bundled skills)
   --routing <file>   routing matrix (default: garry.routing.json)
   --root <dir>       workspaces root, used to locate the worktrees
   --help, -h         show this help
@@ -40,8 +41,8 @@ export async function runServe(argv: string[]): Promise<void> {
 
   const port = Number(values.port ?? 8123);
   const cfg: ServerConfig = {
-    registry: values.registry ?? "garry-registry/examples/registry-sample",
-    skills: values.skills ?? "garry-skills",
+    registry: values.registry ?? defaultRegistry(),
+    skills: values.skills ?? defaultSkillsRoot(),
     routing: values.routing ?? "garry.routing.json",
     root: values.root,
   };
