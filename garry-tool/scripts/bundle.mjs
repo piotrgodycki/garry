@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 const pkg = join(dirname(fileURLToPath(import.meta.url)), "..");
 const repo = join(pkg, "..");
 
-for (const dir of ["dist", "skills", "examples"]) rmSync(join(pkg, dir), { recursive: true, force: true });
+for (const dir of ["dist", "skills", "examples", "LICENSE"]) rmSync(join(pkg, dir), { recursive: true, force: true });
 
 await build({
   entryPoints: [join(pkg, "src/cli.ts")],
@@ -26,7 +26,8 @@ const copy = (from, to) => {
   if (!existsSync(from)) throw new Error(`missing ${from}`);
   cpSync(from, join(pkg, to), { recursive: true });
 };
+copy(join(repo, "LICENSE"), "LICENSE");
 copy(join(repo, "garry-skills/manifest.json"), "skills/manifest.json");
 copy(join(repo, "garry-skills/skills"), "skills/skills");
 copy(join(repo, "garry-registry/examples/registry-sample"), "examples/registry-sample");
-console.log("bundled dist/cli.js, skills/ and examples/");
+console.log("bundled dist/cli.js, skills/, examples/ and LICENSE");

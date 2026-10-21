@@ -56,3 +56,7 @@ Garry composes the full pipeline today; the agents do not call a model yet, so
 `garry feature` is a dry run. The executor on the Claude Agent SDK is the next phase.
 
 Every release is published from CI with npm provenance.
+
+## License
+
+MIT

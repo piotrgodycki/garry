@@ -1,6 +1,7 @@
 {
   "name": "@garry/skills",
   "version": "0.0.0",
+  "license": "MIT",
   "description": "Garry Skills: atomic, reusable agent capabilities per SDLC stage",
   "type": "module",
   "main": "./dist/index.js",
