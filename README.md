@@ -80,9 +80,8 @@ every push and pull request. It has four jobs:
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash,
   en dash, figure dash or horizontal bar appears in tracked text files.
 - `security`: the security review. It runs `pnpm audit` (fails on a high or critical
-  advisory) across the workspace and a Semgrep static analysis scan. The repository is
-  private, so CodeQL is not used (code scanning on a private repository needs paid
-  GitHub Advanced Security); Semgrep runs fully inside the job and needs no token.
+  advisory) across the workspace and a Semgrep static analysis scan, which runs fully
+  inside the job and needs no token.
 
 ### Publishing to npm
 
@@ -186,7 +185,7 @@ The pipeline is kept cheap on purpose:
 
 ## Security
 
-- Security review runs in CI: `pnpm audit` plus a Semgrep SAST scan (the repository is private, so no CodeQL).
+- Security review runs in CI: `pnpm audit` plus a Semgrep SAST scan.
 - Dependabot version updates are off for now (removed to keep the single branch quiet
   before the MVP). `pnpm audit` still guards dependency vulnerabilities.
 - Secrets are never committed. Tokens live in `.env` only.
@@ -204,4 +203,4 @@ The pipeline is kept cheap on purpose:
 
 ## License
 
-To be decided before the first public release.
+[MIT](./LICENSE). Contributions are accepted under the same license.

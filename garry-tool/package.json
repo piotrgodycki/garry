@@ -17,7 +17,7 @@
     "url": "git+https://github.com/piotrgodycki/garry.git",
     "directory": "garry-tool"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "garry": "./dist/cli.js"
@@ -26,7 +26,8 @@
     "dist",
     "skills",
     "examples",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=22"
