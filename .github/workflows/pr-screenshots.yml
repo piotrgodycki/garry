@@ -9,6 +9,7 @@ on:
     types: [opened, reopened, ready_for_review, review_requested, synchronize, closed]
     paths:
       - "garry-ui/**"
+      - "garry-skills/**"
       - "garry-tool/src/**"
       - "garry-registry/examples/**"
       - "garry.screenshots.json"

@@ -260,6 +260,14 @@
       "inputs": ["repo", "contracts/api.json"],
       "outputs": ["test-report"],
       "dependsOn": ["api-contract"]
+    },
+    {
+      "name": "changelog-check",
+      "stage": "integrate",
+      "path": "skills/integrate/changelog-check",
+      "summary": "Makes sure every user facing change has a changelog line before integration.",
+      "inputs": [],
+      "outputs": []
     }
   ]
 }
