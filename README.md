@@ -157,11 +157,12 @@ The `code review` check fails when the review finds a blocker, so it can be adde
 the required checks once you trust it. A human still approves the merge.
 
 It runs [`anthropics/claude-code-action`](https://github.com/anthropics/claude-code-action)
-(pinned to a commit) and needs the `ANTHROPIC_API_KEY` repository secret; without it
-the job passes with a notice. Each review costs API tokens, roughly in proportion to
-the size of the diff. The model is `claude-opus-5-5`, or the `GARRY_REVIEW_MODEL`
-repository variable. Drafts and pull requests from forks are not reviewed (forks get
-no secrets).
+(pinned to a commit) on a Claude subscription (Pro or Max), not on API billing: run
+`claude setup-token` once and store the token as the `CLAUDE_CODE_OAUTH_TOKEN`
+repository secret. Without it the job passes with a notice. Reviews count toward
+the subscription's usage limits. The model is the subscription's default, or the
+`GARRY_REVIEW_MODEL` repository variable. Drafts and pull requests from forks are not
+reviewed (forks get no secrets).
 
 ### Screenshots on pull requests
 
