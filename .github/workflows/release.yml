@@ -6,6 +6,10 @@ name: Release
 # Bumping that version in a pull request is the release decision; the merge does
 # the rest. The package is published with provenance, then tagged v<version>.
 #
+# It can also be run by hand (Actions, Release, Run workflow) on main: it then
+# publishes main's latest commit, but only when CI passed on that commit. Tick
+# "dry run" to go through every step with "npm publish --dry-run" and publish nothing.
+#
 # npm auth, either one:
 #   - the NPM_TOKEN repository secret (an npm granular token, publish rights on garry)
 #   - npm trusted publishing (OIDC, no secret): add this workflow as a trusted
@@ -15,6 +19,12 @@ on:
     workflows: [CI]
     types: [completed]
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: build, smoke test and npm publish --dry-run, publish nothing"
+        type: boolean
+        default: true
 
 concurrency:
   group: release
@@ -27,18 +37,34 @@ permissions:
 jobs:
   publish:
     name: publish to npm
-    # only a green CI run of a push to this repository's main: never a pull
-    # request, which could come from a fork branch that is also named main
+    # a green CI run of a push to this repository's main (never a pull request,
+    # which could come from a fork branch that is also named main), or a manual run
     if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
     steps:
+      - name: CI must be green on this commit
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          conclusion=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${SHA}&event=push" \
+            --jq '.workflow_runs[0].conclusion // "none"')
+          if [ "$conclusion" != "success" ]; then
+            echo "::error title=CI is not green::CI on ${SHA:0:7} is '${conclusion}'. Wait for it to pass, then run the release again."
+            exit 1
+          fi
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ env.SHA }}
       - uses: pnpm/action-setup@v4
         with:
           version: 10
@@ -65,6 +91,9 @@ jobs:
           if [ "$status" = "200" ]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
             echo "$name@$version is already on npm: bump garry-tool/package.json to release."
+          elif [ "$DRY_RUN" = "true" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Dry run for $name@$version: nothing is published."
           elif [ "$HAS_TOKEN" != "true" ] && [ "$TRUSTED" != "true" ]; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
             echo "::warning title=npm release skipped::$name@$version is ready, but neither the NPM_TOKEN secret nor NPM_TRUSTED_PUBLISHING=true is set."
@@ -90,15 +119,18 @@ jobs:
           set -euo pipefail
           # trusted publishing (OIDC) needs npm 11.5.1 or newer; Node 22 ships npm 10
           npm install -g npm@11.6.2
-          npm publish --provenance --access public --tag "$TAG"
+          if [ "$DRY_RUN" = "true" ]; then
+            npm publish --dry-run --access public --tag "$TAG"
+          else
+            npm publish --provenance --access public --tag "$TAG"
+          fi
 
       - name: Tag the release
-        if: steps.check.outputs.publish == 'true'
+        if: steps.check.outputs.publish == 'true' && env.DRY_RUN != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           VERSION: ${{ steps.check.outputs.version }}
-          SHA: ${{ github.event.workflow_run.head_sha }}
           TAG: ${{ steps.check.outputs.tag }}
         run: |
           set -euo pipefail

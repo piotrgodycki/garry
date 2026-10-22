@@ -94,6 +94,12 @@ again, publishes with provenance (npm shows which commit and workflow built it) 
 creates the GitHub release `v<version>`. A version with a pre-release part, such as
 `0.2.0-beta.1`, goes to the `next` tag instead of `latest`.
 
+It can also be run by hand: Actions, Release, Run workflow, on `main`. It then
+publishes the latest commit of `main`, and only when CI passed on that commit.
+"Dry run" (on by default) goes through every step with `npm publish --dry-run`
+and publishes nothing, which is a safe way to check the setup before the first
+release.
+
 It needs npm credentials, one of:
 
 - the `NPM_TOKEN` repository secret: an npm granular access token with publish
