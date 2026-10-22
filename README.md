@@ -145,6 +145,24 @@ page until then).
 `GARRY_SKILLS_POLICY=ci-only` on the server turns local installs off, so this
 review is the only way a skill reaches an agent.
 
+### AI code review on pull requests
+
+[`.github/workflows/code-review.yml`](./.github/workflows/code-review.yml) reviews
+every pull request that is ready for review, and again on every push, with the same
+rules the Garry reviewer agent follows: the review skills in
+[`garry-skills/skills/review/`](./garry-skills/skills/review/) (correctness, spec
+match, contract compliance, security). Blocker and major findings are posted inline
+on the diff; one summary comment lists every finding and is updated on each push.
+The `code review` check fails when the review finds a blocker, so it can be added to
+the required checks once you trust it. A human still approves the merge.
+
+It runs [`anthropics/claude-code-action`](https://github.com/anthropics/claude-code-action)
+(pinned to a commit) and needs the `ANTHROPIC_API_KEY` repository secret; without it
+the job passes with a notice. Each review costs API tokens, roughly in proportion to
+the size of the diff. The model is `claude-opus-5-5`, or the `GARRY_REVIEW_MODEL`
+repository variable. Drafts and pull requests from forks are not reviewed (forks get
+no secrets).
+
 ### Screenshots on pull requests
 
 [`.github/workflows/pr-screenshots.yml`](./.github/workflows/pr-screenshots.yml) runs
