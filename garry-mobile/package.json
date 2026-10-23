@@ -1,0 +1,41 @@
+{
+  "name": "garry-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Garry for iOS and Android: follow the agents, pull requests and features from your phone",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "ios": "expo start --ios",
+    "android": "expo start --android",
+    "web": "expo start --web",
+    "export:web": "expo export --platform web --output-dir dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~58.0.15",
+    "expo": "58.0.17",
+    "expo-build-properties": "~58.0.0",
+    "expo-camera": "~58.0.12",
+    "expo-constants": "~58.0.13",
+    "expo-device": "~58.0.5",
+    "expo-haptics": "~58.0.7",
+    "expo-linking": "~58.0.14",
+    "expo-router": "~58.0.25",
+    "expo-secure-store": "~58.0.2",
+    "expo-status-bar": "~58.0.4",
+    "garry-client": "workspace:*",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-screens": "~4.30.0",
+    "react-native-svg": "15.16.0",
+    "react-native-web": "~0.21.4"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -40,3 +40,8 @@ garry-ui/AGENTS.md
 /garry-desktop/examples/
 /garry-desktop/LICENSE
 /garry-desktop/release/
+
+# mobile app build output
+/garry-mobile/dist/
+/garry-mobile/.expo/
+/garry-mobile/expo-env.d.ts

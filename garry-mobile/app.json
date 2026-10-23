@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Garry",
+    "slug": "garry",
+    "scheme": "garry",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#0a0a0a",
+    "ios": {
+      "bundleIdentifier": "dev.garry.mobile",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSAppTransportSecurity": { "NSAllowsLocalNetworking": true },
+        "NSLocalNetworkUsageDescription": "Garry connects to the Garry server on your computer over your local network."
+      }
+    },
+    "android": {
+      "package": "dev.garry.mobile",
+      "adaptiveIcon": { "foregroundImage": "./assets/icon.png", "backgroundColor": "#ffffff" }
+    },
+    "web": { "bundler": "metro", "output": "single" },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      ["expo-camera", { "cameraPermission": "Garry uses the camera to scan the pairing QR code from your computer." }],
+      ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
+    ]
+  }
+}
