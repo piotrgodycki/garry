@@ -34,6 +34,8 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 | `garry-tool` (`garry` on npm) | the `garry` CLI plus the HTTP server (REST and SSE) |
 | `garry-ui` | the dashboard (Vite and React), served by `garry serve` |
 | `garry-desktop` | the desktop app for macOS, Windows and Linux (Electron, with `garry serve` built in) |
+| `garry-mobile` | the app for iOS and Android (Expo, React Native) |
+| `garry-client` | typed client for the server (REST, live stream, pairing), used by the mobile app |
 
 The packages are a pnpm workspace. This repo uses **pnpm only**. The CLI is
 published to npm as [`garry`](https://www.npmjs.com/package/garry), with the
@@ -76,6 +78,27 @@ and Other Computers, then Pair a Device, shows the pairing QR code.
   the `CSC_LINK` and `CSC_KEY_PASSWORD` secrets (and for macOS notarization
   `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`) are set.
 
+## Mobile app
+
+`garry-mobile` is Garry on your phone: the features and the stage each is at, the
+agents working live, and the pull requests. It talks to the server on your
+computer over your Wi-Fi (or Tailscale), after pairing once with a QR code.
+
+1. On the computer: `pnpm serve --host 0.0.0.0` (or `garry serve --host 0.0.0.0`),
+   or in the desktop app Devices, Allow Phones and Other Computers. A pairing QR
+   code is shown; `garry pair` shows a new one.
+2. Run the app: install **Expo Go** from the App Store or Google Play, then
+   `pnpm mobile` on the computer and scan the QR code it prints with the camera
+   (iOS) or Expo Go (Android). The phone must be on the same network.
+3. In the app, scan Garry's pairing QR code. The phone gets its own key, kept in
+   the iOS keychain or Android keystore; `garry devices revoke <id>` cuts it off.
+
+App Store and Google Play builds come from Expo's build service
+(`eas build --platform ios|android`), which needs an Expo account, an Apple
+Developer account (99 USD a year) and a Google Play developer account (25 USD
+once). Until then Expo Go runs the app. CI checks the app on every push: the
+client against a real server, a typecheck and a full bundle.
+
 ## Guides
 
 - [The Garry SDLC](./docs/sdlc.md): how a feature goes from an idea to production,
@@ -90,6 +113,7 @@ and Other Computers, then Pair a Device, shows the pairing QR code.
 | `pnpm serve` | server only, on :8123 |
 | `pnpm ui` | UI only with hot reload, on :3000 (needs the server) |
 | `pnpm desktop` | build and start the desktop app |
+| `pnpm mobile` | start the mobile app for Expo Go (scan the QR code with your phone) |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
 | `pnpm -C garry-registry validate` | validate the sample registry |
@@ -244,6 +268,13 @@ The pipeline is kept cheap on purpose:
 - Dependabot version updates are off for now (removed to keep the single branch quiet
   before the MVP). `pnpm audit` still guards dependency vulnerabilities.
 - Secrets are never committed. Tokens live in `.env.local` only (see `.env.example`).
+- `pnpm audit` ignores exactly two advisories, both in Expo's development CLI
+  (`@expo/cli`), which runs on a developer's machine and is never part of the app,
+  the server or the npm package: GHSA-86w9-cpqp-85rv (node-forge, no fixed version,
+  used only to read iOS signing certificates for `expo run:ios`) and
+  GHSA-mrhx-c7xc-m3w5 (zod 3, used to validate Expo dev tools plugins; Garry's own
+  packages use the fixed zod 4). The list is `pnpm.auditConfig` in `package.json`;
+  drop an entry as soon as Expo ships a fixed version.
 - `garry serve` listens on `127.0.0.1` only. Phones and other computers connect after
   pairing with a one-time QR code and send a per-device token; see
   [Phones and other computers](./docs/cli.md#phones-and-other-computers).

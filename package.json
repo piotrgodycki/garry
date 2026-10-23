@@ -12,11 +12,20 @@
     "scaffold": "tsx garry-tool/src/cli.ts scaffold",
     "typecheck": "pnpm -r typecheck",
     "dashcheck": "node scripts/check-no-emdash.mjs",
-    "desktop": "pnpm -C garry-desktop start"
+    "desktop": "pnpm -C garry-desktop start",
+    "mobile": "pnpm -C garry-mobile start"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
+  },
+  "pnpm": {
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-86w9-cpqp-85rv",
+        "GHSA-mrhx-c7xc-m3w5"
+      ]
+    }
   }
 }

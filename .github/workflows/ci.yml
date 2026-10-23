@@ -67,6 +67,34 @@ jobs:
       - name: Pack and smoke test
         run: pnpm -C garry-tool smoke
 
+  # The mobile app and the client it shares with the server: the client against a
+  # real server, the app typechecked and bundled (the web export proves the bundle
+  # resolves; the native builds come from Expo, see README).
+  mobile:
+    name: mobile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Client against a real server
+        run: |
+          pnpm -C garry-client typecheck
+          pnpm -C garry-client test
+      - name: Typecheck and bundle the app
+        env:
+          CI: "1"
+        run: |
+          pnpm -C garry-mobile typecheck
+          pnpm -C garry-mobile export:web
+
   dash-guard:
     name: dash guard
     runs-on: ubuntu-latest

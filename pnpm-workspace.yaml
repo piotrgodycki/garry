@@ -4,3 +4,5 @@ packages:
   - garry-tool
   - garry-ui
   - garry-desktop
+  - garry-client
+  - garry-mobile

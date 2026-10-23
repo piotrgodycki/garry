@@ -1,0 +1,22 @@
+{
+  "name": "garry-client",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Typed client for the Garry server (REST, live stream, pairing) used by the mobile app",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx src/client.selftest.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
