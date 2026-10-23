@@ -39,3 +39,9 @@ export function defaultRegistry(): string {
   console.error(`garry: no ./registry found, using the sample registry in ${copy} (pass --registry to use yours)`);
   return copy;
 }
+
+/** The built dashboard: garry-ui/dist in the monorepo (after pnpm -C garry-ui build), else the one shipped with garry. */
+export function defaultUiDir(): string | undefined {
+  for (const dir of ["garry-ui/dist", join(PACKAGE_ROOT, "ui")]) if (existsSync(join(dir, "index.html"))) return dir;
+  return undefined;
+}

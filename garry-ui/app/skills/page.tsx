@@ -1,4 +1,3 @@
-"use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "../panel.module.css";
 import s2 from "./skills.module.css";

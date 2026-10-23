@@ -1,4 +1,3 @@
-"use client";
 import { useCallback, useEffect, useState } from "react";
 import styles from "../panel.module.css";
 import { tierOf } from "../ModelChip";

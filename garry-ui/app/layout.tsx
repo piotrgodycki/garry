@@ -1,6 +1,5 @@
-import "./globals.css";
-import type { ReactNode } from "react";
-import Link from "next/link";
+import { Outlet } from "react-router";
+import Link from "./lib/router";
 import Nav from "./Nav";
 import ThemeToggle from "./ThemeToggle";
 import VoiceDock from "./VoiceDock";
@@ -8,43 +7,33 @@ import TalkButton from "./TalkButton";
 import ServerStatus from "./ServerStatus";
 import GarryMark from "./GarryMark";
 
-export const metadata = {
-  title: { default: "Garry", template: "%s · Garry" },
-  description: "AI SDLC orchestrator",
-};
-
-// Applies the stored theme before first paint so there is no light flash on a dark choice.
-const themeScript = `try{var t=localStorage.getItem("garry-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
-
-export default function RootLayout({ children }: { children: ReactNode }) {
+/** The app frame: sidebar, the current page, and the voice dock. */
+export default function Shell() {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
-      <body>
-        <div className="shell">
-          <aside className="sidebar">
-            <Link href="/" className="brand" aria-label="Garry home">
-              <span className="brandMark"><GarryMark size={40} /></span>
-              <span className="brandText">
-                <span className="brandName">garry</span>
-                <span className="brandSub">AI SDLC orchestrator</span>
-              </span>
-            </Link>
-            <Nav />
-            <div className="sidebarFoot">
-              <TalkButton />
-              <div className="footRow">
-                <ServerStatus />
-                <ThemeToggle />
-              </div>
+    <>
+      <div className="shell">
+        <aside className="sidebar">
+          <Link href="/" className="brand" aria-label="Garry home">
+            <span className="brandMark"><GarryMark size={40} /></span>
+            <span className="brandText">
+              <span className="brandName">garry</span>
+              <span className="brandSub">AI SDLC orchestrator</span>
+            </span>
+          </Link>
+          <Nav />
+          <div className="sidebarFoot">
+            <TalkButton />
+            <div className="footRow">
+              <ServerStatus />
+              <ThemeToggle />
             </div>
-          </aside>
-          <div className="content">{children}</div>
+          </div>
+        </aside>
+        <div className="content">
+          <Outlet />
         </div>
-        <VoiceDock />
-      </body>
-    </html>
+      </div>
+      <VoiceDock />
+    </>
   );
 }

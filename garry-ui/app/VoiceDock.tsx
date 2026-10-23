@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useRef, useState } from "react";
 import styles from "./voicedock.module.css";
 import Waveform from "./Waveform";

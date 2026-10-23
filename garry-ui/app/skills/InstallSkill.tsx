@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useRef, useState } from "react";
 import styles from "./skills.module.css";
 import { apiBase } from "../lib/api";
@@ -238,7 +237,7 @@ export default function InstallSkill({
           </p>
         )}
         {!propose.ready && preview && preview.audit.verdict !== "fail" && (
-          <p className={styles.hint}>To propose it to the team, add GARRY_GITHUB_TOKEN to .env and restart the server.</p>
+          <p className={styles.hint}>To propose it to the team, add GARRY_GITHUB_TOKEN to .env.local and restart the server.</p>
         )}
         {preview?.audit.verdict === "warn" && (
           <label className={styles.check}>
@@ -258,7 +257,7 @@ export default function InstallSkill({
               type="button"
               className={`btn ${policy === "ci-only" ? "btnPrimary" : ""}`}
               disabled={!preview || busy || !propose.ready || preview.audit.verdict === "fail" || (preview.audit.verdict === "warn" && !ack)}
-              title={propose.ready ? "Open a pull request so CI and a code owner review it for the whole team" : "Set GARRY_GITHUB_TOKEN in .env to open pull requests"}
+              title={propose.ready ? "Open a pull request so CI and a code owner review it for the whole team" : "Set GARRY_GITHUB_TOKEN in .env.local to open pull requests"}
               onClick={() => void doPropose()}
             >
               {Icon.prs}

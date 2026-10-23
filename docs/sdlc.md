@@ -146,7 +146,7 @@ model on the feature's pipeline page (`/pipeline/FEAT-x`); the agent role stays.
    into its `.garry/` folder.
 5. `garry feature FEAT-x` prints the plan (and, once the executor lands, runs it).
 6. `garry ws push FEAT-x`, then `garry ws pr FEAT-x` opens one draft pull request
-   per service. This needs `GARRY_GITHUB_TOKEN` in `.env`.
+   per service. This needs `GARRY_GITHUB_TOKEN` in `.env.local` (see `.env.example`).
 7. Mark the pull requests ready for review (or request a reviewer). The PR
    screenshots workflow then posts before and after screenshots on each one.
 

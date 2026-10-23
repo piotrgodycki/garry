@@ -4,18 +4,21 @@ import { resolve } from "node:path";
 let loaded = false;
 
 /**
- * Loads .env from the repo root once, if present. Uses the native Node loader.
- * The token is never logged. Absence is fine: GitHub features degrade gracefully.
+ * Loads .env.local, then .env, from the current folder once, if present (see
+ * .env.example). A variable already set in the environment wins, then .env.local,
+ * then .env. Uses the native Node loader. Values are never logged; every
+ * variable is optional.
  */
 export function loadEnv(root = "."): void {
   if (loaded) return;
   loaded = true;
-  const file = resolve(root, ".env");
-  if (existsSync(file) && typeof process.loadEnvFile === "function") {
+  for (const name of [".env.local", ".env"]) {
+    const file = resolve(root, name);
+    if (!existsSync(file) || typeof process.loadEnvFile !== "function") continue;
     try {
       process.loadEnvFile(file);
     } catch {
-      // ignore a malformed .env; the token simply stays unset
+      // ignore a malformed file; its variables simply stay unset
     }
   }
 }

@@ -121,15 +121,34 @@ export function isLoopback(req: IncomingMessage): boolean {
   return a === "127.0.0.1" || a === "::1" || a === "::ffff:127.0.0.1";
 }
 
+/** The cookie a paired browser sends; HttpOnly and SameSite=Strict. */
+export const DEVICE_COOKIE = "garry_device";
+
 /**
- * The device token of a request: the Authorization header, or for GET only the
- * access_token query parameter (a browser EventSource cannot set headers).
+ * The device token of a request: the Authorization header (the apps), the
+ * session cookie (a paired browser), or for GET only the access_token query
+ * parameter (an EventSource that cannot set headers).
  */
 export function requestToken(req: IncomingMessage, url: URL): string | null {
   const auth = req.headers.authorization;
   if (auth?.startsWith("Bearer ")) return auth.slice(7).trim() || null;
+  const cookie = (req.headers.cookie ?? "").split(";").map((c) => c.trim()).find((c) => c.startsWith(`${DEVICE_COOKIE}=`));
+  if (cookie) return cookie.slice(DEVICE_COOKIE.length + 1) || null;
   if (req.method === "GET") return url.searchParams.get("access_token");
   return null;
+}
+
+/** True when the Host header names this machine or one of the extra host names. */
+export function hostAllowed(req: IncomingMessage, extra: string[]): boolean {
+  const host = req.headers.host;
+  if (!host) return true; // HTTP/1.0 clients; a browser always sends one
+  let name: string;
+  try {
+    name = new URL(`http://${host}`).hostname.replace(/^\[|\]$/g, "");
+  } catch {
+    return false;
+  }
+  return ["localhost", "127.0.0.1", "::1", ...extra].includes(name);
 }
 
 /** The link a device opens or scans to pair: http://<host>:<port>/pair?code=... */

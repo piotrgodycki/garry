@@ -10,7 +10,8 @@ import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
 import { loadWorkspace } from "../workspace/workspace.js";
 import { listManifests, readContracts } from "../sync/registryIO.js";
-import { DeviceStore, isLoopback, requestToken } from "./auth.js";
+import { DEVICE_COOKIE, DeviceStore, hostAllowed, isLoopback, requestToken } from "./auth.js";
+import { serveUi } from "./static.js";
 import { readdirSync } from "node:fs";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
@@ -37,6 +38,10 @@ export interface ServerConfig {
   skills: string;
   routing: string;
   root?: string;
+  /** the built dashboard to serve (garry-ui/dist); none serves the API only */
+  ui?: string;
+  /** host names this server answers to besides localhost (the --host address) */
+  hosts?: string[];
 }
 
 const CORS = {
@@ -58,6 +63,8 @@ function writeAllowed(req: IncomingMessage): boolean {
   const origin = req.headers.origin;
   if (!origin) return true;
   const allowed = new Set([
+    // the dashboard served by this server (the Host header is checked before this)
+    `http://${req.headers.host}`,
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     ...(process.env.GARRY_UI_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean),
@@ -239,21 +246,32 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return;
   }
 
-  // Pairing: the only endpoints another device may call without a token
+  // A web page that rebinds its own domain to 127.0.0.1 would otherwise pass as
+  // this machine: only answer to the names this server is reached by.
+  const local = isLoopback(req);
+  if (!hostAllowed(req, cfg.hosts ?? [])) return json(res, 403, { error: `unknown host ${req.headers.host}; add it with --host` });
+
+  // The dashboard itself is public (it holds no data); /api is not.
+  if ((req.method === "GET" || req.method === "HEAD") && !path.startsWith("/api/") && path !== "/health") {
+    if (serveUi(req, res, cfg.ui, path)) return;
+  }
+
+  // Pairing: the only endpoint another device may call without a token. A browser
+  // asks for a session cookie (HttpOnly, never readable by scripts); the apps keep
+  // the token and send it as a bearer header.
   if (req.method === "POST" && path === "/api/pair") {
-    const body = (await readBody(req)) as { code?: string; name?: string };
+    const body = (await readBody(req)) as { code?: string; name?: string; session?: string };
     if (typeof body.code !== "string" || !body.code) return json(res, 400, { error: "code is required" });
     const r = devices.pair(body.code, typeof body.name === "string" ? body.name : "");
-    return "error" in r ? json(res, r.status, { error: r.error }) : json(res, 200, r);
-  }
-  if (req.method === "GET" && path === "/pair") {
-    res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-    res.end("<!doctype html><meta charset=utf-8><title>Garry</title><p>Scan this code with the Garry app, or paste this link into Add server.</p>");
-    return;
+    if ("error" in r) return json(res, r.status, { error: r.error });
+    if (body.session === "cookie") {
+      res.setHeader("set-cookie", `${DEVICE_COOKIE}=${r.token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=31536000`);
+      return json(res, 200, { device: r.device });
+    }
+    return json(res, 200, r);
   }
 
   // This machine is trusted; every other device needs a paired device token.
-  const local = isLoopback(req);
   const presented = local ? null : requestToken(req, url);
   const device = presented ? devices.verify(presented) : null;
   if (!local && !device) return json(res, 401, { error: "pair this device first: run garry pair on the computer running Garry" });
@@ -272,9 +290,11 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return json(res, 404, { error: "not found", path });
   }
 
-  // A paired device authenticates with a bearer token that a browser never sends
-  // on its own, so the cross-site write check only applies to cookie-less local calls.
-  if ((req.method === "POST" || req.method === "DELETE") && !device && !writeAllowed(req)) {
+  // A bearer token is never sent by a browser on its own, so an app's writes need
+  // no origin check. This machine and paired browsers (cookie) do: another site
+  // open in the same browser must not be able to write.
+  const bearer = Boolean(device && req.headers.authorization?.startsWith("Bearer "));
+  if ((req.method === "POST" || req.method === "DELETE") && !bearer && !writeAllowed(req)) {
     return json(res, 403, { error: `writes are not allowed from ${req.headers.origin}; add it to GARRY_UI_ORIGINS` });
   }
 
@@ -293,7 +313,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   if (req.method === "POST" && path === "/api/skills/propose") {
     const body = (await readBody(req)) as InstallRequest;
     const token = githubToken();
-    if (!token) return json(res, 400, { error: "set GARRY_GITHUB_TOKEN in .env to open pull requests" });
+    if (!token) return json(res, 400, { error: "set GARRY_GITHUB_TOKEN in .env.local to open pull requests" });
     try {
       const reserved = new Set(loadBuiltinSkills(cfg.skills).map((sk) => sk.name));
       return json(res, 200, await proposeSkill(body, reserved, { token }));
@@ -382,6 +402,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   if (req.method !== "GET") return json(res, 405, { error: "method not allowed" });
 
   if (path === "/" || path === "/health") {
+    // with no dashboard to serve, / answers with the API overview
     return json(res, 200, {
       ok: true,
       service: "garry-server",

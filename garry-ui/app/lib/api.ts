@@ -1,2 +1,3 @@
-// Base URL of the garry-server (phase 5). Override with NEXT_PUBLIC_GARRY_SERVER.
-export const apiBase = process.env.NEXT_PUBLIC_GARRY_SERVER ?? "http://localhost:8123";
+// Base URL of the garry server. Empty means the server that serves this page
+// (garry serve, or the Vite dev proxy). VITE_GARRY_SERVER points elsewhere.
+export const apiBase: string = import.meta.env.VITE_GARRY_SERVER ?? "";

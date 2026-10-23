@@ -25,7 +25,7 @@ Shortcuts in the root `package.json`:
 
 | Shortcut | Same as |
 |---|---|
-| `pnpm dev` | `garry serve` plus the dashboard on http://localhost:3000 |
+| `pnpm dev` | `garry serve` plus the dashboard with hot reload on http://localhost:3000 |
 | `pnpm serve` | `garry serve` |
 | `pnpm ui` | the dashboard only (needs the server) |
 | `pnpm scaffold` | `garry scaffold` |
@@ -124,7 +124,8 @@ pnpm garry ws pr FEAT-123
 The sample registry uses placeholder repo urls (`git@github.com:example/...`), so
 `ws create` only works once the manifests point at real repositories.
 
-`ws pr` needs a fine grained token in `.env` at the repository root:
+`ws pr` needs a fine grained token in `.env.local` at the repository root (copy
+`.env.example`):
 
 ```
 GARRY_GITHUB_TOKEN=github_pat_...
@@ -260,7 +261,7 @@ shapes, not every possible one, so read a skill from an unknown source anyway.
 ## garry serve
 
 ```
-garry serve [--port 8123] [--host 127.0.0.1] [--registry <path>] [--skills <path>] [--routing <file>] [--root <dir>]
+garry serve [--port 8123] [--host 127.0.0.1] [--ui <dir>] [--registry <path>] [--skills <path>] [--routing <file>] [--root <dir>]
 ```
 
 The HTTP server (REST plus server sent events) the dashboard uses. Usually started
@@ -281,8 +282,11 @@ by `pnpm dev`. Main endpoints:
 | `POST /api/routing` `{stage, model}` | change a stage's model in `garry.routing.json` |
 | `POST /api/features/:id/service-models` `{service, model}` | change one service's model |
 
-The dashboard reads the server url from `NEXT_PUBLIC_GARRY_SERVER`
-(default `http://localhost:8123`).
+`garry serve` also hosts the dashboard (`garry-ui/dist` after
+`pnpm -C garry-ui build`, or the one shipped in the npm package; `--ui <dir>`
+picks another) on the same port, so http://localhost:8123 is the whole app. In
+development `pnpm ui` serves it with hot reload on :3000 and forwards `/api` to
+:8123. `/health` answers with the list of endpoints.
 
 Writes (`POST`, `DELETE`) are accepted only from the dashboard's origin
 (`http://localhost:3000`) or with no `Origin` header (the CLI, curl), so another
@@ -303,7 +307,9 @@ garry pair                        # a fresh code for the next device
 garry devices                     # paired devices; garry devices revoke <id>
 ```
 
-Scan the QR code with the Garry app, or paste the link into Add server. A code
+Scan the QR code with the Garry app, paste the link into Add server, or open it
+in a browser on the other computer: the browser then keeps a session cookie
+(HttpOnly, SameSite=Strict) instead of a token. A code
 pairs one device, works once and expires after 10 minutes. The device gets its
 own token and sends it with every request (`Authorization: Bearer <token>`, or
 `?access_token=` on reads, for browser event streams). Requests from other
@@ -314,6 +320,8 @@ machines without a valid token get `401`.
   `garry devices revoke <id>`.
 - Only a SHA-256 hash of each token is stored, in `~/.garry/devices.json`
   (`GARRY_HOME` moves it).
+- The server answers only to `localhost` and the addresses it listens on, so a
+  website that points its own domain at your machine (DNS rebinding) is refused.
 - Traffic is plain HTTP, so keep it to networks you trust (home Wi-Fi, a VPN such
   as Tailscale). Do not forward the port to the internet. A reverse proxy on this
   machine would make every request look local, so do not put one in front of it.
@@ -340,7 +348,7 @@ locally:
 ```bash
 pnpm -C garry-tool exec playwright install chromium     # once
 pnpm dev                                                 # in another terminal
-pnpm garry shots capture --url http://localhost:3000 --out shots/head
+pnpm garry shots capture --url http://localhost:8123 --out shots/head
 ```
 
 Set `GARRY_CHROMIUM_PATH` to use an already installed Chromium.
@@ -351,7 +359,7 @@ Set `GARRY_CHROMIUM_PATH` to use an already installed Chromium.
 |---|---|---|
 | `garry.routing.json` | `feature`, `serve` | agent and model per stage |
 | `garry.screenshots.json` | `shots` | routes, viewports and themes to capture |
-| `.env` | `ws pr`, `shots comment` | `GARRY_GITHUB_TOKEN` |
+| `.env.local` (or `.env`) | every command | all variables, see `.env.example` |
 | `~/.garry/skills/` | `skills`, `feature`, `serve` | locally installed skills |
 | `garry-skills/manifest.json` | `feature`, `serve` | the skills per stage |
 | `garry-registry/.../features/*.md` | `feature`, `ws`, `serve` | the features |

@@ -28,6 +28,9 @@ jobs:
           pnpm -C garry-registry typecheck
           pnpm -C garry-skills typecheck
           pnpm -C garry-tool typecheck
+          pnpm -C garry-ui typecheck
+      - name: Build the dashboard
+        run: pnpm -C garry-ui build
       - name: Validate registry (mfe and backend samples)
         run: |
           pnpm -C garry-registry exec tsx src/cli.ts examples/registry-sample

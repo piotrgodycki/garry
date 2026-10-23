@@ -1,0 +1,39 @@
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import "./globals.css";
+import Shell from "./layout";
+import Dashboard from "./page";
+import AgentView from "./agent/page";
+import Registry from "./registry/page";
+import Skills from "./skills/page";
+import Routing from "./routing/page";
+import Prs from "./github/page";
+import Activity from "./pipeline/[id]/page";
+import ServicePage from "./service/[name]/page";
+import Pair from "./pair/page";
+import { Empty } from "./ui";
+
+const router = createBrowserRouter([
+  {
+    element: <Shell />,
+    children: [
+      { path: "/", element: <Dashboard /> },
+      { path: "/agent", element: <AgentView /> },
+      { path: "/registry", element: <Registry /> },
+      { path: "/skills", element: <Skills /> },
+      { path: "/routing", element: <Routing /> },
+      { path: "/github", element: <Prs /> },
+      { path: "/pipeline/:id", element: <Activity /> },
+      { path: "/service/:name", element: <ServicePage /> },
+      { path: "/pair", element: <Pair /> },
+      { path: "*", element: <main className="page"><Empty>Page not found.</Empty></main> },
+    ],
+  },
+]);
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <RouterProvider router={router} />
+  </StrictMode>,
+);
