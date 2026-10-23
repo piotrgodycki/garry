@@ -1,0 +1,145 @@
+name: Desktop
+
+# The Garry desktop app (garry-desktop, Electron) for macOS, Windows and Linux.
+#
+# - Pull requests that touch the app, the server or the dashboard: build the
+#   Linux app and start it under a virtual display (the dashboard must load and
+#   the built-in server must answer). Cheap: Linux only.
+# - Release (called by release.yml after an npm release, or run by hand): build
+#   the installers on each operating system and attach them to the GitHub
+#   release v<version>, or upload them as a workflow artifact for a manual run.
+#
+# The installers are unsigned until signing secrets exist: CSC_LINK and
+# CSC_KEY_PASSWORD (a code signing certificate, macOS and Windows), plus
+# APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID for macOS notarization.
+on:
+  pull_request:
+    paths:
+      - "garry-desktop/**"
+      - "garry-tool/src/**"
+      - "garry-ui/**"
+      - ".github/workflows/desktop.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to stamp on the installers (default: garry-tool/package.json)"
+        required: false
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      tag:
+        description: "Attach the installers to this GitHub release"
+        type: string
+        required: true
+
+concurrency:
+  group: desktop-${{ github.event.pull_request.number || inputs.tag || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: desktop app
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm -C garry-desktop typecheck
+      - name: Build and package (Linux, unpacked)
+        run: |
+          pnpm -C garry-desktop build
+          pnpm -C garry-desktop exec electron-builder --linux dir --publish never
+      - name: Start the app and load the dashboard
+        working-directory: garry-desktop
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" node scripts/smoke.mjs "$PWD/release/linux-unpacked/garry-desktop"
+
+  installers:
+    name: installers (${{ matrix.os }})
+    if: github.event_name != 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            args: --mac --arm64 --x64
+          - os: windows-latest
+            args: --win --x64
+          - os: ubuntu-latest
+            args: --linux --x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Version
+        id: version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: echo "version=${INPUT_VERSION:-$(node -p "require('./garry-tool/package.json').version")}" >> "$GITHUB_OUTPUT"
+      - name: Build installers
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ARGS: ${{ matrix.args }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          # without a certificate, build unsigned instead of failing
+          if [ -z "${CSC_LINK}" ]; then export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
+          pnpm -C garry-desktop build
+          # shellcheck disable=SC2086
+          pnpm -C garry-desktop exec electron-builder $ARGS --publish never -c.extraMetadata.version="$VERSION"
+      - name: Upload as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: garry-desktop-${{ matrix.os }}
+          path: |
+            garry-desktop/release/*.dmg
+            garry-desktop/release/*.zip
+            garry-desktop/release/*.exe
+            garry-desktop/release/*.AppImage
+            garry-desktop/release/*.deb
+          if-no-files-found: error
+          retention-days: 30
+      - name: Attach to the release
+        if: inputs.tag != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          shopt -s nullglob
+          gh release upload "$TAG" garry-desktop/release/*.{dmg,zip,exe,AppImage,deb} --clobber

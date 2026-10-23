@@ -3,7 +3,7 @@ import { defaultRegistry, defaultSkillsRoot, defaultUiDir } from "../paths.js";
 import { renderBanner, tagline } from "../ui/banner.js";
 import { createGarryServer, type ServerConfig } from "../server/server.js";
 import { DeviceStore } from "../server/auth.js";
-import { advertisedHost, isLoopbackHost, printPairing, reachableAddresses } from "../server/pairing.js";
+import { advertisedHost, hostsFor, isLoopbackHost, printPairing } from "../server/pairing.js";
 
 const FLAGS = ["port", "host", "ui", "registry", "skills", "routing", "root"] as const;
 
@@ -56,7 +56,7 @@ export async function runServe(argv: string[]): Promise<void> {
     root: values.root,
     ui: values.ui ?? defaultUiDir(),
     // the names other devices use to reach this server
-    hosts: isLoopbackHost(host) ? [] : host === "0.0.0.0" || host === "::" ? reachableAddresses() : [host],
+    hosts: hostsFor(host),
   };
 
   console.log("\n" + renderBanner());
