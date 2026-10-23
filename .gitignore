@@ -32,3 +32,11 @@ garry-ui/AGENTS.md
 *.tgz
 /garry-tool/LICENSE
 /garry-tool/ui/
+
+# desktop app build output
+/garry-desktop/dist/
+/garry-desktop/ui/
+/garry-desktop/skills/
+/garry-desktop/examples/
+/garry-desktop/LICENSE
+/garry-desktop/release/

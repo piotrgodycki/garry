@@ -17,6 +17,12 @@ export function reachableAddresses(): string[] {
   return out.sort((a, b) => rank(a) - rank(b));
 }
 
+/** The host names other devices use to reach a server bound to host. */
+export function hostsFor(host: string): string[] {
+  if (isLoopbackHost(host)) return [];
+  return host === "0.0.0.0" || host === "::" ? reachableAddresses() : [host];
+}
+
 /** The address to put in the pairing link for a server bound to host. */
 export function advertisedHost(host: string): string | null {
   if (host === "0.0.0.0" || host === "::") return reachableAddresses()[0] ?? null;

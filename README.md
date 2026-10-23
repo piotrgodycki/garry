@@ -33,6 +33,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 | `garry-skills` (`@garry/skills`) | atomic, reusable agent capabilities per SDLC stage |
 | `garry-tool` (`garry` on npm) | the `garry` CLI plus the HTTP server (REST and SSE) |
 | `garry-ui` | the dashboard (Vite and React), served by `garry serve` |
+| `garry-desktop` | the desktop app for macOS, Windows and Linux (Electron, with `garry serve` built in) |
 
 The packages are a pnpm workspace. This repo uses **pnpm only**. The CLI is
 published to npm as [`garry`](https://www.npmjs.com/package/garry), with the
@@ -56,6 +57,25 @@ package ships the dashboard built, so `npx garry serve` does the same).
 Configuration is optional: copy [`.env.example`](./.env.example) to `.env.local`
 and fill in what you need (a GitHub token, mainly).
 
+## Desktop app
+
+`garry-desktop` is Garry as an app for macOS, Windows and Linux: the dashboard in
+its own window with the server built in, so there is nothing else to install or
+start. File, Open Project picks the folder with your registry; Devices, Allow Phones
+and Other Computers, then Pair a Device, shows the pairing QR code.
+
+- Installers: every release attaches them to its
+  [GitHub release](https://github.com/piotrgodycki/garry/releases): `.dmg` for macOS
+  (Apple silicon and Intel), `.exe` for Windows, `.AppImage` and `.deb` for Linux.
+  Actions, Desktop, Run workflow builds them for any commit as a workflow artifact.
+- From source: `pnpm desktop` builds the app and starts it (Electron is downloaded
+  on the first run).
+- The installers are not code signed yet. macOS then says the app "cannot be
+  opened": right click it, Open, or run `xattr -cr /Applications/Garry.app`.
+  Windows SmartScreen asks once (More info, Run anyway). Signing starts as soon as
+  the `CSC_LINK` and `CSC_KEY_PASSWORD` secrets (and for macOS notarization
+  `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`) are set.
+
 ## Guides
 
 - [The Garry SDLC](./docs/sdlc.md): how a feature goes from an idea to production,
@@ -69,6 +89,7 @@ and fill in what you need (a GitHub token, mainly).
 | `pnpm dev` | start the server and the UI together |
 | `pnpm serve` | server only, on :8123 |
 | `pnpm ui` | UI only with hot reload, on :3000 (needs the server) |
+| `pnpm desktop` | build and start the desktop app |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
 | `pnpm -C garry-registry validate` | validate the sample registry |
@@ -99,7 +120,8 @@ publishes only when every CI job is green and `garry-tool/package.json` carries 
 version that npm does not have yet. So a release is a version bump in a pull
 request: once it is merged and CI passes, the job runs the package smoke test
 again, publishes with provenance (npm shows which commit and workflow built it) and
-creates the GitHub release `v<version>`. A version with a pre-release part, such as
+creates the GitHub release `v<version>` with the desktop installers for macOS,
+Windows and Linux attached (built by [`desktop.yml`](./.github/workflows/desktop.yml)). A version with a pre-release part, such as
 `0.2.0-beta.1`, goes to the `next` tag instead of `latest`.
 
 It can also be run by hand: Actions, Release, Run workflow, on `main`. It then

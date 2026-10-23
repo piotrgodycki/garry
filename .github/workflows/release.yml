@@ -139,3 +139,19 @@ jobs:
           # shellcheck disable=SC2086
           gh release create "v${VERSION}" --target "$SHA" --title "garry ${VERSION}" --generate-notes $prerelease
           echo "Published https://www.npmjs.com/package/garry/v/${VERSION}" >> "$GITHUB_STEP_SUMMARY"
+    outputs:
+      released: ${{ steps.check.outputs.publish == 'true' && env.DRY_RUN != 'true' }}
+      version: ${{ steps.check.outputs.version }}
+
+  # the desktop installers for macOS, Windows and Linux, attached to the same release
+  desktop:
+    name: desktop installers
+    needs: publish
+    if: needs.publish.outputs.released == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/desktop.yml
+    with:
+      version: ${{ needs.publish.outputs.version }}
+      tag: v${{ needs.publish.outputs.version }}
+    secrets: inherit

@@ -11,7 +11,8 @@
     "garry": "tsx garry-tool/src/cli.ts",
     "scaffold": "tsx garry-tool/src/cli.ts scaffold",
     "typecheck": "pnpm -r typecheck",
-    "dashcheck": "node scripts/check-no-emdash.mjs"
+    "dashcheck": "node scripts/check-no-emdash.mjs",
+    "desktop": "pnpm -C garry-desktop start"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
