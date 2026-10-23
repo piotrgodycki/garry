@@ -37,6 +37,8 @@ jobs:
       # Every skill is a set of instructions an agent follows with access to code
       # and tokens: the pre-installed ones must pass the security audit, and the
       # audit itself must keep catching the known attacks.
+      - name: Device pairing
+        run: pnpm -C garry-tool test:auth
       - name: Skill security audit
         run: |
           pnpm -C garry-tool test:audit

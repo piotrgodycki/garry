@@ -2,8 +2,10 @@ import pc from "picocolors";
 import { defaultRegistry, defaultSkillsRoot } from "../paths.js";
 import { renderBanner, tagline } from "../ui/banner.js";
 import { createGarryServer, type ServerConfig } from "../server/server.js";
+import { DeviceStore } from "../server/auth.js";
+import { advertisedHost, isLoopbackHost, printPairing } from "../server/pairing.js";
 
-const FLAGS = ["port", "registry", "skills", "routing", "root"] as const;
+const FLAGS = ["port", "host", "registry", "skills", "routing", "root"] as const;
 
 const HELP = `garry serve [options]
 
@@ -12,6 +14,10 @@ to list features, fetch a plan and watch the live delegation stream.
 
 Options:
   --port <n>         port (default: 8123)
+  --host <address>   address to listen on (default: 127.0.0.1, this machine only).
+                     A LAN or Tailscale address, or 0.0.0.0 for every network,
+                     lets paired phones and computers connect; a pairing QR
+                     code is printed at start.
   --registry <path>  registry root (default: the monorepo sample, ./registry or a sample copy)
   --skills <path>    skills root (default: ./garry-skills or the bundled skills)
   --routing <file>   routing matrix (default: garry.routing.json)
@@ -40,6 +46,7 @@ export async function runServe(argv: string[]): Promise<void> {
   }
 
   const port = Number(values.port ?? 8123);
+  const host = values.host ?? "127.0.0.1";
   const cfg: ServerConfig = {
     registry: values.registry ?? defaultRegistry(),
     skills: values.skills ?? defaultSkillsRoot(),
@@ -50,9 +57,21 @@ export async function runServe(argv: string[]): Promise<void> {
   console.log("\n" + renderBanner());
   console.log(tagline() + "\n");
 
-  const server = createGarryServer(cfg);
-  server.listen(port, () => {
-    console.log(pc.green(`garry-server listening on http://localhost:${port}`));
+  const devices = new DeviceStore();
+  const server = createGarryServer(cfg, devices);
+  server.listen(port, host, () => {
+    console.log(pc.green(`garry-server listening on http://${host.includes(":") ? `[${host}]` : host}:${port}`));
     console.log(pc.dim(`registry: ${cfg.registry}  skills: ${cfg.skills}  routing: ${cfg.routing}`));
+    if (isLoopbackHost(host)) {
+      console.log(pc.dim("Only this machine can connect. Use --host to pair a phone or another computer."));
+      return;
+    }
+    const advertised = advertisedHost(host);
+    if (!advertised) {
+      console.log(pc.yellow("No network address found to pair with; pass the address other devices reach with --host."));
+      return;
+    }
+    const { code, expiresAt } = devices.createCode();
+    void printPairing(advertised, port, code, expiresAt);
   });
 }

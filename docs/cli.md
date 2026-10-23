@@ -55,6 +55,8 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry sync` | put a service's contracts and generated types into `.garry/` |
 | `garry skills <sub>` | list skills, install or remove local ones |
 | `garry serve` | start the HTTP server the dashboard talks to |
+| `garry pair` | pair a phone or another computer (QR code) |
+| `garry devices` | list or revoke paired devices |
 | `garry shots <sub>` | screenshots for code review |
 
 ## garry feature
@@ -258,7 +260,7 @@ shapes, not every possible one, so read a skill from an unknown source anyway.
 ## garry serve
 
 ```
-garry serve [--port 8123] [--registry <path>] [--skills <path>] [--routing <file>] [--root <dir>]
+garry serve [--port 8123] [--host 127.0.0.1] [--registry <path>] [--skills <path>] [--routing <file>] [--root <dir>]
 ```
 
 The HTTP server (REST plus server sent events) the dashboard uses. Usually started
@@ -287,6 +289,34 @@ Writes (`POST`, `DELETE`) are accepted only from the dashboard's origin
 website open in your browser cannot change routing or install a skill through
 localhost. Serve the dashboard from somewhere else and list it in
 `GARRY_UI_ORIGINS` (comma separated).
+
+### Phones and other computers
+
+By default the server listens on `127.0.0.1`: only this machine can connect. To
+use Garry from a phone or another computer, listen on an address they can reach
+(the LAN address, a Tailscale address, or `0.0.0.0` for every network) and pair
+each device once:
+
+```bash
+garry serve --host 0.0.0.0        # prints a pairing QR code at start
+garry pair                        # a fresh code for the next device
+garry devices                     # paired devices; garry devices revoke <id>
+```
+
+Scan the QR code with the Garry app, or paste the link into Add server. A code
+pairs one device, works once and expires after 10 minutes. The device gets its
+own token and sends it with every request (`Authorization: Bearer <token>`, or
+`?access_token=` on reads, for browser event streams). Requests from other
+machines without a valid token get `401`.
+
+- This machine needs no token. Pairing codes and the device list can only be
+  managed from it, so a lost phone cannot pair more devices; revoke it with
+  `garry devices revoke <id>`.
+- Only a SHA-256 hash of each token is stored, in `~/.garry/devices.json`
+  (`GARRY_HOME` moves it).
+- Traffic is plain HTTP, so keep it to networks you trust (home Wi-Fi, a VPN such
+  as Tailscale). Do not forward the port to the internet. A reverse proxy on this
+  machine would make every request look local, so do not put one in front of it.
 
 ## garry shots
 

@@ -32,8 +32,8 @@ export function validateRegistry(root: string): ValidationIssue[] {
   const warn = (where: string, message: string) =>
     issues.push({ level: "warn", where, message });
 
-  const zodMsg = (e: { issues: { path: (string | number)[]; message: string }[] }) =>
-    e.issues.map((i) => `${i.path.join(".") || "<root>"}: ${i.message}`).join("; ");
+  const zodMsg = (e: { issues: { path: PropertyKey[]; message: string }[] }) =>
+    e.issues.map((i) => `${i.path.map(String).join(".") || "<root>"}: ${i.message}`).join("; ");
 
   // catalog/
   const services: Record<string, ServiceManifest> = {};

@@ -44,15 +44,17 @@
     "validate": "tsx src/cli.ts --help",
     "scaffold": "tsx src/cli.ts scaffold",
     "serve": "tsx src/cli.ts serve",
-    "test:audit": "tsx src/skills/audit.selftest.ts"
+    "test:audit": "tsx src/skills/audit.selftest.ts",
+    "test:auth": "tsx src/server/auth.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
     "figlet": "^1.7.0",
     "gradient-string": "^2.0.2",
     "picocolors": "^1.1.0",
+    "qrcode": "1.5.4",
     "yaml": "^2.5.0",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "peerDependencies": {
     "playwright": "^1.50.0"
@@ -66,6 +68,7 @@
     "@types/figlet": "^1.5.8",
     "@types/gradient-string": "^1.1.5",
     "@types/node": "^22.7.0",
+    "@types/qrcode": "^1.5.6",
     "esbuild": "^0.28.2",
     "playwright": "1.64.0",
     "tsx": "^4.19.0",

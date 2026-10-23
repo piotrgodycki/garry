@@ -214,6 +214,9 @@ The pipeline is kept cheap on purpose:
 - Dependabot version updates are off for now (removed to keep the single branch quiet
   before the MVP). `pnpm audit` still guards dependency vulnerabilities.
 - Secrets are never committed. Tokens live in `.env` only.
+- `garry serve` listens on `127.0.0.1` only. Phones and other computers connect after
+  pairing with a one-time QR code and send a per-device token; see
+  [Phones and other computers](./docs/cli.md#phones-and-other-computers).
 - Before the MVP the project uses a single branch (`main`) with direct commits. Branch
   protection and a pull request only flow come later, when `main` and `develop` are
   split. CI still runs the security review on every push.

@@ -10,6 +10,7 @@ import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
 import { loadWorkspace } from "../workspace/workspace.js";
 import { listManifests, readContracts } from "../sync/registryIO.js";
+import { DeviceStore, isLoopback, requestToken } from "./auth.js";
 import { readdirSync } from "node:fs";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
@@ -41,7 +42,7 @@ export interface ServerConfig {
 const CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type",
+  "access-control-allow-headers": "content-type, authorization",
 } as const;
 
 // In memory per service model overrides, keyed by feature id. Resets on restart.
@@ -222,13 +223,13 @@ function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
 }
 
 /** Builds the Garry HTTP server (REST plus SSE) over the supervisor. */
-export function createGarryServer(cfg: ServerConfig): Server {
+export function createGarryServer(cfg: ServerConfig, devices = new DeviceStore()): Server {
   return createServer((req, res) => {
-    void handle(req, res, cfg).catch((e) => json(res, 500, { error: String((e as Error).message ?? e) }));
+    void handle(req, res, cfg, devices).catch((e) => json(res, 500, { error: String((e as Error).message ?? e) }));
   });
 }
 
-async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConfig): Promise<void> {
+async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConfig, devices: DeviceStore): Promise<void> {
   const url = new URL(req.url ?? "/", "http://localhost");
   const path = url.pathname;
 
@@ -238,7 +239,42 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return;
   }
 
-  if ((req.method === "POST" || req.method === "DELETE") && !writeAllowed(req)) {
+  // Pairing: the only endpoints another device may call without a token
+  if (req.method === "POST" && path === "/api/pair") {
+    const body = (await readBody(req)) as { code?: string; name?: string };
+    if (typeof body.code !== "string" || !body.code) return json(res, 400, { error: "code is required" });
+    const r = devices.pair(body.code, typeof body.name === "string" ? body.name : "");
+    return "error" in r ? json(res, r.status, { error: r.error }) : json(res, 200, r);
+  }
+  if (req.method === "GET" && path === "/pair") {
+    res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+    res.end("<!doctype html><meta charset=utf-8><title>Garry</title><p>Scan this code with the Garry app, or paste this link into Add server.</p>");
+    return;
+  }
+
+  // This machine is trusted; every other device needs a paired device token.
+  const local = isLoopback(req);
+  const presented = local ? null : requestToken(req, url);
+  const device = presented ? devices.verify(presented) : null;
+  if (!local && !device) return json(res, 401, { error: "pair this device first: run garry pair on the computer running Garry" });
+
+  // Managing devices is for this machine only, so a stolen token cannot mint more.
+  if (path === "/api/pair/codes" || path.startsWith("/api/devices")) {
+    if (!local || !writeAllowed(req)) return json(res, 403, { error: "devices are managed on the computer running Garry" });
+    if (req.method === "POST" && path === "/api/pair/codes") return json(res, 200, devices.createCode());
+    if (req.method === "GET" && path === "/api/devices") {
+      return json(res, 200, { devices: devices.list().map(({ tokenHash: _, ...d }) => d) });
+    }
+    const del = /^\/api\/devices\/([^/]+)$/.exec(path);
+    if (req.method === "DELETE" && del) {
+      return devices.revoke(decodeURIComponent(del[1])) ? json(res, 200, { ok: true }) : json(res, 404, { error: "no such device" });
+    }
+    return json(res, 404, { error: "not found", path });
+  }
+
+  // A paired device authenticates with a bearer token that a browser never sends
+  // on its own, so the cross-site write check only applies to cookie-less local calls.
+  if ((req.method === "POST" || req.method === "DELETE") && !device && !writeAllowed(req)) {
     return json(res, 403, { error: `writes are not allowed from ${req.headers.origin}; add it to GARRY_UI_ORIGINS` });
   }
 
@@ -350,6 +386,9 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
       ok: true,
       service: "garry-server",
       endpoints: [
+        "POST /api/pair {code, name} (another device trades a pairing code for a token)",
+        "POST /api/pair/codes (this machine only)",
+        "GET /api/devices, DELETE /api/devices/:id (this machine only)",
         "GET /api/features",
         "GET /api/features/:id/plan",
         "GET /api/features/:id/stream (SSE)",
