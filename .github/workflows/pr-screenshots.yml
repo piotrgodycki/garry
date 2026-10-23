@@ -75,14 +75,14 @@ jobs:
       - name: Install headless Chromium
         run: pnpm -C garry-tool exec playwright install --with-deps chromium
 
+      # garry serve hosts the built dashboard and the API on one port
       - name: Build and start the head
         run: |
-          NEXT_PUBLIC_GARRY_SERVER=http://localhost:8123 pnpm -C garry-ui build
+          pnpm -C garry-ui build
           nohup pnpm serve --port 8123 > "$RUNNER_TEMP/head-server.log" 2>&1 &
-          nohup pnpm -C garry-ui start -p 3000 > "$RUNNER_TEMP/head-ui.log" 2>&1 &
-          timeout 120 bash -c 'until curl -sf http://localhost:8123/api/features > /dev/null && curl -sf http://localhost:3000 > /dev/null; do sleep 2; done'
+          timeout 120 bash -c 'until curl -sf http://localhost:8123/api/features > /dev/null && curl -sf http://localhost:8123/ > /dev/null; do sleep 2; done'
       - name: Capture the head
-        run: pnpm garry shots capture --url http://localhost:3000 --out "$RUNNER_TEMP/shots/head"
+        run: pnpm garry shots capture --url http://localhost:8123 --out "$RUNNER_TEMP/shots/head"
 
       # The base may not build (an older layout, a broken main): then every view is
       # reported as new instead of failing the job.
@@ -93,12 +93,24 @@ jobs:
         run: |
           base="$RUNNER_TEMP/base"
           git worktree add --detach "$base" "$BASE_SHA"
-          (cd "$base" && pnpm install --frozen-lockfile && NEXT_PUBLIC_GARRY_SERVER=http://localhost:8124 pnpm -C garry-ui build)
-          (cd "$base" && nohup pnpm serve --port 8124 > "$RUNNER_TEMP/base-server.log" 2>&1 &)
-          (cd "$base" && nohup pnpm -C garry-ui start -p 3001 > "$RUNNER_TEMP/base-ui.log" 2>&1 &)
-          timeout 120 bash -c 'until curl -sf http://localhost:8124/api/features > /dev/null && curl -sf http://localhost:3001 > /dev/null; do sleep 2; done'
+          cd "$base"
+          pnpm install --frozen-lockfile
+          if [ -f garry-ui/vite.config.ts ]; then
+            # the dashboard is served by garry serve itself
+            pnpm -C garry-ui build
+            nohup pnpm serve --port 8124 > "$RUNNER_TEMP/base-server.log" 2>&1 &
+            ui=http://localhost:8124
+          else
+            # an older base: the Next.js dashboard on its own port
+            NEXT_PUBLIC_GARRY_SERVER=http://localhost:8124 pnpm -C garry-ui build
+            nohup pnpm serve --port 8124 > "$RUNNER_TEMP/base-server.log" 2>&1 &
+            nohup pnpm -C garry-ui start -p 3001 > "$RUNNER_TEMP/base-ui.log" 2>&1 &
+            ui=http://localhost:3001
+          fi
+          cd "$GITHUB_WORKSPACE"
+          timeout 120 bash -c "until curl -sf http://localhost:8124/api/features > /dev/null && curl -sf $ui/ > /dev/null; do sleep 2; done"
           # the head's tool and route list, so both sides are captured the same way
-          pnpm garry shots capture --url http://localhost:3001 --out "$RUNNER_TEMP/shots/base"
+          pnpm garry shots capture --url "$ui" --out "$RUNNER_TEMP/shots/base"
 
       - name: Compare
         env:

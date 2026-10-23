@@ -1,6 +1,6 @@
-"use client";
-import { use, useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router";
+import Link from "../../lib/router";
 import styles from "./service.module.css";
 import { apiBase } from "../../lib/api";
 import { Icon } from "../../icons";
@@ -34,8 +34,8 @@ interface Model {
   label: string;
 }
 
-export default function ServicePage({ params }: { params: Promise<{ name: string }> }) {
-  const { name } = use(params);
+export default function ServicePage() {
+  const name = useParams().name ?? "";
   const [svc, setSvc] = useState<Service | null>(null);
   const [missing, setMissing] = useState(false);
   const [contracts, setContracts] = useState<Contracts>({});

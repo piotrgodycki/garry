@@ -1,4 +1,3 @@
-"use client";
 import { Icon } from "./icons";
 
 /** Sidebar trigger that opens the voice dock. The dock also listens for Cmd/Ctrl+K. */

@@ -8,6 +8,7 @@ import { runAdopt } from "./commands/adopt.js";
 import { runShots } from "./commands/shots.js";
 import { runSkills } from "./commands/skills.js";
 import { runDevices, runPair } from "./commands/pair.js";
+import { loadEnv } from "./github/env.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
 
@@ -29,6 +30,7 @@ Run "garry <command> --help" for command options.
 `;
 
 async function main(): Promise<void> {
+  loadEnv();
   switch (cmd) {
     case "scaffold":
       await runScaffold(rest);

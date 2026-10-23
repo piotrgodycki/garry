@@ -1,6 +1,5 @@
-"use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "../lib/router";
 import styles from "./contract.module.css";
 import { apiBase } from "../lib/api";
 import { contractLabel, eventsFor, type RegistryData } from "../lib/contracts";

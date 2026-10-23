@@ -1,5 +1,5 @@
-"use client";
-import { use, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useParams } from "react-router";
 import styles from "./pipeline.module.css";
 import { apiBase } from "../../lib/api";
 import { tierOf } from "../../ModelChip";
@@ -25,8 +25,8 @@ interface Model {
 
 const GLOBAL_STAGES = ["spec", "plan", "design", "integrate"];
 
-export default function Activity({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function Activity() {
+  const id = useParams().id ?? "";
   const [plan, setPlan] = useState<Plan | null>(null);
   const [models, setModels] = useState<Model[]>([]);
   const [overrides, setOverrides] = useState<Record<string, string>>({});

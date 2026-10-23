@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useMemo, useState } from "react";
 import styles from "./prs.module.css";
 import { apiBase } from "../lib/api";

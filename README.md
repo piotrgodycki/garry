@@ -32,7 +32,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 | `garry-registry` (`@garry/registry`) | Contract Registry: zod schemas and validation for cross service contracts |
 | `garry-skills` (`@garry/skills`) | atomic, reusable agent capabilities per SDLC stage |
 | `garry-tool` (`garry` on npm) | the `garry` CLI plus the HTTP server (REST and SSE) |
-| `garry-ui` | Next.js dashboard that consumes the server |
+| `garry-ui` | the dashboard (Vite and React), served by `garry serve` |
 
 The packages are a pnpm workspace. This repo uses **pnpm only**. The CLI is
 published to npm as [`garry`](https://www.npmjs.com/package/garry), with the
@@ -45,8 +45,16 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm dev` starts the whole app: the server on http://localhost:8123 and the UI
-on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
+`pnpm dev` starts the whole app for development: the server on
+http://localhost:8123 and the UI with hot reload on http://localhost:3000. Open the
+UI and pick a feature to watch its pipeline.
+
+Without development tools, `pnpm -C garry-ui build` once and `pnpm serve`: the
+server hosts the dashboard and the API together on http://localhost:8123 (the npm
+package ships the dashboard built, so `npx garry serve` does the same).
+
+Configuration is optional: copy [`.env.example`](./.env.example) to `.env.local`
+and fill in what you need (a GitHub token, mainly).
 
 ## Guides
 
@@ -60,7 +68,7 @@ on http://localhost:3000. Open the UI and pick a feature to watch its pipeline.
 |---|---|
 | `pnpm dev` | start the server and the UI together |
 | `pnpm serve` | server only, on :8123 |
-| `pnpm ui` | UI only, on :3000 (needs the server) |
+| `pnpm ui` | UI only with hot reload, on :3000 (needs the server) |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
 | `pnpm -C garry-registry validate` | validate the sample registry |
@@ -185,7 +193,7 @@ The same steps run locally:
 
 ```bash
 pnpm -C garry-tool exec playwright install chromium   # once
-pnpm garry shots capture --url http://localhost:3000 --out shots/head
+pnpm garry shots capture --url http://localhost:8123 --out shots/head
 pnpm garry shots compare --base shots/base --head shots/head --out shots/report
 pnpm garry shots comment --report shots/report/report.json --images-url "file://$PWD/shots/report/{path}" --dry-run
 ```
@@ -213,7 +221,7 @@ The pipeline is kept cheap on purpose:
 - Security review runs in CI: `pnpm audit` plus a Semgrep SAST scan.
 - Dependabot version updates are off for now (removed to keep the single branch quiet
   before the MVP). `pnpm audit` still guards dependency vulnerabilities.
-- Secrets are never committed. Tokens live in `.env` only.
+- Secrets are never committed. Tokens live in `.env.local` only (see `.env.example`).
 - `garry serve` listens on `127.0.0.1` only. Phones and other computers connect after
   pairing with a one-time QR code and send a per-device token; see
   [Phones and other computers](./docs/cli.md#phones-and-other-computers).

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Link from "./lib/router";
 import { Icon } from "./icons";
 
 /** The header every page starts with: breadcrumb or eyebrow, title, one line of context, actions. */

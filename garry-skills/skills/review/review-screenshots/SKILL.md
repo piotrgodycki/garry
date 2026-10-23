@@ -48,7 +48,7 @@ commands once the `garry` CLI is published.
 
 ## Notes
 
-Motion is frozen (reduced motion plus Playwright's animation freeze) and the
-Next.js dev overlay is hidden, so two runs of the same code give the same
+Motion is frozen (reduced motion plus Playwright's animation freeze) and any
+framework dev overlay is hidden, so two runs of the same code give the same
 pixels. A view counts as changed past 0.05% of pixels. The screenshots are
 removed from the orphan branch when the pull request closes.

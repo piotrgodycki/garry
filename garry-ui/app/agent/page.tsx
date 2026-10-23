@@ -1,6 +1,5 @@
-"use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "../lib/router";
 import styles from "./agent.module.css";
 import ModelChip from "../ModelChip";
 import ContractPanel from "./ContractPanel";

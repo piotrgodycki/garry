@@ -234,11 +234,11 @@ garry-registry/            (WHAT, published as @garry/registry)
 garry-skills/              (HOW, published as @garry/skills)
   skills/ manifest.json    atomic skills and index
 
-garry-ui/                  (FACE, Next.js, consumes garry-tool/server)
+garry-ui/                  (FACE, Vite and React, served by garry-tool/server)
   app/ components/         dashboard, pipeline, pull requests, model and agent routing
 ```
 
-Tooling stack: TypeScript and Node. UI: Next.js (React 19).
+Tooling stack: TypeScript and Node. UI: Vite and React 19.
 
 Why separate repositories: the registry changes per project or client, the skills are reusable globally, the tool and the UI have their own release cycles. Splitting them lets each layer be versioned and swapped independently. The CLI and the UI are two layers over the same supervisor, so there is no duplicated logic.
 
@@ -247,7 +247,7 @@ Why separate repositories: the registry changes per project or client, the skill
 Garry gets its own panel (`garry-ui`) that talks to `garry-tool/server`. The same core (the supervisor) serves both the CLI and the UI.
 
 ```
-   garry-ui (Next.js) --REST+SSE--> garry-tool/server --> supervisor --> subagents
+   garry-ui (Vite, React) --REST+SSE--> garry-tool/server --> supervisor --> subagents
         |                                   |
         |                                   +--> narrow GitHub token (repos, PRs, checks)
         +--> browser: the human steers and watches live agent streams
@@ -257,7 +257,7 @@ Garry gets its own panel (`garry-ui`) that talks to `garry-tool/server`. The sam
 
 | Layer | Choice | Why |
 |---|---|---|
-| Framework | Next.js 16 (App Router) plus React 19 plus TS | routing, RSC for browsing the registry, can host `garry-tool/server` in route handlers |
+| Framework | Vite plus React 19 plus React Router plus TS | a static build that `garry serve` hosts next to the API (one port, one origin), that the npm package ships and the desktop app loads; no server runtime of its own |
 | Styling | a custom token generator (`design-tokens.json` to `tokens.css`, CSS variables) plus CSS Modules | lightweight, no dependency, white label by overriding CSS variables |
 | Components | native first: the `dialog` element, Popover API, the `details` element, native controls plus CSS Modules | lightweight, accessible, no Radix or shadcn; a fallback only when needed (Base UI) |
 | Data (REST) | TanStack Query | cache, refetch, request status against `garry-tool/server` |
@@ -340,6 +340,6 @@ Copilot reviews pull requests for free, following `.github/copilot-instructions.
 - Phase 4, SDLC orchestration. Done. `garry feature` composes the pipeline from `manifest.json`, builds the service dependency graph (contract first), resolves the model and agent routing per stage (`garry.routing.json` plus the feature override), and delegates per service over the workspace. The default executor is a dry run; the live executor on the Claude Agent SDK is wired later.
 - Phase 5, server and routing. Done. `garry serve` starts an HTTP server (`node:http`, no extra dependency) over the supervisor: `GET /api/features`, `GET /api/features/:id/plan`, `GET /api/features/:id/stream` (SSE delegation stream) and `GET /api/skills`. The model by agent matrix lives in `garry.routing.json`.
 - Phase 6, GitHub (narrow token). Done. A fine grained PAT read from `.env` as `GARRY_GITHUB_TOKEN` (never committed). `garry ws pr` opens a draft pull request per service for the feature branch into each repo's default branch, and the server returns live PR state and check results. Without a token everything degrades gracefully to the derived view. A small REST client over fetch covers the needed endpoints; the token is never logged.
-- Phase 7, UI. Done. `garry-ui` (Next.js 16, App Router, React 19) with a token generator (`design-tokens.json` to `tokens.css` CSS variables) and CSS Modules, native first, no Radix. Panels: Dashboard, Pipeline (live SSE delegation stream), Registry, Skills, Routing and GitHub, backed by the server endpoints from phase 5 plus `GET /api/registry` and `GET /api/routing`. The GitHub panel lists the managed repos; opening pull requests and reading checks is wired in phase 6.
+- Phase 7, UI. Done. `garry-ui` (first Next.js 16, now Vite and React 19, hosted by `garry serve`) with a token generator (`design-tokens.json` to `tokens.css` CSS variables) and CSS Modules, native first, no Radix. Panels: Dashboard, Pipeline (live SSE delegation stream), Registry, Skills, Routing and GitHub, backed by the server endpoints from phase 5 plus `GET /api/registry` and `GET /api/routing`. The GitHub panel lists the managed repos; opening pull requests and reading checks is wired in phase 6.
 - Phase 8, adopt (brownfield). Done. `garry adopt <repo>` detects the stack (framework, bundler, federation) from package.json and config files, statically extracts the Module Federation surface (exposes, remotes, shared) without evaluating the config, and derives a service manifest plus a remotes entry. It is a dry run by default; `--write` applies it and runs `validateRegistry` to surface drift. A human approves before it becomes the source of truth.
 - Phase 9, backend generalization. Done. The manifest gains a `kind` (mfe-shell, mfe-remote, backend), a per service `db` block (engine, name, migrations) and an `api` reference. A new `contracts/api.json` is the backend cross service contract (OpenAPI for REST, AsyncAPI for events), the equivalent of remotes.json, validated and cross checked. New skills: `api-contract`, `db-provision`, `db-migrate` and `api-compatibility`. A backend sample registry (orders-api and payments-api with their own databases) validates clean.

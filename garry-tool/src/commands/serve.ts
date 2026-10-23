@@ -1,11 +1,11 @@
 import pc from "picocolors";
-import { defaultRegistry, defaultSkillsRoot } from "../paths.js";
+import { defaultRegistry, defaultSkillsRoot, defaultUiDir } from "../paths.js";
 import { renderBanner, tagline } from "../ui/banner.js";
 import { createGarryServer, type ServerConfig } from "../server/server.js";
 import { DeviceStore } from "../server/auth.js";
-import { advertisedHost, isLoopbackHost, printPairing } from "../server/pairing.js";
+import { advertisedHost, isLoopbackHost, printPairing, reachableAddresses } from "../server/pairing.js";
 
-const FLAGS = ["port", "host", "registry", "skills", "routing", "root"] as const;
+const FLAGS = ["port", "host", "ui", "registry", "skills", "routing", "root"] as const;
 
 const HELP = `garry serve [options]
 
@@ -18,6 +18,8 @@ Options:
                      A LAN or Tailscale address, or 0.0.0.0 for every network,
                      lets paired phones and computers connect; a pairing QR
                      code is printed at start.
+  --ui <dir>         the built dashboard to serve (default: garry-ui/dist, or the
+                     one shipped with garry); open http://localhost:<port>
   --registry <path>  registry root (default: the monorepo sample, ./registry or a sample copy)
   --skills <path>    skills root (default: ./garry-skills or the bundled skills)
   --routing <file>   routing matrix (default: garry.routing.json)
@@ -52,6 +54,9 @@ export async function runServe(argv: string[]): Promise<void> {
     skills: values.skills ?? defaultSkillsRoot(),
     routing: values.routing ?? "garry.routing.json",
     root: values.root,
+    ui: values.ui ?? defaultUiDir(),
+    // the names other devices use to reach this server
+    hosts: isLoopbackHost(host) ? [] : host === "0.0.0.0" || host === "::" ? reachableAddresses() : [host],
   };
 
   console.log("\n" + renderBanner());
@@ -62,6 +67,7 @@ export async function runServe(argv: string[]): Promise<void> {
   server.listen(port, host, () => {
     console.log(pc.green(`garry-server listening on http://${host.includes(":") ? `[${host}]` : host}:${port}`));
     console.log(pc.dim(`registry: ${cfg.registry}  skills: ${cfg.skills}  routing: ${cfg.routing}`));
+    console.log(cfg.ui ? `dashboard: ${pc.cyan(`http://localhost:${port}`)}` : pc.dim("dashboard: not built (pnpm -C garry-ui build), API only"));
     if (isLoopbackHost(host)) {
       console.log(pc.dim("Only this machine can connect. Use --host to pair a phone or another computer."));
       return;

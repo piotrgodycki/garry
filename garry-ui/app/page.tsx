@@ -1,6 +1,5 @@
-"use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import Link from "./lib/router";
 import styles from "./page.module.css";
 import { apiBase } from "./lib/api";
 import { Icon } from "./icons";
