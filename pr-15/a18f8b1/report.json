@@ -1,0 +1,306 @@
+{
+  "baseLabel": "main 6593b4b",
+  "headLabel": "a18f8b1",
+  "entries": [
+    {
+      "name": "dashboard--desktop--light",
+      "route": "dashboard",
+      "path": "/",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/dashboard--desktop--light.png",
+      "base": "base/dashboard--desktop--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "live-agents--desktop--light",
+      "route": "live-agents",
+      "path": "/agent",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": "live",
+      "head": "head/live-agents--desktop--light.png",
+      "base": "base/live-agents--desktop--light.png"
+    },
+    {
+      "name": "registry--desktop--light",
+      "route": "registry",
+      "path": "/registry",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/registry--desktop--light.png",
+      "base": "base/registry--desktop--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "skills--desktop--light",
+      "route": "skills",
+      "path": "/skills",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/skills--desktop--light.png",
+      "base": "base/skills--desktop--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "routing--desktop--light",
+      "route": "routing",
+      "path": "/routing",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/routing--desktop--light.png",
+      "base": "base/routing--desktop--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "pull-requests--desktop--light",
+      "route": "pull-requests",
+      "path": "/github",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/pull-requests--desktop--light.png",
+      "base": "base/pull-requests--desktop--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "service--desktop--light",
+      "route": "service",
+      "path": "/service/checkout-mfe",
+      "viewport": "desktop",
+      "theme": "light",
+      "status": "live",
+      "head": "head/service--desktop--light.png",
+      "base": "base/service--desktop--light.png"
+    },
+    {
+      "name": "dashboard--desktop--dark",
+      "route": "dashboard",
+      "path": "/",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/dashboard--desktop--dark.png",
+      "base": "base/dashboard--desktop--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "live-agents--desktop--dark",
+      "route": "live-agents",
+      "path": "/agent",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": "live",
+      "head": "head/live-agents--desktop--dark.png",
+      "base": "base/live-agents--desktop--dark.png"
+    },
+    {
+      "name": "registry--desktop--dark",
+      "route": "registry",
+      "path": "/registry",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/registry--desktop--dark.png",
+      "base": "base/registry--desktop--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "skills--desktop--dark",
+      "route": "skills",
+      "path": "/skills",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/skills--desktop--dark.png",
+      "base": "base/skills--desktop--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "routing--desktop--dark",
+      "route": "routing",
+      "path": "/routing",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/routing--desktop--dark.png",
+      "base": "base/routing--desktop--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "pull-requests--desktop--dark",
+      "route": "pull-requests",
+      "path": "/github",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/pull-requests--desktop--dark.png",
+      "base": "base/pull-requests--desktop--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "service--desktop--dark",
+      "route": "service",
+      "path": "/service/checkout-mfe",
+      "viewport": "desktop",
+      "theme": "dark",
+      "status": "live",
+      "head": "head/service--desktop--dark.png",
+      "base": "base/service--desktop--dark.png"
+    },
+    {
+      "name": "dashboard--mobile--light",
+      "route": "dashboard",
+      "path": "/",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/dashboard--mobile--light.png",
+      "base": "base/dashboard--mobile--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "live-agents--mobile--light",
+      "route": "live-agents",
+      "path": "/agent",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": "live",
+      "head": "head/live-agents--mobile--light.png",
+      "base": "base/live-agents--mobile--light.png"
+    },
+    {
+      "name": "registry--mobile--light",
+      "route": "registry",
+      "path": "/registry",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/registry--mobile--light.png",
+      "base": "base/registry--mobile--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "skills--mobile--light",
+      "route": "skills",
+      "path": "/skills",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/skills--mobile--light.png",
+      "base": "base/skills--mobile--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "routing--mobile--light",
+      "route": "routing",
+      "path": "/routing",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/routing--mobile--light.png",
+      "base": "base/routing--mobile--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "pull-requests--mobile--light",
+      "route": "pull-requests",
+      "path": "/github",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": "unchanged",
+      "head": "head/pull-requests--mobile--light.png",
+      "base": "base/pull-requests--mobile--light.png",
+      "ratio": 0
+    },
+    {
+      "name": "service--mobile--light",
+      "route": "service",
+      "path": "/service/checkout-mfe",
+      "viewport": "mobile",
+      "theme": "light",
+      "status": "live",
+      "head": "head/service--mobile--light.png",
+      "base": "base/service--mobile--light.png"
+    },
+    {
+      "name": "dashboard--mobile--dark",
+      "route": "dashboard",
+      "path": "/",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/dashboard--mobile--dark.png",
+      "base": "base/dashboard--mobile--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "live-agents--mobile--dark",
+      "route": "live-agents",
+      "path": "/agent",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": "live",
+      "head": "head/live-agents--mobile--dark.png",
+      "base": "base/live-agents--mobile--dark.png"
+    },
+    {
+      "name": "registry--mobile--dark",
+      "route": "registry",
+      "path": "/registry",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/registry--mobile--dark.png",
+      "base": "base/registry--mobile--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "skills--mobile--dark",
+      "route": "skills",
+      "path": "/skills",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/skills--mobile--dark.png",
+      "base": "base/skills--mobile--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "routing--mobile--dark",
+      "route": "routing",
+      "path": "/routing",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/routing--mobile--dark.png",
+      "base": "base/routing--mobile--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "pull-requests--mobile--dark",
+      "route": "pull-requests",
+      "path": "/github",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": "unchanged",
+      "head": "head/pull-requests--mobile--dark.png",
+      "base": "base/pull-requests--mobile--dark.png",
+      "ratio": 0
+    },
+    {
+      "name": "service--mobile--dark",
+      "route": "service",
+      "path": "/service/checkout-mfe",
+      "viewport": "mobile",
+      "theme": "dark",
+      "status": "live",
+      "head": "head/service--mobile--dark.png",
+      "base": "base/service--mobile--dark.png"
+    }
+  ]
+}
