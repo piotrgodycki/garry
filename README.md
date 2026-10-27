@@ -53,7 +53,8 @@ http://localhost:8123 and the UI with hot reload on http://localhost:3000.
 
 Garry starts empty: there is no sample data. Add your services in the dashboard
 (Registry, Add service) or with `garry service add`, optionally on a tech stack
-you compose first (Stacks, or `garry stack add`); they go to `./registry` when
+you compose first (Stacks, or `garry stack add`), and lay out how they fit together
+with the platforms they run on (Architecture); they go to `./registry` when
 it has a `catalog/`, else to `~/.garry/registry`. Then create a feature (New
 feature on the dashboard or the phone, or Make it a feature on a captured idea,
 or `garry feature new`) and watch its pipeline.

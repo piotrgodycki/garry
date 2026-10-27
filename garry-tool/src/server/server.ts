@@ -20,6 +20,8 @@ import { readdirSync } from "node:fs";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
 import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
 import { StackError, listStacks, removeStack, saveStack } from "../registry/stacks.js";
+import { ArchitectureError, architectureState, checkDraft, saveArchitecture } from "../registry/architecture.js";
+import { CAPABILITIES, COMPONENTS, PROVIDERS } from "../../../garry-registry/src/architecture.js";
 import { CATALOG, CATEGORIES, checkStack } from "../../../garry-registry/src/stacks.js";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
@@ -344,6 +346,18 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     }
   }
 
+  // The architecture board: save it (this machine and paired devices), check a draft
+  if (req.method === "POST" && (path === "/api/architecture" || path === "/api/architecture/check")) {
+    const body = await readBody(req);
+    try {
+      if (path === "/api/architecture/check") return json(res, 200, { issues: checkDraft(cfg.registry, body) });
+      return json(res, 200, saveArchitecture(cfg.registry, body));
+    } catch (e) {
+      if (e instanceof ArchitectureError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+
   // Stacks: save one (this machine and paired devices), check a draft, remove one (this machine only)
   if (req.method === "POST" && path === "/api/stacks/check") {
     const body = (await readBody(req)) as { technologies?: string[] };
@@ -549,6 +563,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "POST /api/skills/propose {content | path, stage?, acknowledge?} (opens a pull request)",
         "GET /api/registry",
         "GET /api/stacks (the stacks, the technology catalog and its categories)",
+        "GET /api/architecture (the board, the blocks, what does not fit), POST /api/architecture {nodes, edges}, POST /api/architecture/check",
         "POST /api/stacks {name, description?, technologies: [{id, version?}], replace?}, POST /api/stacks/check {technologies: [id]}",
         "DELETE /api/stacks/:name (this machine only)",
         "POST /api/registry/services {name, kind, repo, owner?, stack?, exposes?, consumes?, db?, replace?}",
@@ -571,6 +586,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     });
   }
   if (path === "/api/models") return json(res, 200, { models: MODELS });
+  if (path === "/api/architecture") return json(res, 200, { ...architectureState(cfg.registry), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS });
   if (path === "/api/stacks") return json(res, 200, { stacks: listStacks(cfg.registry), catalog: CATALOG, categories: CATEGORIES });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });

@@ -7,6 +7,7 @@ import Dashboard from "./page";
 import AgentView from "./agent/page";
 import Registry from "./registry/page";
 import Stacks from "./stacks/page";
+import ArchitecturePage from "./architecture/page";
 import Skills from "./skills/page";
 import Routing from "./routing/page";
 import Prs from "./github/page";
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { path: "/agent", element: <AgentView /> },
       { path: "/registry", element: <Registry /> },
       { path: "/stacks", element: <Stacks /> },
+      { path: "/architecture", element: <ArchitecturePage /> },
       { path: "/skills", element: <Skills /> },
       { path: "/routing", element: <Routing /> },
       { path: "/github", element: <Prs /> },

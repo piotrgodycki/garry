@@ -49,6 +49,7 @@ jobs:
           pnpm -C garry-tool test:stacks
           pnpm -C garry-tool test:qa
           pnpm -C garry-tool test:routing
+          pnpm -C garry-tool test:architecture
       # git needs an identity for the commits the test makes in its scratch repo
       - name: Agent threads (with a stand-in for Claude Code)
         run: |

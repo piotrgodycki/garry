@@ -13,6 +13,7 @@ import { runService } from "./commands/service.js";
 import { runStack } from "./commands/stack.js";
 import { runQa } from "./commands/qa.js";
 import { runRouting } from "./commands/routing.js";
+import { runArchitecture } from "./commands/architecture.js";
 import { loadEnv } from "./github/env.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -24,6 +25,7 @@ Commands:
   service    the services in the registry (list, add, remove)
   stack      the tech stacks services are built with (list, catalog, add, check)
   routing    routing profiles: which agent and model per stage (list, new, use, set)
+  architecture  the architecture board: check it, show it, list the blocks
   adopt      reverse engineer a registry entry from an existing repo
   sync       inject the contract slice into .garry/ and generate types
   ws         work on several services at once (multicheckout worktrees)
@@ -79,6 +81,9 @@ async function main(): Promise<void> {
       break;
     case "skills":
       await runSkills(rest);
+      break;
+    case "architecture":
+      runArchitecture(rest);
       break;
     case "routing":
       runRouting(rest);

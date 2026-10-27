@@ -1,4 +1,4 @@
-import type { Feature, FileContent, FileEntry, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, Architecture, ArchitectureState, Feature, FileContent, FileEntry, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -102,6 +102,10 @@ export class GarryClient {
   plan = (id: string) => this.request<Plan>(`/api/features/${encodeURIComponent(id)}/plan`);
   pullRequests = (id: string) => this.request<{ prs: PullRequest[] }>(`/api/features/${encodeURIComponent(id)}/prs`).then((r) => r.prs);
   registry = () => this.request<Registry>("/api/registry");
+  /** The architecture board, every block Garry offers, your services as blocks, and what does not fit. */
+  architecture = () => this.request<ArchitectureState>("/api/architecture");
+  saveArchitecture = (a: Architecture) => this.post<{ architecture: Architecture; issues: ArchIssue[] }>("/api/architecture", a);
+  checkArchitecture = (a: Architecture) => this.post<{ issues: ArchIssue[] }>("/api/architecture/check", a).then((r) => r.issues);
   /** The stacks, Garry's technology catalog and its categories. */
   stacks = () => this.request<Stacks>("/api/stacks");
   /** What does not fit in a set of technology ids (nothing is saved). */
