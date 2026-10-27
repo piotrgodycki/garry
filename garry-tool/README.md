@@ -24,13 +24,15 @@ npm install -g garry    # or install the garry command
 ## Try it
 
 ```bash
-garry feature FEAT-123   # plan a sample feature across three microfrontends (dry run)
+garry service add checkout --kind mfe-remote --repo git@github.com:acme/checkout.git
 garry skills list        # the pre-installed skills and their security audit
-garry serve              # REST and SSE server on http://localhost:8123
+garry serve              # the dashboard and the API on http://localhost:8123
 ```
 
-With no `./registry` folder, garry copies the bundled sample registry to
-`~/.garry/sample-registry` and uses it; pass `--registry <path>` for your own.
+Garry ships no sample data. The registry is `./registry` when it has a
+`catalog/`, else `~/.garry/registry`, created empty; add your services with
+`garry service add` or in the dashboard (Registry, Add service), or pass
+`--registry <path>`.
 
 ## Commands
 

@@ -30,9 +30,9 @@ test and ship.
 | Routing | `garry.routing.json` | which agent role and which model handles each stage |
 | Workspace | `~/garry-workspaces/FEAT-x/` | one git worktree per service on the shared branch `feat/FEAT-x` |
 
-The sample registry (`garry-registry/examples/registry-sample`) ships one feature,
-`FEAT-123`, that touches three microfrontends: `shell`, `checkout-mfe` and
-`search-mfe`.
+The examples below use a feature `FEAT-123` that touches three microfrontends:
+`shell`, `checkout-mfe` and `search-mfe` (the registry the tests run against,
+`garry-registry/testdata/frontend`).
 
 ## The rule that orders everything: contract first
 

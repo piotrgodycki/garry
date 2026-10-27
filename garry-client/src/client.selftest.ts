@@ -21,7 +21,7 @@ const threadManager = new ThreadManager(new ThreadStore(join(scratch, "home")));
 const remote = reachableAddresses()[0];
 const server = createGarryServer(
   {
-    registry: join(repo, "garry-registry/examples/registry-sample"),
+    registry: join(repo, "garry-registry/testdata/frontend"),
     skills: join(repo, "garry-skills"),
     routing: join(repo, "garry.routing.json"),
     hosts: remote ? [remote] : [],

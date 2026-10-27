@@ -43,7 +43,6 @@
       "dist/**",
       "ui/**",
       "skills/**",
-      "examples/**",
       "LICENSE",
       "package.json"
     ],

@@ -27,8 +27,11 @@ const checks = [
   [["--help"], "garry <command>"],
   [["skills", "list"], "pre-installed"],
   [["skills", "audit"], "pass"],
-  [["feature", "FEAT-123"], "search-mfe"],
 ];
+// a fresh install starts with an empty registry: no sample services or features
+const registry = garry("service", "list");
+if (!registry.includes("No services")) throw new Error(`expected an empty registry, got:\n${registry}`);
+console.log("ok  garry service list (empty registry)");
 for (const [args, expect] of checks) {
   const out = garry(...args);
   if (!out.includes(expect)) throw new Error(`garry ${args.join(" ")}: expected "${expect}" in:\n${out}`);
@@ -45,7 +48,7 @@ try {
   }
   if (!html.includes('id="root"')) throw new Error("garry serve did not serve the dashboard");
   const api = await fetch(`http://127.0.0.1:${port}/api/features`).then((r) => r.json());
-  if (!Array.isArray(api.features)) throw new Error("garry serve did not answer /api/features");
+  if (!Array.isArray(api.features) || api.features.length) throw new Error("garry serve should answer /api/features with no features");
   console.log("ok  garry serve (dashboard and API)");
 } finally {
   server.kill();

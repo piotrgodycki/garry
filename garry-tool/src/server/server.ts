@@ -15,6 +15,7 @@ import { serveUi } from "./static.js";
 import { ThreadManager } from "../threads/manager.js";
 import { threadRoutes } from "../threads/routes.js";
 import { readdirSync } from "node:fs";
+import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
 function setFeatureStatus(registry: string, id: string, status: string): boolean {
@@ -309,6 +310,28 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     if (await threadRoutes(req, res, path, { threads: cfg.threads!, local, json, readBody, sseHeaders })) return;
   }
 
+  // Services: add one to the registry (this machine and paired devices), remove one (this machine only)
+  if (req.method === "POST" && path === "/api/registry/services") {
+    const body = (await readBody(req)) as ServiceInput & { replace?: boolean };
+    try {
+      return json(res, 200, addService(cfg.registry, body, { replace: body.replace === true }));
+    } catch (e) {
+      if (e instanceof ServiceError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+  const delService = /^\/api\/registry\/services\/([^/]+)$/.exec(path);
+  if (req.method === "DELETE" && delService) {
+    if (!local) return json(res, 403, { error: "only this computer can remove services" });
+    try {
+      removeService(cfg.registry, decodeURIComponent(delService[1]));
+      return json(res, 200, { ok: true });
+    } catch (e) {
+      if (e instanceof ServiceError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+
   // Skills: install a local skill (upload or folder), remove one, read its instructions
   if (req.method === "POST" && path === "/api/skills/install") {
     const body = (await readBody(req)) as InstallRequest;
@@ -440,6 +463,8 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "DELETE /api/skills/:name (local skills only)",
         "POST /api/skills/propose {content | path, stage?, acknowledge?} (opens a pull request)",
         "GET /api/registry",
+        "POST /api/registry/services {name, kind, repo, owner?, stack?, exposes?, consumes?, db?, replace?}",
+        "DELETE /api/registry/services/:name (this machine only)",
         "GET /api/routing",
         "GET /api/models",
       ],

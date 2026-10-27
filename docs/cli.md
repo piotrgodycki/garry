@@ -36,7 +36,7 @@ Where the commands look when you pass no flag:
 
 | What | Inside this repository | Anywhere else |
 |---|---|---|
-| registry (`--registry`) | `garry-registry/examples/registry-sample` | `./registry` if it has a `catalog/`, else a copy of the bundled sample in `~/.garry/sample-registry` |
+| registry (`--registry`) | `./registry` if it has a `catalog/`, else `~/.garry/registry` (created empty) | the same |
 | pre-installed skills (`--skills`) | `garry-skills` | the skills bundled with the package |
 | routing (`--routing`) | `garry.routing.json` | `garry.routing.json` in the current folder (optional) |
 
@@ -50,6 +50,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 |---|---|
 | `garry feature <id>` | plan a feature through the SDLC (dry run today) |
 | `garry ws <sub> [id]` | work on all services of a feature at once (git worktrees) |
+| `garry service <sub>` | the services in the registry (`list`, `add`, `remove`) |
 | `garry scaffold [name]` | create a new microfrontend and register it |
 | `garry adopt <repo>` | derive a registry entry from an existing repo |
 | `garry sync` | put a service's contracts and generated types into `.garry/` |
@@ -81,7 +82,7 @@ pnpm garry feature FEAT-123
 
 | Option | Default | |
 |---|---|---|
-| `--registry` | the sample registry | registry root |
+| `--registry` | `./registry`, else `~/.garry/registry` | registry root |
 | `--skills` | `garry-skills` | skills repo root |
 | `--routing` | `garry.routing.json` | routing matrix |
 | `--root` or `--ws` | none | where the feature's worktrees are, so the tasks point at real directories |
@@ -108,7 +109,7 @@ Every subcommand needs the feature id, or `--ws <dir>` pointing at the workspace
 
 | Option | Default | |
 |---|---|---|
-| `--registry` | the sample registry | services and repo urls come from here |
+| `--registry` | `./registry`, else `~/.garry/registry` | services and repo urls come from here |
 | `--cache` | `~/.garry/cache` | mirror clones |
 | `--root` | `~/garry-workspaces` | workspaces root |
 | `--ws` | | an explicit workspace directory |
@@ -122,8 +123,8 @@ pnpm garry ws push FEAT-123 --yes
 pnpm garry ws pr FEAT-123
 ```
 
-The sample registry uses placeholder repo urls (`git@github.com:example/...`), so
-`ws create` only works once the manifests point at real repositories.
+`ws create` clones the repositories the manifests name, so each service needs a
+real `repo` url.
 
 `ws pr` needs a fine grained token in `.env.local` at the repository root (copy
 `.env.example`):
@@ -134,6 +135,33 @@ GARRY_GITHUB_TOKEN=github_pat_...
 
 Give it read and write access to pull requests and contents on the service
 repositories only. It is never logged.
+
+## garry service
+
+The services in the registry, one manifest each in `catalog/<name>.yaml`. Garry
+ships none: add the ones you have here or in the dashboard (Registry, Add
+service). `garry scaffold` creates the code of a new microfrontend and adds it as
+well; `garry adopt` derives the entry from an existing repository.
+
+```bash
+garry service list
+garry service add checkout --kind mfe-remote --repo git@github.com:acme/checkout.git \
+  --owner team-payments --exposes ./Checkout,./CartSummary --consumes shell:./AuthContext
+garry service remove checkout   # refused while another service consumes it
+```
+
+| Option | Default | What it does |
+|---|---|---|
+| `--kind` | (required) | `mfe-remote`, `mfe-shell` or `backend` |
+| `--repo` | (required) | the service's git repository |
+| `--owner` | `unassigned` | the owning team |
+| `--stack` | by kind | e.g. `react + vite + module-federation-2` |
+| `--exposes` | none | modules (or endpoints) it offers, comma separated |
+| `--consumes` | none | `service:a,b`, repeatable; each must be exposed by that service |
+| `--replace` | off | overwrite an existing manifest |
+
+The server takes the same as `POST /api/registry/services`; `DELETE
+/api/registry/services/:name` works from this computer only.
 
 ## garry scaffold
 

@@ -28,7 +28,6 @@ garry-ui/AGENTS.md
 
 # garry package build output (copied from the monorepo by scripts/bundle.mjs)
 /garry-tool/skills/
-/garry-tool/examples/
 *.tgz
 /garry-tool/LICENSE
 /garry-tool/ui/
@@ -37,7 +36,6 @@ garry-ui/AGENTS.md
 /garry-desktop/dist/
 /garry-desktop/ui/
 /garry-desktop/skills/
-/garry-desktop/examples/
 /garry-desktop/LICENSE
 /garry-desktop/release/
 

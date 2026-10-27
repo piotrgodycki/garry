@@ -67,6 +67,7 @@ export default function AgentView() {
   const [taskLog, setTaskLog] = useState<{ index: number; stage: string; who: string; agent: string; model: string }[]>([]);
   const [stopped, setStopped] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [noFeatures, setNoFeatures] = useState(false);
   const esRef = useRef<EventSource | null>(null);
 
   // User placed positions for the service nodes (percent of the stage box). When a
@@ -82,6 +83,7 @@ export default function AgentView() {
       .then((d) => {
         const fs = (d.features as Feature[]) ?? [];
         setFeatures(fs);
+        setNoFeatures(fs.length === 0);
         const wanted = new URLSearchParams(window.location.search).get("feature");
         const pick = fs.find((f) => f.id === wanted) ?? fs[0];
         if (pick) setSelected(pick.id);
@@ -271,7 +273,7 @@ export default function AgentView() {
     return { role: first?.agent ?? "", modelId: id, model: id ? models[id] ?? id : "" };
   };
 
-  const featureTitle = plan?.feature.title ?? (offline ? "Live agents" : "Loading feature");
+  const featureTitle = plan?.feature.title ?? (offline || noFeatures ? "Live agents" : "Loading feature");
   const statusTone = stopped ? "danger" : finished ? "ok" : busy ? "run" : "wait";
   const statusText = stopped ? "Stopped" : finished ? "Shipped" : busy ? "Running" : "Waiting";
 
@@ -302,6 +304,19 @@ export default function AgentView() {
           </>
         }
       />
+
+      {noFeatures && (
+        <div className="notice" role="status">
+          {Icon.alert}
+          <div>
+            <strong>No features yet</strong>
+            <span>
+              Capture an idea on the <Link href="/">dashboard</Link> and talk it through with Garry, or start with your services in
+              the <Link href="/registry">registry</Link>.
+            </span>
+          </div>
+        </div>
+      )}
 
       {offline && (
         <div className="notice" role="alert">
@@ -414,16 +429,10 @@ export default function AgentView() {
 
         <div className={`${styles.voice} ${busy ? styles.voiceActive : ""}`}>
           <span className={styles.halo} />
-          <div className={styles.eq}>
-            {Array.from({ length: 60 }).map((_, i) => {
-              const phase = Math.abs((i % 15) - 7);
-              return (
-                <span key={i} className={styles.eqSpoke} style={{ transform: `rotate(${(i * 360) / 60}deg) translateY(-84px)` }}>
-                  <span className={styles.eqbar} style={{ animationDelay: `${(phase * 0.05).toFixed(2)}s` }} />
-                </span>
-              );
-            })}
-          </div>
+          <span className={styles.orbit} />
+          <span className={styles.comet} />
+          <span className={styles.ripple} />
+          <span className={`${styles.ripple} ${styles.rippleLate}`} />
           <button
             className={`${styles.core} ${busy ? styles.busy : ""}`}
             onClick={() => window.dispatchEvent(new Event("garry:voice"))}
@@ -510,6 +519,8 @@ export default function AgentView() {
               </>
             ) : plan ? (
               `${plan.order.length} services in this feature`
+            ) : noFeatures ? (
+              "No features yet"
             ) : (
               "Connect the server with pnpm serve"
             )}

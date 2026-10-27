@@ -22,7 +22,7 @@ Options:
                      code is printed at start.
   --ui <dir>         the built dashboard to serve (default: garry-ui/dist, or the
                      one shipped with garry); open http://localhost:<port>
-  --registry <path>  registry root (default: the monorepo sample, ./registry or a sample copy)
+  --registry <path>  registry root (default: ./registry, else ~/.garry/registry)
   --skills <path>    skills root (default: ./garry-skills or the bundled skills)
   --routing <file>   routing matrix (default: garry.routing.json)
   --root <dir>       workspaces root, used to locate the worktrees

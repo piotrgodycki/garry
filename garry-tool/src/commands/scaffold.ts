@@ -82,7 +82,7 @@ async function promptWizard(v: Partial<ScaffoldOptions>): Promise<ScaffoldOption
     (await ask(
       p.text({
         message: "Service name",
-        placeholder: "checkout-mfe",
+        placeholder: "my-service",
         validate: (x) =>
           !x
             ? "required"

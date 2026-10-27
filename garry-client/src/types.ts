@@ -75,13 +75,32 @@ export interface SkillSummary {
   audit: { verdict: "pass" | "warn" | "fail"; counts: Record<string, number> } | null;
 }
 
+export type ServiceKind = "mfe-remote" | "mfe-shell" | "backend";
+
 export interface RegistryService {
   name: string;
+  kind?: ServiceKind;
   repo?: string;
   stack?: string;
   owner?: string;
   exposes: string[];
   consumes: Record<string, string[]>;
+}
+
+export interface NewService {
+  name: string;
+  kind: ServiceKind;
+  repo: string;
+  owner?: string;
+  stack?: string;
+  exposes?: string[];
+  consumes?: Record<string, string[]>;
+}
+
+export interface RegistryIssue {
+  level: "error" | "warn";
+  where: string;
+  message: string;
 }
 
 export interface Registry {

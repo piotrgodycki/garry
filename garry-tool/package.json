@@ -26,7 +26,6 @@
     "dist",
     "ui",
     "skills",
-    "examples",
     "README.md",
     "LICENSE"
   ],
@@ -47,7 +46,8 @@
     "serve": "tsx src/cli.ts serve",
     "test:audit": "tsx src/skills/audit.selftest.ts",
     "test:auth": "tsx src/server/auth.selftest.ts",
-    "test:threads": "tsx src/threads/threads.selftest.ts"
+    "test:threads": "tsx src/threads/threads.selftest.ts",
+    "test:services": "tsx src/registry/services.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

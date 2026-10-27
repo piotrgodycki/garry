@@ -225,8 +225,9 @@ garry-tool/                (WHO, the orchestrator, a headless core)
   templates/
     mfe-shell/         Vite plus MF host
     mfe-remote/        Vite plus MF remote plus AGENTS.md
-  examples/
-    registry-sample/   catalog and contracts for two sample microfrontends
+  testdata/
+    frontend/          the registry the tests run against (three microfrontends)
+    backend/           the same for two backend services
 
 garry-registry/            (WHAT, published as @garry/registry)
   catalog/ contracts/ features/ adr/        schema (zod) and validation
@@ -317,7 +318,7 @@ The repository ships with CI, a mandatory security review and automated code rev
 
 ### CI workflow (`.github/workflows/ci.yml`)
 
-- `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the tool packages and `pnpm -C garry-registry` validation of the mfe and backend samples plus `pnpm -C garry-skills validate`.
+- `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the tool packages and `pnpm -C garry-registry` validation of the mfe and backend test registries plus `pnpm -C garry-skills validate`.
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash, en dash, figure dash or horizontal bar is found in tracked text files, which enforces the plain ASCII punctuation rule automatically.
 - `security`: the security review as CI steps. It runs `pnpm audit` (fails on a high or critical advisory) across the workspace and a Semgrep static analysis scan. The repository is private, so CodeQL and dependency review are not used (both need paid GitHub Advanced Security on a private repository); Semgrep runs entirely inside the job with no token.
 
