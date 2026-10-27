@@ -42,6 +42,12 @@ jobs:
       # audit itself must keep catching the known attacks.
       - name: Device pairing
         run: pnpm -C garry-tool test:auth
+      # git needs an identity for the commits the test makes in its scratch repo
+      - name: Agent threads (with a stand-in for Claude Code)
+        run: |
+          git config --global user.name "garry-ci"
+          git config --global user.email "garry-ci@users.noreply.github.com"
+          pnpm -C garry-tool test:threads
       - name: Skill security audit
         run: |
           pnpm -C garry-tool test:audit

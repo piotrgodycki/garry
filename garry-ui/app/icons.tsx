@@ -14,6 +14,7 @@ export const Icon = {
   skills: svg(<path d="M13 2.5L4.5 13.5H12l-1 8 8.5-11H12l1-8z" />),
   routing: svg(<><circle cx="6" cy="6" r="2.2" /><circle cx="6" cy="18" r="2.2" /><circle cx="18" cy="12" r="2.2" /><path d="M8.2 6H11a3 3 0 013 3v0a3 3 0 003 3M8.2 18H11a3 3 0 003-3v0a3 3 0 013-3" /></>),
   prs: svg(<><circle cx="6" cy="6" r="2.2" /><circle cx="6" cy="18" r="2.2" /><circle cx="18" cy="18" r="2.2" /><path d="M6 8.2v7.6M18 15.8V9a3 3 0 00-3-3h-3.5m0 0L14 3.5M11.5 6L14 8.5" /></>),
+  code: svg(<path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5M13.5 4.5l-3 15" />),
   mic: svg(<><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></>),
   send: svg(<path d="M5 12h14M13 6l6 6-6 6" />),
   close: svg(<path d="M6 6l12 12M18 6L6 18" />),

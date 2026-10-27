@@ -57,6 +57,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry serve` | start the HTTP server the dashboard talks to |
 | `garry pair` | pair a phone or another computer (QR code) |
 | `garry devices` | list or revoke paired devices |
+| `garry projects` | the repositories agents can work on (`list`, `add <path>`) |
 | `garry shots <sub>` | screenshots for code review |
 
 ## garry feature

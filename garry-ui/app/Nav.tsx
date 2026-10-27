@@ -3,8 +3,12 @@ import { usePathname } from "./lib/router";
 import type { ReactNode } from "react";
 import { Icon } from "./icons";
 
-// Grouped by the job the human is doing: watch the work, configure Garry, review delivery.
+// Grouped by the job the human is doing: build with agents, watch the work, configure Garry, review delivery.
 const GROUPS: { label: string; links: { href: string; label: string; icon: ReactNode }[] }[] = [
+  {
+    label: "Build",
+    links: [{ href: "/build", label: "Build", icon: Icon.code }],
+  },
   {
     label: "Overview",
     links: [

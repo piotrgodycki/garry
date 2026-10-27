@@ -3,6 +3,8 @@ import { defaultRegistry, defaultSkillsRoot, defaultUiDir } from "../paths.js";
 import { renderBanner, tagline } from "../ui/banner.js";
 import { createGarryServer, type ServerConfig } from "../server/server.js";
 import { DeviceStore } from "../server/auth.js";
+import { ThreadManager } from "../threads/manager.js";
+import { existsSync } from "node:fs";
 import { advertisedHost, hostsFor, isLoopbackHost, printPairing } from "../server/pairing.js";
 
 const FLAGS = ["port", "host", "ui", "registry", "skills", "routing", "root"] as const;
@@ -57,7 +59,10 @@ export async function runServe(argv: string[]): Promise<void> {
     ui: values.ui ?? defaultUiDir(),
     // the names other devices use to reach this server
     hosts: hostsFor(host),
+    threads: new ThreadManager(),
   };
+  // the repository garry serve starts in is a project agents can work on
+  if (existsSync(".git")) cfg.threads!.store.addProject(process.cwd());
 
   console.log("\n" + renderBanner());
   console.log(tagline() + "\n");

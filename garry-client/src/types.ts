@@ -95,3 +95,51 @@ export interface PairedDevice {
   createdAt: string;
   lastSeenAt: string | null;
 }
+
+// ---- the IDE: projects and agent threads ----
+
+export interface Project {
+  id: string;
+  name: string;
+  path: string;
+}
+
+export type ThreadStatus = "running" | "idle" | "error";
+
+export interface Thread {
+  id: string;
+  projectId: string;
+  title: string;
+  status: ThreadStatus;
+  branch: string;
+  sessionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  running?: boolean;
+  commit?: string;
+  pr?: { number: number; url: string };
+}
+
+export type ThreadEvent =
+  | { type: "user"; text: string; at: string }
+  | { type: "text"; text: string; at: string }
+  | { type: "tool"; id: string; name: string; summary: string; at: string }
+  | { type: "tool_result"; id: string; ok: boolean; preview: string; at: string }
+  | { type: "turn_end"; ok: boolean; costUsd?: number; at: string }
+  | { type: "status"; status: ThreadStatus; at: string }
+  | { type: "git"; action: "commit" | "pr"; detail: string; at: string }
+  | { type: "error"; message: string; at: string };
+
+export interface FileChange {
+  path: string;
+  status: "added" | "modified" | "deleted";
+  additions: number;
+  deletions: number;
+}
+
+export interface ThreadDiff {
+  files: FileChange[];
+  patch: string;
+  /** changes not committed yet; the diff also shows committed ones */
+  uncommitted: boolean;
+}

@@ -8,6 +8,7 @@ import { runAdopt } from "./commands/adopt.js";
 import { runShots } from "./commands/shots.js";
 import { runSkills } from "./commands/skills.js";
 import { runDevices, runPair } from "./commands/pair.js";
+import { runProjects } from "./commands/projects.js";
 import { loadEnv } from "./github/env.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -23,6 +24,7 @@ Commands:
   serve      start the HTTP server (REST plus SSE) over the supervisor
   pair       pair a phone or another computer with a running server (QR code)
   devices    list or revoke paired devices
+  projects   the repositories agents can work on (list, add <path>)
   skills     list the skills, install or remove local ones
   shots      screenshots for code review: capture, compare, comment on the PR
 
@@ -55,6 +57,9 @@ async function main(): Promise<void> {
       break;
     case "devices":
       await runDevices(rest);
+      break;
+    case "projects":
+      runProjects(rest);
       break;
     case "skills":
       await runSkills(rest);

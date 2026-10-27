@@ -12,6 +12,8 @@ import Prs from "./github/page";
 import Activity from "./pipeline/[id]/page";
 import ServicePage from "./service/[name]/page";
 import Pair from "./pair/page";
+import Build from "./build/page";
+import ThreadView from "./build/thread";
 import { Empty } from "./ui";
 
 const router = createBrowserRouter([
@@ -26,6 +28,8 @@ const router = createBrowserRouter([
       { path: "/github", element: <Prs /> },
       { path: "/pipeline/:id", element: <Activity /> },
       { path: "/service/:name", element: <ServicePage /> },
+      { path: "/build", element: <Build /> },
+      { path: "/build/:id", element: <ThreadView /> },
       { path: "/pair", element: <Pair /> },
       { path: "*", element: <main className="page"><Empty>Page not found.</Empty></main> },
     ],
