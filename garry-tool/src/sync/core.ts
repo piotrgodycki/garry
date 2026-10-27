@@ -3,13 +3,21 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { readManifest, readContracts, type Contracts, type Manifest } from "./registryIO.js";
 import { computeSlice } from "./slice.js";
 import { generateContractTypes } from "./codegen.js";
+import { readStack } from "../registry/stacks.js";
 
 /** Reads the registry, computes the slice for one service and writes it into the repo. */
 export function syncService(repo: string, registry: string, service: string): string[] {
   const manifest = readManifest(registry, service);
   const contracts = readContracts(registry);
   const slice = computeSlice(manifest, contracts);
-  return writeSlice(repo, manifest, slice);
+  const written = writeSlice(repo, manifest, slice);
+  // the stack the service is built with, so its agent works in that stack
+  const stack = typeof manifest.stackRef === "string" ? readStack(registry, manifest.stackRef) : null;
+  if (stack) {
+    writeFileSync(join(repo, ".garry", "stack.json"), JSON.stringify(stack, null, 2) + "\n");
+    written.push("stack.json");
+  }
+  return written;
 }
 
 function writeSlice(repo: string, manifest: Manifest, slice: Contracts): string[] {

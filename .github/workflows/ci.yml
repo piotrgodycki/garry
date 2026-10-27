@@ -42,10 +42,11 @@ jobs:
       # audit itself must keep catching the known attacks.
       - name: Device pairing
         run: pnpm -C garry-tool test:auth
-      - name: Adding services and creating features
+      - name: Services, features and stacks
         run: |
           pnpm -C garry-tool test:services
           pnpm -C garry-tool test:features
+          pnpm -C garry-tool test:stacks
       # git needs an identity for the commits the test makes in its scratch repo
       - name: Agent threads (with a stand-in for Claude Code)
         run: |

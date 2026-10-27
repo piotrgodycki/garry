@@ -4,6 +4,8 @@ import { stringify as stringifyYaml } from "yaml";
 import { ServiceManifestSchema, type ServiceManifest } from "../../../garry-registry/src/schema.js";
 import { validateRegistry, type ValidationIssue } from "../../../garry-registry/src/validate.js";
 import { listManifests } from "../sync/registryIO.js";
+import { readStack } from "./stacks.js";
+import { stackLine } from "../../../garry-registry/src/stacks.js";
 
 /**
  * Adds services to the registry and removes them: one manifest per service in
@@ -29,6 +31,8 @@ export interface ServiceInput {
   repo?: string;
   owner?: string;
   stack?: string;
+  /** a stack from stacks/; fills stack when that is left empty */
+  stackRef?: string;
   exposes?: string[];
   /** service name to the modules (or endpoints) it uses from that service */
   consumes?: Record<string, string[]>;
@@ -70,10 +74,15 @@ export function addService(
     consumes[dep] = list(modules);
   }
 
+  const stackRef = input.stackRef?.trim() || undefined;
+  const linked = stackRef ? readStack(registry, stackRef) : null;
+  if (stackRef && !linked) throw new ServiceError(`stackRef: there is no stack ${stackRef}`, 400);
+
   const parsed = ServiceManifestSchema.safeParse({
     name,
     repo,
-    stack: input.stack?.trim() || DEFAULT_STACK[kind],
+    stack: input.stack?.trim() || (linked ? stackLine(linked) : DEFAULT_STACK[kind]),
+    stackRef,
     kind,
     owner: input.owner?.trim() || "unassigned",
     exposes: kind === "mfe-shell" ? [] : list(input.exposes),

@@ -17,6 +17,8 @@ import { threadRoutes } from "../threads/routes.js";
 import { readdirSync } from "node:fs";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
 import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
+import { StackError, listStacks, removeStack, saveStack } from "../registry/stacks.js";
+import { CATALOG, CATEGORIES, checkStack } from "../../../garry-registry/src/stacks.js";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
 function setFeatureStatus(registry: string, id: string, status: string): boolean {
@@ -333,6 +335,32 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     }
   }
 
+  // Stacks: save one (this machine and paired devices), check a draft, remove one (this machine only)
+  if (req.method === "POST" && path === "/api/stacks/check") {
+    const body = (await readBody(req)) as { technologies?: string[] };
+    return json(res, 200, { issues: checkStack(Array.isArray(body.technologies) ? body.technologies.map(String) : []) });
+  }
+  if (req.method === "POST" && path === "/api/stacks") {
+    const body = (await readBody(req)) as { replace?: boolean };
+    try {
+      return json(res, 200, saveStack(cfg.registry, body, { replace: body.replace === true }));
+    } catch (e) {
+      if (e instanceof StackError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+  const delStack = /^\/api\/stacks\/([^/]+)$/.exec(path);
+  if (req.method === "DELETE" && delStack) {
+    if (!local) return json(res, 403, { error: "only this computer can remove stacks" });
+    try {
+      removeStack(cfg.registry, decodeURIComponent(delStack[1]));
+      return json(res, 200, { ok: true });
+    } catch (e) {
+      if (e instanceof StackError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+
   // Features: create one (this machine and paired devices), remove one (this machine only)
   if (req.method === "POST" && path === "/api/features") {
     try {
@@ -489,6 +517,9 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "DELETE /api/skills/:name (local skills only)",
         "POST /api/skills/propose {content | path, stage?, acknowledge?} (opens a pull request)",
         "GET /api/registry",
+        "GET /api/stacks (the stacks, the technology catalog and its categories)",
+        "POST /api/stacks {name, description?, technologies: [{id, version?}], replace?}, POST /api/stacks/check {technologies: [id]}",
+        "DELETE /api/stacks/:name (this machine only)",
         "POST /api/registry/services {name, kind, repo, owner?, stack?, exposes?, consumes?, db?, replace?}",
         "DELETE /api/registry/services/:name (this machine only)",
         "GET /api/routing",
@@ -507,6 +538,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     });
   }
   if (path === "/api/models") return json(res, 200, { models: MODELS });
+  if (path === "/api/stacks") return json(res, 200, { stacks: listStacks(cfg.registry), catalog: CATALOG, categories: CATEGORIES });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });
   }

@@ -51,6 +51,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry feature <id>` | plan a feature through the SDLC (dry run today); `new` and `list` create and list them |
 | `garry ws <sub> [id]` | work on all services of a feature at once (git worktrees) |
 | `garry service <sub>` | the services in the registry (`list`, `add`, `remove`) |
+| `garry stack <sub>` | the tech stacks services are built with (`list`, `catalog`, `add`, `check`, `remove`) |
 | `garry scaffold [name]` | create a new microfrontend and register it |
 | `garry adopt <repo>` | derive a registry entry from an existing repo |
 | `garry sync` | put a service's contracts and generated types into `.garry/` |
@@ -170,6 +171,31 @@ garry service remove checkout   # refused while another service consumes it
 
 The server takes the same as `POST /api/registry/services`; `DELETE
 /api/registry/services/:name` works from this computer only.
+
+## garry stack
+
+The tech stacks in the registry, one per `stacks/<name>.yaml`: named sets of
+technologies your services are built with. Garry's catalog covers languages, UI
+and app frameworks, bundlers, microfrontends, runtimes, backend frameworks,
+databases, ORMs, caches, queues, storage, auth, CMSs, hosting, testing, CI and
+observability, and its rules flag what does not fit (Next.js with Vite,
+WordPress on Vercel, D1 without Workers, two runtimes). A conflict is reported,
+not refused. The dashboard's Stacks page does the same with a picker.
+
+```bash
+garry stack catalog
+garry stack check nextjs,vite,react
+garry stack add web --tech typescript,react@19,vite,module-federation,tailwind --description "Our microfrontends"
+garry service add shop --kind mfe-remote --repo git@github.com:acme/shop.git --stack-ref web
+garry stack list
+garry stack remove web          # refused while a service is built on it
+```
+
+A service with `stackRef` gets its stack line filled from the stack, the registry
+check reports a `stackRef` with no stack, and `garry sync` writes the stack to
+`.garry/stack.json` in the service's repository so its agent works in it. Server:
+`GET /api/stacks` (stacks, catalog, categories), `POST /api/stacks`, `POST
+/api/stacks/check`, `DELETE /api/stacks/:name` (this computer only).
 
 ## garry scaffold
 

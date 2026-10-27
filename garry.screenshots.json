@@ -11,6 +11,7 @@
     { "name": "dashboard", "path": "/" },
     { "name": "live-agents", "path": "/agent", "wait": 2500, "live": true },
     { "name": "registry", "path": "/registry" },
+    { "name": "stacks", "path": "/stacks" },
     { "name": "skills", "path": "/skills" },
     { "name": "routing", "path": "/routing" },
     { "name": "pull-requests", "path": "/github" },
