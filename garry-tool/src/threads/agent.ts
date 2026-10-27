@@ -97,6 +97,9 @@ export function runTurn(opts: TurnOptions, onEvent: (e: ThreadEvent) => void): R
     opts.permissionMode ?? "acceptEdits",
     "--allowedTools",
     (opts.allowedTools ?? DEFAULT_ALLOWED_TOOLS).join(","),
+    // belt and braces: even a permission mode that allows Bash cannot push or rewrite the remote
+    "--disallowedTools",
+    "Bash(git push:*),Bash(gh pr:*),Bash(git remote:*)",
     "--append-system-prompt",
     SYSTEM,
   ];

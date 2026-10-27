@@ -80,7 +80,8 @@ export function commitAll(worktree: string, message: string): string {
 
 export function remoteSlug(repo: string): { owner: string; name: string } | null {
   try {
-    const url = git(repo, ["remote", "get-url", "origin"]).trim();
+    // the url as configured (get-url would apply insteadOf rewrites)
+    const url = git(repo, ["config", "--get", "remote.origin.url"]).trim();
     const m = /github\.com[:/]([^/]+)\/([^/.]+?)(?:\.git)?$/.exec(url);
     return m ? { owner: m[1], name: m[2] } : null;
   } catch {

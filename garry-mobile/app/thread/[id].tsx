@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from "react";
-import { Linking, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Linking, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
-import type { Thread, ThreadDiff, ThreadEvent } from "garry-client";
+import type { PushPreview, Thread, ThreadDiff, ThreadEvent } from "garry-client";
 import { useConnection } from "../../lib/connection";
 import { mono, usePalette } from "../../lib/theme";
 import { Body, Button, Card, Label, Loading } from "../../lib/ui";
@@ -44,6 +44,30 @@ export default function ThreadScreen() {
     return () => ctl.abort();
   }, [client, id, refresh]);
 
+  /** Shows what will be pushed and waits for a yes (unless the project allows pushing), then Face ID. */
+  const openPr = async () => {
+    if (!client) return;
+    const c = client;
+    let preview: PushPreview;
+    try {
+      preview = await c.pushPreview(id);
+    } catch (e) {
+      return setError(String((e as Error).message ?? e));
+    }
+    if (preview.refused) return Alert.alert("Not pushed", preview.refused);
+    const go = () => void act(() => c.openPullRequest(id, undefined, undefined, true), `Push ${preview.branch}`);
+    if (preview.mode === "allow") return go();
+    const commits = preview.commits.map((c) => `• ${c.subject}`).join("\n");
+    Alert.alert(
+      "Push and open a pull request?",
+      `${preview.branch}\nto ${preview.remote ?? "?"}, into ${preview.base}${preview.draft ? " (draft)" : ""}\n\n${commits}`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Push", onPress: go },
+      ],
+    );
+  };
+
   const act = async (fn: () => Promise<unknown>, confirm?: string) => {
     if (confirm && !(await confirmWithBiometrics(confirm))) return;
     setError(null);
@@ -85,7 +109,7 @@ export default function ThreadScreen() {
           ) : (
             <View style={{ gap: 8 }}>
               <Button disabled={running || !diff?.uncommitted} onPress={() => void act(() => client.commitThread(id, ""), "Commit these changes")}>Commit</Button>
-              <Button kind="ghost" disabled={running || !thread.commit || Boolean(diff?.uncommitted)} onPress={() => void act(() => client.openPullRequest(id), "Open a pull request")}>Open pull request</Button>
+              <Button kind="ghost" disabled={running || !thread.commit || Boolean(diff?.uncommitted)} onPress={() => void openPr()}>Open pull request</Button>
             </View>
           )}
         </Card>

@@ -5,9 +5,33 @@ import { now, ThreadStore, type Thread, type ThreadEvent } from "./store.js";
 import { GitHub } from "../github/client.js";
 import { githubToken } from "../github/env.js";
 import { gitAuthArgs } from "../github/connect.js";
+import { pushRefusal } from "./settings.js";
 import { QA_LABEL, assessQa, parseDiff, qaMarkdown } from "../review/qa.js";
 
 type Listener = (e: ThreadEvent) => void;
+
+/** A push that waits for a person's yes (the project asks before pushing), or that is refused. */
+export class PushError extends Error {
+  constructor(
+    message: string,
+    readonly status: 403 | 428,
+  ) {
+    super(message);
+  }
+}
+
+/** What a push would do, shown before a person says yes. */
+export interface PushPreview {
+  branch: string;
+  /** owner/name on GitHub, null when the project has no GitHub remote */
+  remote: string | null;
+  base: string;
+  commits: { sha: string; subject: string }[];
+  mode: "ask" | "allow" | "never";
+  draft: boolean;
+  /** why the push would be refused, if it would */
+  refused: string | null;
+}
 
 const slug = (s: string) =>
   s
@@ -51,7 +75,7 @@ export class ThreadManager {
     if (!prompt.trim()) throw new Error("the prompt is empty");
     const id = this.store.newId();
     const name = (title?.trim() || prompt.trim().split("\n")[0]).slice(0, 80);
-    const branch = `garry/${slug(name)}-${id}`;
+    const branch = `${this.store.settings(projectId).branchPrefix}${slug(name)}-${id}`;
     const worktree = join(this.store.root, "worktrees", id);
     const baseSha = addWorktree(project.path, worktree, branch);
     const t = this.store.save({
@@ -115,23 +139,49 @@ export class ThreadManager {
     return t;
   }
 
-  /** Pushes the thread's branch and opens a pull request (needs GARRY_GITHUB_TOKEN). */
-  async openPr(threadId: string, title?: string, body?: string): Promise<Thread> {
+  /** What pushing this thread would do: the branch, where it goes, the commits, and whether it is allowed. */
+  async pushPreview(threadId: string): Promise<PushPreview> {
+    const t = this.mustGet(threadId);
+    const settings = this.store.settings(t.projectId);
+    const slug = remoteSlug(this.store.project(t.projectId)!.path);
+    const token = githubToken();
+    const base = settings.baseBranch || (slug && token ? await new GitHub(token).defaultBranch(slug.owner, slug.name).catch(() => "") : "") || "the default branch";
+    const commits = git(t.worktree, ["log", "--format=%h%x09%s", `${t.baseSha}..HEAD`])
+      .split("\n")
+      .filter(Boolean)
+      .map((l) => ({ sha: l.split("\t")[0], subject: l.split("\t").slice(1).join("\t") }));
+    return { branch: t.branch, remote: slug ? `${slug.owner}/${slug.name}` : null, base, commits, mode: settings.push, draft: settings.draftPr, refused: pushRefusal(settings, t.branch, base) };
+  }
+
+  /**
+   * Pushes the thread's branch and opens a pull request. The project's
+   * settings decide: never pushes, asks first (confirmed must be true, after
+   * the person saw the preview), and never to a protected branch or the base.
+   * Never forced: a push GitHub would have to overwrite fails.
+   */
+  async openPr(threadId: string, title?: string, body?: string, confirmed = false): Promise<Thread> {
     const t = this.mustGet(threadId);
     const project = this.store.project(t.projectId)!;
+    const settings = this.store.settings(t.projectId);
+    if (settings.push === "never") throw new PushError(pushRefusal(settings, t.branch, "")!, 403);
     const slug = remoteSlug(project.path);
     if (!slug) throw new Error("the project has no GitHub origin remote");
     const token = githubToken();
     if (!token) throw new Error("connect GitHub first (Build, Import from GitHub) or set GARRY_GITHUB_TOKEN in .env.local");
+    if (this.running.has(threadId)) throw new Error("wait for the agent to finish");
     if (git(t.worktree, ["status", "--porcelain"]).trim()) throw new Error("commit the changes first");
-    // the token authenticates this one push; it is never written into the repository
-    git(t.worktree, [...gitAuthArgs(token), "push", "--set-upstream", "origin", t.branch]);
     const gh = new GitHub(token);
-    const base = await gh.defaultBranch(slug.owner, slug.name);
+    const base = settings.baseBranch || (await gh.defaultBranch(slug.owner, slug.name));
+    const refused = pushRefusal(settings, t.branch, base);
+    if (refused) throw new PushError(refused, 403);
+    if (settings.push === "ask" && !confirmed) throw new PushError(`this project asks before pushing: confirm pushing ${t.branch} to ${slug.owner}/${slug.name}`, 428);
+    // the token authenticates this one push; it is never written into the repository.
+    // An explicit refspec: only this branch, to the branch of the same name.
+    git(t.worktree, [...gitAuthArgs(token), "push", "--set-upstream", "origin", `refs/heads/${t.branch}:refs/heads/${t.branch}`]);
     // what a person has to try before this ships: a label and a checklist in the body
     const qa = assessQa(parseDiff(git(t.worktree, ["diff", "--no-color", `${t.baseSha}...HEAD`])));
     const text = [body ?? `Built with Garry in thread ${t.id}.`, qaMarkdown(qa)].join("\n\n");
-    t.pr = await gh.openPr(slug.owner, slug.name, t.branch, base, title?.trim() || t.title, text);
+    t.pr = await gh.openPr(slug.owner, slug.name, t.branch, base, title?.trim() || t.title, text, settings.draftPr);
     if (qa.needed) await gh.setLabel(slug.owner, slug.name, t.pr.number, QA_LABEL, true, "f97316", "Someone has to try this before it ships").catch(() => undefined);
     this.store.save(t);
     this.emit(t.id, { type: "git", action: "pr", detail: t.pr.url, at: now() });

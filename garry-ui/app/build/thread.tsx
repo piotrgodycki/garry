@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
-import type { Thread, ThreadDiff, ThreadEvent } from "garry-client";
+import type { PushPreview, Thread, ThreadDiff, ThreadEvent } from "garry-client";
 import { client } from "../lib/client";
 import { confirmAction } from "../lib/desktop";
 import { PageHeader, Skeleton } from "../ui";
@@ -57,6 +57,7 @@ export default function ThreadView() {
   const [commitMsg, setCommitMsg] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [push, setPush] = useState<PushPreview | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const filesRef = useRef<HTMLElement>(null);
   // a changed file picked in Changes opens in Files
@@ -194,10 +195,68 @@ export default function ThreadView() {
                   <button className="btn btnPrimary" disabled={running || busy || !diff?.uncommitted} onClick={() => void act(() => client.commitThread(id, commitMsg), "commit these changes")}>
                     Commit
                   </button>
-                  <button className="btn btnGhost" disabled={running || busy || !thread.commit || Boolean(diff?.uncommitted)} onClick={() => void act(() => client.openPullRequest(id), "open a pull request")}>
+                  <button
+                    className="btn btnGhost"
+                    disabled={running || busy || !thread.commit || Boolean(diff?.uncommitted) || Boolean(push)}
+                    onClick={() =>
+                      void act(async () => {
+                        const p = await client.pushPreview(id);
+                        // the project allows pushing without asking: go ahead
+                        if (p.mode !== "allow" || p.refused) return setPush(p);
+                        if (await confirmAction("open a pull request")) await client.openPullRequest(id);
+                      })
+                    }
+                  >
                     Open pull request
                   </button>
                 </div>
+                {push && (
+                  <div className={styles.pushBox} role="dialog" aria-label="Confirm the push">
+                    {push.refused ? (
+                      <span className="badge danger">{push.refused}</span>
+                    ) : (
+                      <span className="eyebrow">This project asks before pushing</span>
+                    )}
+                    <dl className={styles.pushFacts}>
+                      <dt>Branch</dt>
+                      <dd>{push.branch}</dd>
+                      <dt>To</dt>
+                      <dd>{push.remote ?? "no GitHub remote"}</dd>
+                      <dt>Pull request into</dt>
+                      <dd>
+                        {push.base}
+                        {push.draft ? " (draft)" : ""}
+                      </dd>
+                      <dt>Commits</dt>
+                      <dd>
+                        {push.commits.map((c) => (
+                          <div key={c.sha}>
+                            <code>{c.sha}</code> {c.subject}
+                          </div>
+                        ))}
+                      </dd>
+                    </dl>
+                    <div className={styles.row}>
+                      {!push.refused && (
+                        <button
+                          className="btn btnPrimary"
+                          disabled={busy}
+                          onClick={() =>
+                            void act(async () => {
+                              await client.openPullRequest(id, undefined, undefined, true);
+                              setPush(null);
+                            }, `push ${push.branch} to ${push.remote}`)
+                          }
+                        >
+                          Push and open pull request
+                        </button>
+                      )}
+                      <button className="btn" onClick={() => setPush(null)}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

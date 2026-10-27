@@ -61,7 +61,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry serve` | start the HTTP server the dashboard talks to |
 | `garry pair` | pair a phone or another computer (QR code) |
 | `garry devices` | list or revoke paired devices |
-| `garry projects` | the repositories agents can work on (`list`, `add <path>`, `import <owner/name>`) |
+| `garry projects` | the repositories agents can work on (`list`, `add <path>`, `import <owner/name>`, `settings <project>`) |
 | `garry github <sub>` | connect GitHub (`status`, `login [--token]`, `logout`, `repos [query]`) |
 | `garry shots <sub>` | screenshots for code review |
 | `garry qa` | does a change need a person to try it (label and checklist on the PR) |
@@ -402,6 +402,29 @@ The dashboard does the same on the Build page (Import from GitHub), on this
 computer only: a paired phone cannot connect GitHub or import. Pushes and clones
 pass the token to git for that one command; it is never written into a
 repository's config.
+
+### Pushing: per project
+
+Agents never push: they have no push tool, and `git push`, `gh pr` and
+`git remote` are blocked for them. A push happens only when you open a pull
+request from Garry, and each project decides how:
+
+| Setting | Default | |
+|---|---|---|
+| push | `ask` | `ask`: Garry shows the branch, the remote, the base and the commits and waits for your yes (Touch ID or Face ID in the apps); `allow`: opening a PR pushes straight away; `never`: nothing leaves this computer |
+| base branch | the repository's default | where pull requests go |
+| branch prefix | `garry/` | new work: `garry/<what>-<id>` |
+| protected branches | `main, master, develop, release/*` | never pushed to, even with a yes |
+| draft PRs | off | open pull requests as drafts |
+
+Pushes are never forced and push only the thread's own branch. Change the
+settings on the Build page (Push and branch settings, this computer only) or:
+
+```bash
+garry projects settings shop                          # show
+garry projects settings shop --push never
+garry projects settings shop --base develop --draft true --protect "main,prod/*"
+```
 
 ## garry serve
 

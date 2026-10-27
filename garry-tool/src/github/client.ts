@@ -141,8 +141,8 @@ export class GitHub {
   }
 
   /** Opens a pull request ready for review (not a draft), so review workflows run at once. */
-  async openPr(owner: string, name: string, head: string, base: string, title: string, body: string): Promise<{ number: number; url: string }> {
-    const pr = await this.api<GhPr>("POST", `/repos/${owner}/${name}/pulls`, { title, head, base, body, draft: false });
+  async openPr(owner: string, name: string, head: string, base: string, title: string, body: string, draft = false): Promise<{ number: number; url: string }> {
+    const pr = await this.api<GhPr>("POST", `/repos/${owner}/${name}/pulls`, { title, head, base, body, draft });
     return { number: pr.number, url: pr.html_url };
   }
 
