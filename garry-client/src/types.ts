@@ -130,6 +130,8 @@ export interface CatalogTech {
   category: string;
   requires?: string[][];
   conflicts?: string[];
+  /** for rendering and performance: where it happens */
+  side?: "server" | "client";
   note?: string;
 }
 
