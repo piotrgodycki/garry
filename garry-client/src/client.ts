@@ -1,4 +1,4 @@
-import type { ArchIssue, Architecture, ArchitectureState, Feature, FileContent, FileEntry, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -105,6 +105,9 @@ export class GarryClient {
   /** The architecture board, every block Garry offers, your services as blocks, and what does not fit. */
   architecture = () => this.request<ArchitectureState>("/api/architecture");
   saveArchitecture = (a: Architecture) => this.post<{ architecture: Architecture; issues: ArchIssue[] }>("/api/architecture", a);
+  /** Quick fixes from the rules; with ai, Garry's own suggestions too (Claude Code on the computer running Garry; can take a minute). */
+  suggestArchitecture = (board: Architecture, goal = "", ai = false) =>
+    this.post<{ quickFixes: ArchSuggestion[]; summary?: string; suggestions?: ArchSuggestion[]; error?: string }>("/api/architecture/suggest", { board, goal, ai });
   checkArchitecture = (a: Architecture) => this.post<{ issues: ArchIssue[] }>("/api/architecture/check", a).then((r) => r.issues);
   /** The stacks, Garry's technology catalog and its categories. */
   stacks = () => this.request<Stacks>("/api/stacks");

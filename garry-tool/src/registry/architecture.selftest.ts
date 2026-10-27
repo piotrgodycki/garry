@@ -10,6 +10,8 @@ import type { AddressInfo } from "node:net";
 import { CAPABILITIES, COMPONENTS, PROVIDERS, checkArchitecture, type Architecture } from "../../../garry-registry/src/architecture.js";
 import { validateRegistry } from "../../../garry-registry/src/validate.js";
 import { ArchitectureError, readArchitecture, saveArchitecture } from "./architecture.js";
+import { aiSuggestions, quickFixes } from "../architecture/suggest.js";
+import { fileURLToPath } from "node:url";
 import { addService } from "./services.js";
 import { createGarryServer } from "../server/server.js";
 import { DeviceStore } from "../server/auth.js";
@@ -58,6 +60,22 @@ expect("on Workers it can", !levels(onWorkers, services).some((m) => m.startsWit
 expect("a backend with a database needs one", levels({ nodes: [n("o", "service:orders"), n("w", "cf-workers")], edges: [{ from: "o", to: "w", capability: "compute" }] }, services).some((m) => m.includes("needs SQL database")));
 expect("a shell needs its microfrontends", levels({ nodes: [n("s", "service:shell")], edges: [] }, services).some((m) => m.includes("needs microfrontend module")));
 expect("registry services missing from the board are noted", levels({ nodes: [], edges: [] }, services).filter((m) => m.startsWith("info:")).length === 3);
+
+// suggestions: quick fixes from the rules
+const fixes = quickFixes({ nodes: [n("w", "cf-workers"), n("wp", "wordpress"), n("pg", "postgres")], edges: [] }, []);
+expect("an open need on the board gets a link to what is already there", fixes.some((f) => f.links[0]?.from === "wp" && f.links[0]?.to === "pg" && f.add.length === 0));
+const svcFixes = quickFixes({ nodes: [n("o", "service:orders"), n("w", "cf-workers")], edges: [{ from: "o", to: "w", capability: "compute" }] }, services);
+expect("a service on Workers is offered D1 first", svcFixes[0]?.add[0]?.block === "cf-d1", svcFixes.map((f) => f.title).join(" | "));
+expect("binding-only blocks are not offered off their platform", !quickFixes({ nodes: [n("o", "service:orders"), n("l", "aws-lambda")], edges: [{ from: "o", to: "l", capability: "compute" }] }, services).some((f) => f.add[0]?.block === "cf-d1"));
+
+const cdnFixes = quickFixes({ nodes: [n("cdn", "cf-cdn"), n("cdn2", "aws-cloudfront")], edges: [] }, []);
+expect("a CDN is not offered another CDN as its origin", !cdnFixes.some((f) => ["cdn", "cdn2"].includes(f.links[0]?.to ?? "") || ["cf-cdn", "aws-cloudfront"].includes(f.add[0]?.block ?? "")), cdnFixes.map((f) => f.title).join(" | "));
+
+// suggestions from Garry (a stand-in for claude)
+process.env.GARRY_CLAUDE_BIN = fileURLToPath(new URL("../architecture/fake-claude-architect.mjs", import.meta.url));
+const ai = await aiSuggestions({ nodes: [n("o", "service:orders")], edges: [] }, services, "a shop");
+expect("Garry's answer is parsed from the claude envelope", ai.summary.startsWith("Add a database") && ai.suggestions[0]?.add[0]?.block === "neon");
+expect("suggestions with blocks that do not exist are dropped", ai.suggestions.length === 1);
 
 // storage
 const registry = mkdtempSync(join(tmpdir(), "garry-arch-"));

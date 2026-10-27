@@ -17,7 +17,7 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import type { ArchBlock, ArchIssue, Architecture, ArchitectureState } from "garry-client";
+import type { ArchBlock, ArchIssue, ArchSuggestion, Architecture, ArchitectureState } from "garry-client";
 import { client } from "../lib/client";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./architecture.module.css";
@@ -136,6 +136,52 @@ function Board({ state }: { state: ArchitectureState }) {
   ]
     .map((g) => ({ ...g, items: g.items.filter((b) => !q || b.name.toLowerCase().includes(q) || b.provides.some((c) => c.includes(q))) }))
     .filter((g) => g.items.length);
+  // suggestions: quick fixes follow the board; Garry's own come on request
+  const [fixes, setFixes] = useState<ArchSuggestion[]>([]);
+  const [goal, setGoal] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [garry, setGarry] = useState<{ summary?: string; suggestions: ArchSuggestion[]; error?: string } | null>(null);
+  useEffect(() => {
+    const t = setTimeout(() => void client.suggestArchitecture(JSON.parse(board) as Architecture).then((r) => setFixes(r.quickFixes), () => undefined), 400);
+    return () => clearTimeout(t);
+  }, [board]);
+  const ask = async () => {
+    setAsking(true);
+    setGarry(null);
+    try {
+      const r = await client.suggestArchitecture(JSON.parse(board) as Architecture, goal, true);
+      setGarry({ summary: r.summary, suggestions: r.suggestions ?? [], error: r.error });
+    } catch (e) {
+      setGarry({ suggestions: [], error: String((e as Error).message ?? e) });
+    } finally {
+      setAsking(false);
+    }
+  };
+  // add a suggestion's blocks next to the block it is about, then its links
+  const apply = (sg: ArchSuggestion) => {
+    const anchor = nodes.find((x) => sg.links.some((l) => l.from === x.id || l.to === x.id));
+    const base = anchor ? { x: anchor.position.x + 360, y: anchor.position.y } : flow.screenToFlowPosition({ x: 400, y: 300 });
+    const made = sg.add.map((a, i) => ({ id: `${a.block.replace(/[^A-Za-z0-9_-]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`, block: blocks.get(a.block), label: a.label, i }));
+    const ref = (id: string) => (id.startsWith("new:") ? made[Number(id.slice(4))]?.id : id);
+    setNodes((ns) => [...ns, ...made.filter((m) => m.block).map((m) => ({ id: m.id, type: "block" as const, position: { x: base.x, y: base.y + m.i * 160 }, data: { block: m.block!, label: m.label, caps: state.capabilities } }))]);
+    setEdges((es) =>
+      sg.links.reduce((acc, l) => {
+        const from = ref(l.from);
+        const to = ref(l.to);
+        return from && to ? addEdge({ id: `${from}>${to}:${l.capability}`, source: from, target: to, sourceHandle: l.capability, targetHandle: l.capability, label: state.capabilities[l.capability] ?? l.capability }, acc) : acc;
+      }, es),
+    );
+  };
+  const card = (sg: ArchSuggestion, k: number) => (
+    <div key={`${sg.title}${k}`} className={styles.suggestion}>
+      <span className={styles.suggestionTitle}>{sg.title}</span>
+      {sg.why && <span className={styles.suggestionWhy}>{sg.why}</span>}
+      <button className="btn btnSm" onClick={() => apply(sg)}>
+        Add to the board
+      </button>
+    </div>
+  );
+
   const shown = issues.filter((i) => i.level !== "info");
   const notes = issues.filter((i) => i.level === "info");
 
@@ -199,6 +245,28 @@ function Board({ state }: { state: ArchitectureState }) {
             {i.message}
           </p>
         ))}
+
+        {fixes.length > 0 && (
+          <>
+            <span className="eyebrow">Quick fixes</span>
+            {fixes.slice(0, 6).map(card)}
+          </>
+        )}
+
+        <span className="eyebrow">Ask Garry</span>
+        <textarea
+          className={`input ${styles.goal}`}
+          placeholder="What is it for? e.g. a shop for 10k users a day, on Cloudflare, cheap to run"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+        />
+        <button className="btn btnPrimary btnSm" disabled={asking} onClick={() => void ask()}>
+          {asking ? "Garry is thinking…" : "Suggest"}
+        </button>
+        {garry?.error && <p className={styles.issue}><span className="badge danger">could not ask</span> {garry.error}</p>}
+        {garry?.summary && <p className={styles.issue}>{garry.summary}</p>}
+        {garry?.suggestions.map(card)}
+        {garry && !garry.error && garry.suggestions.length === 0 && <p className={styles.hint}>Nothing to add: Garry is happy with it.</p>}
       </aside>
     </div>
   );

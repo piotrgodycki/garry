@@ -158,3 +158,24 @@
     height: 520px;
   }
 }
+.suggestion {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px dashed var(--border-strong);
+  justify-items: start;
+}
+.suggestionTitle {
+  font-weight: 650;
+  font-size: 13px;
+}
+.suggestionWhy {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.goal {
+  min-height: 70px;
+  resize: vertical;
+  font: inherit;
+  font-size: 13px;
+}

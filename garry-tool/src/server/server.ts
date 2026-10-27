@@ -20,8 +20,10 @@ import { readdirSync } from "node:fs";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
 import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
 import { StackError, listStacks, removeStack, saveStack } from "../registry/stacks.js";
-import { ArchitectureError, architectureState, checkDraft, saveArchitecture } from "../registry/architecture.js";
-import { CAPABILITIES, COMPONENTS, PROVIDERS } from "../../../garry-registry/src/architecture.js";
+import { ArchitectureError, architectureState, checkDraft, readArchitecture, saveArchitecture } from "../registry/architecture.js";
+import { ArchitectureSchema, CAPABILITIES, COMPONENTS, PROVIDERS } from "../../../garry-registry/src/architecture.js";
+import { aiSuggestions, quickFixes } from "../architecture/suggest.js";
+import { resolveRouting, routeFor } from "../orchestrate/routing.js";
 import { CATALOG, CATEGORIES, checkStack } from "../../../garry-registry/src/stacks.js";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
@@ -346,6 +348,22 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     }
   }
 
+  // Suggestions for the board: quick fixes from the rules, and with ai Garry's own (Claude Code on this computer)
+  if (req.method === "POST" && path === "/api/architecture/suggest") {
+    const body = (await readBody(req)) as { goal?: string; ai?: boolean; board?: unknown };
+    const parsed = ArchitectureSchema.safeParse(body.board ?? readArchitecture(cfg.registry));
+    if (!parsed.success) return json(res, 400, { error: "board: not a valid architecture" });
+    const services = listManifests(cfg.registry).map((m) => ({ name: m.name, kind: m.kind as string | undefined, db: m.db }));
+    const fixes = quickFixes(parsed.data, services);
+    if (!body.ai) return json(res, 200, { quickFixes: fixes });
+    try {
+      const model = routeFor(resolveRouting(cfg.routing, undefined, { registry: cfg.registry }), "design").model;
+      return json(res, 200, { quickFixes: fixes, ...(await aiSuggestions(parsed.data, services, String(body.goal ?? ""), { model })) });
+    } catch (e) {
+      return json(res, 502, { quickFixes: fixes, error: String((e as Error).message ?? e) });
+    }
+  }
+
   // The architecture board: save it (this machine and paired devices), check a draft
   if (req.method === "POST" && (path === "/api/architecture" || path === "/api/architecture/check")) {
     const body = await readBody(req);
@@ -564,6 +582,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "GET /api/registry",
         "GET /api/stacks (the stacks, the technology catalog and its categories)",
         "GET /api/architecture (the board, the blocks, what does not fit), POST /api/architecture {nodes, edges}, POST /api/architecture/check",
+        "POST /api/architecture/suggest {goal?, ai?, board?} (quick fixes; with ai, Garry's suggestions from Claude Code)",
         "POST /api/stacks {name, description?, technologies: [{id, version?}], replace?}, POST /api/stacks/check {technologies: [id]}",
         "DELETE /api/stacks/:name (this machine only)",
         "POST /api/registry/services {name, kind, repo, owner?, stack?, exposes?, consumes?, db?, replace?}",
