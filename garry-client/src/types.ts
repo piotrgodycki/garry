@@ -87,6 +87,24 @@ export interface RegistryService {
   consumes: Record<string, string[]>;
 }
 
+/** One entry of a worktree folder (files are opened and edited on the computer running Garry only). */
+export interface FileEntry {
+  name: string;
+  path: string;
+  type: "dir" | "file";
+  size?: number;
+}
+
+export interface FileContent {
+  path: string;
+  /** null for a binary or too large file */
+  content: string | null;
+  size: number;
+  /** what was on disk when read; sent back on save */
+  sha: string;
+  reason?: "binary" | "too large";
+}
+
 export interface NewFeature {
   title: string;
   /** what it should do and why; becomes the Goal section */

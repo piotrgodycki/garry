@@ -75,7 +75,11 @@ works on it:
 - you follow the agent live: what it reads, edits and runs, and its answers; you
   reply to steer it, or stop it;
 - the diff shows everything it changed; **Commit**, then **Open pull request**
-  (CI, the AI review and screenshots take it from there).
+  (CI, the AI review and screenshots take it from there);
+- **Files** browses the worktree and lets you change any file by hand in a code
+  editor (Cmd/Ctrl+S saves); your edits land in the same diff. It is read only
+  while the agent works, and a file the agent changed since you opened it is
+  not overwritten. Files open on this computer only, never on a paired phone.
 
 The agent is [Claude Code](https://docs.claude.com/en/docs/claude-code) on your
 own Claude plan, run on the computer that runs Garry: install it and sign in once
@@ -86,7 +90,7 @@ now (approving commands is the next step).
 Projects are git repositories on that computer: `garry serve` adds the one it
 starts in, the desktop app adds the folder you open, and `garry projects add
 <path>` adds others. Your phone can start and steer work once it is paired, but
-only this computer can add folders or discard work.
+only this computer can add folders, open and edit files, or discard work.
 
 ## Platforms
 
