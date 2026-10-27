@@ -19,13 +19,6 @@
         "NSFaceIDUsageDescription": "Garry uses Face ID to unlock the app and to confirm commits, pull requests and new work."
       }
     },
-    "android": {
-      "package": "dev.garry.mobile",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#ffffff"
-      }
-    },
     "web": {
       "bundler": "metro",
       "output": "single"
@@ -48,14 +41,6 @@
         "expo-camera",
         {
           "cameraPermission": "Garry uses the camera to scan the pairing QR code from your computer."
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "usesCleartextTraffic": true
-          }
         }
       ]
     ]

@@ -1,16 +1,16 @@
 name: Desktop
 
-# The Garry desktop app (garry-desktop, Electron) for macOS, Windows and Linux.
+# The Garry desktop app (garry-desktop, Electron). Installers ship for macOS only
+# for now (Windows and Linux: https://github.com/piotrgodycki/garry/issues/19).
 #
 # - Pull requests that touch the app, the server or the dashboard: build the
 #   Linux app and start it under a virtual display (the dashboard must load and
 #   the built-in server must answer). Cheap: Linux only.
 # - Release (called by release.yml after an npm release, or run by hand): build
-#   the installers on each operating system and attach them to the GitHub
-#   release v<version>, or upload them as a workflow artifact for a manual run.
+#   the macOS installers and attach them to the GitHub release v<version>, or upload them as a workflow artifact for a manual run.
 #
 # The installers are unsigned until signing secrets exist: CSC_LINK and
-# CSC_KEY_PASSWORD (a code signing certificate, macOS and Windows), plus
+# CSC_KEY_PASSWORD (a Developer ID certificate), plus
 # APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD and APPLE_TEAM_ID for macOS notarization.
 on:
   pull_request:
@@ -77,10 +77,6 @@ jobs:
         include:
           - os: macos-latest
             args: --mac --arm64 --x64
-          - os: windows-latest
-            args: --win --x64
-          - os: ubuntu-latest
-            args: --linux --x64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
     permissions:
@@ -128,9 +124,6 @@ jobs:
           path: |
             garry-desktop/release/*.dmg
             garry-desktop/release/*.zip
-            garry-desktop/release/*.exe
-            garry-desktop/release/*.AppImage
-            garry-desktop/release/*.deb
           if-no-files-found: error
           retention-days: 30
       - name: Attach to the release
@@ -142,4 +135,4 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: |
           shopt -s nullglob
-          gh release upload "$TAG" garry-desktop/release/*.{dmg,zip,exe,AppImage,deb} --clobber
+          gh release upload "$TAG" garry-desktop/release/*.{dmg,zip} --clobber
