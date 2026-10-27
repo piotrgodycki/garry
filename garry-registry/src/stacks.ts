@@ -17,6 +17,7 @@ export interface Category {
 export const CATEGORIES: Category[] = [
   { id: "language", label: "Language" },
   { id: "frontend", label: "UI framework", single: true },
+  { id: "state", label: "State and data fetching" },
   { id: "meta", label: "App framework", single: true },
   { id: "bundler", label: "Bundler", single: true },
   { id: "federation", label: "Microfrontends", single: true },
@@ -29,10 +30,13 @@ export const CATEGORIES: Category[] = [
   { id: "cache", label: "Cache" },
   { id: "queue", label: "Queue and events" },
   { id: "storage", label: "File storage" },
+  { id: "cdn", label: "CDN" },
   { id: "auth", label: "Auth", single: true },
   { id: "cms", label: "CMS", single: true },
   { id: "hosting", label: "Hosting" },
-  { id: "testing", label: "Testing" },
+  { id: "rendering", label: "Rendering (server and client)" },
+  { id: "performance", label: "Performance (server and client)" },
+  { id: "testing", label: "Testing and quality" },
   { id: "ci", label: "CI", single: true },
   { id: "observability", label: "Observability" },
 ];
@@ -45,9 +49,14 @@ export interface Tech {
   requires?: string[][];
   /** does not work together with these */
   conflicts?: string[];
+  /** for rendering and performance: where it happens */
+  side?: "server" | "client";
   note?: string;
 }
 
+const UI = ["react", "preact", "vue", "svelte", "solid", "angular"];
+const EDGE = ["workers", "vercel", "cloudflare", "netlify", "deno"];
+const CDNS = ["cf-cdn", "cloudfront", "fastly", "akamai", "bunny", "vercel", "cloudflare", "netlify"];
 const SQL = ["postgres", "mysql", "mariadb", "sqlite", "d1", "neon", "supabase"];
 
 export const CATALOG: Tech[] = [
@@ -58,12 +67,26 @@ export const CATALOG: Tech[] = [
   { id: "go", name: "Go", category: "language" },
   { id: "php", name: "PHP", category: "language" },
   { id: "rust", name: "Rust", category: "language" },
+  { id: "java", name: "Java", category: "language" },
+  { id: "kotlin", name: "Kotlin", category: "language" },
   // UI
   { id: "react", name: "React", category: "frontend" },
   { id: "vue", name: "Vue", category: "frontend" },
   { id: "svelte", name: "Svelte", category: "frontend" },
   { id: "angular", name: "Angular", category: "frontend", requires: [["typescript"]] },
   { id: "solid", name: "SolidJS", category: "frontend" },
+  { id: "preact", name: "Preact", category: "frontend" },
+  // state and data fetching
+  { id: "zustand", name: "Zustand", category: "state", requires: [["react", "preact"]] },
+  { id: "redux", name: "Redux Toolkit", category: "state" },
+  { id: "jotai", name: "Jotai", category: "state", requires: [["react", "preact"]] },
+  { id: "mobx", name: "MobX", category: "state" },
+  { id: "pinia", name: "Pinia", category: "state", requires: [["vue"]] },
+  { id: "signals", name: "Preact Signals", category: "state", requires: [["preact", "react"]] },
+  { id: "xstate", name: "XState", category: "state" },
+  { id: "nanostores", name: "Nano Stores", category: "state" },
+  { id: "tanstack-query", name: "TanStack Query", category: "state", requires: [UI] },
+  { id: "swr", name: "SWR", category: "state", requires: [["react", "preact"]] },
   // app frameworks
   { id: "nextjs", name: "Next.js", category: "meta", requires: [["react"]], conflicts: ["vite", "module-federation"], note: "brings its own bundler; Module Federation is not supported" },
   { id: "react-router", name: "React Router (framework)", category: "meta", requires: [["react"]] },
@@ -89,6 +112,7 @@ export const CATALOG: Tech[] = [
   { id: "workers", name: "Cloudflare Workers", category: "runtime", note: "V8 isolates: no native Node modules, no TCP servers" },
   { id: "php-fpm", name: "PHP-FPM", category: "runtime", requires: [["php"]] },
   { id: "python-runtime", name: "CPython", category: "runtime", requires: [["python"]] },
+  { id: "jvm", name: "JVM", category: "runtime", requires: [["java", "kotlin"]] },
   // backend frameworks
   { id: "fastify", name: "Fastify", category: "backend", requires: [["node", "bun"]] },
   { id: "express", name: "Express", category: "backend", requires: [["node", "bun"]] },
@@ -97,6 +121,8 @@ export const CATALOG: Tech[] = [
   { id: "fastapi", name: "FastAPI", category: "backend", requires: [["python"]] },
   { id: "django", name: "Django", category: "backend", requires: [["python"]] },
   { id: "laravel", name: "Laravel", category: "backend", requires: [["php"]] },
+  { id: "spring-boot", name: "Spring Boot", category: "backend", requires: [["jvm"]] },
+  { id: "quarkus", name: "Quarkus", category: "backend", requires: [["jvm"]] },
   // API style
   { id: "rest", name: "REST (OpenAPI)", category: "api" },
   { id: "graphql", name: "GraphQL", category: "api" },
@@ -134,6 +160,12 @@ export const CATALOG: Tech[] = [
   { id: "s3", name: "Amazon S3", category: "storage" },
   { id: "r2", name: "Cloudflare R2", category: "storage" },
   { id: "vercel-blob", name: "Vercel Blob", category: "storage" },
+  // CDN
+  { id: "cf-cdn", name: "Cloudflare CDN", category: "cdn" },
+  { id: "cloudfront", name: "Amazon CloudFront", category: "cdn" },
+  { id: "fastly", name: "Fastly", category: "cdn" },
+  { id: "akamai", name: "Akamai", category: "cdn" },
+  { id: "bunny", name: "Bunny CDN", category: "cdn" },
   // auth
   { id: "authjs", name: "Auth.js", category: "auth" },
   { id: "clerk", name: "Clerk", category: "auth" },
@@ -146,6 +178,9 @@ export const CATALOG: Tech[] = [
   { id: "payload", name: "Payload", category: "cms", requires: [["node"]] },
   { id: "sanity", name: "Sanity", category: "cms" },
   { id: "contentful", name: "Contentful", category: "cms" },
+  { id: "hygraph", name: "Hygraph", category: "cms", note: "headless, GraphQL first" },
+  { id: "aem", name: "Adobe Experience Manager", category: "cms", requires: [["java"]], note: "AEM as a Cloud Service or on premise; Java (Sling, OSGi) components" },
+  { id: "eds", name: "Adobe Edge Delivery Services", category: "cms", note: "document based authoring, served from Adobe's edge; plain JS and CSS blocks" },
   // hosting
   { id: "vercel", name: "Vercel", category: "hosting" },
   { id: "cloudflare", name: "Cloudflare Pages", category: "hosting" },
@@ -155,15 +190,51 @@ export const CATALOG: Tech[] = [
   { id: "fly", name: "Fly.io", category: "hosting" },
   { id: "kubernetes", name: "Kubernetes", category: "hosting" },
   { id: "vps", name: "VPS (Docker)", category: "hosting" },
-  // testing
+  // rendering
+  { id: "csr", name: "Client-side rendering (SPA)", category: "rendering", side: "client", conflicts: ["rsc"], note: "server components need a server" },
+  { id: "ssr", name: "Server-side rendering", category: "rendering", side: "server" },
+  { id: "streaming-ssr", name: "Streaming SSR", category: "rendering", side: "server", requires: [["react", "vue", "svelte", "solid"]] },
+  { id: "ssg", name: "Static generation (SSG)", category: "rendering", side: "server" },
+  { id: "isr", name: "Incremental regeneration (ISR)", category: "rendering", side: "server", requires: [["nextjs", "nuxt", "sveltekit", "astro"]] },
+  { id: "rsc", name: "React Server Components", category: "rendering", side: "server", requires: [["react"], ["nextjs", "react-router"]] },
+  { id: "ppr", name: "Partial prerendering", category: "rendering", side: "server", requires: [["nextjs"]] },
+  { id: "islands", name: "Islands (partial hydration)", category: "rendering", side: "client", requires: [["astro"]] },
+  { id: "edge-rendering", name: "Edge rendering", category: "rendering", side: "server", requires: [EDGE] },
+  // performance
+  { id: "http-caching", name: "HTTP caching (Cache-Control, ETag)", category: "performance", side: "server" },
+  { id: "edge-caching", name: "Edge caching", category: "performance", side: "server", requires: [CDNS] },
+  { id: "swr-caching", name: "stale-while-revalidate", category: "performance", side: "server" },
+  { id: "compression", name: "Brotli compression", category: "performance", side: "server" },
+  { id: "db-pooling", name: "Connection pooling", category: "performance", side: "server", requires: [[...SQL, "mongodb"]] },
+  { id: "query-cache", name: "Query result cache", category: "performance", side: "server", requires: [["redis", "valkey", "upstash", "kv", "memcached"]] },
+  { id: "code-splitting", name: "Code splitting", category: "performance", side: "client" },
+  { id: "lazy-loading", name: "Lazy loading", category: "performance", side: "client" },
+  { id: "prefetching", name: "Prefetching", category: "performance", side: "client" },
+  { id: "image-optimization", name: "Image optimization", category: "performance", side: "client" },
+  { id: "service-worker", name: "Service worker (PWA)", category: "performance", side: "client" },
+  { id: "web-vitals", name: "Core Web Vitals budgets", category: "performance", side: "client" },
+  // testing and quality
   { id: "vitest", name: "Vitest", category: "testing" },
   { id: "jest", name: "Jest", category: "testing" },
   { id: "playwright", name: "Playwright", category: "testing" },
   { id: "cypress", name: "Cypress", category: "testing" },
   { id: "pytest", name: "pytest", category: "testing", requires: [["python"]] },
+  { id: "junit", name: "JUnit", category: "testing", requires: [["java", "kotlin"]] },
+  { id: "tsc", name: "TypeScript checks (tsc)", category: "testing", requires: [["typescript"]] },
+  { id: "zod", name: "Zod", category: "testing", requires: [["typescript", "javascript"]], note: "runtime validation of inputs and contracts" },
+  { id: "valibot", name: "Valibot", category: "testing", requires: [["typescript", "javascript"]] },
+  { id: "oxlint", name: "Oxlint", category: "testing", requires: [["typescript", "javascript"]] },
+  { id: "eslint", name: "ESLint", category: "testing", requires: [["typescript", "javascript"]] },
+  { id: "biome", name: "Biome", category: "testing", requires: [["typescript", "javascript"]] },
+  { id: "prettier", name: "Prettier", category: "testing" },
   // CI
   { id: "github-actions", name: "GitHub Actions", category: "ci" },
   { id: "gitlab-ci", name: "GitLab CI", category: "ci" },
+  { id: "circleci", name: "CircleCI", category: "ci" },
+  { id: "jenkins", name: "Jenkins", category: "ci" },
+  { id: "azure-pipelines", name: "Azure Pipelines", category: "ci" },
+  { id: "bitbucket-pipelines", name: "Bitbucket Pipelines", category: "ci" },
+  { id: "buildkite", name: "Buildkite", category: "ci" },
   // observability
   { id: "sentry", name: "Sentry", category: "observability" },
   { id: "opentelemetry", name: "OpenTelemetry", category: "observability" },

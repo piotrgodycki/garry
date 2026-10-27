@@ -118,6 +118,7 @@ function Composer({ data, initial, onSaved, onCancel }: { data: StacksData; init
                     onClick={() => toggle(t)}
                   >
                     {t.name}
+                    {t.side && <span className={styles.side}>{t.side}</span>}
                   </button>
                 ))}
               </div>
