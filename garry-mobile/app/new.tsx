@@ -5,6 +5,7 @@ import type { Project } from "garry-client";
 import { useConnection } from "../lib/connection";
 import { usePalette } from "../lib/theme";
 import { Body, Button, Chip, Label, Loading, Notice, Title } from "../lib/ui";
+import { confirmWithBiometrics } from "../lib/biometrics";
 
 /** Start a feature from the phone: pick the project, say what should change. */
 export default function NewFeature() {
@@ -29,6 +30,7 @@ export default function NewFeature() {
 
   const start = async () => {
     if (!client) return;
+    if (!(await confirmWithBiometrics("Start new work in Garry"))) return;
     setBusy(true);
     setError(null);
     try {

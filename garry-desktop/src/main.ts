@@ -10,6 +10,8 @@ import { advertisedHost, hostsFor } from "../../garry-tool/src/server/pairing.js
 import { defaultRegistry, defaultSkillsRoot, defaultUiDir } from "../../garry-tool/src/paths.js";
 import { loadEnv } from "../../garry-tool/src/github/env.js";
 import { ThreadManager } from "../../garry-tool/src/threads/manager.js";
+import { fileURLToPath } from "node:url";
+import { setupTouchId, touchIdAvailable } from "./touchid.js";
 
 /**
  * The Garry desktop app: runs garry serve inside the app and shows the dashboard
@@ -21,6 +23,8 @@ import { ThreadManager } from "../../garry-tool/src/threads/manager.js";
 interface Settings {
   project?: string;
   network?: boolean;
+  /** Touch ID on Macs that have it; on unless turned off */
+  touchId?: boolean;
 }
 
 const PORT = 8123;
@@ -44,6 +48,8 @@ let server: Server | null = null;
 let port = PORT;
 let devices: DeviceStore;
 let win: BrowserWindow | null = null;
+let touch: ReturnType<typeof setupTouchId>;
+const dashboard = () => `http://127.0.0.1:${port}/`;
 
 /** Starts the server in the project folder: on :8123, or a free port when that is taken. */
 async function startServer(): Promise<void> {
@@ -93,7 +99,7 @@ async function restartServer(): Promise<void> {
     writeSettings(settings);
     await startServer();
   }
-  await win?.loadURL(`http://127.0.0.1:${port}/`);
+  await win?.loadURL(touch.locked() ? touch.page() : dashboard());
   buildMenu();
 }
 
@@ -105,7 +111,13 @@ function createWindow(): void {
     minHeight: 600,
     title: "Garry",
     backgroundColor: "#0a0a0a",
-    webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false },
+    webPreferences: {
+      contextIsolation: true,
+      sandbox: true,
+      nodeIntegration: false,
+      // Touch ID for the dashboard and the lock page, nothing else
+      preload: fileURLToPath(new URL("./preload.cjs", import.meta.url)),
+    },
   });
   const origin = () => `http://127.0.0.1:${port}`;
   // the dashboard stays in the app; any other link opens in the browser
@@ -120,7 +132,9 @@ function createWindow(): void {
     }
   });
   win.on("closed", () => (win = null));
-  void win.loadURL(`${origin()}/`);
+  void win.loadURL(touch.locked() ? touch.page() : `${origin()}/`);
+  // the system Touch ID prompt right away, the lock page's button if it is dismissed
+  if (touch.locked()) win.webContents.once("did-finish-load", () => void touch.unlock());
 }
 
 async function chooseProject(): Promise<void> {
@@ -213,6 +227,26 @@ function buildMenu(): void {
         { label: "Allow Phones and Other Computers", type: "checkbox", checked: Boolean(settings.network), click: (item) => void toggleNetwork(item.checked) },
         { label: "Pair a Device…", click: () => void showPairing() },
         { label: "Paired Devices…", click: () => void showDevices() },
+        ...(touchIdAvailable()
+          ? [
+              { type: "separator" as const },
+              {
+                label: "Require Touch ID",
+                type: "checkbox" as const,
+                checked: settings.touchId !== false,
+                click: async (item: Electron.MenuItem) => {
+                  // turning it off is itself a Touch ID decision
+                  if (!item.checked && !(await touch.confirm("turn off Touch ID for Garry"))) {
+                    item.checked = true;
+                    return;
+                  }
+                  settings.touchId = item.checked;
+                  writeSettings(settings);
+                },
+              },
+              { label: "Lock Garry", accelerator: "CmdOrCtrl+Shift+L", enabled: settings.touchId !== false, click: () => touch.lock() },
+            ]
+          : []),
       ],
     },
     { role: "windowMenu" },
@@ -238,6 +272,7 @@ if (!app.requestSingleInstanceLock()) {
   });
   app.whenReady().then(async () => {
     settings = readSettings();
+    touch = setupTouchId({ enabled: () => settings.touchId !== false, dashboard, window: () => win });
     try {
       await startServer();
     } catch (e) {

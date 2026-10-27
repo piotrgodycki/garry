@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ConnectionProvider } from "../lib/connection";
+import { LockGate } from "../lib/LockGate";
 import { usePalette } from "../lib/theme";
 
 export default function Layout() {
@@ -10,6 +11,7 @@ export default function Layout() {
     <SafeAreaProvider>
       <ConnectionProvider>
         <StatusBar style="auto" />
+        <LockGate>
         <Stack
           screenOptions={{
             headerStyle: { backgroundColor: p.bg },
@@ -26,6 +28,7 @@ export default function Layout() {
           <Stack.Screen name="new" options={{ title: "New feature", presentation: "modal" }} />
           <Stack.Screen name="thread/[id]" options={{ title: "Work" }} />
         </Stack>
+        </LockGate>
       </ConnectionProvider>
     </SafeAreaProvider>
   );

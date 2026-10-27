@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import type { Project, Thread } from "garry-client";
 import Link from "../lib/router";
 import { client } from "../lib/client";
+import { confirmAction } from "../lib/desktop";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./build.module.css";
 
@@ -36,6 +37,7 @@ export default function Build() {
   }, []);
 
   const start = async () => {
+    if (!(await confirmAction("start new work in Garry"))) return;
     setBusy(true);
     setError(null);
     try {

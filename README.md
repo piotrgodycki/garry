@@ -94,6 +94,11 @@ and Other Computers, then Pair a Device, shows the pairing QR code.
   [GitHub release](https://github.com/piotrgodycki/garry/releases): `.dmg` for macOS
   (Apple silicon and Intel), `.exe` for Windows, `.AppImage` and `.deb` for Linux.
   Actions, Desktop, Run workflow builds them for any commit as a workflow artifact.
+- **Touch ID** (Macs with Touch ID): the app opens locked, locks again when the
+  screen locks, the Mac sleeps or after ten idle minutes (or Devices, Lock Garry),
+  and asks for Touch ID before it starts new work, commits or opens a pull request.
+  Devices, Require Touch ID turns it off (with Touch ID). Other systems are
+  unchanged for now.
 - From source: `pnpm desktop` builds the app and starts it (Electron is downloaded
   on the first run).
 - The installers are not code signed yet. macOS then says the app "cannot be
@@ -116,6 +121,14 @@ computer over your Wi-Fi (or Tailscale), after pairing once with a QR code.
    (iOS) or Expo Go (Android). The phone must be on the same network.
 3. In the app, scan Garry's pairing QR code. The phone gets its own key, kept in
    the iOS keychain or Android keystore; `garry devices revoke <id>` cuts it off.
+
+**Face ID on iOS:** the app opens locked and locks again a minute after it goes to
+the background; the key to your computer sits in the keychain behind Face ID, so
+even an unlocked phone does not give it away; new work, commits and pull requests
+ask for Face ID first; the app switcher shows a cover instead of your code.
+Settings, Require Face ID turns it off. Expo Go cannot use Face ID (it falls back
+to the passcode); a development build (`npx expo run:ios` on a Mac with Xcode, or
+`eas build --profile development`) has the real thing. Android is unchanged for now.
 
 App Store and Google Play builds come from Expo's build service
 (`eas build --platform ios|android`), which needs an Expo account, an Apple
