@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import type { IncomingMessage, ServerResponse } from "node:http";
 
 /**
  * Reading and hand-editing the files of a thread's worktree, for the dashboard
@@ -91,4 +92,36 @@ export function writeFile(root: string, rel: string, content: string, sha?: stri
   mkdirSync(dirname(full), { recursive: true });
   writeFileSync(full, content);
   return readFile(root, rel);
+}
+
+/**
+ * GET <base>/files?path=, GET <base>/file?path=, POST <base>/file for one root
+ * folder (a thread's worktree, a project's checkout, the registry). This
+ * computer only; busy, when set, refuses saving with that reason.
+ */
+export async function fileRoute(
+  req: IncomingMessage,
+  res: ServerResponse,
+  action: string,
+  root: string,
+  ctx: { local: boolean; json: (res: ServerResponse, code: number, body: unknown) => void; readBody: (req: IncomingMessage) => Promise<unknown>; busy?: string },
+): Promise<boolean> {
+  if (action !== "/files" && action !== "/file") return false;
+  const { json } = ctx;
+  if (!ctx.local) return (json(res, 403, { error: "files are opened and edited on the computer running Garry" }), true);
+  const m = req.method ?? "GET";
+  const rel = new URL(req.url ?? "/", "http://x").searchParams.get("path") ?? "";
+  try {
+    if (m === "GET" && action === "/files") return (json(res, 200, { path: rel, entries: listDir(root, rel) }), true);
+    if (m === "GET" && action === "/file") return (json(res, 200, readFile(root, rel)), true);
+    if (m === "POST" && action === "/file") {
+      if (ctx.busy) return (json(res, 409, { error: ctx.busy }), true);
+      const body = (await ctx.readBody(req)) as { path?: string; content?: string; sha?: string };
+      return (json(res, 200, writeFile(root, String(body.path ?? ""), body.content as string, body.sha)), true);
+    }
+  } catch (e) {
+    if (e instanceof FileError) return (json(res, e.status, { error: e.message }), true);
+    throw e;
+  }
+  return (json(res, 405, { error: "method not allowed" }), true);
 }

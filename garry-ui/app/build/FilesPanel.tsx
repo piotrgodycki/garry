@@ -6,11 +6,11 @@ import styles from "./files.module.css";
 // the editor is only loaded when a file is opened
 const CodeEditor = lazy(() => import("./CodeEditor"));
 
-function Folder({ thread, path, depth, open, onOpen, selected, version }: { thread: string; path: string; depth: number; open: Set<string>; onOpen: (e: FileEntry) => void; selected: string | null; version: number }) {
+function Folder({ root, path, depth, open, onOpen, selected, version }: { root: string; path: string; depth: number; open: Set<string>; onOpen: (e: FileEntry) => void; selected: string | null; version: number }) {
   const [entries, setEntries] = useState<FileEntry[] | null>(null);
   useEffect(() => {
-    client.threadFiles(thread, path).then(setEntries, () => setEntries([]));
-  }, [thread, path, version]);
+    client.listFiles(root, path).then(setEntries, () => setEntries([]));
+  }, [root, path, version]);
   if (!entries) return <div className={styles.loading} style={{ paddingLeft: 12 + depth * 14 }}>…</div>;
   return (
     <>
@@ -25,7 +25,7 @@ function Folder({ thread, path, depth, open, onOpen, selected, version }: { thre
             <span className={styles.icon}>{e.type === "dir" ? (open.has(e.path) ? "▾" : "▸") : ""}</span>
             {e.name}
           </button>
-          {e.type === "dir" && open.has(e.path) && <Folder thread={thread} path={e.path} depth={depth + 1} open={open} onOpen={onOpen} selected={selected} version={version} />}
+          {e.type === "dir" && open.has(e.path) && <Folder root={root} path={e.path} depth={depth + 1} open={open} onOpen={onOpen} selected={selected} version={version} />}
         </div>
       ))}
     </>
@@ -33,12 +33,12 @@ function Folder({ thread, path, depth, open, onOpen, selected, version }: { thre
 }
 
 /**
- * The worktree's files: browse them and edit by hand, on this computer only.
- * Saving shows up in Changes like the agent's own edits. While the agent works
- * the editor is read only, and a file the agent changed since it was opened is
- * not overwritten.
+ * Files under one root (root is its API path: a thread's worktree, a project's
+ * checkout, the registry): browse them and edit by hand, on this computer only.
+ * While running, the editor is read only; a file changed on disk since it was
+ * opened is not overwritten.
  */
-export default function FilesPanel({ thread, running, openPath, onSaved }: { thread: string; running: boolean; openPath: { path: string; at: number } | null; onSaved: () => void }) {
+export default function FilesPanel({ root, running = false, openPath = null, onSaved }: { root: string; running?: boolean; openPath?: { path: string; at: number } | null; onSaved?: () => void }) {
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [file, setFile] = useState<FileContent | null>(null);
   const [text, setText] = useState("");
@@ -51,7 +51,7 @@ export default function FilesPanel({ thread, running, openPath, onSaved }: { thr
   const load = useCallback(
     async (path: string) => {
       try {
-        const f = await client.readThreadFile(thread, path);
+        const f = await client.readFile(root, path);
         setFile(f);
         setText(f.content ?? "");
         setState({ kind: "idle" });
@@ -60,7 +60,7 @@ export default function FilesPanel({ thread, running, openPath, onSaved }: { thr
         else setState({ kind: "error", message: String((e as Error).message) });
       }
     },
-    [thread],
+    [root],
   );
 
   const choose = (e: FileEntry) => {
@@ -86,11 +86,13 @@ export default function FilesPanel({ thread, running, openPath, onSaved }: { thr
   }, [openPath, load]);
 
   useEffect(() => {
-    client.threadFiles(thread).then(
+    setFile(null);
+    setOpen(new Set());
+    client.listFiles(root).then(
       () => setBlocked(false),
       (e) => e instanceof GarryError && e.status === 403 && setBlocked(true),
     );
-  }, [thread]);
+  }, [root]);
 
   // when the agent finishes a turn, the tree may have changed
   useEffect(() => {
@@ -101,10 +103,10 @@ export default function FilesPanel({ thread, running, openPath, onSaved }: { thr
     if (!file || file.content === null || running || !dirty) return;
     setState({ kind: "saving" });
     try {
-      const f = await client.writeThreadFile(thread, file.path, text, file.sha);
+      const f = await client.writeFile(root, file.path, text, file.sha);
       setFile(f);
       setState({ kind: "saved" });
-      onSaved();
+      onSaved?.();
     } catch (e) {
       const conflict = e instanceof GarryError && e.status === 409;
       setState({ kind: conflict ? "conflict" : "error", message: String((e as Error).message) });
@@ -118,7 +120,7 @@ export default function FilesPanel({ thread, running, openPath, onSaved }: { thr
   return (
     <div className={styles.panel}>
       <nav className={styles.tree} aria-label="files">
-        <Folder thread={thread} path="" depth={0} open={open} onOpen={choose} selected={file?.path ?? null} version={version} />
+        <Folder root={root} path="" depth={0} open={open} onOpen={choose} selected={file?.path ?? null} version={version} />
       </nav>
       <div className={styles.editor}>
         {!file ? (

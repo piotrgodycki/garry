@@ -97,6 +97,14 @@ try {
   expect("a new file can be created", (await save({ path: "docs/new.md", content: "hi\n" })).status === 200 && readFileSync(join(t.worktree, "docs/new.md"), "utf8") === "hi\n");
   expect("paths cannot leave the worktree", (await fetch(`${base}/file?path=../../etc/passwd`)).status === 400 && (await save({ path: "../escape.txt", content: "x" })).status === 400);
   expect(".git is off limits", (await fetch(`${base}/file?path=.git/config`)).status === 403 && (await save({ path: ".git/hooks/pre-commit", content: "x" })).status === 403);
+  const projectFiles = (await fetch(`http://127.0.0.1:${port}/api/projects/${project.id}/files`).then((r) => r.json())) as { entries: { name: string }[] };
+  expect("a project's checkout is listed too", projectFiles.entries.some((e) => e.name === "README.md"));
+  const readme = (await fetch(`http://127.0.0.1:${port}/api/projects/${project.id}/file?path=README.md`).then((r) => r.json())) as { content: string; sha: string };
+  const projSave = await fetch(`http://127.0.0.1:${port}/api/projects/${project.id}/file`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path: "README.md", content: readme.content + "edited\n", sha: readme.sha }) });
+  expect("and edited by hand", projSave.status === 200 && readFileSync(join(repo, "README.md"), "utf8").endsWith("edited\n"));
+  const regSave = await fetch(`http://127.0.0.1:${port}/api/registry/file`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path: "catalog/x.yaml", content: "name: x\n" }) });
+  const regList = (await fetch(`http://127.0.0.1:${port}/api/registry/files?path=catalog`).then((r) => r.json())) as { entries: { name: string }[] };
+  expect("the registry's files are browsed and edited", regSave.status === 200 && regList.entries.some((e) => e.name === "x.yaml"));
   symlinkSync(home, join(t.worktree, "out"));
   expect("a symlink out of the worktree is refused", (await fetch(`${base}/files?path=out`)).status === 400 && (await save({ path: "out/x.txt", content: "x" })).status === 400);
   if (remote) {
@@ -110,6 +118,9 @@ try {
     const phoneRead = await fetch(`http://${remote}:${port}/api/threads/${t.id}/file?path=NOTES.md`, { headers: phone });
     const phoneWrite = await fetch(`http://${remote}:${port}/api/threads/${t.id}/file`, { method: "POST", headers: phone, body: JSON.stringify({ path: "NOTES.md", content: "x" }) });
     expect("a phone can neither read nor edit files", phoneRead.status === 403 && phoneWrite.status === 403);
+    const phoneProject = await fetch(`http://${remote}:${port}/api/projects/${project.id}/files`, { headers: phone });
+    const phoneRegistry = await fetch(`http://${remote}:${port}/api/registry/file?path=catalog/x.yaml`, { headers: phone });
+    expect("nor a project's or the registry's", phoneProject.status === 403 && phoneRegistry.status === 403);
     const unpaired = await fetch(`http://${remote}:${port}/api/threads`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ projectId: project.id, prompt: "x" }) });
     expect("an unpaired device cannot", unpaired.status === 401);
   } else console.log("no non-loopback address: phone cases skipped");
