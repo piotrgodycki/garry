@@ -20,6 +20,7 @@ const GROUPS: { label: string; links: { href: string; label: string; icon: React
     label: "Configure",
     links: [
       { href: "/registry", label: "Registry", icon: Icon.registry },
+      { href: "/stacks", label: "Stacks", icon: Icon.stack },
       { href: "/skills", label: "Skills", icon: Icon.skills },
       { href: "/routing", label: "Model routing", icon: Icon.routing },
     ],

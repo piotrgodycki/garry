@@ -12,6 +12,7 @@ import {
   type ApiContract,
 } from "./schema.js";
 import type { ZodSchema } from "zod";
+import { StackSchema, checkStack } from "./stacks.js";
 
 export interface ValidationIssue {
   level: "error" | "warn";
@@ -59,6 +60,32 @@ export function validateRegistry(root: string): ValidationIssue[] {
       if (r.data.name !== stem)
         warn(`catalog/${f}`, `file name (${stem}) does not match name (${r.data.name})`);
     }
+  }
+
+  // stacks/ (optional): each stack parses, and its technologies fit together
+  const stacks = new Set<string>();
+  const stacksDir = join(root, "stacks");
+  if (existsSync(stacksDir)) {
+    for (const f of readdirSync(stacksDir).filter((f) => /\.ya?ml$/.test(f))) {
+      let raw: unknown;
+      try {
+        raw = parseYaml(readFileSync(join(stacksDir, f), "utf8"));
+      } catch (e) {
+        err(`stacks/${f}`, `invalid YAML: ${(e as Error).message}`);
+        continue;
+      }
+      const r = StackSchema.safeParse(raw);
+      if (!r.success) {
+        err(`stacks/${f}`, zodMsg(r.error));
+        continue;
+      }
+      stacks.add(r.data.name);
+      for (const i of checkStack(r.data.technologies.map((t) => t.id)))
+        if (i.level !== "info") warn(`stacks/${f}`, i.message);
+    }
+  }
+  for (const [name, svc] of Object.entries(services)) {
+    if (svc.stackRef && !stacks.has(svc.stackRef)) err(`catalog/${name}`, `stackRef ${svc.stackRef} has no stacks/${svc.stackRef}.yaml`);
   }
 
   // contracts/

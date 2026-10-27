@@ -80,6 +80,7 @@ export type ServiceKind = "mfe-remote" | "mfe-shell" | "backend";
 export interface RegistryService {
   name: string;
   kind?: ServiceKind;
+  stackRef?: string;
   repo?: string;
   stack?: string;
   owner?: string;
@@ -105,6 +106,39 @@ export interface FileContent {
   reason?: "binary" | "too large";
 }
 
+export interface StackTech {
+  id: string;
+  version?: string;
+}
+
+export interface Stack {
+  name: string;
+  description?: string;
+  technologies: StackTech[];
+}
+
+export interface StackIssue {
+  level: "error" | "warn" | "info";
+  tech?: string;
+  message: string;
+}
+
+/** A technology in Garry's catalog. */
+export interface CatalogTech {
+  id: string;
+  name: string;
+  category: string;
+  requires?: string[][];
+  conflicts?: string[];
+  note?: string;
+}
+
+export interface Stacks {
+  stacks: (Stack & { usedBy: string[]; issues: StackIssue[] })[];
+  catalog: CatalogTech[];
+  categories: { id: string; label: string; single?: boolean }[];
+}
+
 export interface NewFeature {
   title: string;
   /** what it should do and why; becomes the Goal section */
@@ -120,6 +154,8 @@ export interface NewService {
   repo: string;
   owner?: string;
   stack?: string;
+  /** a stack from stacks/; fills stack when that is empty */
+  stackRef?: string;
   exposes?: string[];
   consumes?: Record<string, string[]>;
 }

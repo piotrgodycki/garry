@@ -48,7 +48,8 @@
     "test:auth": "tsx src/server/auth.selftest.ts",
     "test:threads": "tsx src/threads/threads.selftest.ts",
     "test:services": "tsx src/registry/services.selftest.ts",
-    "test:features": "tsx src/registry/features.selftest.ts"
+    "test:features": "tsx src/registry/features.selftest.ts",
+    "test:stacks": "tsx src/registry/stacks.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

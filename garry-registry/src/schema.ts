@@ -44,6 +44,8 @@ export const ServiceManifestSchema = z.object({
   name: z.string(),
   repo: z.string(),
   stack: z.string(),
+  /** the stack it is built with: stacks/<stackRef>.yaml */
+  stackRef: z.string().optional(),
   kind: ServiceKindSchema.optional(),
   // Structured stack fields, used by the interoperability checks and by the
   // scaffold adapters. Optional so older manifests with only `stack` stay valid.

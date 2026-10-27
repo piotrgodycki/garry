@@ -6,6 +6,7 @@ import Shell from "./layout";
 import Dashboard from "./page";
 import AgentView from "./agent/page";
 import Registry from "./registry/page";
+import Stacks from "./stacks/page";
 import Skills from "./skills/page";
 import Routing from "./routing/page";
 import Prs from "./github/page";
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
       { path: "/", element: <Dashboard /> },
       { path: "/agent", element: <AgentView /> },
       { path: "/registry", element: <Registry /> },
+      { path: "/stacks", element: <Stacks /> },
       { path: "/skills", element: <Skills /> },
       { path: "/routing", element: <Routing /> },
       { path: "/github", element: <Prs /> },

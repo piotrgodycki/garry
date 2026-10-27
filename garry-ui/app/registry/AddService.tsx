@@ -1,5 +1,6 @@
-import { useState } from "react";
-import type { RegistryIssue, RegistryService, ServiceKind } from "garry-client";
+import { useEffect, useState } from "react";
+import type { RegistryIssue, RegistryService, ServiceKind, Stack } from "garry-client";
+import Link from "../lib/router";
 import { client } from "../lib/client";
 import styles from "./addService.module.css";
 
@@ -18,6 +19,11 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
   const [repo, setRepo] = useState("");
   const [owner, setOwner] = useState("");
   const [stack, setStack] = useState("");
+  const [stacks, setStacks] = useState<Stack[]>([]);
+  const [stackRef, setStackRef] = useState("");
+  useEffect(() => {
+    client.stacks().then((d) => setStacks(d.stacks), () => undefined);
+  }, []);
   const [exposes, setExposes] = useState("");
   // "service:module" pairs this one uses
   const [uses, setUses] = useState<Set<string>>(new Set());
@@ -42,7 +48,7 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
       (consumes[k.slice(0, i)] ??= []).push(k.slice(i + 1));
     }
     try {
-      const r = await client.addService({ name: name.trim(), kind, repo: repo.trim(), owner: owner.trim() || undefined, stack: stack.trim() || undefined, exposes: csv(exposes), consumes });
+      const r = await client.addService({ name: name.trim(), kind, repo: repo.trim(), owner: owner.trim() || undefined, stack: stackRef ? undefined : stack.trim() || undefined, stackRef: stackRef || undefined, exposes: csv(exposes), consumes });
       onAdded(r.issues);
     } catch (e) {
       setError(String((e as Error).message ?? e));
@@ -85,7 +91,22 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
         </label>
         <label className={styles.field}>
           <span className="eyebrow">Stack</span>
-          <input className="input" placeholder={current.stack} value={stack} onChange={(e) => setStack(e.target.value)} />
+          {stacks.length > 0 ? (
+            <select className="select" value={stackRef} onChange={(e) => setStackRef(e.target.value)}>
+              <option value="">Not one of our stacks</option>
+              {stacks.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
+          {!stackRef && <input className="input" placeholder={current.stack} value={stack} onChange={(e) => setStack(e.target.value)} />}
+          {stacks.length === 0 && (
+            <span className={styles.kindHint}>
+              Or define one in <Link href="/stacks">Stacks</Link>.
+            </span>
+          )}
         </label>
         {kind !== "mfe-shell" && (
           <label className={`${styles.field} ${styles.wide}`}>

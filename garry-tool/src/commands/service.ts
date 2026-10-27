@@ -16,6 +16,7 @@ Options for add:
   --repo <url>             the service's git repository (required)
   --owner <team>           default: unassigned
   --stack <text>           e.g. "react + vite + module-federation-2"
+  --stack-ref <name>       a stack from garry stack list (fills --stack)
   --exposes <a,b>          modules or endpoints it offers, comma separated
   --consumes <svc:a,b>     what it uses from another service (repeatable)
   --replace                overwrite an existing manifest
@@ -51,7 +52,7 @@ export function runService(argv: string[]): void {
     });
     const r = addService(
       registry,
-      { name, kind: flag(argv, "kind"), repo: flag(argv, "repo"), owner: flag(argv, "owner"), stack: flag(argv, "stack"), exposes: csv(flag(argv, "exposes")), consumes },
+      { name, kind: flag(argv, "kind"), repo: flag(argv, "repo"), owner: flag(argv, "owner"), stack: flag(argv, "stack"), stackRef: flag(argv, "stack-ref"), exposes: csv(flag(argv, "exposes")), consumes },
       { replace: argv.includes("--replace") },
     );
     console.log(pc.green(`Added ${r.service.name} (${r.service.kind}): ${r.file}`));

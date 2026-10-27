@@ -10,6 +10,7 @@ import { runSkills } from "./commands/skills.js";
 import { runDevices, runPair } from "./commands/pair.js";
 import { runProjects } from "./commands/projects.js";
 import { runService } from "./commands/service.js";
+import { runStack } from "./commands/stack.js";
 import { loadEnv } from "./github/env.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -19,6 +20,7 @@ const TOP_HELP = `garry <command>
 Commands:
   scaffold   create a new microfrontend service (interactive wizard)
   service    the services in the registry (list, add, remove)
+  stack      the tech stacks services are built with (list, catalog, add, check)
   adopt      reverse engineer a registry entry from an existing repo
   sync       inject the contract slice into .garry/ and generate types
   ws         work on several services at once (multicheckout worktrees)
@@ -42,6 +44,10 @@ async function main(): Promise<void> {
     case "service":
     case "services":
       runService(rest);
+      break;
+    case "stack":
+    case "stacks":
+      runStack(rest);
       break;
     case "adopt":
       await runAdopt(rest);
