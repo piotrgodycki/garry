@@ -155,6 +155,54 @@ export interface Stacks {
   categories: { id: string; label: string; single?: boolean }[];
 }
 
+/** A block on the architecture board: a platform piece or one of your services (service:<name>). */
+export interface ArchBlock {
+  id: string;
+  name: string;
+  provider: string;
+  group: string;
+  provides: string[];
+  needs?: string[];
+  reachableFrom?: string[];
+  note?: string;
+}
+
+export interface ArchNode {
+  id: string;
+  block: string;
+  label?: string;
+  x: number;
+  y: number;
+}
+
+/** A link goes from the block that needs to the block that provides. */
+export interface ArchEdge {
+  from: string;
+  to: string;
+  capability: string;
+}
+
+export interface Architecture {
+  nodes: ArchNode[];
+  edges: ArchEdge[];
+}
+
+export interface ArchIssue {
+  level: "error" | "warn" | "info";
+  node?: string;
+  edge?: number;
+  message: string;
+}
+
+export interface ArchitectureState {
+  architecture: Architecture;
+  components: ArchBlock[];
+  services: ArchBlock[];
+  capabilities: Record<string, string>;
+  providers: string[];
+  issues: ArchIssue[];
+}
+
 export interface NewFeature {
   title: string;
   /** what it should do and why; becomes the Goal section */

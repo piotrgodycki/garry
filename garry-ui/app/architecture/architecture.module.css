@@ -1,0 +1,160 @@
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 280px;
+  gap: 14px;
+  height: calc(100vh - 220px);
+  min-height: 560px;
+}
+.palette,
+.issues {
+  overflow: auto;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.group {
+  display: grid;
+  gap: 4px;
+}
+.groupLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.palette :global(.input) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+.paletteItem {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 6px 8px;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: 12.5px;
+  cursor: grab;
+}
+.paletteItem:hover {
+  border-color: var(--accent);
+}
+.hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.canvas {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  --xy-background-color: var(--surface);
+  --xy-edge-stroke: var(--color-text-muted);
+  --xy-edge-label-background-color: var(--surface);
+  --xy-edge-label-color: var(--color-text-default);
+  --xy-minimap-background-color: var(--surface);
+  --xy-controls-button-background-color: var(--surface);
+  --xy-controls-button-color: var(--color-text-default);
+  --xy-controls-button-border-color: var(--border);
+}
+.empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 40px;
+  text-align: center;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.saved {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.issue {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+/* a block: provides on the left, needs on the right */
+.block {
+  position: relative;
+  box-sizing: border-box;
+  width: 300px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--color-text-default);
+}
+.blockSelected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.error {
+  border-color: var(--color-brand-secondary);
+  box-shadow: inset 3px 0 0 var(--color-brand-secondary);
+}
+.warn {
+  box-shadow: inset 3px 0 0 #d97706;
+}
+.blockHead {
+  display: grid;
+  gap: 2px;
+  height: 32px;
+}
+.blockName {
+  font-weight: 650;
+  font-size: 13.5px;
+}
+.blockProvider {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+/* puzzle tabs */
+.port {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 3px !important;
+  border: 1px solid var(--color-text-default) !important;
+}
+.provide {
+  background: var(--surface) !important;
+  left: -8px !important;
+}
+.need {
+  background: var(--color-text-default) !important;
+  right: -8px !important;
+}
+.portLabel {
+  position: absolute;
+  top: -1px;
+  white-space: nowrap;
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.provide .portLabel {
+  left: 18px;
+}
+.need .portLabel {
+  right: 18px;
+}
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+  .canvas {
+    height: 520px;
+  }
+}

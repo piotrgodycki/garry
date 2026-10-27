@@ -13,6 +13,7 @@ import {
 } from "./schema.js";
 import type { ZodSchema } from "zod";
 import { StackSchema, checkStack } from "./stacks.js";
+import { ArchitectureSchema, checkArchitecture } from "./architecture.js";
 
 export interface ValidationIssue {
   level: "error" | "warn";
@@ -86,6 +87,20 @@ export function validateRegistry(root: string): ValidationIssue[] {
   }
   for (const [name, svc] of Object.entries(services)) {
     if (svc.stackRef && !stacks.has(svc.stackRef)) err(`catalog/${name}`, `stackRef ${svc.stackRef} has no stacks/${svc.stackRef}.yaml`);
+  }
+
+  // architecture.json (optional): parses, and nothing on it is broken
+  const archFile = join(root, "architecture.json");
+  if (existsSync(archFile)) {
+    try {
+      const r = ArchitectureSchema.safeParse(JSON.parse(readFileSync(archFile, "utf8")));
+      if (!r.success) err("architecture.json", zodMsg(r.error));
+      else
+        for (const i of checkArchitecture(r.data, Object.values(services).map((s) => ({ name: s.name, kind: s.kind, db: s.db }))))
+          if (i.level === "error") err("architecture.json", i.message);
+    } catch (e) {
+      err("architecture.json", `invalid JSON: ${(e as Error).message}`);
+    }
   }
 
   // contracts/

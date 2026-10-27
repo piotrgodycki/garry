@@ -51,6 +51,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry feature <id>` | plan a feature through the SDLC (dry run today); `new` and `list` create and list them |
 | `garry ws <sub> [id]` | work on all services of a feature at once (git worktrees) |
 | `garry service <sub>` | the services in the registry (`list`, `add`, `remove`) |
+| `garry architecture <sub>` | the architecture board: `check`, `show`, `blocks` |
 | `garry routing <sub>` | routing profiles: which agent and model per stage (`list`, `show`, `new`, `use`, `set`, `remove`) |
 | `garry stack <sub>` | the tech stacks services are built with (`list`, `catalog`, `add`, `check`, `remove`) |
 | `garry scaffold [name]` | create a new microfrontend and register it |
@@ -173,6 +174,32 @@ garry service remove checkout   # refused while another service consumes it
 
 The server takes the same as `POST /api/registry/services`; `DELETE
 /api/registry/services/:name` works from this computer only.
+
+## garry architecture
+
+The architecture board (`architecture.json` in the registry): your services and
+the platforms they run on (AWS, Cloudflare, Vercel, Netlify, Supabase,
+self-hosted, SaaS), joined like puzzle pieces. Every block provides some
+capabilities (web, HTTP API, SQL, cache, queue, events, file storage, sign in,
+CDN, CMS content, ...) and needs others; a link always goes from a need to a
+block that provides it, so only fitting pieces join. Build it on the dashboard's
+Architecture page (drag blocks in, join a need on the right of a block to a
+provide on the left of another); it saves itself.
+
+```bash
+garry architecture blocks   # every block, what it provides and needs
+garry architecture show
+garry architecture check    # exit code 1 when something does not fit
+```
+
+The check reports links to something that does not provide what is needed,
+blocks that are only reachable from their own platform (D1, KV and Queues from
+Workers, ElastiCache from AWS), needs left open (WordPress without a database, a
+backend with a database but none linked, a shell without its microfrontends),
+RDS reached from outside AWS without pooling, and registry services that are not
+on the board yet. The registry check (`garry-registry validate`) reports the
+errors too. Server: `GET /api/architecture`, `POST /api/architecture`, `POST
+/api/architecture/check`.
 
 ## garry routing
 
