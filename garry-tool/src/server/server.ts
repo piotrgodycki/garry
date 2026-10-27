@@ -1,5 +1,5 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { buildPlan, listFeatures, loadFeature } from "../orchestrate/plan.js";
 import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
@@ -13,6 +13,7 @@ import { listManifests, readContracts } from "../sync/registryIO.js";
 import { DEVICE_COOKIE, DeviceStore, hostAllowed, isLoopback, requestToken } from "./auth.js";
 import { serveUi } from "./static.js";
 import { ThreadManager } from "../threads/manager.js";
+import { fileRoute } from "../threads/files.js";
 import { threadRoutes } from "../threads/routes.js";
 import { readdirSync } from "node:fs";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
@@ -308,9 +309,16 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   }
 
   // Projects and agent threads (the IDE): this machine and paired devices
-  if (path === "/api/projects" || path.startsWith("/api/threads")) {
+  if (path.startsWith("/api/projects") || path.startsWith("/api/threads")) {
     const sseHeaders = { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive", ...CORS };
     if (await threadRoutes(req, res, path, { threads: cfg.threads!, local, json, readBody, sseHeaders })) return;
+  }
+
+  // The registry's own files (catalog/, contracts/, features/, stacks/): browse and edit by hand, this machine only
+  const regFiles = /^\/api\/registry(\/files|\/file)$/.exec(path);
+  if (regFiles) {
+    mkdirSync(cfg.registry, { recursive: true });
+    if (await fileRoute(req, res, regFiles[1], cfg.registry, { local, json, readBody })) return;
   }
 
   // Services: add one to the registry (this machine and paired devices), remove one (this machine only)
@@ -496,6 +504,8 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "POST /api/pair/codes (this machine only)",
         "GET /api/devices, DELETE /api/devices/:id (this machine only)",
         "GET /api/projects, POST /api/projects {path, name?} (this machine only)",
+        "GET /api/projects/:id/files?path=, GET /api/projects/:id/file?path=, POST /api/projects/:id/file {path, content, sha?} (this machine only)",
+        "GET /api/registry/files?path=, GET /api/registry/file?path=, POST /api/registry/file {path, content, sha?} (this machine only)",
         "GET /api/threads?project=, POST /api/threads {projectId, prompt, title?}",
         "GET /api/threads/:id, GET /api/threads/:id/events (SSE), GET /api/threads/:id/diff",
         "POST /api/threads/:id/messages {text}, /stop, /commit {message}, /pr {title?, body?}",

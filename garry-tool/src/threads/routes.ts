@@ -1,13 +1,13 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ThreadManager } from "./manager.js";
-import { FileError, listDir, readFile, writeFile } from "./files.js";
+import { fileRoute } from "./files.js";
 
 /**
  * /api/projects and /api/threads. Called after the server checked who is
  * asking: this machine, or a paired device (which may start and steer work,
  * the point of pairing a phone). Registering a folder as a project, reading and
- * editing the worktree's files by hand and discarding a thread's work stay on
- * this machine.
+ * editing files by hand (a worktree's or a project's) and discarding a
+ * thread's work stay on this machine.
  */
 export async function threadRoutes(
   req: IncomingMessage,
@@ -37,6 +37,14 @@ export async function threadRoutes(
         return (fail(e), true);
       }
     }
+  }
+
+  // a project's own checkout: browse and edit by hand, this computer only
+  const proj = /^\/api\/projects\/([a-z0-9]{4,16})(\/files|\/file)$/.exec(path);
+  if (proj) {
+    const p = store.project(proj[1]);
+    if (!p) return (json(res, 404, { error: "no such project" }), true);
+    return fileRoute(req, res, proj[2], p.path, { local, json, readBody });
   }
 
   if (path === "/api/threads") {
@@ -77,22 +85,7 @@ export async function threadRoutes(
       return true;
     }
     if (m === "GET" && action === "/diff") return (json(res, 200, threads.diff(id)), true);
-    if (action === "/files" || action === "/file") {
-      if (!local) return (json(res, 403, { error: "files are opened and edited on the computer running Garry" }), true);
-      const rel = new URL(req.url ?? "/", "http://x").searchParams.get("path") ?? "";
-      try {
-        if (m === "GET" && action === "/files") return (json(res, 200, { path: rel, entries: listDir(t.worktree, rel) }), true);
-        if (m === "GET" && action === "/file") return (json(res, 200, readFile(t.worktree, rel)), true);
-        if (m === "POST" && action === "/file") {
-          if (threads.isRunning(id)) return (json(res, 409, { error: "the agent is still working; stop it or wait before editing" }), true);
-          const body = (await readBody(req)) as { path?: string; content?: string; sha?: string };
-          return (json(res, 200, writeFile(t.worktree, String(body.path ?? ""), body.content as string, body.sha)), true);
-        }
-      } catch (e) {
-        if (e instanceof FileError) return (json(res, e.status, { error: e.message }), true);
-        throw e;
-      }
-    }
+    if (await fileRoute(req, res, action, t.worktree, { local, json, readBody, busy: threads.isRunning(id) ? "the agent is still working; stop it or wait before editing" : undefined })) return true;
     if (m === "POST" && action === "/messages") {
       const body = (await readBody(req)) as { text?: string };
       threads.send(id, String(body.text ?? ""));

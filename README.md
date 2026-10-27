@@ -80,7 +80,10 @@ works on it:
 - **Files** browses the worktree and lets you change any file by hand in a code
   editor (Cmd/Ctrl+S saves); your edits land in the same diff. It is read only
   while the agent works, and a file the agent changed since you opened it is
-  not overwritten. Files open on this computer only, never on a paired phone.
+  not overwritten. Files open on this computer only, never on a paired phone;
+- the Build page also shows the selected project's own checkout (the Garry
+  repository itself when `garry serve` runs in it), and the Registry page the
+  registry's files (catalog, contracts, features, stacks), with the same editor.
 
 The agent is [Claude Code](https://docs.claude.com/en/docs/claude-code) on your
 own Claude plan, run on the computer that runs Garry: install it and sign in once

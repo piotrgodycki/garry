@@ -6,6 +6,7 @@ import { Icon } from "../icons";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import ContractEvent from "../ContractEvent";
 import AddService from "./AddService";
+import FilesPanel from "../build/FilesPanel";
 import type { RegistryIssue } from "garry-client";
 import { flattenTokens, type RegistryData } from "../lib/contracts";
 
@@ -233,6 +234,15 @@ export default function Registry() {
                 </div>
                 )}
               </div>
+            </div>
+          </section>
+          <section className="section" id="files">
+            <div className="sectionHead">
+              <h2>Files</h2>
+              <span className="count">the registry as it is on disk · this computer only</span>
+            </div>
+            <div className="card" style={{ padding: 0 }}>
+              <FilesPanel root="/api/registry" onSaved={() => void load()} />
             </div>
           </section>
         </>

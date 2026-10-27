@@ -208,7 +208,7 @@ export default function ThreadView() {
         <div className={styles.composer} style={{ borderTop: 0 }}>
           <span className="eyebrow">Files · this computer only</span>
         </div>
-        <FilesPanel thread={id} running={running} openPath={openPath} onSaved={() => void refresh()} />
+        <FilesPanel root={`/api/threads/${id}`} running={running} openPath={openPath} onSaved={() => void refresh()} />
       </section>
     </main>
   );

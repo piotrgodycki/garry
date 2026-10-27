@@ -6,6 +6,7 @@ import { client } from "../lib/client";
 import { confirmAction } from "../lib/desktop";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./build.module.css";
+import FilesPanel from "./FilesPanel";
 
 const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.status === "error" ? "danger" : t.pr ? "ok" : "");
 const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.status === "error" ? "Stopped" : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
@@ -112,6 +113,20 @@ export default function Build() {
             </Link>
           ))}
         </div>
+      )}
+
+      {projectId && (
+        <>
+          <h2 className="eyebrow" style={{ marginTop: 28 }}>
+            Files · {names.get(projectId) ?? projectId} · this computer only
+          </h2>
+          <section className="card" style={{ padding: 0 }}>
+            <p className={styles.filesNote}>
+              The project&apos;s own checkout. Agents never work here (each piece of work has its own branch), so what you change by hand stays yours to commit.
+            </p>
+            <FilesPanel root={`/api/projects/${projectId}`} />
+          </section>
+        </>
       )}
     </main>
   );

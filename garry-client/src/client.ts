@@ -131,11 +131,18 @@ export class GarryClient {
   threadDiff = (id: string) => this.request<ThreadDiff>(`/api/threads/${id}/diff`);
   commitThread = (id: string, message: string) => this.post<Thread>(`/api/threads/${id}/commit`, { message });
   openPullRequest = (id: string, title?: string, body?: string) => this.post<Thread>(`/api/threads/${id}/pr`, { title, body });
-  /** The worktree's files, one folder at a time (this computer only). */
-  threadFiles = (id: string, path = "") => this.request<{ path: string; entries: FileEntry[] }>(`/api/threads/${id}/files?path=${encodeURIComponent(path)}`).then((r) => r.entries);
-  readThreadFile = (id: string, path: string) => this.request<FileContent>(`/api/threads/${id}/file?path=${encodeURIComponent(path)}`);
+  /**
+   * Files under one root, this computer only: a thread's worktree
+   * (/api/threads/:id), a project's checkout (/api/projects/:id) or the
+   * registry (/api/registry). One folder at a time.
+   */
+  listFiles = (root: string, path = "") => this.request<{ path: string; entries: FileEntry[] }>(`${root}/files?path=${encodeURIComponent(path)}`).then((r) => r.entries);
+  readFile = (root: string, path: string) => this.request<FileContent>(`${root}/file?path=${encodeURIComponent(path)}`);
   /** Saves a file by hand; with sha, refused (409) when the file changed since it was read. */
-  writeThreadFile = (id: string, path: string, content: string, sha?: string) => this.post<FileContent>(`/api/threads/${id}/file`, { path, content, sha });
+  writeFile = (root: string, path: string, content: string, sha?: string) => this.post<FileContent>(`${root}/file`, { path, content, sha });
+  threadFiles = (id: string, path = "") => this.listFiles(`/api/threads/${id}`, path);
+  readThreadFile = (id: string, path: string) => this.readFile(`/api/threads/${id}`, path);
+  writeThreadFile = (id: string, path: string, content: string, sha?: string) => this.writeFile(`/api/threads/${id}`, path, content, sha);
 
   /** Follows a thread: every event so far, then each new one, until the signal aborts. */
   async threadEvents(id: string, onEvent: (e: ThreadEvent) => void, signal?: AbortSignal): Promise<void> {
