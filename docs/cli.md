@@ -38,7 +38,7 @@ Where the commands look when you pass no flag:
 |---|---|---|
 | registry (`--registry`) | `./registry` if it has a `catalog/`, else `~/.garry/registry` (created empty) | the same |
 | pre-installed skills (`--skills`) | `garry-skills` | the skills bundled with the package |
-| routing (`--routing`) | `garry.routing.json` | `garry.routing.json` in the current folder (optional) |
+| routing (`--routing`) | `garry.routing.json`: the example profile | `garry.routing.json` in the current folder (optional); profiles of your own live in the registry (`garry routing`) |
 
 The npm package is the CLI and the server (`garry serve`); the dashboard runs from
 this repository (`pnpm ui`). `garry shots` needs Playwright as well
@@ -51,6 +51,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry feature <id>` | plan a feature through the SDLC (dry run today); `new` and `list` create and list them |
 | `garry ws <sub> [id]` | work on all services of a feature at once (git worktrees) |
 | `garry service <sub>` | the services in the registry (`list`, `add`, `remove`) |
+| `garry routing <sub>` | routing profiles: which agent and model per stage (`list`, `show`, `new`, `use`, `set`, `remove`) |
 | `garry stack <sub>` | the tech stacks services are built with (`list`, `catalog`, `add`, `check`, `remove`) |
 | `garry scaffold [name]` | create a new microfrontend and register it |
 | `garry adopt <repo>` | derive a registry entry from an existing repo |
@@ -172,6 +173,31 @@ garry service remove checkout   # refused while another service consumes it
 
 The server takes the same as `POST /api/registry/services`; `DELETE
 /api/registry/services/:name` works from this computer only.
+
+## garry routing
+
+Routing profiles: which agent role and which model handle each SDLC stage.
+`default` is Garry's example (the folder's `garry.routing.json`, else the
+built-in) and stays as it is. Make your own from it, change it, and make it the
+active one; a feature can use another with `routing: <name>` in its
+frontmatter (the New feature form has a picker). Profiles live in the registry
+as `routing/<name>.json`, the active one in `routing/index.json`. The Model
+routing page does the same.
+
+```bash
+garry routing list
+garry routing new fast --from default
+garry routing set fast implement --model claude-sonnet-4-6
+garry routing set fast review --agent garry-reviewer --model claude-opus-4-8
+garry routing use fast
+garry routing show fast
+```
+
+A feature's `routingOverride` still wins for the stages it names. Server: `GET
+/api/routings`, `POST /api/routings` (`{name, from}` or a full profile), `POST
+/api/routings/active`, `POST /api/routing {profile?, stage, model?, agent?}`,
+`DELETE /api/routings/:name` (this computer only). `GET /api/routing` returns
+the active profile.
 
 ## garry stack
 
@@ -343,7 +369,7 @@ by `pnpm dev`. Main endpoints:
 | `GET /api/skills/:name/audit` | a skill's full security audit |
 | `DELETE /api/skills/:name` | remove a local skill |
 | `POST /api/skills/propose` `{content or path, stage?, acknowledge?}` | audit, then open a pull request that proposes the skill to the team |
-| `POST /api/routing` `{stage, model}` | change a stage's model in `garry.routing.json` |
+| `POST /api/routing` `{profile?, stage, model?, agent?}` | change a stage in a routing profile of your own (the active one by default) |
 | `POST /api/features/:id/service-models` `{service, model}` | change one service's model |
 
 `garry serve` also hosts the dashboard (`garry-ui/dist` after
@@ -443,7 +469,7 @@ Set `GARRY_CHROMIUM_PATH` to use an already installed Chromium.
 
 | File | Used by | |
 |---|---|---|
-| `garry.routing.json` | `feature`, `serve` | agent and model per stage |
+| `garry.routing.json` | `feature`, `serve` | the example routing profile (`default`); your own are `routing/<name>.json` in the registry |
 | `garry.screenshots.json` | `shots` | routes, viewports and themes to capture |
 | `.env.local` (or `.env`) | every command | all variables, see `.env.example` |
 | `~/.garry/skills/` | `skills`, `feature`, `serve` | locally installed skills |

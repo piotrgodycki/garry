@@ -1,127 +1,194 @@
 import { useCallback, useEffect, useState } from "react";
+import type { Model, RoutingProfile, RoutingProfiles } from "garry-client";
 import styles from "../panel.module.css";
+import own from "./routing.module.css";
 import { tierOf } from "../ModelChip";
-import { apiBase } from "../lib/api";
+import { client } from "../lib/client";
 import { Icon } from "../icons";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 
-interface Route {
-  agent: string;
-  model: string;
-}
-interface RoutingData {
-  defaults?: Route | null;
-  stages?: Record<string, Route>;
-}
-interface Model {
-  id: string;
-  label: string;
-}
+const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"];
+const AGENTS = ["garry-analyst", "garry-dev", "garry-reviewer"];
 
+/** Routing profiles: Garry's example and your own; which agent and model handle each stage. */
 export default function Routing() {
-  const [data, setData] = useState<RoutingData | null>(null);
+  const [data, setData] = useState<RoutingProfiles | null>(null);
   const [models, setModels] = useState<Model[]>([]);
+  const [selected, setSelected] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [offline, setOffline] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
+  const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
 
-  const load = useCallback(() => {
-    Promise.all([
-      fetch(`${apiBase}/api/routing`).then((r) => r.json()),
-      fetch(`${apiBase}/api/models`).then((r) => r.json()),
-    ])
-      .then(([r, m]) => {
-        setData(r as RoutingData);
-        setModels((m.models as Model[]) ?? []);
-      })
-      .catch((e: unknown) => setError(String(e)));
+  const load = useCallback(async (pick?: string) => {
+    try {
+      const [p, m] = await Promise.all([client.routingProfiles(), client.models()]);
+      setData(p);
+      setModels(m);
+      setSelected((cur) => pick ?? (cur && p.profiles.some((x) => x.name === cur) ? cur : p.active));
+      setOffline(false);
+    } catch {
+      setOffline(true);
+    }
   }, []);
-  useEffect(() => load(), [load]);
+  useEffect(() => void load(), [load]);
 
-  const change = (stage: string, model: string) => {
-    fetch(`${apiBase}/api/routing`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ stage, model }),
-    })
-      .then((r) => r.json())
-      .then((r: RoutingData) => {
-        setData(r);
-        setSaved(stage);
-        setTimeout(() => setSaved((s) => (s === stage ? null : s)), 2000);
-      })
-      .catch(() => undefined);
+  const run = async (fn: () => Promise<unknown>, pick?: string) => {
+    setError(null);
+    try {
+      await fn();
+      await load(pick);
+    } catch (e) {
+      setError(String((e as Error).message ?? e));
+    }
   };
 
+  const profile = data?.profiles.find((p) => p.name === selected) ?? null;
   const label = (id: string) => models.find((m) => m.id === id)?.label ?? id;
-  const stages = Object.entries(data?.stages ?? {});
+
+  const change = (stage: string, route: { model?: string; agent?: string }) =>
+    run(async () => {
+      await client.setProfileRoute(selected, stage, route);
+      setSaved(stage);
+      setTimeout(() => setSaved((s) => (s === stage ? null : s)), 2000);
+    });
+
+  const create = () =>
+    run(async () => {
+      await client.createRoutingProfile(newName.trim(), selected || "default");
+      setNewName("");
+      setCreating(false);
+    }, newName.trim());
+
+  const row = (stage: string, r: RoutingProfile["defaults"], p: RoutingProfile) => (
+    <tr key={stage}>
+      <td className={`strong ${styles.cap}`}>{stage === "defaults" ? "Everything else" : stage}</td>
+      <td>
+        {p.builtin ? (
+          <span className="chip mono">{r.agent}</span>
+        ) : (
+          <select className={own.agentSelect} value={r.agent} onChange={(e) => void change(stage, { agent: e.target.value })} aria-label={`agent for ${stage}`}>
+            {[...new Set([r.agent, ...AGENTS])].map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </select>
+        )}
+      </td>
+      <td>
+        <label className={styles.modelCell}>
+          <span className={`tier ${tierOf(r.model)}`} />
+          {p.builtin ? (
+            <span>{label(r.model)}</span>
+          ) : (
+            <select className={styles.modelSelect} value={r.model} onChange={(e) => void change(stage, { model: e.target.value })} aria-label={`model for ${stage}`}>
+              {models.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </label>
+      </td>
+      <td className={styles.savedCell}>{saved === stage && <span className="badge ok">{Icon.check}Saved</span>}</td>
+    </tr>
+  );
 
   return (
     <main className="page">
       <PageHeader
         eyebrow="Configure"
         title="Model routing"
-        lede="Which agent role and which model handle each SDLC stage. A change is saved to garry.routing.json and applies to the next run. The agent role stays."
+        lede="Which agent role and which model handle each SDLC stage. Default is Garry's example; make profiles of your own from it, pick the active one, and let a feature use another (routing: in its frontmatter)."
       />
-
-      {error && <ServerNotice />}
-      {!data && !error && <Skeleton rows={4} height={48} />}
+      {offline && <ServerNotice />}
+      {!data && !offline && <Skeleton rows={4} height={48} />}
+      {error && <p className="badge danger">{error}</p>}
 
       {data && (
         <>
-          <div className={`card ${styles.defaultRoute}`}>
-            <span className={styles.defaultIcon}>{Icon.routing}</span>
-            <div>
-              <div className={styles.defaultLabel}>Default route</div>
-              <div className={styles.defaultValue}>
-                {data.defaults ? (
-                  <>
-                    {data.defaults.agent} · <span className={`tier ${tierOf(data.defaults.model)}`} style={{ display: "inline-block" }} /> {label(data.defaults.model)}
-                  </>
-                ) : (
-                  "None, every stage is routed explicitly"
-                )}
+          <div className={own.profiles} role="tablist" aria-label="routing profiles">
+            {data.profiles.map((p) => (
+              <button
+                key={p.name}
+                role="tab"
+                aria-selected={p.name === selected}
+                className={`card ${own.profile} ${p.name === selected ? own.selected : ""}`}
+                onClick={() => setSelected(p.name)}
+              >
+                <span className={own.profileHead}>
+                  <span className={own.profileName}>{p.name}</span>
+                  {p.name === data.active && <span className="badge ok">Active</span>}
+                  {p.builtin && <span className="badge">Example</span>}
+                </span>
+                {p.description && <span className={own.profileDesc}>{p.description}</span>}
+              </button>
+            ))}
+            {creating ? (
+              <div className={`card ${own.profile} ${own.newProfile}`}>
+                <input className="input mono" placeholder="fast-and-cheap" value={newName} autoFocus onChange={(e) => setNewName(e.target.value.toLowerCase())} onKeyDown={(e) => e.key === "Enter" && newName.trim() && void create()} />
+                <span className={own.profileDesc}>Starts as a copy of {selected || "default"}.</span>
+                <span className={own.row}>
+                  <button className="btn btnSm btnPrimary" disabled={!newName.trim()} onClick={() => void create()}>
+                    Create
+                  </button>
+                  <button className="btn btnSm btnGhost" onClick={() => setCreating(false)}>
+                    Cancel
+                  </button>
+                </span>
               </div>
-            </div>
+            ) : (
+              <button className={`card ${own.profile} ${own.add}`} onClick={() => setCreating(true)}>
+                + New profile
+              </button>
+            )}
           </div>
 
-          <div className="card tableWrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Stage</th>
-                  <th>Agent</th>
-                  <th>Model</th>
-                  <th aria-label="status"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {stages.map(([stage, r]) => (
-                  <tr key={stage}>
-                    <td className={`strong ${styles.cap}`}>{stage}</td>
-                    <td><span className="chip mono">{r.agent}</span></td>
-                    <td>
-                      <label className={styles.modelCell}>
-                        <span className={`tier ${tierOf(r.model)}`} />
-                        <select
-                          className={styles.modelSelect}
-                          value={r.model}
-                          onChange={(e) => change(stage, e.target.value)}
-                          aria-label={`model for ${stage}`}
-                        >
-                          {models.map((m) => (
-                            <option key={m.id} value={m.id}>{m.label}</option>
-                          ))}
-                        </select>
-                      </label>
-                    </td>
-                    <td className={styles.savedCell}>
-                      {saved === stage && <span className="badge ok">{Icon.check}Saved</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {profile && (
+            <>
+              <div className={own.toolbar}>
+                {profile.builtin ? (
+                  <span className="muted">Garry&apos;s example stays as it is. Make a profile from it to change the models.</span>
+                ) : (
+                  <span className="muted">Changes are saved to routing/{profile.name}.json in the registry and apply to the next run.</span>
+                )}
+                <span className={own.row}>
+                  {profile.name !== data.active && (
+                    <button className="btn btnSm btnPrimary" onClick={() => void run(() => client.useRoutingProfile(profile.name))}>
+                      Use this profile
+                    </button>
+                  )}
+                  {!profile.builtin && (
+                    <button
+                      className="btn btnSm btnGhost"
+                      onClick={() => window.confirm(`Remove the profile ${profile.name}?`) && void run(() => client.removeRoutingProfile(profile.name), data.active === profile.name ? "default" : data.active)}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </span>
+              </div>
+              <div className="card tableWrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Stage</th>
+                      <th>Agent</th>
+                      <th>Model</th>
+                      <th aria-label="status"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {STAGES.map((s) => row(s, profile.stages[s] ?? profile.defaults, profile))}
+                    {row("defaults", profile.defaults, profile)}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
 
           <div className="hint">
             <span className="tier opus" /> Opus

@@ -8,6 +8,7 @@ import { AUDIT_RULES, auditFiles, readSkillFolder } from "../skills/audit.js";
 import { proposeSkill, skillsRepo } from "../skills/propose.js";
 import { describe } from "../orchestrate/delegate.js";
 import { MODELS, isKnownModel } from "../orchestrate/models.js";
+import { RoutingError, activeProfileName, defaultProfile, listProfiles, readProfile, removeProfile, saveProfile, setActiveProfile, setStageRoute } from "../orchestrate/profiles.js";
 import { loadWorkspace } from "../workspace/workspace.js";
 import { listManifests, readContracts } from "../sync/registryIO.js";
 import { DEVICE_COOKIE, DeviceStore, hostAllowed, isLoopback, requestToken } from "./auth.js";
@@ -461,22 +462,42 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return json(res, 200, { ok: true, id, status: body.status });
   }
 
-  // POST a routing change: set the model for a stage (the agent stays)
+  // Routing profiles: Garry's example ("default", read only) and your own (routing/<name>.json in the registry)
   if (req.method === "POST" && path === "/api/routing") {
-    const body = (await readBody(req)) as { stage?: string; model?: string };
-    if (!body.stage || !body.model) return json(res, 400, { error: "stage and model are required" });
-    if (!isKnownModel(body.model)) return json(res, 400, { error: `unknown model: ${body.model}` });
-    const routing = existsSync(cfg.routing)
-      ? (JSON.parse(readFileSync(cfg.routing, "utf8")) as {
-          defaults?: { agent: string; model: string };
-          stages?: Record<string, { agent: string; model: string }>;
-        })
-      : { defaults: { agent: "garry-dev", model: body.model }, stages: {} };
-    routing.stages = routing.stages ?? {};
-    const agent = routing.stages[body.stage]?.agent ?? routing.defaults?.agent ?? "garry-dev";
-    routing.stages[body.stage] = { agent, model: body.model };
-    writeFileSync(cfg.routing, JSON.stringify(routing, null, 2) + "\n");
-    return json(res, 200, routing);
+    // one stage (or "defaults") of a profile: the active one unless named
+    const body = (await readBody(req)) as { profile?: string; stage?: string; model?: string; agent?: string };
+    if (!body.stage || (!body.model && !body.agent)) return json(res, 400, { error: "stage and a model or an agent are required" });
+    try {
+      const p = setStageRoute(cfg.registry, body.profile ?? activeProfileName(cfg.registry), body.stage, { model: body.model, agent: body.agent });
+      return json(res, 200, p);
+    } catch (e) {
+      if (e instanceof RoutingError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+  if (req.method === "POST" && (path === "/api/routings" || path === "/api/routings/active")) {
+    const body = (await readBody(req)) as { name?: string; replace?: boolean };
+    try {
+      if (path === "/api/routings/active") {
+        setActiveProfile(cfg.registry, String(body.name ?? ""));
+        return json(res, 200, listProfiles(cfg.registry, cfg.routing));
+      }
+      return json(res, 200, saveProfile(cfg.registry, body, { replace: body.replace === true, legacyFile: cfg.routing }));
+    } catch (e) {
+      if (e instanceof RoutingError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+  const delRouting = /^\/api\/routings\/([^/]+)$/.exec(path);
+  if (req.method === "DELETE" && delRouting) {
+    if (!local) return json(res, 403, { error: "only this computer can remove routing profiles" });
+    try {
+      removeProfile(cfg.registry, decodeURIComponent(delRouting[1]));
+      return json(res, 200, listProfiles(cfg.registry, cfg.routing));
+    } catch (e) {
+      if (e instanceof RoutingError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
   }
 
   // POST per service model override
@@ -532,7 +553,9 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "DELETE /api/stacks/:name (this machine only)",
         "POST /api/registry/services {name, kind, repo, owner?, stack?, exposes?, consumes?, db?, replace?}",
         "DELETE /api/registry/services/:name (this machine only)",
-        "GET /api/routing",
+        "GET /api/routing (the active profile), POST /api/routing {profile?, stage, model?, agent?}",
+        "GET /api/routings, POST /api/routings {name, from? | defaults, stages, replace?}, POST /api/routings/active {name}",
+        "DELETE /api/routings/:name (this machine only)",
         "GET /api/models",
       ],
     });
@@ -553,9 +576,10 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });
   }
   if (path === "/api/routing") {
-    const data = existsSync(cfg.routing) ? JSON.parse(readFileSync(cfg.routing, "utf8")) : { defaults: null, stages: {} };
-    return json(res, 200, data);
+    // the active profile, in the shape the routing matrix always had
+    return json(res, 200, readProfile(cfg.registry, activeProfileName(cfg.registry), cfg.routing) ?? defaultProfile(cfg.routing));
   }
+  if (path === "/api/routings") return json(res, 200, listProfiles(cfg.registry, cfg.routing));
 
   const plan = /^\/api\/features\/([^/]+)\/plan$/.exec(path);
   if (plan) return json(res, 200, planFor(cfg, decodeURIComponent(plan[1])));

@@ -130,5 +130,7 @@ export const FeatureFrontmatterSchema = z.object({
   services: z.array(z.string()).default([]),
   contractChanges: z.array(z.string()).default([]),
   routingOverride: RoutingOverrideSchema.optional(),
+  /** a routing profile: routing/<name>.json */
+  routing: z.string().optional(),
 });
 export type FeatureFrontmatter = z.infer<typeof FeatureFrontmatterSchema>;

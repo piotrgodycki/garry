@@ -50,7 +50,8 @@
     "test:services": "tsx src/registry/services.selftest.ts",
     "test:features": "tsx src/registry/features.selftest.ts",
     "test:stacks": "tsx src/registry/stacks.selftest.ts",
-    "test:qa": "tsx src/review/qa.selftest.ts"
+    "test:qa": "tsx src/review/qa.selftest.ts",
+    "test:routing": "tsx src/orchestrate/profiles.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

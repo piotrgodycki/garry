@@ -1,4 +1,4 @@
-import type { Feature, FileContent, FileEntry, LogEntry, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { Feature, FileContent, FileEntry, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -117,6 +117,15 @@ export class GarryClient {
   models = () => this.request<{ models: Model[] }>("/api/models").then((r) => r.models);
   routing = () => this.request<Routing>("/api/routing");
   setStageModel = (stage: string, model: string) => this.post<Routing>("/api/routing", { stage, model });
+  /** Routing profiles: Garry's example and your own, and which one is active. */
+  routingProfiles = () => this.request<RoutingProfiles>("/api/routings");
+  /** Creates a profile, starting as a copy of `from` (default: Garry's example). */
+  createRoutingProfile = (name: string, from = "default", description?: string) => this.post<RoutingProfile>("/api/routings", { name, from, description });
+  /** Changes one stage (or "defaults") of a profile of your own. */
+  setProfileRoute = (profile: string, stage: string, route: { model?: string; agent?: string }) => this.post<RoutingProfile>("/api/routing", { profile, stage, ...route });
+  useRoutingProfile = (name: string) => this.post<RoutingProfiles>("/api/routings/active", { name });
+  /** Removes a profile (this computer only). */
+  removeRoutingProfile = (name: string) => this.request<RoutingProfiles>(`/api/routings/${encodeURIComponent(name)}`, { method: "DELETE" });
   setServiceModel = (featureId: string, service: string, model: string) =>
     this.post<{ ok: true; serviceModels: Record<string, string> }>(`/api/features/${encodeURIComponent(featureId)}/service-models`, { service, model });
 

@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from "node:fs";
+import { activeProfileName, defaultProfile, readProfile } from "./profiles.js";
 
 export interface Route {
   agent: string;
@@ -14,18 +14,18 @@ export interface Routing {
 const DEFAULT_ROUTE: Route = { agent: "garry-dev", model: "claude-sonnet-4-6" };
 
 /**
- * Resolves the routing: defaults, then garry.routing.json stages, then the per
- * feature override. The override comes from the feature frontmatter.
+ * Resolves the routing: the profile (the feature's `routing:`, else the active
+ * one in the registry, else Garry's example: garry.routing.json or the
+ * built-in), then the per feature override from the frontmatter.
  */
-export function resolveRouting(routingFile: string | undefined, override: Record<string, Route> | undefined): Routing {
-  let base = DEFAULT_ROUTE;
-  let stages: Record<string, Route> = {};
-  if (routingFile && existsSync(routingFile)) {
-    const j = JSON.parse(readFileSync(routingFile, "utf8")) as { defaults?: Route; stages?: Record<string, Route> };
-    if (j.defaults) base = j.defaults;
-    stages = j.stages ?? {};
-  }
-  return { base, stages, override: override ?? {} };
+export function resolveRouting(
+  routingFile: string | undefined,
+  override: Record<string, Route> | undefined,
+  opts: { registry?: string; profile?: string } = {},
+): Routing {
+  const name = opts.profile ?? (opts.registry ? activeProfileName(opts.registry) : "default");
+  const profile = (opts.registry ? readProfile(opts.registry, name, routingFile) : null) ?? defaultProfile(routingFile);
+  return { base: profile.defaults ?? DEFAULT_ROUTE, stages: profile.stages, override: override ?? {} };
 }
 
 /** Picks the agent and model for a stage: override wins, then the stage map, then the base. */
