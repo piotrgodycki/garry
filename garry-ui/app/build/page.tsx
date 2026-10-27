@@ -8,6 +8,7 @@ import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./build.module.css";
 import FilesPanel from "./FilesPanel";
 import GithubImport from "./GithubImport";
+import ProjectSettingsPanel from "./ProjectSettings";
 
 const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.status === "error" ? "danger" : t.pr ? "ok" : "");
 const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.status === "error" ? "Stopped" : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
@@ -23,6 +24,7 @@ export default function Build() {
   const [error, setError] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     const load = () =>
@@ -77,7 +79,11 @@ export default function Build() {
                   </option>
                 ))}
               </select>
+              <button className="btn btnGhost" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((v) => !v)}>
+                {settingsOpen ? "Hide settings" : "Push and branch settings"}
+              </button>
             </div>
+            {settingsOpen && projectId && <ProjectSettingsPanel projectId={projectId} />}
             <textarea
               className={`input ${styles.prompt}`}
               placeholder="What should change? For example: add a dark mode toggle to the settings page."

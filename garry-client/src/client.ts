@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -158,7 +158,13 @@ export class GarryClient {
   stopThread = (id: string) => this.post<{ stopped: boolean }>(`/api/threads/${id}/stop`, {});
   threadDiff = (id: string) => this.request<ThreadDiff>(`/api/threads/${id}/diff`);
   commitThread = (id: string, message: string) => this.post<Thread>(`/api/threads/${id}/commit`, { message });
-  openPullRequest = (id: string, title?: string, body?: string) => this.post<Thread>(`/api/threads/${id}/pr`, { title, body });
+  /** Pushes and opens the PR. When the project asks before pushing, confirmed must be true (show pushPreview first), else 428. */
+  openPullRequest = (id: string, title?: string, body?: string, confirmed = false) => this.post<Thread>(`/api/threads/${id}/pr`, { title, body, confirmed });
+  /** What a push would do: branch, remote, base, commits, and whether the project allows it. */
+  pushPreview = (id: string) => this.request<PushPreview>(`/api/threads/${id}/push`);
+  projectSettings = (projectId: string) => this.request<ProjectSettings>(`/api/projects/${projectId}/settings`);
+  /** Changes some of a project's settings (this computer only). */
+  saveProjectSettings = (projectId: string, settings: Partial<ProjectSettings>) => this.post<ProjectSettings>(`/api/projects/${projectId}/settings`, settings);
   /**
    * Files under one root, this computer only: a thread's worktree
    * (/api/threads/:id), a project's checkout (/api/projects/:id) or the

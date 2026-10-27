@@ -280,6 +280,29 @@ export interface GithubRepo {
 
 // ---- the IDE: projects and agent threads ----
 
+/** What Garry may do with a project's remote. */
+export interface ProjectSettings {
+  /** ask: confirm every push; allow: push when opening a PR; never: no pushes from Garry */
+  push: "ask" | "allow" | "never";
+  /** the branch pull requests target; empty is the repository's default branch */
+  baseBranch: string;
+  branchPrefix: string;
+  /** branches Garry never pushes to; * matches anything */
+  protectedBranches: string[];
+  draftPr: boolean;
+}
+
+export interface PushPreview {
+  branch: string;
+  remote: string | null;
+  base: string;
+  commits: { sha: string; subject: string }[];
+  mode: ProjectSettings["push"];
+  draft: boolean;
+  /** why the push would be refused, if it would */
+  refused: string | null;
+}
+
 export interface Project {
   id: string;
   name: string;

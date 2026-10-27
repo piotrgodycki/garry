@@ -2,6 +2,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renam
 import { randomBytes } from "node:crypto";
 import { basename, join, resolve } from "node:path";
 import { garryHome } from "../server/auth.js";
+import { applySettings, settingsOf, type ProjectSettings } from "./settings.js";
 
 /**
  * Projects and threads. A project is a git repository on this machine; a thread
@@ -14,6 +15,8 @@ export interface Project {
   id: string;
   name: string;
   path: string;
+  /** what Garry may do with the remote; missing fields are the defaults */
+  settings?: Partial<ProjectSettings>;
 }
 
 export type ThreadStatus = "running" | "idle" | "error";
@@ -83,6 +86,23 @@ export class ThreadStore {
     const p = { id: id(), name: (name ?? basename(abs)).slice(0, 64), path: abs };
     this.write(join(this.root, "projects.json"), { projects: [...list, p] });
     return p;
+  }
+
+  /** The project's settings, defaults filled in. */
+  settings(projectId: string): ProjectSettings {
+    const p = this.project(projectId);
+    if (!p) throw new Error("unknown project");
+    return settingsOf(p.settings);
+  }
+
+  /** Changes some settings (checked) and returns the whole. */
+  saveSettings(projectId: string, input: unknown): ProjectSettings {
+    const list = this.projects();
+    const p = list.find((x) => x.id === projectId);
+    if (!p) throw new Error("unknown project");
+    p.settings = applySettings(settingsOf(p.settings), input);
+    this.write(join(this.root, "projects.json"), { projects: list });
+    return p.settings as ProjectSettings;
   }
 
   // ---- threads ----

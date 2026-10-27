@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { ThreadManager } from "./manager.js";
+import { PushError, type ThreadManager } from "./manager.js";
 import { fileRoute } from "./files.js";
 
 /**
@@ -37,6 +37,22 @@ export async function threadRoutes(
         return (fail(e), true);
       }
     }
+  }
+
+  // what Garry may do with a project's remote: anyone paired reads, this computer changes
+  const settings = /^\/api\/projects\/([a-z0-9]{4,16})\/settings$/.exec(path);
+  if (settings) {
+    if (!store.project(settings[1])) return (json(res, 404, { error: "no such project" }), true);
+    if (m === "GET") return (json(res, 200, store.settings(settings[1])), true);
+    if (m === "POST") {
+      if (!local) return (json(res, 403, { error: "a project's settings are changed on the computer running Garry" }), true);
+      try {
+        return (json(res, 200, store.saveSettings(settings[1], await readBody(req))), true);
+      } catch (e) {
+        return (fail(e), true);
+      }
+    }
+    return (json(res, 405, { error: "method not allowed" }), true);
   }
 
   // a project's own checkout: browse and edit by hand, this computer only
@@ -96,9 +112,10 @@ export async function threadRoutes(
       const body = (await readBody(req)) as { message?: string };
       return (json(res, 200, threads.commit(id, String(body.message ?? ""))), true);
     }
+    if (m === "GET" && action === "/push") return (json(res, 200, await threads.pushPreview(id)), true);
     if (m === "POST" && action === "/pr") {
-      const body = (await readBody(req)) as { title?: string; body?: string };
-      return (json(res, 200, await threads.openPr(id, body.title, body.body)), true);
+      const body = (await readBody(req)) as { title?: string; body?: string; confirmed?: boolean };
+      return (json(res, 200, await threads.openPr(id, body.title, body.body, body.confirmed === true)), true);
     }
     if (m === "DELETE" && action === "") {
       if (!local) return (json(res, 403, { error: "a thread's work is discarded on the computer running Garry" }), true);
@@ -106,7 +123,7 @@ export async function threadRoutes(
       return (json(res, 200, { ok: true }), true);
     }
   } catch (e) {
-    return (fail(e, /still working|wait for the agent/.test(String(e)) ? 409 : 400), true);
+    return (fail(e, e instanceof PushError ? e.status : /still working|wait for the agent/.test(String(e)) ? 409 : 400), true);
   }
   return (json(res, 405, { error: "method not allowed" }), true);
 }
