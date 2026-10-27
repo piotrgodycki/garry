@@ -15,8 +15,9 @@ try {
   await win.locator(".serverStatus", { hasText: "Server online" }).waitFor({ timeout: 20000 });
   const url = win.url();
   if (!/^http:\/\/127\.0\.0\.1:\d+\/$/.test(url)) throw new Error(`unexpected page ${url}`);
+  // a fresh app starts empty: the server answers, with no sample features
   const features = await win.evaluate(() => fetch("/api/features").then((r) => r.json()));
-  if (!features.features?.length) throw new Error("the built-in server has no features");
+  if (!Array.isArray(features.features) || features.features.length) throw new Error(`expected no features, got ${JSON.stringify(features)}`);
   console.log(`ok  the app shows the dashboard at ${url} and its server answers`);
 } finally {
   await app.close();
