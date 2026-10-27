@@ -48,5 +48,4 @@ copy(join(repo, "garry-ui/dist"), "ui");
 copy(join(repo, "LICENSE"), "LICENSE");
 copy(join(repo, "garry-skills/manifest.json"), "skills/manifest.json");
 copy(join(repo, "garry-skills/skills"), "skills/skills");
-copy(join(repo, "garry-registry/examples/registry-sample"), "examples/registry-sample");
-console.log("built dist/main.mjs, dist/preload.cjs, ui/, skills/, examples/ and LICENSE");
+console.log("built dist/main.mjs, dist/preload.cjs, ui/, skills/ and LICENSE");

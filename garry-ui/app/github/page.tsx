@@ -50,6 +50,7 @@ export default function Prs() {
         const fs = (d.features as Feature[]) ?? [];
         setFeatures(fs);
         if (fs[0]) setSelected(fs[0].id);
+        else setPrs([]);
       })
       .catch((e: unknown) => setError(String(e)));
   }, []);
@@ -87,11 +88,13 @@ export default function Prs() {
       {error && <ServerNotice />}
 
       <div className="toolbar">
-        <select className="select" value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="feature">
-          {features.map((f) => (
-            <option key={f.id} value={f.id}>{f.id} {f.title}</option>
-          ))}
-        </select>
+        {features.length > 0 && (
+          <select className="select" value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="feature">
+            {features.map((f) => (
+              <option key={f.id} value={f.id}>{f.id} {f.title}</option>
+            ))}
+          </select>
+        )}
         <label className="searchField">
           {Icon.search}
           <input
@@ -159,7 +162,7 @@ export default function Prs() {
             ))}
           </tbody>
         </table>
-        {prs && pageRows.length === 0 && <Empty icon={Icon.prs}>No pull requests match.</Empty>}
+        {prs && pageRows.length === 0 && <Empty icon={Icon.prs}>{features.length ? "No pull requests match." : "No features yet, so no pull requests."}</Empty>}
         {!prs && !error && <Empty icon={Icon.prs}>Loading pull requests...</Empty>}
       </div>
 

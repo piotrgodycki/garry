@@ -208,7 +208,7 @@ function buildMenu(): void {
       label: "File",
       submenu: [
         { label: "Open Project…", accelerator: "CmdOrCtrl+O", click: () => void chooseProject() },
-        { label: settings.project ? `Project: ${settings.project}` : "Project: sample registry", enabled: false },
+        { label: settings.project ? `Project: ${settings.project}` : "Project: ~/.garry/registry", enabled: false },
         { type: "separator" },
         { label: "Open in Browser", click: () => void shell.openExternal(`http://127.0.0.1:${port}/`) },
         { label: "Show Garry Data Folder", click: () => void shell.openPath(garryHome()) },

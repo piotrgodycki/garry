@@ -31,10 +31,10 @@ jobs:
           pnpm -C garry-ui typecheck
       - name: Build the dashboard
         run: pnpm -C garry-ui build
-      - name: Validate registry (mfe and backend samples)
+      - name: Validate registry (mfe and backend test registries)
         run: |
-          pnpm -C garry-registry exec tsx src/cli.ts examples/registry-sample
-          pnpm -C garry-registry exec tsx src/cli.ts examples/backend-sample
+          pnpm -C garry-registry exec tsx src/cli.ts testdata/frontend
+          pnpm -C garry-registry exec tsx src/cli.ts testdata/backend
       - name: Validate skills
         run: pnpm -C garry-skills validate
       # Every skill is a set of instructions an agent follows with access to code
@@ -42,6 +42,8 @@ jobs:
       # audit itself must keep catching the known attacks.
       - name: Device pairing
         run: pnpm -C garry-tool test:auth
+      - name: Adding and removing services
+        run: pnpm -C garry-tool test:services
       # git needs an identity for the commits the test makes in its scratch repo
       - name: Agent threads (with a stand-in for Claude Code)
         run: |

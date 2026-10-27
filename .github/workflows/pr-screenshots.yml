@@ -11,7 +11,7 @@ on:
       - "garry-ui/**"
       - "garry-skills/**"
       - "garry-tool/src/**"
-      - "garry-registry/examples/**"
+      - "garry-registry/testdata/**"
       - "garry.screenshots.json"
       - ".github/workflows/pr-screenshots.yml"
   workflow_dispatch:
@@ -75,11 +75,12 @@ jobs:
       - name: Install headless Chromium
         run: pnpm -C garry-tool exec playwright install --with-deps chromium
 
-      # garry serve hosts the built dashboard and the API on one port
+      # garry serve hosts the built dashboard and the API on one port. Garry ships
+      # no sample data, so the views are captured over the test registry.
       - name: Build and start the head
         run: |
           pnpm -C garry-ui build
-          nohup pnpm serve --port 8123 > "$RUNNER_TEMP/head-server.log" 2>&1 &
+          nohup pnpm serve --port 8123 --registry garry-registry/testdata/frontend > "$RUNNER_TEMP/head-server.log" 2>&1 &
           timeout 120 bash -c 'until curl -sf http://localhost:8123/api/features > /dev/null && curl -sf http://localhost:8123/ > /dev/null; do sleep 2; done'
       - name: Capture the head
         run: pnpm garry shots capture --url http://localhost:8123 --out "$RUNNER_TEMP/shots/head"
@@ -95,10 +96,14 @@ jobs:
           git worktree add --detach "$base" "$BASE_SHA"
           cd "$base"
           pnpm install --frozen-lockfile
+          # older bases loaded their bundled sample registry by default
+          reg=""
+          if [ -d garry-registry/testdata/frontend ]; then reg="--registry garry-registry/testdata/frontend"; fi
           if [ -f garry-ui/vite.config.ts ]; then
             # the dashboard is served by garry serve itself
             pnpm -C garry-ui build
-            nohup pnpm serve --port 8124 > "$RUNNER_TEMP/base-server.log" 2>&1 &
+            # shellcheck disable=SC2086
+            nohup pnpm serve --port 8124 $reg > "$RUNNER_TEMP/base-server.log" 2>&1 &
             ui=http://localhost:8124
           else
             # an older base: the Next.js dashboard on its own port

@@ -5,18 +5,29 @@ import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import ContractEvent from "../ContractEvent";
+import AddService from "./AddService";
+import type { RegistryIssue } from "garry-client";
 import { flattenTokens, type RegistryData } from "../lib/contracts";
 
 export default function Registry() {
   const [data, setData] = useState<RegistryData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [issues, setIssues] = useState<RegistryIssue[]>([]);
 
-  useEffect(() => {
+  const load = () =>
     fetch(`${apiBase}/api/registry`)
       .then((r) => r.json())
       .then((d: RegistryData) => setData(d))
       .catch((e: unknown) => setError(String(e)));
+  useEffect(() => {
+    void load();
   }, []);
+  const added = (found: RegistryIssue[]) => {
+    setAdding(false);
+    setIssues(found);
+    void load();
+  };
 
   const contracts = data
     ? [
@@ -55,8 +66,32 @@ export default function Registry() {
           <section className="section">
             <div className="sectionHead">
               <h2>Services</h2>
-              <span className="count">{data.services.length} registered</span>
+              <span className={styles.headRight}>
+                <span className="count">{data.services.length} registered</span>
+                {data.services.length > 0 && !adding && (
+                  <button className="btn btnPrimary btnSm" onClick={() => setAdding(true)}>
+                    Add service
+                  </button>
+                )}
+              </span>
             </div>
+            {data.services.length === 0 && (
+              <p className={styles.explain}>
+                No services yet. Add the ones you have: each gets a manifest the agents read before they touch its repository.
+              </p>
+            )}
+            {(adding || data.services.length === 0) && (
+              <AddService services={data.services} onAdded={added} onCancel={data.services.length ? () => setAdding(false) : undefined} />
+            )}
+            {issues.length > 0 && (
+              <ul className={styles.issues}>
+                {issues.map((i) => (
+                  <li key={`${i.where}${i.message}`}>
+                    <span className={`badge ${i.level === "error" ? "danger" : "warn"}`}>{i.level}</span> <span className="mono">{i.where}</span> {i.message}
+                  </li>
+                ))}
+              </ul>
+            )}
             <div className={styles.grid}>
               {data.services.map((s) => {
                 const deps = Object.keys(s.consumes);
@@ -110,6 +145,9 @@ export default function Registry() {
             </div>
 
             <h3 className={styles.subhead}>Remote modules <code>remotes.json</code></h3>
+            {Object.keys(data.contracts.remotes ?? {}).length === 0 ? (
+              <p className="muted">No remote modules.</p>
+            ) : (
             <div className="card tableWrap">
               <table className="table">
                 <thead>
@@ -147,10 +185,14 @@ export default function Registry() {
                 </tbody>
               </table>
             </div>
+            )}
 
             <div className={styles.twoCol}>
               <div>
                 <h3 className={styles.subhead}>Shared dependencies <code>shared-deps.json</code></h3>
+                {Object.keys(data.contracts.sharedDeps ?? {}).length === 0 ? (
+                  <p className="muted">No shared dependencies.</p>
+                ) : (
                 <div className="card tableWrap">
                   <table className="table">
                     <thead>
@@ -171,9 +213,13 @@ export default function Registry() {
                     </tbody>
                   </table>
                 </div>
+                )}
               </div>
               <div>
                 <h3 className={styles.subhead}>Design tokens <code>design-tokens.json</code></h3>
+                {flattenTokens(data.contracts.designTokens).length === 0 ? (
+                  <p className="muted">No design tokens.</p>
+                ) : (
                 <div className="card">
                   <ul className={styles.tokens}>
                     {flattenTokens(data.contracts.designTokens).map(([k, v]) => (
@@ -185,6 +231,7 @@ export default function Registry() {
                     ))}
                   </ul>
                 </div>
+                )}
               </div>
             </div>
           </section>

@@ -4,7 +4,7 @@
 // without forking the UI or recompiling components.
 import { readFileSync, writeFileSync } from "node:fs";
 
-const src = process.argv[2] ?? "../garry-registry/examples/registry-sample/contracts/design-tokens.json";
+const src = process.argv[2] ?? "design-tokens.json";
 const tokens = JSON.parse(readFileSync(src, "utf8"));
 
 const lines = [];

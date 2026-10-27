@@ -104,7 +104,7 @@
   fill: var(--accent);
 }
 
-/* hub: Garry at the center, ringed by a radial equalizer */
+/* hub: Garry at the center, circled by an orbit */
 .voice {
   position: absolute;
   left: 50%;
@@ -138,41 +138,66 @@
   opacity: 0.7;
   animation-duration: 6s;
 }
-.eq {
+/* a hairline orbit with a comet that circles it: slow while idle, quick while
+   the agents work, when soft ripples also spread out from Garry */
+.orbit,
+.comet,
+.ripple {
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 50%;
+  top: 50%;
+  width: 168px;
+  height: 168px;
+  margin: -84px 0 0 -84px;
+  border-radius: 50%;
+  pointer-events: none;
 }
-.eqSpoke {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform-origin: 0 0;
+.orbit {
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 30%, transparent);
 }
-.eqbar {
+.comet {
+  background: conic-gradient(from 0deg, transparent 0deg, transparent 250deg, color-mix(in srgb, var(--accent) 55%, transparent) 330deg, var(--accent) 359deg, transparent 360deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  opacity: 0.55;
+  animation: spin 9s linear infinite;
+  transition: opacity 0.4s;
+}
+.comet::after {
+  content: "";
   position: absolute;
-  left: -1px;
-  bottom: 0;
-  width: 2px;
-  height: 14px;
-  border-radius: 0;
+  left: 50%;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
   background: var(--accent);
-  transform-origin: center bottom;
-  transform: scaleY(0.3);
-  opacity: 0.35;
-  animation: eqIdle 2.2s ease-in-out infinite;
+  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--accent) 60%, transparent);
 }
-.voiceActive .eqbar {
-  opacity: 0.9;
-  animation: eqActive 0.85s ease-in-out infinite;
+.voiceActive .comet {
+  opacity: 1;
+  animation-duration: 2.4s;
 }
-@keyframes eqIdle {
-  0%, 100% { transform: scaleY(0.25); }
-  50% { transform: scaleY(0.5); }
+.ripple {
+  border: 1px solid var(--accent);
+  opacity: 0;
 }
-@keyframes eqActive {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1.6); }
+.voiceActive .ripple {
+  animation: ripple 2.8s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+.voiceActive .rippleLate {
+  animation-delay: 1.4s;
+}
+@keyframes ripple {
+  0% { transform: scale(0.78); opacity: 0.5; }
+  100% { transform: scale(1.18); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .comet,
+  .ripple {
+    animation: none !important;
+  }
 }
 .core {
   position: absolute;

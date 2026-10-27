@@ -1,4 +1,4 @@
-import type { Feature, LogEntry, Model, PairedDevice, Plan, Project, PullRequest, Registry, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { Feature, LogEntry, Model, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -98,6 +98,10 @@ export class GarryClient {
   plan = (id: string) => this.request<Plan>(`/api/features/${encodeURIComponent(id)}/plan`);
   pullRequests = (id: string) => this.request<{ prs: PullRequest[] }>(`/api/features/${encodeURIComponent(id)}/prs`).then((r) => r.prs);
   registry = () => this.request<Registry>("/api/registry");
+  /** Adds a service to the registry (catalog/<name>.yaml); issues is what the registry check says afterwards. */
+  addService = (service: NewService) => this.post<{ service: RegistryService; issues: RegistryIssue[] }>("/api/registry/services", service);
+  /** Removes a service (this computer only); refused while another service consumes it. */
+  removeService = (name: string) => this.request<{ ok: true }>(`/api/registry/services/${encodeURIComponent(name)}`, { method: "DELETE" });
   skills = () => this.request<{ skills: SkillSummary[] }>("/api/skills").then((r) => r.skills);
   models = () => this.request<{ models: Model[] }>("/api/models").then((r) => r.models);
   routing = () => this.request<Routing>("/api/routing");

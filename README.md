@@ -49,8 +49,12 @@ pnpm dev
 ```
 
 `pnpm dev` starts the whole app for development: the server on
-http://localhost:8123 and the UI with hot reload on http://localhost:3000. Open the
-UI and pick a feature to watch its pipeline.
+http://localhost:8123 and the UI with hot reload on http://localhost:3000.
+
+Garry starts empty: there is no sample data. Add your services in the dashboard
+(Registry, Add service) or with `garry service add`; they go to `./registry` when
+it has a `catalog/`, else to `~/.garry/registry`. Then capture an idea on the
+dashboard and watch its pipeline.
 
 Without development tools, `pnpm -C garry-ui build` once and `pnpm serve`: the
 server hosts the dashboard and the API together on http://localhost:8123 (the npm
@@ -162,7 +166,7 @@ client against a real server, a typecheck and a full bundle.
 | `pnpm garry projects` | the repositories agents can work on (`add <path>` adds one) |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
-| `pnpm -C garry-registry validate` | validate the sample registry |
+| `pnpm -C garry-registry validate` | validate the test registry |
 | `pnpm -C garry-skills validate` | validate the skills manifest |
 
 ## Continuous integration
@@ -171,7 +175,7 @@ CI lives in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) and runs on
 every push and pull request. It has four jobs:
 
 - `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the
-  tool packages and `pnpm -C garry-registry` validation of the mfe and backend samples
+  tool packages and `pnpm -C garry-registry` validation of the mfe and backend test registries
   plus `pnpm -C garry-skills validate`, and the skill security audit: every
   pre-installed skill must pass it, and the audit's regression corpus must behave.
 - `package`: builds the `garry` npm package, packs it, installs the tarball into an
@@ -301,7 +305,7 @@ The pipeline is kept cheap on purpose:
 - Node 22 and pnpm 10, a single version each.
 - PR screenshots are the heaviest job (two production builds plus a Chromium
   install, roughly 6 to 8 minutes), so they only run for pull requests in review
-  that touch the UI, the server or the sample registry.
+  that touch the UI, the server or the test registry.
 - Rough cost per run: a few minutes total, which stays well inside the GitHub Actions
   free tier (2000 minutes per month on a private repository, unlimited on a public one).
 - Dependabot version updates are off for now (pre MVP); `pnpm audit` covers dependency

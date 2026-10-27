@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "validate": "tsx src/cli.ts examples/registry-sample",
+    "validate": "tsx src/cli.ts testdata/frontend",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
