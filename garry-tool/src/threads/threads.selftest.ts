@@ -2,11 +2,12 @@
  * Threads end to end with a stand-in for Claude Code (testdata/fake-claude.mjs):
  * a project, a thread in its own worktree, the live events, a follow-up that
  * resumes the session, the diff, the commit, stopping a turn, and a phone
- * (paired device) starting work but not registering folders.
+ * (paired device) starting work but not registering folders, and the worktree's
+ * files read and edited by hand from this computer only.
  * Run with: pnpm -C garry-tool test:threads
  */
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -82,6 +83,22 @@ const port = (server.address() as AddressInfo).port;
 try {
   const listed = (await fetch(`http://127.0.0.1:${port}/api/threads`).then((r) => r.json())) as { threads: { id: string }[] };
   expect("GET /api/threads lists them", listed.threads.some((x) => x.id === t.id));
+
+  // files: read and edit the worktree by hand, from this computer
+  const base = `http://127.0.0.1:${port}/api/threads/${t.id}`;
+  const tree = (await fetch(`${base}/files`).then((r) => r.json())) as { entries: { name: string; type: string }[] };
+  expect("the worktree's files are listed, .git hidden", tree.entries.some((e) => e.name === "NOTES.md") && !tree.entries.some((e) => e.name === ".git"));
+  const file = (await fetch(`${base}/file?path=NOTES.md`).then((r) => r.json())) as { content: string; sha: string };
+  expect("a file is read with its sha", file.content.includes("And a second line") && file.sha.length === 40);
+  const save = (body: unknown) => fetch(`${base}/file`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const saved = await save({ path: "NOTES.md", content: file.content + "By hand\n", sha: file.sha });
+  expect("an edit is saved and shows in the diff", saved.status === 200 && threads.diff(t.id).patch.includes("+By hand"));
+  expect("a stale edit is refused", (await save({ path: "NOTES.md", content: "x", sha: file.sha })).status === 409);
+  expect("a new file can be created", (await save({ path: "docs/new.md", content: "hi\n" })).status === 200 && readFileSync(join(t.worktree, "docs/new.md"), "utf8") === "hi\n");
+  expect("paths cannot leave the worktree", (await fetch(`${base}/file?path=../../etc/passwd`)).status === 400 && (await save({ path: "../escape.txt", content: "x" })).status === 400);
+  expect(".git is off limits", (await fetch(`${base}/file?path=.git/config`)).status === 403 && (await save({ path: ".git/hooks/pre-commit", content: "x" })).status === 403);
+  symlinkSync(home, join(t.worktree, "out"));
+  expect("a symlink out of the worktree is refused", (await fetch(`${base}/files?path=out`)).status === 400 && (await save({ path: "out/x.txt", content: "x" })).status === 400);
   if (remote) {
     const { code } = devices.createCode();
     const { token } = (await fetch(`http://${remote}:${port}/api/pair`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code, name: "phone" }) }).then((r) => r.json())) as { token: string };
@@ -90,6 +107,9 @@ try {
     expect("a paired phone starts a thread", started.status === 200);
     const addFolder = await fetch(`http://${remote}:${port}/api/projects`, { method: "POST", headers: phone, body: JSON.stringify({ path: "/" }) });
     expect("a phone cannot register folders", addFolder.status === 403);
+    const phoneRead = await fetch(`http://${remote}:${port}/api/threads/${t.id}/file?path=NOTES.md`, { headers: phone });
+    const phoneWrite = await fetch(`http://${remote}:${port}/api/threads/${t.id}/file`, { method: "POST", headers: phone, body: JSON.stringify({ path: "NOTES.md", content: "x" }) });
+    expect("a phone can neither read nor edit files", phoneRead.status === 403 && phoneWrite.status === 403);
     const unpaired = await fetch(`http://${remote}:${port}/api/threads`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ projectId: project.id, prompt: "x" }) });
     expect("an unpaired device cannot", unpaired.status === 401);
   } else console.log("no non-loopback address: phone cases skipped");

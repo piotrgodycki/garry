@@ -472,6 +472,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "GET /api/threads/:id, GET /api/threads/:id/events (SSE), GET /api/threads/:id/diff",
         "POST /api/threads/:id/messages {text}, /stop, /commit {message}, /pr {title?, body?}",
         "DELETE /api/threads/:id (this machine only: removes the worktree and branch)",
+        "GET /api/threads/:id/files?path=, GET /api/threads/:id/file?path=, POST /api/threads/:id/file {path, content, sha?} (this machine only)",
         "GET /api/features",
         "POST /api/features {title, goal?, services?, contractChanges?}",
         "DELETE /api/features/:id (this machine only)",

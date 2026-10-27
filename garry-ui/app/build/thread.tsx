@@ -5,6 +5,7 @@ import { client } from "../lib/client";
 import { confirmAction } from "../lib/desktop";
 import { PageHeader, Skeleton } from "../ui";
 import styles from "./build.module.css";
+import FilesPanel from "./FilesPanel";
 
 function EventRow({ e }: { e: ThreadEvent }) {
   switch (e.type) {
@@ -57,6 +58,9 @@ export default function ThreadView() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const bottom = useRef<HTMLDivElement>(null);
+  const filesRef = useRef<HTMLElement>(null);
+  // a changed file picked in Changes opens in Files
+  const [openPath, setOpenPath] = useState<{ path: string; at: number } | null>(null);
 
   const refresh = useCallback(async () => {
     const [{ thread }, d] = await Promise.all([client.thread(id), client.threadDiff(id).catch(() => null)]);
@@ -159,7 +163,16 @@ export default function ThreadView() {
               <div className={styles.files}>
                 {diff.files.map((f) => (
                   <div key={f.path} className={styles.file}>
-                    <span>{f.path}</span>
+                    <button
+                      className={styles.fileLink}
+                      title="open in Files"
+                      onClick={() => {
+                        setOpenPath({ path: f.path, at: Date.now() });
+                        filesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                    >
+                      {f.path}
+                    </button>
                     <span>
                       <span className={styles.add}>+{f.additions}</span> <span className={styles.del}>−{f.deletions}</span>
                     </span>
@@ -190,6 +203,13 @@ export default function ThreadView() {
           </div>
         </section>
       </div>
+
+      <section className="card" style={{ padding: 0, marginTop: 20 }} ref={filesRef}>
+        <div className={styles.composer} style={{ borderTop: 0 }}>
+          <span className="eyebrow">Files · this computer only</span>
+        </div>
+        <FilesPanel thread={id} running={running} openPath={openPath} onSaved={() => void refresh()} />
+      </section>
     </main>
   );
 }

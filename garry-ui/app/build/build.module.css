@@ -150,3 +150,16 @@
   padding: 14px 18px;
   border-top: 1px solid var(--border-strong);
 }
+
+.fileLink {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.fileLink:hover {
+  text-decoration: underline;
+}

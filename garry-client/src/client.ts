@@ -1,4 +1,4 @@
-import type { Feature, LogEntry, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { Feature, FileContent, FileEntry, LogEntry, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -124,6 +124,11 @@ export class GarryClient {
   threadDiff = (id: string) => this.request<ThreadDiff>(`/api/threads/${id}/diff`);
   commitThread = (id: string, message: string) => this.post<Thread>(`/api/threads/${id}/commit`, { message });
   openPullRequest = (id: string, title?: string, body?: string) => this.post<Thread>(`/api/threads/${id}/pr`, { title, body });
+  /** The worktree's files, one folder at a time (this computer only). */
+  threadFiles = (id: string, path = "") => this.request<{ path: string; entries: FileEntry[] }>(`/api/threads/${id}/files?path=${encodeURIComponent(path)}`).then((r) => r.entries);
+  readThreadFile = (id: string, path: string) => this.request<FileContent>(`/api/threads/${id}/file?path=${encodeURIComponent(path)}`);
+  /** Saves a file by hand; with sha, refused (409) when the file changed since it was read. */
+  writeThreadFile = (id: string, path: string, content: string, sha?: string) => this.post<FileContent>(`/api/threads/${id}/file`, { path, content, sha });
 
   /** Follows a thread: every event so far, then each new one, until the signal aborts. */
   async threadEvents(id: string, onEvent: (e: ThreadEvent) => void, signal?: AbortSignal): Promise<void> {
