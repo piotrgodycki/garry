@@ -198,8 +198,13 @@ Workers, ElastiCache from AWS), needs left open (WordPress without a database, a
 backend with a database but none linked, a shell without its microfrontends),
 RDS reached from outside AWS without pooling, and registry services that are not
 on the board yet. The registry check (`garry-registry validate`) reports the
-errors too. Server: `GET /api/architecture`, `POST /api/architecture`, `POST
-/api/architecture/check`.
+errors too. The page also offers **quick fixes** for every open need (a
+block that provides it, the platform you already use first, never one that
+cannot be reached from there) and **Ask Garry**: describe what it is for, and
+Garry (Claude Code on this computer, on your own Claude plan, with the design
+stage's model from the active routing) suggests blocks and links with the reason
+for each; one click adds a suggestion to the board. Server: `GET /api/architecture`, `POST /api/architecture`, `POST
+/api/architecture/check`, `POST /api/architecture/suggest {goal?, ai?, board?}`.
 
 ## garry routing
 

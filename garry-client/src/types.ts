@@ -194,6 +194,14 @@ export interface ArchIssue {
   message: string;
 }
 
+/** A change to the board: blocks to add (referred to as new:<index> in links) and links to make. */
+export interface ArchSuggestion {
+  title: string;
+  why: string;
+  add: { block: string; label?: string }[];
+  links: ArchEdge[];
+}
+
 export interface ArchitectureState {
   architecture: Architecture;
   components: ArchBlock[];
