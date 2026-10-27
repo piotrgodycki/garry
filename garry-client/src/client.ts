@@ -1,4 +1,4 @@
-import type { Feature, LogEntry, Model, PairedDevice, Plan, PullRequest, Registry, Routing, SkillSummary, StreamEvent, Task } from "./types";
+import type { Feature, LogEntry, Model, PairedDevice, Plan, Project, PullRequest, Registry, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -104,6 +104,42 @@ export class GarryClient {
   setStageModel = (stage: string, model: string) => this.post<Routing>("/api/routing", { stage, model });
   setServiceModel = (featureId: string, service: string, model: string) =>
     this.post<{ ok: true; serviceModels: Record<string, string> }>(`/api/features/${encodeURIComponent(featureId)}/service-models`, { service, model });
+
+  // ---- the IDE: projects and agent threads ----
+  projects = () => this.request<{ projects: Project[] }>("/api/projects").then((r) => r.projects);
+  threads = (projectId?: string) => this.request<{ threads: Thread[] }>(`/api/threads${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`).then((r) => r.threads);
+  thread = (id: string) => this.request<{ thread: Thread; events: ThreadEvent[] }>(`/api/threads/${id}`);
+  /** Starts work: a new branch and worktree in the project, and the agent's first turn. */
+  createThread = (projectId: string, prompt: string, title?: string) => this.post<Thread>("/api/threads", { projectId, prompt, title });
+  sendMessage = (id: string, text: string) => this.post<{ ok: true }>(`/api/threads/${id}/messages`, { text });
+  stopThread = (id: string) => this.post<{ stopped: boolean }>(`/api/threads/${id}/stop`, {});
+  threadDiff = (id: string) => this.request<ThreadDiff>(`/api/threads/${id}/diff`);
+  commitThread = (id: string, message: string) => this.post<Thread>(`/api/threads/${id}/commit`, { message });
+  openPullRequest = (id: string, title?: string, body?: string) => this.post<Thread>(`/api/threads/${id}/pr`, { title, body });
+
+  /** Follows a thread: every event so far, then each new one, until the signal aborts. */
+  async threadEvents(id: string, onEvent: (e: ThreadEvent) => void, signal?: AbortSignal): Promise<void> {
+    const res = await this.f(`${this.base}/api/threads/${id}/events`, { headers: this.headers({ accept: "text/event-stream" }), signal });
+    if (!res.ok || !res.body) throw new GarryError(`thread events: ${res.status}`, res.status);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const blocks = buffer.split("\n\n");
+      buffer = blocks.pop() ?? "";
+      for (const b of blocks) {
+        const data = b
+          .split("\n")
+          .filter((l) => l.startsWith("data:"))
+          .map((l) => l.slice(5).trim())
+          .join("");
+        if (data) onEvent(JSON.parse(data) as ThreadEvent);
+      }
+    }
+  }
 
   /**
    * Follows a feature's live stream until it ends or the signal aborts. Needs a

@@ -1,0 +1,152 @@
+.newForm {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+}
+.row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.prompt {
+  min-height: 96px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.5;
+}
+.list {
+  display: grid;
+  gap: 10px;
+}
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 16px;
+  align-items: center;
+  padding: 14px 18px;
+  color: inherit;
+}
+.item,
+.item * {
+  text-decoration: none;
+}
+.itemTitle {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.meta {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-family: var(--font-family-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the thread: conversation on the left, changes on the right */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.timeline {
+  display: grid;
+  gap: 2px;
+  padding: 6px 0;
+  max-height: calc(100vh - 340px);
+  min-height: 240px;
+  overflow: auto;
+}
+.ev {
+  padding: 8px 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.evUser {
+  border-left: 3px solid var(--color-text-default);
+  background: var(--surface-3);
+  font-weight: 600;
+}
+.evTool {
+  font-family: var(--font-family-mono);
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.evTool b {
+  color: var(--color-text-default);
+  font-weight: 700;
+}
+.evBad {
+  color: var(--danger);
+}
+.evEnd {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.composer {
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border-strong);
+}
+.files {
+  display: grid;
+  gap: 2px;
+  padding: 8px 0;
+}
+.file {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 18px;
+  font-family: var(--font-family-mono);
+  font-size: 12.5px;
+}
+.add {
+  color: #1a7f37;
+}
+.del {
+  color: var(--danger);
+}
+.patch {
+  margin: 0;
+  padding: 12px 18px;
+  max-height: 520px;
+  overflow: auto;
+  font-family: var(--font-family-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  border-top: 1px solid var(--border-strong);
+}
+.patch span {
+  display: block;
+  white-space: pre;
+}
+.lineAdd {
+  background: rgba(26, 127, 55, 0.12);
+}
+.lineDel {
+  background: rgba(255, 34, 0, 0.1);
+}
+.lineHunk {
+  color: var(--color-text-muted);
+}
+.actions {
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border-strong);
+}

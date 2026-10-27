@@ -12,6 +12,8 @@ import { loadWorkspace } from "../workspace/workspace.js";
 import { listManifests, readContracts } from "../sync/registryIO.js";
 import { DEVICE_COOKIE, DeviceStore, hostAllowed, isLoopback, requestToken } from "./auth.js";
 import { serveUi } from "./static.js";
+import { ThreadManager } from "../threads/manager.js";
+import { threadRoutes } from "../threads/routes.js";
 import { readdirSync } from "node:fs";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
@@ -42,6 +44,8 @@ export interface ServerConfig {
   ui?: string;
   /** host names this server answers to besides localhost (the --host address) */
   hosts?: string[];
+  /** projects and agent threads; one is created when not given */
+  threads?: ThreadManager;
 }
 
 const CORS = {
@@ -231,6 +235,7 @@ function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
 
 /** Builds the Garry HTTP server (REST plus SSE) over the supervisor. */
 export function createGarryServer(cfg: ServerConfig, devices = new DeviceStore()): Server {
+  cfg.threads ??= new ThreadManager();
   return createServer((req, res) => {
     void handle(req, res, cfg, devices).catch((e) => json(res, 500, { error: String((e as Error).message ?? e) }));
   });
@@ -296,6 +301,12 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   const bearer = Boolean(device && req.headers.authorization?.startsWith("Bearer "));
   if ((req.method === "POST" || req.method === "DELETE") && !bearer && !writeAllowed(req)) {
     return json(res, 403, { error: `writes are not allowed from ${req.headers.origin}; add it to GARRY_UI_ORIGINS` });
+  }
+
+  // Projects and agent threads (the IDE): this machine and paired devices
+  if (path === "/api/projects" || path.startsWith("/api/threads")) {
+    const sseHeaders = { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive", ...CORS };
+    if (await threadRoutes(req, res, path, { threads: cfg.threads!, local, json, readBody, sseHeaders })) return;
   }
 
   // Skills: install a local skill (upload or folder), remove one, read its instructions
@@ -410,6 +421,11 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "POST /api/pair {code, name} (another device trades a pairing code for a token)",
         "POST /api/pair/codes (this machine only)",
         "GET /api/devices, DELETE /api/devices/:id (this machine only)",
+        "GET /api/projects, POST /api/projects {path, name?} (this machine only)",
+        "GET /api/threads?project=, POST /api/threads {projectId, prompt, title?}",
+        "GET /api/threads/:id, GET /api/threads/:id/events (SSE), GET /api/threads/:id/diff",
+        "POST /api/threads/:id/messages {text}, /stop, /commit {message}, /pr {title?, body?}",
+        "DELETE /api/threads/:id (this machine only: removes the worktree and branch)",
         "GET /api/features",
         "GET /api/features/:id/plan",
         "GET /api/features/:id/stream (SSE)",

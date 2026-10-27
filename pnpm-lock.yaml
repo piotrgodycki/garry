@@ -213,6 +213,9 @@ importers:
 
   garry-ui:
     dependencies:
+      garry-client:
+        specifier: workspace:*
+        version: link:../garry-client
       react:
         specifier: ^19.0.0
         version: 19.3.0

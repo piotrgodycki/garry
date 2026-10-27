@@ -9,6 +9,7 @@ import { DeviceStore, garryHome, pairingLink } from "../../garry-tool/src/server
 import { advertisedHost, hostsFor } from "../../garry-tool/src/server/pairing.js";
 import { defaultRegistry, defaultSkillsRoot, defaultUiDir } from "../../garry-tool/src/paths.js";
 import { loadEnv } from "../../garry-tool/src/github/env.js";
+import { ThreadManager } from "../../garry-tool/src/threads/manager.js";
 
 /**
  * The Garry desktop app: runs garry serve inside the app and shows the dashboard
@@ -52,6 +53,9 @@ async function startServer(): Promise<void> {
 
   const host = settings.network ? "0.0.0.0" : "127.0.0.1";
   devices = new DeviceStore();
+  const threads = new ThreadManager();
+  // the project folder, when it is a repository, is where agents work
+  if (existsSync(join(process.cwd(), ".git"))) threads.store.addProject(process.cwd());
   const s = createGarryServer(
     {
       registry: defaultRegistry(),
@@ -59,6 +63,7 @@ async function startServer(): Promise<void> {
       routing: "garry.routing.json",
       ui: defaultUiDir(),
       hosts: hostsFor(host),
+      threads,
     },
     devices,
   );

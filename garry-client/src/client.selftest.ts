@@ -9,10 +9,15 @@ import type { AddressInfo } from "node:net";
 import { createGarryServer } from "../../garry-tool/src/server/server.js";
 import { DeviceStore, pairingLink } from "../../garry-tool/src/server/auth.js";
 import { reachableAddresses } from "../../garry-tool/src/server/pairing.js";
-import { GarryClient, GarryError, pair, parsePairingLink, type StreamEvent } from "./index";
+import { GarryClient, GarryError, pair, parsePairingLink, type StreamEvent, type ThreadEvent } from "./index";
+import { ThreadManager } from "../../garry-tool/src/threads/manager.js";
+import { ThreadStore } from "../../garry-tool/src/threads/store.js";
 
 const repo = new URL("../../", import.meta.url).pathname;
-const store = new DeviceStore(join(mkdtempSync(join(tmpdir(), "garry-client-")), "devices.json"));
+const scratch = mkdtempSync(join(tmpdir(), "garry-client-"));
+const store = new DeviceStore(join(scratch, "devices.json"));
+process.env.GARRY_CLAUDE_BIN = new URL("../../garry-tool/src/threads/testdata/fake-claude.mjs", import.meta.url).pathname;
+const threadManager = new ThreadManager(new ThreadStore(join(scratch, "home")));
 const remote = reachableAddresses()[0];
 const server = createGarryServer(
   {
@@ -20,6 +25,7 @@ const server = createGarryServer(
     skills: join(repo, "garry-skills"),
     routing: join(repo, "garry.routing.json"),
     hosts: remote ? [remote] : [],
+    threads: threadManager,
   },
   store,
 );
@@ -49,6 +55,30 @@ try {
 
   expect("a pairing link parses", parsePairingLink("http://192.168.1.5:8123/pair?code=abc")?.code === "abc");
   expect("other links do not", parsePairingLink("http://evil.example/other?code=abc") === null && parsePairingLink("not a link") === null);
+
+  {
+    // threads through the client, with the stand-in for Claude Code
+    const { execFileSync } = await import("node:child_process");
+    const { writeFileSync } = await import("node:fs");
+    const repoDir = join(mkdtempSync(join(tmpdir(), "garry-client-repo-")), "r");
+    execFileSync("git", ["init", "-q", repoDir]);
+    writeFileSync(join(repoDir, "a.txt"), "a\n");
+    execFileSync("git", ["-C", repoDir, "add", "-A"]);
+    execFileSync("git", ["-C", repoDir, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"]);
+    const project = threadManager.store.addProject(repoDir);
+    expect("projects", (await local.projects()).some((p) => p.id === project.id));
+    const t = await local.createThread(project.id, "Write notes");
+    const seen: ThreadEvent[] = [];
+    const ctl = new AbortController();
+    const following = local.threadEvents(t.id, (e) => {
+      seen.push(e);
+      if (e.type === "status" && e.status === "idle") ctl.abort();
+    }, ctl.signal).catch(() => undefined);
+    await following;
+    expect("thread events stream until the turn ends", seen.some((e) => e.type === "turn_end") && seen.some((e) => e.type === "tool"));
+    expect("thread diff", (await local.threadDiff(t.id)).files.some((f) => f.path === "NOTES.md"));
+    expect("commit", Boolean((await local.commitThread(t.id, "Notes")).commit));
+  }
 
   if (remote) {
     const { code } = store.createCode();

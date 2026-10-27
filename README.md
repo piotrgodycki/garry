@@ -59,6 +59,30 @@ package ships the dashboard built, so `npx garry serve` does the same).
 Configuration is optional: copy [`.env.example`](./.env.example) to `.env.local`
 and fill in what you need (a GitHub token, mainly).
 
+## Build with agents (the IDE)
+
+Garry is where you work on code with agents. Open **Build** in the dashboard, the
+desktop app or the phone app, pick a project, say what should change, and an agent
+works on it:
+
+- every piece of work gets its own branch and git worktree
+  (`garry/<what>-<id>`), so your own checkout is never touched;
+- you follow the agent live: what it reads, edits and runs, and its answers; you
+  reply to steer it, or stop it;
+- the diff shows everything it changed; **Commit**, then **Open pull request**
+  (CI, the AI review and screenshots take it from there).
+
+The agent is [Claude Code](https://docs.claude.com/en/docs/claude-code) on your
+own Claude plan, run on the computer that runs Garry: install it and sign in once
+(`claude`). No API key is needed. It may read, edit and write files in the
+worktree and run read-only git commands; anything else it asks for is refused for
+now (approving commands is the next step).
+
+Projects are git repositories on that computer: `garry serve` adds the one it
+starts in, the desktop app adds the folder you open, and `garry projects add
+<path>` adds others. Your phone can start and steer work once it is paired, but
+only this computer can add folders or discard work.
+
 ## Desktop app
 
 `garry-desktop` is Garry as an app for macOS, Windows and Linux: the dashboard in
@@ -114,6 +138,7 @@ client against a real server, a typecheck and a full bundle.
 | `pnpm ui` | UI only with hot reload, on :3000 (needs the server) |
 | `pnpm desktop` | build and start the desktop app |
 | `pnpm mobile` | start the mobile app for Expo Go (scan the QR code with your phone) |
+| `pnpm garry projects` | the repositories agents can work on (`add <path>` adds one) |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
 | `pnpm -C garry-registry validate` | validate the sample registry |

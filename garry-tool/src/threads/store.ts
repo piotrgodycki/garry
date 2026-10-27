@@ -1,0 +1,143 @@
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { basename, join, resolve } from "node:path";
+import { garryHome } from "../server/auth.js";
+
+/**
+ * Projects and threads. A project is a git repository on this machine; a thread
+ * is one piece of work in it: its own branch and worktree, the agent's session,
+ * and every event of the conversation. Everything lives under ~/.garry (or
+ * $GARRY_HOME): projects.json and threads/<id>/{thread.json,events.jsonl}.
+ */
+
+export interface Project {
+  id: string;
+  name: string;
+  path: string;
+}
+
+export type ThreadStatus = "running" | "idle" | "error";
+
+export interface Thread {
+  id: string;
+  projectId: string;
+  title: string;
+  status: ThreadStatus;
+  branch: string;
+  worktree: string;
+  baseSha: string;
+  /** the agent's session, resumed on every follow-up message */
+  sessionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  /** set once the work is committed or opened as a pull request */
+  commit?: string;
+  pr?: { number: number; url: string };
+}
+
+/** What a thread shows: the conversation, normalized from the agent's own stream. */
+export type ThreadEvent =
+  | { type: "user"; text: string; at: string }
+  | { type: "text"; text: string; at: string }
+  | { type: "tool"; id: string; name: string; summary: string; at: string }
+  | { type: "tool_result"; id: string; ok: boolean; preview: string; at: string }
+  | { type: "turn_end"; ok: boolean; costUsd?: number; at: string }
+  | { type: "status"; status: ThreadStatus; at: string }
+  | { type: "git"; action: "commit" | "pr"; detail: string; at: string }
+  | { type: "error"; message: string; at: string };
+
+const id = () => randomBytes(6).toString("base64url").replace(/[-_]/g, "x").toLowerCase();
+const now = () => new Date().toISOString();
+
+export class ThreadStore {
+  readonly root: string;
+
+  constructor(home = garryHome()) {
+    this.root = home;
+    mkdirSync(join(home, "threads"), { recursive: true, mode: 0o700 });
+  }
+
+  // ---- projects ----
+
+  projects(): Project[] {
+    const f = join(this.root, "projects.json");
+    if (!existsSync(f)) return [];
+    try {
+      return (JSON.parse(readFileSync(f, "utf8")) as { projects: Project[] }).projects ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  project(id: string): Project | undefined {
+    return this.projects().find((p) => p.id === id);
+  }
+
+  /** Registers a git repository (once; the same path returns the same project). */
+  addProject(path: string, name?: string): Project {
+    const abs = resolve(path);
+    if (!existsSync(join(abs, ".git"))) throw new Error(`${abs} is not a git repository`);
+    const list = this.projects();
+    const known = list.find((p) => p.path === abs);
+    if (known) return known;
+    const p = { id: id(), name: (name ?? basename(abs)).slice(0, 64), path: abs };
+    this.write(join(this.root, "projects.json"), { projects: [...list, p] });
+    return p;
+  }
+
+  // ---- threads ----
+
+  private dir(threadId: string): string {
+    if (!/^[a-z0-9]{4,16}$/.test(threadId)) throw new Error("bad thread id");
+    return join(this.root, "threads", threadId);
+  }
+
+  newId(): string {
+    return id();
+  }
+
+  threads(projectId?: string): Thread[] {
+    const dir = join(this.root, "threads");
+    return readdirSync(dir)
+      .map((d) => this.get(d))
+      .filter((t): t is Thread => Boolean(t) && (!projectId || t!.projectId === projectId))
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }
+
+  get(threadId: string): Thread | undefined {
+    try {
+      return JSON.parse(readFileSync(join(this.dir(threadId), "thread.json"), "utf8")) as Thread;
+    } catch {
+      return undefined;
+    }
+  }
+
+  save(t: Thread): Thread {
+    mkdirSync(this.dir(t.id), { recursive: true, mode: 0o700 });
+    t.updatedAt = now();
+    this.write(join(this.dir(t.id), "thread.json"), t);
+    return t;
+  }
+
+  append(threadId: string, e: ThreadEvent): void {
+    mkdirSync(this.dir(threadId), { recursive: true, mode: 0o700 });
+    appendFileSync(join(this.dir(threadId), "events.jsonl"), JSON.stringify(e) + "\n");
+  }
+
+  events(threadId: string): ThreadEvent[] {
+    const f = join(this.dir(threadId), "events.jsonl");
+    if (!existsSync(f)) return [];
+    return readFileSync(f, "utf8")
+      .split("\n")
+      .filter(Boolean)
+      .map((l) => JSON.parse(l) as ThreadEvent);
+  }
+
+  private write(file: string, data: unknown): void {
+    const tmp = `${file}.tmp`;
+    writeFileSync(tmp, JSON.stringify(data, null, 2) + "\n", { mode: 0o600 });
+    renameSync(tmp, file);
+  }
+}
+
+export { now };

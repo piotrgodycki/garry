@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Link, Redirect, Stack, useFocusEffect, useRouter } from "expo-router";
-import { GarryError, type Feature } from "garry-client";
+import { GarryError, type Feature, type Thread } from "garry-client";
 import { useConnection } from "../lib/connection";
 import { STAGES, usePalette } from "../lib/theme";
 import { Body, Button, Card, Chip, Label, Loading, Notice, Stages, Title } from "../lib/ui";
@@ -12,13 +12,16 @@ export default function Home() {
   const router = useRouter();
   const p = usePalette();
   const [features, setFeatures] = useState<Feature[] | null>(null);
+  const [work, setWork] = useState<Thread[]>([]);
   const [error, setError] = useState<GarryError | Error | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     if (!client) return;
     try {
-      setFeatures(await client.features());
+      const [f, w] = await Promise.all([client.features(), client.threads().catch(() => [])]);
+      setFeatures(f);
+      setWork(w);
       setError(null);
     } catch (e) {
       setError(e as Error);
@@ -52,6 +55,21 @@ export default function Home() {
         contentContainerStyle={s.page}
         refreshControl={<RefreshControl refreshing={refreshing} tintColor={p.text} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
       >
+        <Button onPress={() => router.push("/new")}>New feature</Button>
+        {work.length > 0 && <Label>Work</Label>}
+        {work.map((t) => (
+          <Link key={t.id} href={{ pathname: "/thread/[id]", params: { id: t.id } }} asChild>
+            <Pressable accessibilityRole="button">
+              <Card>
+                <View style={s.between}>
+                  <Label live={t.status === "running"}>{t.status === "running" ? "Working" : t.pr ? "PR open" : t.commit ? "Committed" : t.status === "error" ? "Stopped" : "Ready for review"}</Label>
+                </View>
+                <Title>{t.title}</Title>
+                <Body muted>{t.branch}</Body>
+              </Card>
+            </Pressable>
+          </Link>
+        ))}
         <Label>Features</Label>
         {error ? (
           <Notice action={<Button onPress={() => (unpaired ? router.push("/connect") : void load())}>{unpaired ? "Pair again" : "Try again"}</Button>}>
