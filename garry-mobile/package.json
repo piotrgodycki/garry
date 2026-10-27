@@ -3,12 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Garry for iOS and Android: follow the agents, pull requests and features from your phone",
+  "description": "Garry for iOS: follow the agents, pull requests and features from your phone",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "ios": "expo start --ios",
-    "android": "expo start --android",
     "web": "expo start --web",
     "export:web": "expo export --platform web --output-dir dist",
     "typecheck": "tsc --noEmit"
@@ -16,7 +15,6 @@
   "dependencies": {
     "@expo/metro-runtime": "~58.0.15",
     "expo": "58.0.17",
-    "expo-build-properties": "~58.0.0",
     "expo-camera": "~58.0.12",
     "expo-constants": "~58.0.13",
     "expo-device": "~58.0.5",
