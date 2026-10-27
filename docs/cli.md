@@ -61,7 +61,8 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry serve` | start the HTTP server the dashboard talks to |
 | `garry pair` | pair a phone or another computer (QR code) |
 | `garry devices` | list or revoke paired devices |
-| `garry projects` | the repositories agents can work on (`list`, `add <path>`) |
+| `garry projects` | the repositories agents can work on (`list`, `add <path>`, `import <owner/name>`) |
+| `garry github <sub>` | connect GitHub (`status`, `login [--token]`, `logout`, `repos [query]`) |
 | `garry shots <sub>` | screenshots for code review |
 | `garry qa` | does a change need a person to try it (label and checklist on the PR) |
 
@@ -379,6 +380,28 @@ pnpm -C garry-tool test:audit              # the audit's own regression corpus
 
 The audit is static: rules over the text, no model. It catches known attack
 shapes, not every possible one, so read a skill from an unknown source anyway.
+
+## garry github
+
+Connects Garry to GitHub, so you can import repositories as projects and open
+pull requests without editing files. The token comes from, in order:
+`GARRY_GITHUB_TOKEN` (`.env.local`), the token saved when you connected in Garry
+(`~/.garry/github.json`, readable by you only), or the GitHub CLI's own sign in
+(`gh auth token`).
+
+```bash
+garry github status           # who is connected, and through what
+garry github login            # sign in with a code (GARRY_GITHUB_CLIENT_ID set), else paste a token
+garry github login --token    # paste a personal access token
+garry github repos shop       # your repositories, filtered
+garry projects import octo/shop   # clone into ~/.garry/repos/octo/shop and add it as a project
+garry github logout           # forget the token Garry saved
+```
+
+The dashboard does the same on the Build page (Import from GitHub), on this
+computer only: a paired phone cannot connect GitHub or import. Pushes and clones
+pass the token to git for that one command; it is never written into a
+repository's config.
 
 ## garry serve
 

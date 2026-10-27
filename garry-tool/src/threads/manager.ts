@@ -4,6 +4,7 @@ import { runTurn, type RunningTurn } from "./agent.js";
 import { now, ThreadStore, type Thread, type ThreadEvent } from "./store.js";
 import { GitHub } from "../github/client.js";
 import { githubToken } from "../github/env.js";
+import { gitAuthArgs } from "../github/connect.js";
 import { QA_LABEL, assessQa, parseDiff, qaMarkdown } from "../review/qa.js";
 
 type Listener = (e: ThreadEvent) => void;
@@ -121,9 +122,10 @@ export class ThreadManager {
     const slug = remoteSlug(project.path);
     if (!slug) throw new Error("the project has no GitHub origin remote");
     const token = githubToken();
-    if (!token) throw new Error("set GARRY_GITHUB_TOKEN in .env.local to open pull requests");
+    if (!token) throw new Error("connect GitHub first (Build, Import from GitHub) or set GARRY_GITHUB_TOKEN in .env.local");
     if (git(t.worktree, ["status", "--porcelain"]).trim()) throw new Error("commit the changes first");
-    git(t.worktree, ["push", "--set-upstream", "origin", t.branch]);
+    // the token authenticates this one push; it is never written into the repository
+    git(t.worktree, [...gitAuthArgs(token), "push", "--set-upstream", "origin", t.branch]);
     const gh = new GitHub(token);
     const base = await gh.defaultBranch(slug.owner, slug.name);
     // what a person has to try before this ships: a label and a checklist in the body

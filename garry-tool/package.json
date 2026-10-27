@@ -52,7 +52,8 @@
     "test:stacks": "tsx src/registry/stacks.selftest.ts",
     "test:qa": "tsx src/review/qa.selftest.ts",
     "test:routing": "tsx src/orchestrate/profiles.selftest.ts",
-    "test:architecture": "tsx src/registry/architecture.selftest.ts"
+    "test:architecture": "tsx src/registry/architecture.selftest.ts",
+    "test:github": "tsx src/github/connect.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

@@ -64,7 +64,8 @@ server hosts the dashboard and the API together on http://localhost:8123 (the np
 package ships the dashboard built, so `npx garry serve` does the same).
 
 Configuration is optional: copy [`.env.example`](./.env.example) to `.env.local`
-and fill in what you need (a GitHub token, mainly).
+and fill in what you need. GitHub needs no file at all: connect on the Build page
+(Import from GitHub) or with `garry github login`, or sign in with the GitHub CLI.
 
 ## Build with agents (the IDE)
 

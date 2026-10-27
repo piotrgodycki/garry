@@ -14,6 +14,7 @@ import { runStack } from "./commands/stack.js";
 import { runQa } from "./commands/qa.js";
 import { runRouting } from "./commands/routing.js";
 import { runArchitecture } from "./commands/architecture.js";
+import { runGithub } from "./commands/github.js";
 import { loadEnv } from "./github/env.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -33,7 +34,8 @@ Commands:
   serve      start the HTTP server (REST plus SSE) over the supervisor
   pair       pair a phone or another computer with a running server (QR code)
   devices    list or revoke paired devices
-  projects   the repositories agents can work on (list, add <path>)
+  projects   the repositories agents can work on (list, add <path>, import <owner/name>)
+  github     connect Garry to GitHub (status, login, logout, repos)
   skills     list the skills, install or remove local ones
   shots      screenshots for code review: capture, compare, comment on the PR
   qa         does a change need a person to try it (label and checklist on the PR)
@@ -75,6 +77,9 @@ async function main(): Promise<void> {
       break;
     case "devices":
       await runDevices(rest);
+      break;
+    case "github":
+      await runGithub(rest);
       break;
     case "projects":
       runProjects(rest);

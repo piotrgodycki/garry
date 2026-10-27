@@ -1,15 +1,30 @@
 import pc from "picocolors";
 import { ThreadStore } from "../threads/store.js";
+import { githubToken } from "../github/env.js";
+import { cloneRepo } from "../github/connect.js";
 
-const HELP = `garry projects [list | add <path> [--name <name>]]
+const HELP = `garry projects [list | add <path> [--name <name>] | import <owner/name>]
 
 The git repositories agents can work on. garry serve adds the repository it
 starts in; add others here, then start threads in them from the dashboard,
 the desktop app or your phone. Each thread works in its own branch and
 worktree, so the checkout you work in is never touched.
+
+import clones a GitHub repository into ~/.garry/repos and adds it (connect
+first: garry github login, or GARRY_GITHUB_TOKEN, or a signed in gh).
 `;
 
 export function runProjects(argv: string[]): void {
+  if (argv[0] === "import") {
+    const repo = argv[1];
+    if (!repo) throw new Error("garry projects import <owner/name>");
+    const token = githubToken();
+    if (!token) throw new Error("connect GitHub first: garry github login");
+    const dir = cloneRepo(token, repo);
+    const p = new ThreadStore().addProject(dir, repo.split("/")[1]);
+    console.log(pc.green(`Project ${p.name} (${p.id}): ${p.path}`));
+    return;
+  }
   const [sub = "list", path] = argv;
   if (sub === "--help" || sub === "-h") {
     console.log(HELP);

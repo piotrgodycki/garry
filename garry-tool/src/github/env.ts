@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { tokenWithSource } from "./connect.js";
 
 let loaded = false;
 
@@ -23,9 +24,11 @@ export function loadEnv(root = "."): void {
   }
 }
 
-/** Returns the narrow GitHub token, or undefined when it is not configured. */
+/**
+ * The GitHub token: GARRY_GITHUB_TOKEN, else the one saved when you connected
+ * in Garry, else the GitHub CLI's sign in. Undefined when there is none.
+ */
 export function githubToken(root = "."): string | undefined {
   loadEnv(root);
-  const t = process.env.GARRY_GITHUB_TOKEN;
-  return t && t.trim() ? t.trim() : undefined;
+  return tokenWithSource()?.token;
 }

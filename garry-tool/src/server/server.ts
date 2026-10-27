@@ -15,6 +15,7 @@ import { DEVICE_COOKIE, DeviceStore, hostAllowed, isLoopback, requestToken } fro
 import { serveUi } from "./static.js";
 import { ThreadManager } from "../threads/manager.js";
 import { fileRoute } from "../threads/files.js";
+import { cloneRepo, forgetToken, githubStatus, listRepos, pollDeviceFlow, saveToken, startDeviceFlow } from "../github/connect.js";
 import { threadRoutes } from "../threads/routes.js";
 import { readdirSync } from "node:fs";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
@@ -319,6 +320,32 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     if (await threadRoutes(req, res, path, { threads: cfg.threads!, local, json, readBody, sseHeaders })) return;
   }
 
+  // GitHub: connect, list repositories, import one as a project. All on this machine only.
+  if (path.startsWith("/api/github") || path === "/api/projects/import") {
+    if (!local) return json(res, 403, { error: "GitHub is connected on the computer running Garry" });
+    try {
+      if (req.method === "GET" && path === "/api/github") return json(res, 200, await githubStatus());
+      if (req.method === "POST" && path === "/api/github/token") return json(res, 200, await saveToken(String(((await readBody(req)) as { token?: string }).token ?? "")));
+      if (req.method === "POST" && path === "/api/github/device") return json(res, 200, await startDeviceFlow());
+      if (req.method === "POST" && path === "/api/github/device/poll") return json(res, 200, await pollDeviceFlow(String(((await readBody(req)) as { deviceCode?: string }).deviceCode ?? "")));
+      if (req.method === "DELETE" && path === "/api/github") {
+        forgetToken();
+        return json(res, 200, await githubStatus());
+      }
+      const token = githubToken();
+      if (!token) return json(res, 400, { error: "connect GitHub first" });
+      if (req.method === "GET" && path === "/api/github/repos") return json(res, 200, { repos: await listRepos(token, url.searchParams.get("q") ?? "") });
+      if (req.method === "POST" && path === "/api/projects/import") {
+        const repo = String(((await readBody(req)) as { repo?: string }).repo ?? "");
+        const dir = cloneRepo(token, repo);
+        return json(res, 200, cfg.threads!.store.addProject(dir, repo.split("/")[1]));
+      }
+      return json(res, 405, { error: "method not allowed" });
+    } catch (e) {
+      return json(res, 400, { error: String((e as Error).message ?? e).replace(/AUTHORIZATION: basic \S+/gi, "AUTHORIZATION: ***") });
+    }
+  }
+
   // The registry's own files (catalog/, contracts/, features/, stacks/): browse and edit by hand, this machine only
   const regFiles = /^\/api\/registry(\/files|\/file)$/.exec(path);
   if (regFiles) {
@@ -557,6 +584,8 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "POST /api/pair/codes (this machine only)",
         "GET /api/devices, DELETE /api/devices/:id (this machine only)",
         "GET /api/projects, POST /api/projects {path, name?} (this machine only)",
+        "GET /api/github, POST /api/github/token {token}, POST /api/github/device, POST /api/github/device/poll {deviceCode}, DELETE /api/github (this machine only)",
+        "GET /api/github/repos?q=, POST /api/projects/import {repo: owner/name} (this machine only: clones into ~/.garry/repos)",
         "GET /api/projects/:id/files?path=, GET /api/projects/:id/file?path=, POST /api/projects/:id/file {path, content, sha?} (this machine only)",
         "GET /api/registry/files?path=, GET /api/registry/file?path=, POST /api/registry/file {path, content, sha?} (this machine only)",
         "GET /api/threads?project=, POST /api/threads {projectId, prompt, title?}",

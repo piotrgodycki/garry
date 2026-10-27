@@ -7,6 +7,7 @@ import { confirmAction } from "../lib/desktop";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./build.module.css";
 import FilesPanel from "./FilesPanel";
+import GithubImport from "./GithubImport";
 
 const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.status === "error" ? "danger" : t.pr ? "ok" : "");
 const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.status === "error" ? "Stopped" : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
@@ -21,6 +22,7 @@ export default function Build() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     const load = () =>
@@ -61,7 +63,7 @@ export default function Build() {
         {projects === null ? (
           <Skeleton />
         ) : projects.length === 0 ? (
-          <Empty>No projects yet. Run garry serve inside a git repository, or garry projects add &lt;path&gt;.</Empty>
+          <Empty>No projects yet. Import one from GitHub below, run garry serve inside a git repository, or garry projects add &lt;path&gt;.</Empty>
         ) : (
           <>
             <div className={styles.row}>
@@ -94,6 +96,23 @@ export default function Build() {
           </>
         )}
       </section>
+
+      <div className={styles.row} style={{ marginTop: 16 }}>
+        <button className="btn" onClick={() => setImporting((v) => !v)} aria-expanded={importing || projects?.length === 0}>
+          {importing || projects?.length === 0 ? "Hide GitHub" : "Import from GitHub"}
+        </button>
+      </div>
+      {(importing || projects?.length === 0) && (
+        <section className="card" style={{ marginTop: 12 }}>
+          <GithubImport
+            onImported={(p) => {
+              setProjects((cur) => [...(cur ?? []).filter((x) => x.id !== p.id), p]);
+              setProjectId(p.id);
+              setImporting(false);
+            }}
+          />
+        </section>
+      )}
 
       <h2 className="eyebrow" style={{ marginTop: 28 }}>
         Work
