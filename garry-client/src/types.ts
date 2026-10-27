@@ -252,6 +252,32 @@ export interface PairedDevice {
   lastSeenAt: string | null;
 }
 
+// ---- GitHub ----
+export interface GithubStatus {
+  connected: boolean;
+  /** where the token comes from: .env.local, connected in Garry, or the GitHub CLI */
+  source?: "env" | "garry" | "gh";
+  login?: string;
+  /** signing in with a code is available (GARRY_GITHUB_CLIENT_ID is set) */
+  deviceFlow: boolean;
+  error?: string;
+}
+export interface GithubDeviceCode {
+  deviceCode: string;
+  userCode: string;
+  verificationUri: string;
+  interval: number;
+  expiresIn: number;
+}
+export interface GithubRepo {
+  fullName: string;
+  description: string | null;
+  private: boolean;
+  defaultBranch: string;
+  updatedAt: string;
+  cloneUrl: string;
+}
+
 // ---- the IDE: projects and agent threads ----
 
 export interface Project {

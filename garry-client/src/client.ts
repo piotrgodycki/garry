@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -138,6 +138,18 @@ export class GarryClient {
 
   // ---- the IDE: projects and agent threads ----
   projects = () => this.request<{ projects: Project[] }>("/api/projects").then((r) => r.projects);
+  /** Imports a GitHub repository (owner/name): cloned on this computer and added as a project. */
+  importProject = (repo: string) => this.post<Project>("/api/projects/import", { repo });
+
+  // ---- GitHub (this computer only) ----
+  githubStatus = () => this.request<GithubStatus>("/api/github");
+  /** Checks a personal access token with GitHub and keeps it for Garry. */
+  connectGithubToken = (token: string) => this.post<{ login: string }>("/api/github/token", { token });
+  /** Starts signing in with a code (needs GARRY_GITHUB_CLIENT_ID). */
+  startGithubDevice = () => this.post<GithubDeviceCode>("/api/github/device", {});
+  pollGithubDevice = (deviceCode: string) => this.post<{ status: "pending" | "slow_down" | "done" | "expired" | "denied"; login?: string }>("/api/github/device/poll", { deviceCode });
+  disconnectGithub = () => this.request<{ ok: true }>("/api/github", { method: "DELETE" });
+  githubRepos = (query = "") => this.request<{ repos: GithubRepo[] }>(`/api/github/repos?q=${encodeURIComponent(query)}`).then((r) => r.repos);
   threads = (projectId?: string) => this.request<{ threads: Thread[] }>(`/api/threads${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`).then((r) => r.threads);
   thread = (id: string) => this.request<{ thread: Thread; events: ThreadEvent[] }>(`/api/threads/${id}`);
   /** Starts work: a new branch and worktree in the project, and the agent's first turn. */

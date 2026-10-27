@@ -170,3 +170,26 @@
   font-size: 12.5px;
   color: var(--color-text-muted);
 }
+
+/* importing from GitHub */
+.repoList {
+  display: grid;
+  gap: 8px;
+  max-height: 360px;
+  overflow: auto;
+}
+.repo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.deviceCode {
+  font-family: var(--font-family-mono);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
