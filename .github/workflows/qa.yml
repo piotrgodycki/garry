@@ -1,0 +1,46 @@
+name: Human QA
+
+# Does this pull request need a person to try it before it merges? garry qa reads
+# the diff and, when screens, controls, settings, sign in, the native apps or
+# saved data change, puts the "needs human QA" label on the pull request and one
+# comment with a badge and what to check. When nothing needs a person, it takes
+# the label off and says so. Rules: garry-tool/src/review/qa.ts.
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+
+concurrency:
+  group: qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  qa:
+    name: human QA check
+    # fork pull requests get a read only token: nothing could be posted
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Label and checklist
+        env:
+          GARRY_GITHUB_TOKEN: ${{ github.token }}
+          BASE: origin/${{ github.event.pull_request.base.ref }}
+          PR: ${{ github.event.pull_request.number }}
+        run: pnpm garry qa --base "$BASE" --pr "$PR" --repo "$GITHUB_REPOSITORY"

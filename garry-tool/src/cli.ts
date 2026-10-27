@@ -11,6 +11,7 @@ import { runDevices, runPair } from "./commands/pair.js";
 import { runProjects } from "./commands/projects.js";
 import { runService } from "./commands/service.js";
 import { runStack } from "./commands/stack.js";
+import { runQa } from "./commands/qa.js";
 import { loadEnv } from "./github/env.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -31,6 +32,7 @@ Commands:
   projects   the repositories agents can work on (list, add <path>)
   skills     list the skills, install or remove local ones
   shots      screenshots for code review: capture, compare, comment on the PR
+  qa         does a change need a person to try it (label and checklist on the PR)
 
 Run "garry <command> --help" for command options.
 `;
@@ -75,6 +77,9 @@ async function main(): Promise<void> {
       break;
     case "skills":
       await runSkills(rest);
+      break;
+    case "qa":
+      await runQa(rest);
       break;
     case "shots":
       await runShots(rest);

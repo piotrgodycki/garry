@@ -76,7 +76,9 @@ works on it:
 - you follow the agent live: what it reads, edits and runs, and its answers; you
   reply to steer it, or stop it;
 - the diff shows everything it changed; **Commit**, then **Open pull request**
-  (CI, the AI review and screenshots take it from there);
+  (CI, the AI review and screenshots take it from there, and when the change
+  needs a person to try it, the pull request gets the **needs human QA** label and
+  a checklist of what to check);
 - **Files** browses the worktree and lets you change any file by hand in a code
   editor (Cmd/Ctrl+S saves); your edits land in the same diff. It is read only
   while the agent works, and a file the agent changed since you opened it is
