@@ -186,3 +186,10 @@
   font-size: 12px;
   color: var(--color-text-muted);
 }
+
+.ideaActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}

@@ -25,7 +25,8 @@ export default function Layout() {
           <Stack.Screen name="connect" options={{ title: "Connect", presentation: "modal" }} />
           <Stack.Screen name="feature/[id]" options={{ title: "Live agents" }} />
           <Stack.Screen name="settings" options={{ title: "Settings" }} />
-          <Stack.Screen name="new" options={{ title: "New feature", presentation: "modal" }} />
+          <Stack.Screen name="new" options={{ title: "New work", presentation: "modal" }} />
+          <Stack.Screen name="feature/new" options={{ title: "New feature", presentation: "modal" }} />
           <Stack.Screen name="thread/[id]" options={{ title: "Work" }} />
         </Stack>
         </LockGate>

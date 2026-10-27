@@ -87,6 +87,15 @@ export interface RegistryService {
   consumes: Record<string, string[]>;
 }
 
+export interface NewFeature {
+  title: string;
+  /** what it should do and why; becomes the Goal section */
+  goal?: string;
+  services?: string[];
+  /** contract files it changes, e.g. events.json */
+  contractChanges?: string[];
+}
+
 export interface NewService {
   name: string;
   kind: ServiceKind;

@@ -53,8 +53,9 @@ http://localhost:8123 and the UI with hot reload on http://localhost:3000.
 
 Garry starts empty: there is no sample data. Add your services in the dashboard
 (Registry, Add service) or with `garry service add`; they go to `./registry` when
-it has a `catalog/`, else to `~/.garry/registry`. Then capture an idea on the
-dashboard and watch its pipeline.
+it has a `catalog/`, else to `~/.garry/registry`. Then create a feature (New
+feature on the dashboard or the phone, or Make it a feature on a captured idea,
+or `garry feature new`) and watch its pipeline.
 
 Without development tools, `pnpm -C garry-ui build` once and `pnpm serve`: the
 server hosts the dashboard and the API together on http://localhost:8123 (the npm
@@ -121,7 +122,9 @@ and Other Computers, then Pair a Device, shows the pairing QR code.
 ## Mobile app
 
 `garry-mobile` is Garry on your phone: the features and the stage each is at, the
-agents working live, and the pull requests. It talks to the server on your
+agents working live, and the pull requests. New feature creates one (what it is,
+the goal, the services and contracts it touches), New work starts an agent in a
+project. It talks to the server on your
 computer over your Wi-Fi (or Tailscale), after pairing once with a QR code.
 
 1. On the computer: `pnpm serve --host 0.0.0.0` (or `garry serve --host 0.0.0.0`),
