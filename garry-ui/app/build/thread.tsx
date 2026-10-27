@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import type { Thread, ThreadDiff, ThreadEvent } from "garry-client";
 import { client } from "../lib/client";
+import { confirmAction } from "../lib/desktop";
 import { PageHeader, Skeleton } from "../ui";
 import styles from "./build.module.css";
 
@@ -83,7 +84,8 @@ export default function ThreadView() {
 
   useEffect(() => bottom.current?.scrollIntoView({ block: "end" }), [events.length]);
 
-  const act = async (fn: () => Promise<unknown>) => {
+  const act = async (fn: () => Promise<unknown>, confirm?: string) => {
+    if (confirm && !(await confirmAction(confirm))) return;
     setBusy(true);
     setError(null);
     try {
@@ -176,10 +178,10 @@ export default function ThreadView() {
               <>
                 <input className="input" placeholder={`Commit message (default: ${thread.title})`} value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} />
                 <div className={styles.row}>
-                  <button className="btn btnPrimary" disabled={running || busy || !diff?.uncommitted} onClick={() => void act(() => client.commitThread(id, commitMsg))}>
+                  <button className="btn btnPrimary" disabled={running || busy || !diff?.uncommitted} onClick={() => void act(() => client.commitThread(id, commitMsg), "commit these changes")}>
                     Commit
                   </button>
-                  <button className="btn btnGhost" disabled={running || busy || !thread.commit || Boolean(diff?.uncommitted)} onClick={() => void act(() => client.openPullRequest(id))}>
+                  <button className="btn btnGhost" disabled={running || busy || !thread.commit || Boolean(diff?.uncommitted)} onClick={() => void act(() => client.openPullRequest(id), "open a pull request")}>
                     Open pull request
                   </button>
                 </div>

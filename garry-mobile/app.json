@@ -12,20 +12,52 @@
       "bundleIdentifier": "dev.garry.mobile",
       "supportsTablet": true,
       "infoPlist": {
-        "NSAppTransportSecurity": { "NSAllowsLocalNetworking": true },
-        "NSLocalNetworkUsageDescription": "Garry connects to the Garry server on your computer over your local network."
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        },
+        "NSLocalNetworkUsageDescription": "Garry connects to the Garry server on your computer over your local network.",
+        "NSFaceIDUsageDescription": "Garry uses Face ID to unlock the app and to confirm commits, pull requests and new work."
       }
     },
     "android": {
       "package": "dev.garry.mobile",
-      "adaptiveIcon": { "foregroundImage": "./assets/icon.png", "backgroundColor": "#ffffff" }
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      }
     },
-    "web": { "bundler": "metro", "output": "single" },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
-      ["expo-camera", { "cameraPermission": "Garry uses the camera to scan the pairing QR code from your computer." }],
-      ["expo-build-properties", { "android": { "usesCleartextTraffic": true } }]
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Garry keeps its key to your computer behind Face ID."
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Garry uses Face ID to unlock the app and to confirm commits, pull requests and new work."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Garry uses the camera to scan the pairing QR code from your computer."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ]
   }
 }

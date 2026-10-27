@@ -5,6 +5,7 @@ import type { Thread, ThreadDiff, ThreadEvent } from "garry-client";
 import { useConnection } from "../../lib/connection";
 import { mono, usePalette } from "../../lib/theme";
 import { Body, Button, Card, Label, Loading } from "../../lib/ui";
+import { confirmWithBiometrics } from "../../lib/biometrics";
 
 /** One piece of work, live: the conversation with the agent, its changes, commit and pull request. */
 export default function ThreadScreen() {
@@ -43,7 +44,8 @@ export default function ThreadScreen() {
     return () => ctl.abort();
   }, [client, id, refresh]);
 
-  const act = async (fn: () => Promise<unknown>) => {
+  const act = async (fn: () => Promise<unknown>, confirm?: string) => {
+    if (confirm && !(await confirmWithBiometrics(confirm))) return;
     setError(null);
     try {
       await fn();
@@ -82,8 +84,8 @@ export default function ThreadScreen() {
             <Button onPress={() => void Linking.openURL(thread.pr!.url)}>Open pull request #{thread.pr.number}</Button>
           ) : (
             <View style={{ gap: 8 }}>
-              <Button disabled={running || !diff?.uncommitted} onPress={() => void act(() => client.commitThread(id, ""))}>Commit</Button>
-              <Button kind="ghost" disabled={running || !thread.commit || Boolean(diff?.uncommitted)} onPress={() => void act(() => client.openPullRequest(id))}>Open pull request</Button>
+              <Button disabled={running || !diff?.uncommitted} onPress={() => void act(() => client.commitThread(id, ""), "Commit these changes")}>Commit</Button>
+              <Button kind="ghost" disabled={running || !thread.commit || Boolean(diff?.uncommitted)} onPress={() => void act(() => client.openPullRequest(id), "Open a pull request")}>Open pull request</Button>
             </View>
           )}
         </Card>
