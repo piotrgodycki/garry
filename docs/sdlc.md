@@ -27,7 +27,7 @@ test and ship.
 | Service manifest | `.../catalog/<service>.yaml` | one per service: repo url, stack, owner, what it exposes and consumes |
 | Contracts | `.../contracts/*.json` | the shared truth between services: remotes, shared deps, events, design tokens, APIs |
 | Skill | `garry-skills/skills/<stage>/<name>/SKILL.md` | one atomic capability of an agent, indexed in `garry-skills/manifest.json` |
-| Routing | `garry.routing.json` | which agent role and which model handles each stage |
+| Routing | `garry.routing.json` (the example), `routing/<name>.json` in the registry (yours) | which agent role and which model handles each stage |
 | Workspace | `~/garry-workspaces/FEAT-x/` | one git worktree per service on the shared branch `feat/FEAT-x` |
 
 The examples below use a feature `FEAT-123` that touches three microfrontends:

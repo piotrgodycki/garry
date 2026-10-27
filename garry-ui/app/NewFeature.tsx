@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Feature, RegistryService } from "garry-client";
+import type { Feature, RegistryService, RoutingProfiles } from "garry-client";
 import Link from "./lib/router";
 import { client } from "./lib/client";
 import { confirmAction } from "./lib/desktop";
@@ -22,11 +22,14 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
   const [goal, setGoal] = useState(initialGoal);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [contracts, setContracts] = useState<Set<string>>(new Set());
+  const [profiles, setProfiles] = useState<RoutingProfiles | null>(null);
+  const [routing, setRouting] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     client.registry().then((r) => setServices(r.services), () => setServices([]));
+    client.routingProfiles().then(setProfiles, () => undefined);
   }, []);
   useEffect(() => {
     setTitle(initial);
@@ -45,7 +48,7 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
     setBusy(true);
     setError(null);
     try {
-      onCreated(await client.createFeature({ title: title.trim(), goal: goal.trim() || undefined, services: [...picked], contractChanges: [...contracts] }));
+      onCreated(await client.createFeature({ title: title.trim(), goal: goal.trim() || undefined, services: [...picked], contractChanges: [...contracts], routing: routing || undefined }));
     } catch (e) {
       setError(String((e as Error).message ?? e));
     } finally {
@@ -91,6 +94,17 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
             ))}
           </div>
         )}
+      </div>
+      <div className={styles.field}>
+        <span className="eyebrow">Routing</span>
+        <select className="select" value={routing} onChange={(e) => setRouting(e.target.value)} aria-label="routing profile">
+          <option value="">The active profile{profiles ? ` (${profiles.active})` : ""}</option>
+          {(profiles?.profiles ?? []).map((p) => (
+            <option key={p.name} value={p.name}>
+              {p.name}
+            </option>
+          ))}
+        </select>
       </div>
       <div className={styles.field}>
         <span className="eyebrow">Contracts it changes</span>

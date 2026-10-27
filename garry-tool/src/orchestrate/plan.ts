@@ -17,6 +17,8 @@ export interface FeatureDoc {
   services: string[];
   contractChanges: string[];
   routingOverride?: Record<string, Route>;
+  /** a routing profile by name (routing/<name>.json in the registry) */
+  routing?: string;
 }
 
 /** Finds and reads a feature document by id from the registry. */
@@ -34,6 +36,7 @@ export function loadFeature(registry: string, id: string): FeatureDoc {
         services: fm.services ?? [],
         contractChanges: fm.contractChanges ?? [],
         routingOverride: fm.routingOverride,
+        routing: typeof fm.routing === "string" ? fm.routing : undefined,
       };
     }
   }
@@ -89,7 +92,7 @@ export function buildPlan(opts: BuildPlanOptions): Plan {
   const feature = loadFeature(opts.registry, opts.featureId);
   const nodes = loadServices(opts.registry, feature.services);
   const order = delegationOrder(nodes);
-  const routing = resolveRouting(opts.routingFile, feature.routingOverride);
+  const routing = resolveRouting(opts.routingFile, feature.routingOverride, { registry: opts.registry, profile: feature.routing });
   // a skill that fails its security audit is never handed to an agent
   const allSkills = usableSkills(loadSkills(opts.skillsRoot));
 

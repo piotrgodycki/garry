@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { STAGES } from "../orchestrate/plan.js";
 import { listManifests } from "../sync/registryIO.js";
+import { readProfile } from "../orchestrate/profiles.js";
 
 /**
  * Creates features in the registry and removes them: one markdown document each
@@ -27,6 +28,8 @@ export interface FeatureInput {
   services?: string[];
   /** the contract files it changes, e.g. events.json */
   contractChanges?: string[];
+  /** a routing profile of your own; empty uses the active one */
+  routing?: string;
 }
 
 export const CONTRACT_FILES = ["events.json", "remotes.json", "shared-deps.json", "design-tokens.json", "api.json"];
@@ -69,10 +72,13 @@ export function createFeature(registry: string, input: FeatureInput): { id: stri
   const badContract = contractChanges.filter((c) => !CONTRACT_FILES.includes(c));
   if (badContract.length) throw new FeatureError(`contractChanges: one of ${CONTRACT_FILES.join(", ")}`, 400);
 
+  const routing = input.routing?.trim() || undefined;
+  if (routing && routing !== "default" && !readProfile(registry, routing)) throw new FeatureError(`routing: there is no profile ${routing}`, 400);
+
   const docs = documents(registry);
   const next = Math.max(0, ...docs.map((d) => Number(ID.exec(d.id)?.[1] ?? 0))) + 1;
   const id = `FEAT-${next}`;
-  const front = stringifyYaml({ id, title, status: STAGES[0], services, contractChanges }).trimEnd();
+  const front = stringifyYaml({ id, title, status: STAGES[0], services, contractChanges, ...(routing ? { routing } : {}) }).trimEnd();
   const goal = (input.goal ?? "").trim() || title;
   const body = [
     `---\n${front}\n---`,

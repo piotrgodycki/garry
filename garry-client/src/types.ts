@@ -66,6 +66,20 @@ export interface Routing {
   stages: Record<string, Route>;
 }
 
+/** A routing profile: "default" is Garry's example (read only); the rest are your own. */
+export interface RoutingProfile {
+  name: string;
+  description?: string;
+  defaults: Route;
+  stages: Record<string, Route>;
+  builtin?: boolean;
+}
+
+export interface RoutingProfiles {
+  active: string;
+  profiles: RoutingProfile[];
+}
+
 export interface SkillSummary {
   name: string;
   stage: string;
@@ -148,6 +162,8 @@ export interface NewFeature {
   services?: string[];
   /** contract files it changes, e.g. events.json */
   contractChanges?: string[];
+  /** a routing profile; empty uses the active one */
+  routing?: string;
 }
 
 export interface NewService {
