@@ -4,6 +4,7 @@ import styles from "./page.module.css";
 import { apiBase } from "./lib/api";
 import { Icon } from "./icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "./ui";
+import NewFeature from "./NewFeature";
 
 interface Feature {
   id: string;
@@ -16,6 +17,8 @@ interface Idea {
   text: string;
 }
 
+const IDEAS_KEY = "garry-ideas";
+
 // The SDLC Garry drives autonomously end to end. The dashboard only reports it.
 const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate", "done"];
 
@@ -25,13 +28,40 @@ export default function Dashboard() {
   const [idea, setIdea] = useState("");
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [seq, setSeq] = useState(1);
+  // the feature form: closed, empty, or started from an idea
+  const [draft, setDraft] = useState<{ title: string; goal?: string; idea?: number } | null>(null);
 
-  useEffect(() => {
+  const load = () =>
     fetch(`${apiBase}/api/features`)
       .then((r) => r.json())
       .then((d) => setFeatures(d.features as Feature[]))
       .catch((e: unknown) => setError(String(e)));
+  useEffect(() => {
+    void load();
+    // ideas live in this browser until they become features
+    try {
+      const saved = JSON.parse(localStorage.getItem(IDEAS_KEY) ?? "[]") as Idea[];
+      if (Array.isArray(saved) && saved.length) {
+        setIdeas(saved);
+        setSeq(Math.max(...saved.map((i) => i.key)) + 1);
+      }
+    } catch {
+      /* no storage: ideas stay for this visit */
+    }
   }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem(IDEAS_KEY, JSON.stringify(ideas));
+    } catch {
+      /* ignore */
+    }
+  }, [ideas]);
+
+  const created = () => {
+    if (draft?.idea !== undefined) setIdeas((prev) => prev.filter((i) => i.key !== draft.idea));
+    setDraft(null);
+    void load();
+  };
 
   // Capture an idea. It does NOT become a feature yet. It sits in Ideas until the
   // human and Garry talk it through, and only then is a feature created.
@@ -72,12 +102,19 @@ export default function Dashboard() {
         title="Dashboard"
         lede="Drop an idea and talk it through with Garry. The agents build, review, test and ship it on their own. You watch."
         actions={
-          <Link className="btn" href="/agent">
-            {Icon.agent}
-            Open live agents
-          </Link>
+          <>
+            <button className="btn btnPrimary" onClick={() => setDraft({ title: "" })}>
+              New feature
+            </button>
+            <Link className="btn" href="/agent">
+              {Icon.agent}
+              Open live agents
+            </Link>
+          </>
         }
       />
+
+      {draft && <NewFeature title={draft.title} goal={draft.goal} onCreated={created} onCancel={() => setDraft(null)} />}
 
       {/* Idea intake: the only thing the human drives. No feature picker, no run. */}
       <form className={`card ${styles.intake}`} onSubmit={captureIdea}>
@@ -129,10 +166,15 @@ export default function Dashboard() {
                 <div className={styles.ideaText}>{it.text}</div>
                 <div className={styles.cardFoot}>
                   <span className="badge warn">Needs a chat</span>
-                  <button className="btn btnSm" onClick={() => discuss(it.text)}>
-                    {Icon.mic}
-                    Talk it through
-                  </button>
+                  <span className={styles.ideaActions}>
+                    <button className="btn btnSm" onClick={() => discuss(it.text)}>
+                      {Icon.mic}
+                      Talk it through
+                    </button>
+                    <button className="btn btnSm btnPrimary" onClick={() => setDraft({ title: it.text.length > 120 ? `${it.text.slice(0, 117)}...` : it.text, goal: it.text, idea: it.key })}>
+                      Make it a feature
+                    </button>
+                  </span>
                 </div>
               </div>
             ))

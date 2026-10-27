@@ -7,8 +7,8 @@ import { usePalette } from "../lib/theme";
 import { Body, Button, Chip, Label, Loading, Notice, Title } from "../lib/ui";
 import { confirmWithBiometrics } from "../lib/biometrics";
 
-/** Start a feature from the phone: pick the project, say what should change. */
-export default function NewFeature() {
+/** Start work from the phone: pick the project, say what should change. */
+export default function NewWork() {
   const { client } = useConnection();
   const router = useRouter();
   const p = usePalette();

@@ -48,7 +48,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 
 | Command | What it does |
 |---|---|
-| `garry feature <id>` | plan a feature through the SDLC (dry run today) |
+| `garry feature <id>` | plan a feature through the SDLC (dry run today); `new` and `list` create and list them |
 | `garry ws <sub> [id]` | work on all services of a feature at once (git worktrees) |
 | `garry service <sub>` | the services in the registry (`list`, `add`, `remove`) |
 | `garry scaffold [name]` | create a new microfrontend and register it |
@@ -65,7 +65,15 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 
 ```
 garry feature <featId> [--registry <path>] [--skills <path>] [--routing <file>] [--root <dir>] [--ws <dir>]
+garry feature new "<title>" [--goal <text>] [--services <a,b>] [--contracts <events.json,...>]
+garry feature list
 ```
+
+`new` writes `features/FEAT-<n>-<slug>.md` in the registry at the spec stage,
+with the next free number; the services must be in the registry and may be left
+out while the feature is still a spec. The dashboard (New feature, or Make it a
+feature on an idea) and the phone (New feature) do the same through
+`POST /api/features`; `DELETE /api/features/:id` works from this computer only.
 
 Reads `features/<featId>`, works out the delegation order (contract first),
 composes the stages from the skills manifest and resolves the agent and model per

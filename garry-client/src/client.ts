@@ -1,4 +1,4 @@
-import type { Feature, LogEntry, Model, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { Feature, LogEntry, Model, NewFeature, NewService, PairedDevice, Plan, Project, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -95,6 +95,10 @@ export class GarryClient {
   }
 
   features = () => this.request<{ features: Feature[] }>("/api/features").then((r) => r.features);
+  /** Creates a feature at the spec stage (features/FEAT-<n>-<slug>.md in the registry). */
+  createFeature = (feature: NewFeature) => this.post<Feature>("/api/features", feature);
+  /** Removes a feature (this computer only). */
+  removeFeature = (id: string) => this.request<{ ok: true }>(`/api/features/${encodeURIComponent(id)}`, { method: "DELETE" });
   plan = (id: string) => this.request<Plan>(`/api/features/${encodeURIComponent(id)}/plan`);
   pullRequests = (id: string) => this.request<{ prs: PullRequest[] }>(`/api/features/${encodeURIComponent(id)}/prs`).then((r) => r.prs);
   registry = () => this.request<Registry>("/api/registry");

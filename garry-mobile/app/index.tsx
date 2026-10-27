@@ -55,7 +55,14 @@ export default function Home() {
         contentContainerStyle={s.page}
         refreshControl={<RefreshControl refreshing={refreshing} tintColor={p.text} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
       >
-        <Button onPress={() => router.push("/new")}>New feature</Button>
+        <View style={s.actions}>
+          <View style={{ flex: 1 }}>
+            <Button onPress={() => router.push("/feature/new")}>New feature</Button>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button kind="ghost" onPress={() => router.push("/new")}>New work</Button>
+          </View>
+        </View>
         {work.length > 0 && <Label>Work</Label>}
         {work.map((t) => (
           <Link key={t.id} href={{ pathname: "/thread/[id]", params: { id: t.id } }} asChild>
@@ -78,7 +85,7 @@ export default function Home() {
         ) : !features ? (
           <Loading />
         ) : features.length === 0 ? (
-          <Notice>No features yet. Drop an idea on the dashboard to start one.</Notice>
+          <Notice>No features yet. Tap New feature to create the first one.</Notice>
         ) : (
           features.map((f) => {
             const stage = STAGES.indexOf(f.status as (typeof STAGES)[number]);
@@ -113,4 +120,5 @@ const s = StyleSheet.create({
   page: { padding: 16, gap: 12 },
   between: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  actions: { flexDirection: "row", gap: 10 },
 });

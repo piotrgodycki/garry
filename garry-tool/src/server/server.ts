@@ -16,6 +16,7 @@ import { ThreadManager } from "../threads/manager.js";
 import { threadRoutes } from "../threads/routes.js";
 import { readdirSync } from "node:fs";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
+import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
 function setFeatureStatus(registry: string, id: string, status: string): boolean {
@@ -332,6 +333,28 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     }
   }
 
+  // Features: create one (this machine and paired devices), remove one (this machine only)
+  if (req.method === "POST" && path === "/api/features") {
+    try {
+      return json(res, 200, createFeature(cfg.registry, (await readBody(req)) as FeatureInput));
+    } catch (e) {
+      if (e instanceof FeatureError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+  const delFeature = /^\/api\/features\/([^/]+)$/.exec(path);
+  if (req.method === "DELETE" && delFeature) {
+    if (!local) return json(res, 403, { error: "only this computer can remove features" });
+    try {
+      removeFeature(cfg.registry, decodeURIComponent(delFeature[1]));
+      serviceModels.delete(decodeURIComponent(delFeature[1]));
+      return json(res, 200, { ok: true });
+    } catch (e) {
+      if (e instanceof FeatureError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+
   // Skills: install a local skill (upload or folder), remove one, read its instructions
   if (req.method === "POST" && path === "/api/skills/install") {
     const body = (await readBody(req)) as InstallRequest;
@@ -450,6 +473,8 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "POST /api/threads/:id/messages {text}, /stop, /commit {message}, /pr {title?, body?}",
         "DELETE /api/threads/:id (this machine only: removes the worktree and branch)",
         "GET /api/features",
+        "POST /api/features {title, goal?, services?, contractChanges?}",
+        "DELETE /api/features/:id (this machine only)",
         "GET /api/features/:id/plan",
         "GET /api/features/:id/stream (SSE)",
         "GET /api/features/:id/prs",
