@@ -61,6 +61,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry devices` | list or revoke paired devices |
 | `garry projects` | the repositories agents can work on (`list`, `add <path>`) |
 | `garry shots <sub>` | screenshots for code review |
+| `garry qa` | does a change need a person to try it (label and checklist on the PR) |
 
 ## garry feature
 
@@ -388,6 +389,28 @@ machines without a valid token get `401`.
 - Traffic is plain HTTP, so keep it to networks you trust (home Wi-Fi, a VPN such
   as Tailscale). Do not forward the port to the internet. A reverse proxy on this
   machine would make every request look local, so do not put one in front of it.
+
+## garry qa
+
+Does a change need a person to try it before it ships? `garry qa` reads the diff
+from `--base` (default `origin/main`) to `HEAD` and names what a human should
+check, area by area:
+
+| Area | When |
+|---|---|
+| Looks different | stylesheets, markup |
+| Behaves differently | new or changed handlers, forms, buttons, navigation |
+| Settings and configuration | `.env.example`, `app.json`, settings files, the routing, new environment variables |
+| Sign in, pairing and permissions | auth, pairing, tokens, Face ID and Touch ID |
+| iPhone app, Mac app | `garry-mobile`, `garry-desktop` |
+| Saved data and formats | schemas, stores, migrations |
+
+Tests, docs, CI and lockfiles need nobody. With `--pr <n> --repo owner/name` it
+puts the **needs human QA** label on the pull request (or takes it off) and keeps
+one comment with a badge and a checklist; the
+[`qa.yml`](../.github/workflows/qa.yml) workflow runs it on every pull request,
+and Garry adds the same section and label when it opens a pull request for a
+thread. Rules: `garry-tool/src/review/qa.ts`.
 
 ## garry shots
 

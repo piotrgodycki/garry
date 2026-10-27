@@ -4,6 +4,7 @@ import { runTurn, type RunningTurn } from "./agent.js";
 import { now, ThreadStore, type Thread, type ThreadEvent } from "./store.js";
 import { GitHub } from "../github/client.js";
 import { githubToken } from "../github/env.js";
+import { QA_LABEL, assessQa, parseDiff, qaMarkdown } from "../review/qa.js";
 
 type Listener = (e: ThreadEvent) => void;
 
@@ -125,7 +126,11 @@ export class ThreadManager {
     git(t.worktree, ["push", "--set-upstream", "origin", t.branch]);
     const gh = new GitHub(token);
     const base = await gh.defaultBranch(slug.owner, slug.name);
-    t.pr = await gh.openPr(slug.owner, slug.name, t.branch, base, title?.trim() || t.title, body ?? `Built with Garry in thread ${t.id}.`);
+    // what a person has to try before this ships: a label and a checklist in the body
+    const qa = assessQa(parseDiff(git(t.worktree, ["diff", "--no-color", `${t.baseSha}...HEAD`])));
+    const text = [body ?? `Built with Garry in thread ${t.id}.`, qaMarkdown(qa)].join("\n\n");
+    t.pr = await gh.openPr(slug.owner, slug.name, t.branch, base, title?.trim() || t.title, text);
+    if (qa.needed) await gh.setLabel(slug.owner, slug.name, t.pr.number, QA_LABEL, true, "f97316", "Someone has to try this before it ships").catch(() => undefined);
     this.store.save(t);
     this.emit(t.id, { type: "git", action: "pr", detail: t.pr.url, at: now() });
     return t;

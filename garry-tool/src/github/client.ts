@@ -130,6 +130,16 @@ export class GitHub {
     return commit.sha;
   }
 
+  /** Adds or removes a label on an issue or pull request, creating the label once. */
+  async setLabel(owner: string, name: string, issue: number, label: string, on: boolean, color = "f97316", description = ""): Promise<void> {
+    if (on) {
+      await this.api("POST", `/repos/${owner}/${name}/labels`, { name: label, color, description }).catch(() => undefined); // exists already
+      await this.api("POST", `/repos/${owner}/${name}/issues/${issue}/labels`, { labels: [label] });
+    } else {
+      await this.api("DELETE", `/repos/${owner}/${name}/issues/${issue}/labels/${encodeURIComponent(label)}`).catch(() => undefined); // was not there
+    }
+  }
+
   /** Opens a pull request ready for review (not a draft), so review workflows run at once. */
   async openPr(owner: string, name: string, head: string, base: string, title: string, body: string): Promise<{ number: number; url: string }> {
     const pr = await this.api<GhPr>("POST", `/repos/${owner}/${name}/pulls`, { title, head, base, body, draft: false });

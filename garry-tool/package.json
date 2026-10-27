@@ -49,7 +49,8 @@
     "test:threads": "tsx src/threads/threads.selftest.ts",
     "test:services": "tsx src/registry/services.selftest.ts",
     "test:features": "tsx src/registry/features.selftest.ts",
-    "test:stacks": "tsx src/registry/stacks.selftest.ts"
+    "test:stacks": "tsx src/registry/stacks.selftest.ts",
+    "test:qa": "tsx src/review/qa.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
