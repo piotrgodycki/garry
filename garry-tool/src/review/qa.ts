@@ -44,6 +44,10 @@ const DOCS = /\.(md|mdx|txt|rst)$/i;
 const UI_EXT = new Set(["tsx", "jsx", "vue", "svelte", "astro", "html", "css", "scss", "sass", "less"]);
 const STYLE_EXT = new Set(["css", "scss", "sass", "less"]);
 
+// real use in code (a call, an option, a header), not the bare words, which also
+// appear in comments and in these rules
+const SECURITY_CALLS = /\b(authenticateAsync|promptTouchID)\s*\(|\brequireAuthentication\s*:|headers\.authorization\b|["']authorization["']\s*[:,\]]|["']set-cookie["']/i;
+
 const RULES: Rule[] = [
   {
     id: "ui",
@@ -82,7 +86,7 @@ const RULES: Rule[] = [
   {
     id: "security",
     label: "Sign in, pairing and permissions",
-    match: (f) => /(auth|pairing|pair|token|session|biometric|touchid|faceid|permission|devices?)[\w.-]*\.(ts|tsx|js)$/i.test(base(f.path)) || any(f, /authenticateAsync|promptTouchID|requireAuthentication|Authorization|Set-Cookie|access_token/),
+    match: (f) => /(auth|pairing|pair|token|session|biometric|touchid|faceid|permission|devices?)[\w.-]*\.(ts|tsx|js)$/i.test(base(f.path)) || any(f, SECURITY_CALLS),
     checks: [
       "Pair a new device, revoke it, and check it is locked out",
       "Lock and unlock (Face ID, Touch ID, passcode fallback, cancel)",
