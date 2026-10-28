@@ -12,6 +12,7 @@ import { loadEnv } from "../../garry-tool/src/github/env.js";
 import { ThreadManager } from "../../garry-tool/src/threads/manager.js";
 import { fileURLToPath } from "node:url";
 import { setupTouchId, touchIdAvailable } from "./touchid.js";
+import { setupTray } from "./tray.js";
 
 /**
  * The Garry desktop app: runs garry serve inside the app and shows the dashboard
@@ -49,6 +50,8 @@ let port = PORT;
 let devices: DeviceStore;
 let win: BrowserWindow | null = null;
 let touch: ReturnType<typeof setupTouchId>;
+let threads: ThreadManager | undefined;
+let followThreads: (() => void) | null = null;
 const dashboard = () => `http://127.0.0.1:${port}/`;
 
 /** Starts the server in the project folder: on :8123, or a free port when that is taken. */
@@ -59,7 +62,7 @@ async function startServer(): Promise<void> {
 
   const host = settings.network ? "0.0.0.0" : "127.0.0.1";
   devices = new DeviceStore();
-  const threads = new ThreadManager();
+  threads = new ThreadManager();
   // the project folder, when it is a repository, is where agents work
   if (existsSync(join(process.cwd(), ".git"))) threads.store.addProject(process.cwd());
   const s = createGarryServer(
@@ -101,6 +104,17 @@ async function restartServer(): Promise<void> {
   }
   await win?.loadURL(touch.locked() ? touch.page() : dashboard());
   buildMenu();
+  followThreads?.();
+}
+
+/** Brings the window up on a page of the dashboard (from the menu bar or a notification). */
+function openPage(path: string): void {
+  if (!win) createWindow();
+  if (!touch.locked()) void win?.loadURL(`http://127.0.0.1:${port}${path}`);
+  if (win?.isMinimized()) win.restore();
+  win?.show();
+  win?.focus();
+  app.focus({ steal: true });
 }
 
 function createWindow(): void {
@@ -282,6 +296,8 @@ if (!app.requestSingleInstanceLock()) {
     }
     buildMenu();
     createWindow();
+    // Garry in the menu bar: working, needs you, ready
+    followThreads = setupTray({ threads: () => threads, open: openPage });
     app.on("activate", () => {
       if (!BrowserWindow.getAllWindows().length) createWindow();
     });

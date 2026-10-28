@@ -57,7 +57,8 @@
     "test:architecture": "tsx src/registry/architecture.selftest.ts",
     "test:github": "tsx src/github/connect.selftest.ts",
     "test:push": "tsx src/threads/settings.selftest.ts",
-    "test:project": "tsx src/project/project.selftest.ts"
+    "test:project": "tsx src/project/project.selftest.ts",
+    "test:status": "tsx src/status/status.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

@@ -363,6 +363,8 @@ export interface Thread {
   createdAt: string;
   updatedAt: string;
   running?: boolean;
+  /** what it needs from you: the same reading as the menu bar */
+  attention?: "working" | "needs-you" | "done" | null;
   commit?: string;
   pr?: { number: number; url: string };
 }

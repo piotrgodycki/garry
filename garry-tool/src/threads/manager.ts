@@ -47,6 +47,7 @@ const slug = (s: string) =>
 export class ThreadManager {
   private running = new Map<string, RunningTurn>();
   private listeners = new Map<string, Set<Listener>>();
+  private everyone = new Set<(threadId: string, e: ThreadEvent) => void>();
 
   constructor(readonly store = new ThreadStore()) {}
 
@@ -57,9 +58,16 @@ export class ThreadManager {
     return () => set.delete(fn);
   }
 
+  /** Every event of every thread (the menu bar icon, notifications). */
+  subscribeAll(fn: (threadId: string, e: ThreadEvent) => void): () => void {
+    this.everyone.add(fn);
+    return () => this.everyone.delete(fn);
+  }
+
   private emit(threadId: string, e: ThreadEvent): void {
     this.store.append(threadId, e);
     for (const fn of this.listeners.get(threadId) ?? []) fn(e);
+    for (const fn of this.everyone) fn(threadId, e);
   }
 
   private setStatus(t: Thread, status: Thread["status"]): void {

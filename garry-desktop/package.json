@@ -43,6 +43,7 @@
       "dist/**",
       "ui/**",
       "skills/**",
+      "build/tray/**",
       "LICENSE",
       "package.json"
     ],

@@ -155,7 +155,7 @@ export default function Dashboard() {
             <span className={styles.laneName}><span className="dot wait" />Ideas</span>
             <span className={styles.laneCount}>{ideas.length}</span>
           </div>
-          <p className={styles.laneHint}>Talk each one through with Garry. Then it becomes a feature.</p>
+          <p className={styles.laneHint}>Talk it through with Garry to make it a feature.</p>
           {ideas.length === 0 ? (
             <div className={styles.laneEmpty}>
               <Empty icon={Icon.idea}>No ideas yet. Capture one above.</Empty>
