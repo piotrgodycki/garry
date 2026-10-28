@@ -3,6 +3,7 @@ import styles from "./prs.module.css";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader, ServerNotice } from "../ui";
+import Select from "../Select";
 
 interface Feature {
   id: string;
@@ -89,11 +90,7 @@ export default function Prs() {
 
       <div className="toolbar">
         {features.length > 0 && (
-          <select className="select" value={selected} onChange={(e) => setSelected(e.target.value)} aria-label="feature">
-            {features.map((f) => (
-              <option key={f.id} value={f.id}>{f.id} {f.title}</option>
-            ))}
-          </select>
+          <Select ariaLabel="feature" value={selected} onChange={setSelected} options={features.map((f) => ({ value: f.id, label: `${f.id} ${f.title}` }))} />
         )}
         <label className="searchField">
           {Icon.search}

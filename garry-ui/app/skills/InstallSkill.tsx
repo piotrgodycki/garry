@@ -3,6 +3,7 @@ import styles from "./skills.module.css";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { AuditFindings, type AuditReport } from "./AuditView";
+import Select from "../Select";
 
 const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"];
 
@@ -194,12 +195,7 @@ export default function InstallSkill({
 
         <label className={styles.field}>
           <span>Stage</span>
-          <select className="select" value={stage} onChange={(e) => setStage(e.target.value)}>
-            <option value="">From the SKILL.md frontmatter</option>
-            {STAGES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+          <Select ariaLabel="stage" value={stage} onChange={setStage} options={[{ value: "", label: "From the SKILL.md frontmatter" }, ...STAGES.map((s) => ({ value: s, label: s }))]} />
         </label>
 
         {error && (

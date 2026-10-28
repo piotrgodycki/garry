@@ -6,6 +6,7 @@ import { offered, tierOf } from "../ModelChip";
 import { client } from "../lib/client";
 import { Icon } from "../icons";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
+import Select from "../Select";
 
 const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"];
 const AGENTS = ["garry-analyst", "garry-dev", "garry-reviewer"];
@@ -64,25 +65,17 @@ export default function Routing() {
     <tr key={stage}>
       <td className={`strong ${styles.cap}`}>{stage === "defaults" ? "Everything else" : stage}</td>
       <td>
-        <select className={own.agentSelect} value={r.agent} onChange={(e) => void change(stage, { agent: e.target.value })} aria-label={`agent for ${stage}`}>
-          {[...new Set([r.agent, ...AGENTS])].map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
+        <Select className={own.agentSelect} ariaLabel={`agent for ${stage}`} value={r.agent} onChange={(agent) => void change(stage, { agent })} options={[...new Set([r.agent, ...AGENTS])].map((a) => ({ value: a, label: a }))} />
       </td>
       <td>
-        <label className={styles.modelCell}>
-          <span className={`tier ${tierOf(r.model)}`} />
-          <select className={styles.modelSelect} value={r.model} onChange={(e) => void change(stage, { model: e.target.value })} aria-label={`model for ${stage}`}>
-            {offered(models, r.model).map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <>
+          <Select
+            ariaLabel={`model for ${stage}`}
+            value={r.model}
+            onChange={(model) => void change(stage, { model })}
+            options={offered(models, r.model).map((m) => ({ value: m.id, label: m.label, icon: <span className={`tier ${tierOf(m.id)}`} />, group: m.previous ? "Earlier models" : undefined }))}
+          />
+        </>
       </td>
       <td className={styles.savedCell}>{saved === stage && <span className="badge ok">{Icon.check}Saved</span>}</td>
     </tr>

@@ -8,6 +8,7 @@ import GarryMark from "../GarryMark";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader } from "../ui";
+import Select from "../Select";
 
 interface Task {
   stage: string;
@@ -216,11 +217,7 @@ export default function AgentView() {
         actions={
           <>
             {features.length > 1 && (
-              <select className="select" value={selected} onChange={(e) => pickFeature(e.target.value)} aria-label="feature">
-                {features.map((f) => (
-                  <option key={f.id} value={f.id}>{f.id} {f.title}</option>
-                ))}
-              </select>
+              <Select ariaLabel="feature" value={selected} onChange={pickFeature} options={features.map((f) => ({ value: f.id, label: `${f.id} ${f.title}` }))} />
             )}
             <button className="btn btnDanger" onClick={stopAll} disabled={stopped || finished || !plan} aria-label="stop all agents">
               {Icon.stop}

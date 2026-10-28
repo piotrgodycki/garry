@@ -9,6 +9,7 @@ import { Icon } from "../icons";
 import styles from "./build.module.css";
 import GithubImport from "./GithubImport";
 import ProjectSettingsPanel from "./ProjectSettings";
+import Select from "../Select";
 
 const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.attention === "needs-you" ? "danger" : t.pr ? "ok" : "");
 const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.attention === "needs-you" ? (t.status === "error" ? "Stopped" : "Needs you") : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
@@ -91,13 +92,7 @@ export default function Build() {
             <div className={styles.repoBar}>
               <span className="eyebrow">Works in</span>
               {projects.length > 1 ? (
-                <select id="project" aria-label="repository" className="select" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                <Select id="project" ariaLabel="repository" value={projectId} onChange={setProjectId} options={projects.map((p) => ({ value: p.id, label: p.name, hint: p.path }))} />
               ) : (
                 <span className={styles.repoName} title={projects[0]?.path}>
                   {projects[0]?.name}
