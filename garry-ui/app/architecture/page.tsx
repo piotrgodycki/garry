@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from "react";
 import {
   addEdge,
   Background,
+  BaseEdge,
   Controls,
+  EdgeLabelRenderer,
+  getSmoothStepPath,
   Handle,
+  MarkerType,
   MiniMap,
   Position,
   ReactFlow,
@@ -14,6 +18,7 @@ import {
   useReactFlow,
   type Connection,
   type Edge,
+  type EdgeProps,
   type Node,
   type NodeProps,
 } from "@xyflow/react";
@@ -23,6 +28,7 @@ import { client } from "../lib/client";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./architecture.module.css";
 import { isDark, logoOf } from "./logos";
+import { relationOf } from "./relations";
 
 // the block's header, then one row per port
 const HEAD = 58;
@@ -105,11 +111,40 @@ function BlockCard({ data, selected }: NodeProps<BlockNode>) {
 }
 const nodeTypes = { block: BlockCard };
 
+/** The block being pointed at or selected: its relations stand out, the rest step back. */
+const FocusContext = createContext<{ focus: string | null; caps: Record<string, string> }>({ focus: null, caps: {} });
+
+/** A relation: from the block that needs to the block that provides, with what flows between them. */
+function RelationEdge({ id, source, target, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, sourceHandleId, markerEnd, style, selected }: EdgeProps) {
+  const { focus, caps } = useContext(FocusContext);
+  const flow = useReactFlow();
+  const cap = sourceHandleId ?? "";
+  const rel = relationOf((flow.getNode(source)?.data as BlockData | undefined)?.block, cap);
+  const [path, labelX, labelY] = getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, borderRadius: 12 });
+  const state = selected || (focus && (focus === source || focus === target)) ? styles.relationOn : focus ? styles.relationOff : "";
+  return (
+    <>
+      <BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} className={`${styles.relationPath} ${rel.proxy ? styles.relationProxyPath : ""} ${state}`} />
+      <EdgeLabelRenderer>
+        <div
+          className={`${styles.relation} ${rel.proxy ? styles.relationProxy : ""} ${state}`}
+          style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}
+          title={`${rel.proxy ? "Proxy: " : ""}${rel.verb} (${caps[cap] ?? cap})`}
+        >
+          {rel.proxy && <span className={styles.proxyTag}>proxy</span>}
+          {rel.verb}
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  );
+}
+const edgeTypes = { relation: RelationEdge };
+
 const toFlow = (a: Architecture, blocks: Map<string, ArchBlock>, caps: Record<string, string>): { nodes: BlockNode[]; edges: Edge[] } => ({
   nodes: a.nodes
     .filter((n) => blocks.has(n.block))
     .map((n) => ({ id: n.id, type: "block", position: { x: n.x, y: n.y }, data: { block: blocks.get(n.block)!, label: n.label, caps, uses: [...new Set(a.edges.filter((e) => e.from === n.id).map((e) => e.capability))] } })),
-  edges: a.edges.map((e) => ({ id: `${e.from}>${e.to}:${e.capability}`, source: e.from, target: e.to, sourceHandle: e.capability, targetHandle: e.capability })),
+  edges: a.edges.map((e) => ({ id: `${e.from}>${e.to}:${e.capability}`, type: "relation", source: e.from, target: e.to, sourceHandle: e.capability, targetHandle: e.capability })),
 });
 const fromFlow = (nodes: BlockNode[], edges: Edge[]): Architecture => ({
   nodes: nodes.map((n) => ({ id: n.id, block: n.data.block.id, label: n.data.label, x: n.position.x, y: n.position.y })),
@@ -123,6 +158,9 @@ function Board({ state }: { state: ArchitectureState }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initial.edges);
   const [issues, setIssues] = useState<ArchIssue[]>(state.issues);
   const [saved, setSaved] = useState<"saved" | "saving" | "error" | null>(null);
+  const [hover, setHover] = useState<string | null>(null);
+  const selectedId = nodes.find((n) => n.selected)?.id ?? null;
+  const focus = useMemo(() => ({ focus: hover ?? selectedId, caps: state.capabilities }), [hover, selectedId, state.capabilities]);
   const [query, setQuery] = useState("");
   const flow = useReactFlow();
   const wrap = useRef<HTMLDivElement>(null);
@@ -275,6 +313,7 @@ function Board({ state }: { state: ArchitectureState }) {
       </aside>
 
       <div className={`card ${styles.canvas}`} ref={wrap} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
+        <FocusContext.Provider value={focus}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -292,13 +331,17 @@ function Board({ state }: { state: ArchitectureState }) {
             // a wheel, drag or pinch (not a fit) means you placed the view
             if (e) moved.current = true;
           }}
-          defaultEdgeOptions={{ type: "smoothstep", style: { strokeWidth: 1.8, stroke: "var(--color-text-muted)" } }}
+          edgeTypes={edgeTypes}
+          defaultEdgeOptions={{ type: "relation", markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 } }}
+          onNodeMouseEnter={(_, n) => setHover(n.id)}
+          onNodeMouseLeave={() => setHover(null)}
           deleteKeyCode={["Backspace", "Delete"]}
         >
           <Background gap={20} />
           <Controls showInteractive={false} />
           <MiniMap pannable zoomable />
         </ReactFlow>
+        </FocusContext.Provider>
         {nodes.length === 0 && <p className={styles.empty}>Drag blocks here from the left, then join a need (right side) to a block that provides it (left side).</p>}
         <span className={styles.saved}>{saved === "saving" ? "Saving…" : saved === "saved" ? "Saved to architecture.json" : saved === "error" ? "Not saved" : ""}</span>
       </div>

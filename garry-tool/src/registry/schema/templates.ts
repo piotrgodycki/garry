@@ -26,7 +26,8 @@ type Spec = {
   links: [string, string, Capability][];
 };
 
-const COL = 340;
+// wide enough between columns for the relation labels
+const COL = 480;
 const ROW = 170;
 
 const build = (t: Spec): ArchitectureTemplate => ({

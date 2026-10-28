@@ -318,3 +318,54 @@
   font-size: 12px;
   color: var(--color-text-muted);
 }
+
+/* relations: what flows from the block that needs to the block that provides */
+.relationPath {
+  stroke: var(--color-text-muted) !important;
+  stroke-width: 1.8px !important;
+  transition: opacity 0.15s, stroke 0.15s;
+}
+.relation {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--color-text-muted);
+  font-size: 10.5px;
+  font-weight: 550;
+  white-space: nowrap;
+  pointer-events: all;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+.relationProxy {
+  border-style: dashed;
+}
+.relationProxyPath {
+  stroke-dasharray: 6 4;
+}
+.proxyTag {
+  padding: 0 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #0ea5e9 18%, transparent);
+  color: #0ea5e9;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.relationOn {
+  opacity: 1;
+  color: var(--color-text-default);
+  border-color: var(--accent);
+}
+path.relationOn {
+  stroke: var(--accent) !important;
+  stroke-width: 2.4px !important;
+}
+.relationOff {
+  opacity: 0.25;
+}
