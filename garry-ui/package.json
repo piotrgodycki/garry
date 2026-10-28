@@ -27,7 +27,8 @@
     "garry-client": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router": "^8.5.0"
+    "react-router": "^8.5.0",
+    "simple-icons": "16.36.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.0",

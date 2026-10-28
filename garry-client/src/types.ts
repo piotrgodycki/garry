@@ -209,6 +209,16 @@ export interface ArchitectureState {
   capabilities: Record<string, string>;
   providers: string[];
   issues: ArchIssue[];
+  /** ready-made architectures to start from */
+  templates: ArchTemplate[];
+}
+
+export interface ArchTemplate {
+  id: string;
+  name: string;
+  summary: string;
+  goodFor: string;
+  architecture: Architecture;
 }
 
 export interface NewFeature {

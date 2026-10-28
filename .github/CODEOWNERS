@@ -5,7 +5,6 @@
 # so every skill needs a named reviewer. The audit and the workflows that enforce
 # it are owned too: a pull request could otherwise weaken the gate it is judged by.
 
-/garry-skills/skills/          @piotrgodycki
-/garry-skills/manifest.json    @piotrgodycki
+/garry-tool/skills/             @piotrgodycki
 /garry-tool/src/skills/        @piotrgodycki
 /.github/                      @piotrgodycki

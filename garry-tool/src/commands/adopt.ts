@@ -4,7 +4,7 @@ import pc from "picocolors";
 import { renderBanner, tagline } from "../ui/banner.js";
 import { discoverRepos } from "../adopt/detect.js";
 import { analyzeRepo, writeAdoption, existingServices, type AdoptResult } from "../adopt/adopt.js";
-import { validateRegistry } from "../../../garry-registry/src/validate.js";
+import { validateRegistry } from "../registry/schema/validate.js";
 
 const FLAGS = ["registry"] as const;
 

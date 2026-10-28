@@ -45,7 +45,6 @@ export default function Routing() {
   };
 
   const profile = data?.profiles.find((p) => p.name === selected) ?? null;
-  const label = (id: string) => models.find((m) => m.id === id)?.label ?? id;
 
   const change = (stage: string, route: { model?: string; agent?: string }) =>
     run(async () => {
@@ -61,36 +60,28 @@ export default function Routing() {
       setCreating(false);
     }, newName.trim());
 
-  const row = (stage: string, r: RoutingProfile["defaults"], p: RoutingProfile) => (
+  const row = (stage: string, r: RoutingProfile["defaults"]) => (
     <tr key={stage}>
       <td className={`strong ${styles.cap}`}>{stage === "defaults" ? "Everything else" : stage}</td>
       <td>
-        {p.builtin ? (
-          <span className="chip mono">{r.agent}</span>
-        ) : (
-          <select className={own.agentSelect} value={r.agent} onChange={(e) => void change(stage, { agent: e.target.value })} aria-label={`agent for ${stage}`}>
-            {[...new Set([r.agent, ...AGENTS])].map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-        )}
+        <select className={own.agentSelect} value={r.agent} onChange={(e) => void change(stage, { agent: e.target.value })} aria-label={`agent for ${stage}`}>
+          {[...new Set([r.agent, ...AGENTS])].map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
+        </select>
       </td>
       <td>
         <label className={styles.modelCell}>
           <span className={`tier ${tierOf(r.model)}`} />
-          {p.builtin ? (
-            <span>{label(r.model)}</span>
-          ) : (
-            <select className={styles.modelSelect} value={r.model} onChange={(e) => void change(stage, { model: e.target.value })} aria-label={`model for ${stage}`}>
-              {models.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          )}
+          <select className={styles.modelSelect} value={r.model} onChange={(e) => void change(stage, { model: e.target.value })} aria-label={`model for ${stage}`}>
+            {models.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.label}
+              </option>
+            ))}
+          </select>
         </label>
       </td>
       <td className={styles.savedCell}>{saved === stage && <span className="badge ok">{Icon.check}Saved</span>}</td>
@@ -102,7 +93,7 @@ export default function Routing() {
       <PageHeader
         eyebrow="Configure"
         title="Model routing"
-        lede="Which agent role and which model handle each SDLC stage. Default is Garry's example; make profiles of your own from it, pick the active one, and let a feature use another (routing: in its frontmatter)."
+        lede="Which agent role and which model handle each SDLC stage. The default profile is used unless you pick another; change it, or make profiles of your own from it, and let a feature use another (routing: in its frontmatter)."
       />
       {offline && <ServerNotice />}
       {!data && !offline && <Skeleton rows={4} height={48} />}
@@ -122,7 +113,6 @@ export default function Routing() {
                 <span className={own.profileHead}>
                   <span className={own.profileName}>{p.name}</span>
                   {p.name === data.active && <span className="badge ok">Active</span>}
-                  {p.builtin && <span className="badge">Example</span>}
                 </span>
                 {p.description && <span className={own.profileDesc}>{p.description}</span>}
               </button>
@@ -150,18 +140,23 @@ export default function Routing() {
           {profile && (
             <>
               <div className={own.toolbar}>
-                {profile.builtin ? (
-                  <span className="muted">Garry&apos;s example stays as it is. Make a profile from it to change the models.</span>
-                ) : (
-                  <span className="muted">Changes are saved to routing/{profile.name}.json in the registry and apply to the next run.</span>
-                )}
+                <span className="muted">
+                  {profile.name === "default" && profile.builtin
+                    ? "Garry's suggested setup. Change any stage; it is saved to routing/default.json in the registry."
+                    : `Changes are saved to routing/${profile.name}.json in the registry and apply to the next run.`}
+                </span>
                 <span className={own.row}>
                   {profile.name !== data.active && (
                     <button className="btn btnSm btnPrimary" onClick={() => void run(() => client.useRoutingProfile(profile.name))}>
                       Use this profile
                     </button>
                   )}
-                  {!profile.builtin && (
+                  {profile.name === "default" && !profile.builtin && (
+                    <button className="btn btnSm btnGhost" onClick={() => window.confirm("Put Garry's suggested models back in the default profile?") && void run(() => client.removeRoutingProfile("default"), data.active)}>
+                      Reset to Garry&apos;s setup
+                    </button>
+                  )}
+                  {profile.name !== "default" && (
                     <button
                       className="btn btnSm btnGhost"
                       onClick={() => window.confirm(`Remove the profile ${profile.name}?`) && void run(() => client.removeRoutingProfile(profile.name), data.active === profile.name ? "default" : data.active)}
@@ -182,8 +177,8 @@ export default function Routing() {
                     </tr>
                   </thead>
                   <tbody>
-                    {STAGES.map((s) => row(s, profile.stages[s] ?? profile.defaults, profile))}
-                    {row("defaults", profile.defaults, profile)}
+                    {STAGES.map((s) => row(s, profile.stages[s] ?? profile.defaults))}
+                    {row("defaults", profile.defaults)}
                   </tbody>
                 </table>
               </div>

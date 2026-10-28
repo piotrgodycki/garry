@@ -24,6 +24,7 @@ const GROUPS: { label: string; links: { href: string; label: string; icon: React
       { href: "/architecture", label: "Architecture", icon: Icon.puzzle },
       { href: "/skills", label: "Skills", icon: Icon.skills },
       { href: "/routing", label: "Model routing", icon: Icon.routing },
+      { href: "/settings", label: "Settings", icon: Icon.settings },
     ],
   },
   {

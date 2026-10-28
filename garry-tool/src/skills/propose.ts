@@ -4,7 +4,7 @@ import { enforceAudit, prepareSkill, SkillError, type InstallRequest, type Prepa
 
 /**
  * Proposes a skill to the whole team: opens a pull request that adds it to the
- * pre-installed skills (garry-skills/skills/<stage>/<name>/ plus a manifest entry).
+ * pre-installed skills (garry-tool/skills/skills/<stage>/<name>/ plus a manifest entry).
  * The skill-audit workflow then audits it again in CI with secret and static
  * scanners, CODEOWNERS asks a named reviewer to approve, and only after the merge
  * does it ship to everyone. The same local audit runs first, so a skill that
@@ -52,7 +52,7 @@ export async function proposeSkill(
 
   const gh = new GitHub(opts.token);
   const base = opts.base ?? (await gh.defaultBranch(repo.owner, repo.name));
-  const skillsDir = opts.skillsDir ?? "garry-skills";
+  const skillsDir = opts.skillsDir ?? "garry-tool/skills";
   const { skill, files, audit } = prepared;
   const folder = `skills/${skill.stage}/${skill.name}`;
 

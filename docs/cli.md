@@ -37,8 +37,8 @@ Where the commands look when you pass no flag:
 | What | Inside this repository | Anywhere else |
 |---|---|---|
 | registry (`--registry`) | `./registry` if it has a `catalog/`, else `~/.garry/registry` (created empty) | the same |
-| pre-installed skills (`--skills`) | `garry-skills` | the skills bundled with the package |
-| routing (`--routing`) | `garry.routing.json`: the example profile | `garry.routing.json` in the current folder (optional); profiles of your own live in the registry (`garry routing`) |
+| pre-installed skills (`--skills`) | `garry-tool/skills` | the skills shipped with the package |
+| routing (`--routing`) | `garry.routing.json`: Garry's setup for the default profile | `garry.routing.json` in the current folder (optional); profiles of your own live in the registry (`garry routing`) |
 
 The npm package is the CLI and the server (`garry serve`); the dashboard runs from
 this repository (`pnpm ui`). `garry shots` needs Playwright as well
@@ -96,7 +96,7 @@ pnpm garry feature FEAT-123
 | Option | Default | |
 |---|---|---|
 | `--registry` | `./registry`, else `~/.garry/registry` | registry root |
-| `--skills` | `garry-skills` | skills repo root |
+| `--skills` | the skills shipped with garry | skills root |
 | `--routing` | `garry.routing.json` | routing matrix |
 | `--root` or `--ws` | none | where the feature's worktrees are, so the tasks point at real directories |
 
@@ -198,7 +198,7 @@ blocks that are only reachable from their own platform (D1, KV and Queues from
 Workers, ElastiCache from AWS), needs left open (WordPress without a database, a
 backend with a database but none linked, a shell without its microfrontends),
 RDS reached from outside AWS without pooling, and registry services that are not
-on the board yet. The registry check (`garry-registry validate`) reports the
+on the board yet. The registry check (`pnpm -C garry-tool check:registry <dir>`) reports the
 errors too. The page also offers **quick fixes** for every open need (a
 block that provides it, the platform you already use first, never one that
 cannot be reached from there) and **Ask Garry**: describe what it is for, and
@@ -210,15 +210,17 @@ for each; one click adds a suggestion to the board. Server: `GET /api/architectu
 ## garry routing
 
 Routing profiles: which agent role and which model handle each SDLC stage.
-`default` is Garry's example (the folder's `garry.routing.json`, else the
-built-in) and stays as it is. Make your own from it, change it, and make it the
-active one; a feature can use another with `routing: <name>` in its
+`default` is used unless another is active. It starts as Garry's setup (the
+folder's `garry.routing.json`, else the built-in); change it like any profile
+(saved as `routing/default.json`) and `garry routing remove default` puts
+Garry's setup back. Make your own from it and make one the active one; a feature can use another with `routing: <name>` in its
 frontmatter (the New feature form has a picker). Profiles live in the registry
 as `routing/<name>.json`, the active one in `routing/index.json`. The Model
 routing page does the same.
 
 ```bash
 garry routing list
+garry routing set default implement --model claude-sonnet-4-6
 garry routing new fast --from default
 garry routing set fast implement --model claude-sonnet-4-6
 garry routing set fast review --agent garry-reviewer --model claude-opus-4-8
@@ -229,7 +231,7 @@ garry routing show fast
 A feature's `routingOverride` still wins for the stages it names. Server: `GET
 /api/routings`, `POST /api/routings` (`{name, from}` or a full profile), `POST
 /api/routings/active`, `POST /api/routing {profile?, stage, model?, agent?}`,
-`DELETE /api/routings/:name` (this computer only). `GET /api/routing` returns
+`DELETE /api/routings/:name` (this computer only; for `default`, back to Garry's setup). `GET /api/routing` returns
 the active profile.
 
 ## garry stack
@@ -318,7 +320,7 @@ garry skills propose <folder|SKILL.md> [--stage <stage>] [--accept-warnings]
 garry skills audit [folder ...] [--report <file>]
 ```
 
-The skills the agents use: the pre-installed ones in `garry-skills`, plus the ones
+The skills the agents use: the pre-installed ones in `garry-tool/skills`, plus the ones
 installed locally on this machine in `~/.garry/skills` (or `GARRY_SKILLS_HOME`).
 A local skill joins its stage in every feature's plan. The same is available on
 the dashboard's Skills page (Install skill).
@@ -338,7 +340,7 @@ the frontmatter has none and `--replace` to overwrite a local skill.
 
 `propose` (or Propose to team in the dashboard) runs the same audit, then opens a
 pull request that adds the skill to the pre-installed ones:
-`garry-skills/skills/<stage>/<name>/` plus a `manifest.json` entry, on the branch
+`garry-tool/skills/skills/<stage>/<name>/` plus a `manifest.json` entry, on the branch
 `skills/add-<name>`, ready for review. The `skill-audit` workflow audits it again
 with a secret scanner and Semgrep, a code owner approves it, and after the merge
 every teammate gets it. A skill that fails the audit is never proposed.
@@ -398,8 +400,8 @@ garry projects import octo/shop   # clone into ~/.garry/repos/octo/shop and add 
 garry github logout           # forget the token Garry saved
 ```
 
-The dashboard does the same on the Build page (Import from GitHub), on this
-computer only: a paired phone cannot connect GitHub or import. Pushes and clones
+The dashboard does the same in Settings (GitHub: paste, replace or remove
+the token) and on the Build page (Import from GitHub), on this computer only: a paired phone cannot connect GitHub or import. Pushes and clones
 pass the token to git for that one command; it is never written into a
 repository's config.
 
@@ -547,10 +549,10 @@ Set `GARRY_CHROMIUM_PATH` to use an already installed Chromium.
 
 | File | Used by | |
 |---|---|---|
-| `garry.routing.json` | `feature`, `serve` | the example routing profile (`default`); your own are `routing/<name>.json` in the registry |
+| `garry.routing.json` | `feature`, `serve` | Garry's setup for the default routing profile; changes and your own are `routing/<name>.json` in the registry |
 | `garry.screenshots.json` | `shots` | routes, viewports and themes to capture |
 | `.env.local` (or `.env`) | every command | all variables, see `.env.example` |
 | `~/.garry/skills/` | `skills`, `feature`, `serve` | locally installed skills |
-| `garry-skills/manifest.json` | `feature`, `serve` | the skills per stage |
-| `garry-registry/.../features/*.md` | `feature`, `ws`, `serve` | the features |
-| `garry-registry/.../catalog/*.yaml` | everything | the services |
+| `garry-tool/skills/manifest.json` | `feature`, `serve` | the skills per stage |
+| `<registry>/features/*.md` | `feature`, `ws`, `serve` | the features |
+| `<registry>/catalog/*.yaml` | everything | the services |

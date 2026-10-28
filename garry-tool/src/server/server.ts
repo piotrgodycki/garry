@@ -22,10 +22,11 @@ import { ServiceError, addService, removeService, type ServiceInput } from "../r
 import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
 import { StackError, listStacks, removeStack, saveStack } from "../registry/stacks.js";
 import { ArchitectureError, architectureState, checkDraft, readArchitecture, saveArchitecture } from "../registry/architecture.js";
-import { ArchitectureSchema, CAPABILITIES, COMPONENTS, PROVIDERS } from "../../../garry-registry/src/architecture.js";
+import { ArchitectureSchema, CAPABILITIES, COMPONENTS, PROVIDERS } from "../registry/schema/architecture.js";
+import { ARCHITECTURE_TEMPLATES } from "../registry/schema/templates.js";
 import { aiSuggestions, quickFixes } from "../architecture/suggest.js";
 import { resolveRouting, routeFor } from "../orchestrate/routing.js";
-import { CATALOG, CATEGORIES, checkStack } from "../../../garry-registry/src/stacks.js";
+import { CATALOG, CATEGORIES, checkStack } from "../registry/schema/stacks.js";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
 function setFeatureStatus(registry: string, id: string, status: string): boolean {
@@ -521,13 +522,13 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return json(res, 200, { ok: true, id, status: body.status });
   }
 
-  // Routing profiles: Garry's example ("default", read only) and your own (routing/<name>.json in the registry)
+  // Routing profiles: default (Garry's values until changed) and your own (routing/<name>.json in the registry)
   if (req.method === "POST" && path === "/api/routing") {
     // one stage (or "defaults") of a profile: the active one unless named
     const body = (await readBody(req)) as { profile?: string; stage?: string; model?: string; agent?: string };
     if (!body.stage || (!body.model && !body.agent)) return json(res, 400, { error: "stage and a model or an agent are required" });
     try {
-      const p = setStageRoute(cfg.registry, body.profile ?? activeProfileName(cfg.registry), body.stage, { model: body.model, agent: body.agent });
+      const p = setStageRoute(cfg.registry, body.profile ?? activeProfileName(cfg.registry), body.stage, { model: body.model, agent: body.agent }, cfg.routing);
       return json(res, 200, p);
     } catch (e) {
       if (e instanceof RoutingError) return json(res, e.status, { error: e.message });
@@ -618,7 +619,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "DELETE /api/registry/services/:name (this machine only)",
         "GET /api/routing (the active profile), POST /api/routing {profile?, stage, model?, agent?}",
         "GET /api/routings, POST /api/routings {name, from? | defaults, stages, replace?}, POST /api/routings/active {name}",
-        "DELETE /api/routings/:name (this machine only)",
+        "DELETE /api/routings/:name (this machine only; for default, back to Garry's values)",
         "GET /api/models",
       ],
     });
@@ -634,7 +635,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     });
   }
   if (path === "/api/models") return json(res, 200, { models: MODELS });
-  if (path === "/api/architecture") return json(res, 200, { ...architectureState(cfg.registry), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS });
+  if (path === "/api/architecture") return json(res, 200, { ...architectureState(cfg.registry), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS, templates: ARCHITECTURE_TEMPLATES });
   if (path === "/api/stacks") return json(res, 200, { stacks: listStacks(cfg.registry), catalog: CATALOG, categories: CATEGORIES });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });

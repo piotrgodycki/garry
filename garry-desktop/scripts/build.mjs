@@ -1,6 +1,6 @@
 // Builds the desktop app: the main process as one ESM bundle (garry serve and its
 // dependencies inlined, so the app needs no node_modules), plus the dashboard,
-// the pre-installed skills and the sample registry next to it, the same layout
+// and the pre-installed skills next to it, the same layout
 // as the garry npm package (see garry-tool/src/paths.ts).
 import { execFileSync } from "node:child_process";
 import { build } from "esbuild";
@@ -46,6 +46,5 @@ const copy = (from, to) => {
 execFileSync("pnpm", ["-C", join(repo, "garry-ui"), "build"], { stdio: "inherit" });
 copy(join(repo, "garry-ui/dist"), "ui");
 copy(join(repo, "LICENSE"), "LICENSE");
-copy(join(repo, "garry-skills/manifest.json"), "skills/manifest.json");
-copy(join(repo, "garry-skills/skills"), "skills/skills");
+copy(join(repo, "garry-tool/skills"), "skills");
 console.log("built dist/main.mjs, dist/preload.cjs, ui/, skills/ and LICENSE");

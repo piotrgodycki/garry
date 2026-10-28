@@ -1,7 +1,7 @@
 name: Code review
 
 # An AI code review on every pull request in review, by the same rules the Garry
-# reviewer agent follows: the review skills in garry-skills/skills/review/
+# reviewer agent follows: the review skills in garry-tool/skills/skills/review/
 # (correctness, spec match, contract compliance, security). Findings go inline on
 # the diff, and one summary comment is kept up to date. The check fails when the
 # review finds a blocker, so it can be made a required status check.
@@ -66,10 +66,10 @@ jobs:
 
             You are the Garry reviewer. Review this pull request by the rules in these
             skills, which you read first, in this order:
-              garry-skills/skills/review/review-correctness/SKILL.md
-              garry-skills/skills/review/review-spec-match/SKILL.md
-              garry-skills/skills/review/review-contract-compliance/SKILL.md
-              garry-skills/skills/review/review-security/SKILL.md
+              garry-tool/skills/skills/review/review-correctness/SKILL.md
+              garry-tool/skills/skills/review/review-spec-match/SKILL.md
+              garry-tool/skills/skills/review/review-contract-compliance/SKILL.md
+              garry-tool/skills/skills/review/review-security/SKILL.md
             Use the report format and the severities defined in review-correctness.
             Skip the checks of a skill that does not apply (for example spec match on a
             pull request with no feature) and say so in the summary.

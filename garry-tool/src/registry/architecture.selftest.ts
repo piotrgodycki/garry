@@ -7,8 +7,9 @@ import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { AddressInfo } from "node:net";
-import { CAPABILITIES, COMPONENTS, PROVIDERS, checkArchitecture, type Architecture } from "../../../garry-registry/src/architecture.js";
-import { validateRegistry } from "../../../garry-registry/src/validate.js";
+import { CAPABILITIES, COMPONENTS, PROVIDERS, checkArchitecture, type Architecture } from "./schema/architecture.js";
+import { ARCHITECTURE_TEMPLATES } from "./schema/templates.js";
+import { validateRegistry } from "./schema/validate.js";
 import { ArchitectureError, readArchitecture, saveArchitecture } from "./architecture.js";
 import { aiSuggestions, quickFixes } from "../architecture/suggest.js";
 import { fileURLToPath } from "node:url";
@@ -29,6 +30,13 @@ const caps = new Set(Object.keys(CAPABILITIES));
 expect("block ids are unique", new Set(COMPONENTS.map((c) => c.id)).size === COMPONENTS.length);
 expect("every block names known capabilities", COMPONENTS.every((c) => [...c.provides, ...(c.needs ?? [])].every((x) => caps.has(x))));
 expect("every block has a known provider", COMPONENTS.every((c) => PROVIDERS.includes(c.provider)));
+
+// ready-made architectures: valid, and nothing for the rules to say
+expect("template ids are unique", new Set(ARCHITECTURE_TEMPLATES.map((t) => t.id)).size === ARCHITECTURE_TEMPLATES.length);
+for (const t of ARCHITECTURE_TEMPLATES) {
+  const issues = checkArchitecture(t.architecture);
+  expect(`template ${t.id} is sound`, issues.length === 0 && t.architecture.nodes.every((n) => COMPONENTS.some((c) => c.id === n.block)), issues.map((i) => i.message).join(" | "));
+}
 
 // the rules
 const sound: Architecture = {
@@ -107,7 +115,8 @@ await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
   fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
-const state = (await fetch(`${base}/api/architecture`).then((r) => r.json())) as { architecture: Architecture; components: unknown[]; services: { id: string }[]; issues: unknown[] };
+const state = (await fetch(`${base}/api/architecture`).then((r) => r.json())) as { architecture: Architecture; components: unknown[]; services: { id: string }[]; issues: unknown[]; templates: unknown[] };
+expect("GET /api/architecture offers the ready-made architectures", state.templates.length === ARCHITECTURE_TEMPLATES.length);
 expect("GET /api/architecture has the board, the blocks and the services", state.architecture.nodes.length === 2 && state.components.length === COMPONENTS.length && state.services[0]?.id === "service:api");
 const checked = (await post("/api/architecture/check", sound).then((r) => r.json())) as { issues: { level: string }[] };
 expect("POST /api/architecture/check checks a draft", !checked.issues.some((i) => i.level === "error"));

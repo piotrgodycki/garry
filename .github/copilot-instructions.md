@@ -10,7 +10,7 @@ These rules apply to every Copilot code review and suggestion in this repository
 
 ## Architecture rules
 
-- Contract first. Nothing in a service repository should break the contracts defined in `@garry/registry`. Flag code that bypasses the registry or reads another service's internals directly.
+- Contract first. Nothing in a service repository should break the contracts defined in the registry (schemas in `garry-tool/src/registry/schema`). Flag code that bypasses the registry or reads another service's internals directly.
 - The supervisor is headless. The CLI and the UI are thin layers over it. Flag duplicated orchestration logic.
 - Skills are atomic (one responsibility). Flag skills that mix concerns.
 
@@ -23,4 +23,4 @@ These rules apply to every Copilot code review and suggestion in this repository
 
 ## Tests and validation
 
-- Changes to `@garry/registry` or `@garry/skills` must keep `npm run typecheck` and `npm run validate` green.
+- Changes to the registry schemas or the skills must keep `pnpm -C garry-tool typecheck`, `check:registry` and `check:skills` green.

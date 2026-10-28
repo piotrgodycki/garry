@@ -1,11 +1,11 @@
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { stringify as stringifyYaml } from "yaml";
-import { ServiceManifestSchema, type ServiceManifest } from "../../../garry-registry/src/schema.js";
-import { validateRegistry, type ValidationIssue } from "../../../garry-registry/src/validate.js";
+import { ServiceManifestSchema, type ServiceManifest } from "./schema/schema.js";
+import { validateRegistry, type ValidationIssue } from "./schema/validate.js";
 import { listManifests } from "../sync/registryIO.js";
 import { readStack } from "./stacks.js";
-import { stackLine } from "../../../garry-registry/src/stacks.js";
+import { stackLine } from "./schema/stacks.js";
 
 /**
  * Adds services to the registry and removes them: one manifest per service in

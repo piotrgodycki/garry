@@ -6,10 +6,12 @@ import type { Route } from "./routing.js";
 
 /**
  * Routing profiles: which agent role and which model handle each SDLC stage.
- * "default" is Garry's example (garry.routing.json when the folder has one, else
- * the built-in below) and is not edited: duplicate it into a profile of your own
- * in the registry (routing/<name>.json), change that, and make it active. A
- * feature can pick a profile with `routing: <name>` in its frontmatter.
+ * "default" is the profile used unless another is active. It starts as Garry's
+ * values (garry.routing.json when the folder has one, else the built-in below);
+ * change it like any other and it is saved to routing/default.json in the
+ * registry, and reset brings Garry's values back. Other profiles live next to
+ * it (routing/<name>.json). A feature can pick a profile with `routing: <name>`
+ * in its frontmatter.
  */
 
 export interface RoutingProfile {
@@ -17,7 +19,7 @@ export interface RoutingProfile {
   description?: string;
   defaults: Route;
   stages: Record<string, Route>;
-  /** the example: read only */
+  /** the default profile with Garry's own values (not changed in this registry) */
   builtin?: boolean;
 }
 
@@ -25,7 +27,7 @@ export const STAGE_NAMES = ["spec", "plan", "design", "implement", "review", "te
 
 export const DEFAULT_PROFILE: RoutingProfile = {
   name: "default",
-  description: "Garry's example: the strongest model thinks and reviews, a fast one writes the code",
+  description: "The strongest model thinks and reviews, a fast one writes the code",
   builtin: true,
   defaults: { agent: "garry-dev", model: "claude-sonnet-4-6" },
   stages: {
@@ -53,10 +55,7 @@ const RouteSchema = z.object({
   model: z.string().refine(isKnownModel, "model: not one Garry knows (see /api/models)"),
 });
 const ProfileSchema = z.object({
-  name: z
-    .string()
-    .regex(/^[a-z][a-z0-9-]{0,62}$/, "name: lowercase letters, digits and dashes")
-    .refine((n) => n !== "default", "name: default is Garry's example; pick another name"),
+  name: z.string().regex(/^[a-z][a-z0-9-]{0,62}$/, "name: lowercase letters, digits and dashes"),
   description: z.string().max(300).optional(),
   defaults: RouteSchema,
   stages: z.partialRecord(z.enum(STAGE_NAMES), RouteSchema).default({}),
@@ -66,8 +65,8 @@ const dir = (registry: string) => join(registry, "routing");
 const file = (registry: string, name: string) => join(dir(registry), `${name}.json`);
 const indexFile = (registry: string) => join(dir(registry), "index.json");
 
-/** The example profile: the folder's garry.routing.json when there is one, else the built-in. */
-export function defaultProfile(legacyFile?: string): RoutingProfile {
+/** Garry's values for the default profile: the folder's garry.routing.json when there is one, else the built-in. */
+export function garryDefault(legacyFile?: string): RoutingProfile {
   if (legacyFile && existsSync(legacyFile)) {
     try {
       const j = JSON.parse(readFileSync(legacyFile, "utf8")) as Partial<RoutingProfile>;
@@ -77,6 +76,19 @@ export function defaultProfile(legacyFile?: string): RoutingProfile {
     }
   }
   return DEFAULT_PROFILE;
+}
+
+/** The default profile: as changed in this registry (routing/default.json), else Garry's values. */
+export function defaultProfile(legacyFile?: string, registry?: string): RoutingProfile {
+  if (registry && existsSync(file(registry, "default"))) {
+    try {
+      const r = ProfileSchema.safeParse(JSON.parse(readFileSync(file(registry, "default"), "utf8")));
+      if (r.success) return { ...r.data, name: "default" };
+    } catch {
+      /* unreadable: Garry's values */
+    }
+  }
+  return garryDefault(legacyFile);
 }
 
 export function activeProfileName(registry: string): string {
@@ -89,7 +101,7 @@ export function activeProfileName(registry: string): string {
 }
 
 export function readProfile(registry: string, name: string, legacyFile?: string): RoutingProfile | null {
-  if (name === "default") return defaultProfile(legacyFile);
+  if (name === "default") return defaultProfile(legacyFile, registry);
   if (!/^[a-z][a-z0-9-]{0,62}$/.test(name) || !existsSync(file(registry, name))) return null;
   const r = ProfileSchema.safeParse(JSON.parse(readFileSync(file(registry, name), "utf8")));
   return r.success ? r.data : null;
@@ -98,14 +110,14 @@ export function readProfile(registry: string, name: string, legacyFile?: string)
 export function listProfiles(registry: string, legacyFile?: string): { active: string; profiles: RoutingProfile[] } {
   const custom = existsSync(dir(registry))
     ? readdirSync(dir(registry))
-        .filter((f) => f.endsWith(".json") && f !== "index.json")
+        .filter((f) => f.endsWith(".json") && f !== "index.json" && f !== "default.json")
         .flatMap((f) => {
           const p = readProfile(registry, f.slice(0, -5));
           return p ? [p] : [];
         })
         .sort((a, b) => a.name.localeCompare(b.name))
     : [];
-  return { active: activeProfileName(registry), profiles: [defaultProfile(legacyFile), ...custom] };
+  return { active: activeProfileName(registry), profiles: [defaultProfile(legacyFile, registry), ...custom] };
 }
 
 /** Writes a profile. With from, it starts as a copy of that profile. */
@@ -120,20 +132,21 @@ export function saveProfile(registry: string, input: unknown, opts: { replace?: 
     stages: raw.stages ?? source?.stages ?? {},
   });
   if (!r.success) throw new RoutingError(r.error.issues.map((i) => i.message).join("; "), 400);
-  if (existsSync(file(registry, r.data.name)) && !opts.replace) throw new RoutingError(`profile ${r.data.name} already exists`, 409);
+  // default always exists (with Garry's values until changed): it is changed, never created
+  if ((r.data.name === "default" || existsSync(file(registry, r.data.name))) && !opts.replace) throw new RoutingError(`profile ${r.data.name} already exists`, 409);
   mkdirSync(dir(registry), { recursive: true });
   writeFileSync(file(registry, r.data.name), JSON.stringify(r.data, null, 2) + "\n");
   return r.data;
 }
 
-/** Changes one stage (or the fallback, stage "defaults") of a profile of your own. */
-export function setStageRoute(registry: string, name: string, stage: string, route: Partial<Route>): RoutingProfile {
-  if (name === "default") throw new RoutingError("default is Garry's example and stays as it is; duplicate it into a profile of your own", 400);
-  const p = readProfile(registry, name);
+/** Changes one stage (or the fallback, stage "defaults") of a profile, the default one included. */
+export function setStageRoute(registry: string, name: string, stage: string, route: Partial<Route>, legacyFile?: string): RoutingProfile {
+  const p = readProfile(registry, name, legacyFile);
   if (!p) throw new RoutingError(`no profile ${name}`, 404);
   const current = stage === "defaults" ? p.defaults : (p.stages[stage] ?? p.defaults);
   const next = { agent: route.agent ?? current.agent, model: route.model ?? current.model };
-  return saveProfile(registry, stage === "defaults" ? { ...p, defaults: next } : { ...p, stages: { ...p.stages, [stage]: next } }, { replace: true });
+  const { builtin: _, ...rest } = p;
+  return saveProfile(registry, stage === "defaults" ? { ...rest, defaults: next } : { ...rest, stages: { ...rest.stages, [stage]: next } }, { replace: true });
 }
 
 export function setActiveProfile(registry: string, name: string): void {
@@ -142,8 +155,12 @@ export function setActiveProfile(registry: string, name: string): void {
   writeFileSync(indexFile(registry), JSON.stringify({ active: name }, null, 2) + "\n");
 }
 
+/** Removes a profile; for default, puts Garry's values back. */
 export function removeProfile(registry: string, name: string): void {
-  if (name === "default") throw new RoutingError("default is Garry's example and cannot be removed", 400);
+  if (name === "default") {
+    if (existsSync(file(registry, "default"))) unlinkSync(file(registry, "default"));
+    return;
+  }
   if (!readProfile(registry, name)) throw new RoutingError(`no profile ${name}`, 404);
   unlinkSync(file(registry, name));
   if (activeProfileName(registry) === "default") setActiveProfile(registry, "default");

@@ -29,7 +29,7 @@ const status = (fn: () => unknown): number => {
   }
 };
 
-const skills = fileURLToPath(new URL("../../../garry-skills", import.meta.url));
+const skills = fileURLToPath(new URL("../../skills", import.meta.url));
 const registry = mkdtempSync(join(tmpdir(), "garry-features-"));
 addService(registry, { name: "cart", kind: "mfe-remote", repo: "r", exposes: ["./Cart"] });
 addService(registry, { name: "shell", kind: "mfe-shell", repo: "r", consumes: { cart: ["./Cart"] } });

@@ -6,9 +6,10 @@ import { STAGE_NAMES, listProfiles, removeProfile, saveProfile, setActiveProfile
 const HELP = `garry routing [list | show <name> | new <name> [--from <name>] | use <name> | set <name> <stage> [--model <id>] [--agent <role>] | remove <name>]
 
 Routing profiles: which agent role and which model handle each SDLC stage.
-"default" is Garry's example (garry.routing.json in this folder, else the
-built-in) and stays as it is; make your own from it (new <name> --from default),
-change its stages (set), and make it the active one (use). A feature can pick a
+"default" is used unless another is active. It starts as Garry's setup
+(garry.routing.json in this folder, else the built-in); change it like any
+profile (set default <stage> ...), put Garry's setup back (remove default), or
+make your own from it (new <name> --from default) and make that active (use). A feature can pick a
 profile with "routing: <name>" in its frontmatter. Profiles live in the registry
 as routing/<name>.json.
 
@@ -17,7 +18,7 @@ Models: ${MODELS.map((m) => m.id).join(", ")}
 
 Options:
   --registry <path>  registry root (default: ./registry, else ~/.garry/registry)
-  --routing <file>   the example's file (default: garry.routing.json)
+  --routing <file>   Garry's setup for default (default: garry.routing.json)
 `;
 
 function flag(argv: string[], name: string): string | undefined {
@@ -26,7 +27,7 @@ function flag(argv: string[], name: string): string | undefined {
 }
 
 function show(p: RoutingProfile, active: boolean): void {
-  console.log(`${pc.bold(p.name)}${p.builtin ? pc.dim(" (example)") : ""}${active ? pc.green(" active") : ""}${p.description ? pc.dim(`  ${p.description}`) : ""}`);
+  console.log(`${pc.bold(p.name)}${p.name === "default" && p.builtin ? pc.dim(" (Garry's setup)") : ""}${active ? pc.green(" active") : ""}${p.description ? pc.dim(`  ${p.description}`) : ""}`);
   for (const s of STAGE_NAMES) {
     const r = p.stages[s] ?? p.defaults;
     console.log(`  ${s.padEnd(10)} ${r.agent.padEnd(16)} ${r.model}`);
@@ -44,7 +45,7 @@ export function runRouting(argv: string[]): void {
   const all = () => listProfiles(registry, legacyFile);
   if (sub === "list") {
     const { active, profiles } = all();
-    for (const p of profiles) console.log(`${p.name === active ? pc.green("●") : " "} ${pc.bold(p.name.padEnd(20))} ${p.builtin ? pc.dim("example") : ""}${p.description ? pc.dim(` ${p.description}`) : ""}`);
+    for (const p of profiles) console.log(`${p.name === active ? pc.green("●") : " "} ${pc.bold(p.name.padEnd(20))} ${p.name === "default" ? pc.dim(p.builtin ? "Garry's setup" : "changed") : ""}${p.description ? pc.dim(` ${p.description}`) : ""}`);
     return;
   }
   if (sub === "show") {
@@ -67,13 +68,13 @@ export function runRouting(argv: string[]): void {
   }
   if (sub === "set") {
     if (!stage) throw new Error("garry routing set <name> <stage> --model <id> [--agent <role>]");
-    const p = setStageRoute(registry, name, stage, { model: flag(argv, "model"), agent: flag(argv, "agent") });
+    const p = setStageRoute(registry, name, stage, { model: flag(argv, "model"), agent: flag(argv, "agent") }, legacyFile);
     show(p, all().active === p.name);
     return;
   }
   if (sub === "remove") {
     removeProfile(registry, name);
-    console.log(pc.green(`Removed ${name}`));
+    console.log(pc.green(name === "default" ? "default is back to Garry's setup" : `Removed ${name}`));
     return;
   }
   throw new Error(`unknown subcommand: ${sub}\n\n${HELP}`);

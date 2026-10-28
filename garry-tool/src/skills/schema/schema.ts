@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Schemas for the @garry/skills repository.
+ * Schemas for the skills repository (garry-tool/skills).
  * Skills are the atomic, reusable capabilities of the agents. manifest.json is
  * the index the supervisor uses to compose a pipeline for a given feature.
  */

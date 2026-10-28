@@ -9,7 +9,7 @@ The starting point is microfrontends (React 19 with Vite and Module Federation).
 | Problem | Solution |
 |---|---|
 | How to give an agent context about other services without access to their repositories? | Contract Registry, one source of truth. Garry injects only the slice that is relevant to a given service. |
-| Where to keep the specification? | A separate, versioned repository published as the npm package `@garry/registry`, never inside a service repository. |
+| Where to keep the specification? | A separate, versioned registry repository (validated by the schemas in `garry-tool/src/registry/schema`), never inside a service repository. |
 | How to build features that span several services? | Contract first plus orchestration. A change to a contract drives a dependency graph, which drives delegation to agents in the right order. |
 | How to avoid losing context between lifecycle stages? | The state of a feature lives in the registry (`features/FEAT-x.md` as a living document), not in the memory of a single subagent. |
 
@@ -20,8 +20,8 @@ The starting point is microfrontends (React 19 with Vite and Module Federation).
             |  "build feature X"
             v
      +--------------+     reads / writes
-     |    GARRY     |<------------------>  @garry/registry
-     |  supervisor  |                      (npm, versioned)
+     |    GARRY     |<------------------>  registry
+     |  supervisor  |                      (git, versioned)
      +------+-------+
             | delegates: task + injected .garry/ + feature state
      +------+------+-----------+
@@ -34,10 +34,10 @@ The human talks to Garry only. Garry holds the state and the contracts. Subagent
 
 ## 3. Contract Registry
 
-A separate repository published as `@garry/registry`. It is the only place where an agent learns about the world outside its own repository.
+A separate repository (the registry). It is the only place where an agent learns about the world outside its own repository.
 
 ```
-garry-registry/            (the @garry/registry package)
+registry/                  (a team's registry repository)
   catalog/                 service manifest per service
     shell.yaml
     checkout-mfe.yaml
@@ -70,13 +70,13 @@ An agent in `checkout-mfe` has no access to other repositories (isolation). It r
 
 ## 4. The AI SDLC pipeline, broken into skills
 
-Garry drives each feature through its lifecycle. A stage is not a monolith. It is a composition of atomic skills from the `@garry/skills` repository. Garry selects and composes the skills and holds the state between stages.
+Garry drives each feature through its lifecycle. A stage is not a monolith. It is a composition of atomic skills shipped with Garry (`garry-tool/skills`). Garry selects and composes the skills and holds the state between stages.
 
-| # | Stage | Atomic skills (from `@garry/skills`) | Source of truth |
+| # | Stage | Atomic skills (from `garry-tool/skills`) | Source of truth |
 |---|---|---|---|
 | 1 | Spec | `spec-draft`, `spec-decompose`, `acceptance-criteria` | registry |
 | 2 | Plan | `impact-analysis`, `dependency-graph`, `work-breakdown` | registry |
-| 3 | Design | `contract-update`, `contract-validate`, `version-bump`, `design-tokens-sync` | `@garry/registry` |
+| 3 | Design | `contract-update`, `contract-validate`, `version-bump`, `design-tokens-sync` | the registry |
 | 4 | Implement | `scaffold-mfe-shell`, `scaffold-mfe-remote`, `sync-contracts`, `generate-types`, `mf-wiring` | service repo |
 | 5 | Review | `review-correctness`, `review-spec-match`, `review-contract-compliance`, `review-security` | pull request |
 | 6 | Test | `test-unit`, `test-e2e`, `drift-check` | repo plus registry |
@@ -86,12 +86,12 @@ Guiding rule: nobody touches code until the contract in the registry is updated 
 
 Why so granular: one skill means one responsibility, so it can be tested, versioned, swapped and reused across projects independently. Garry composes skills like building blocks for a given feature, and a subagent receives only the skills it actually needs for its task.
 
-## 5. The skills repository `@garry/skills`
+## 5. The skills (`garry-tool/skills`)
 
-A separate repository published as an npm package. It holds the reusable capabilities of the agents (the HOW), independent of the contracts of any specific project (the WHAT, which lives in the registry).
+Shipped inside the `garry` package. They hold the reusable capabilities of the agents (the HOW), independent of the contracts of any specific project (the WHAT, which lives in the registry).
 
 ```
-garry-skills/             (the @garry/skills package)
+garry-tool/skills/        (shipped with garry)
   skills/
     spec/      spec-draft, spec-decompose, acceptance-criteria
     plan/      impact-analysis, dependency-graph, work-breakdown
@@ -113,7 +113,7 @@ Each skill is atomic (one responsibility), has a `SKILL.md` (instructions for th
 | `garry sync` | runs `sync-contracts` and `generate-types` into `.garry/` inside the repository, plus `AGENTS.md` |
 | `garry feature <FEAT-id>` | composes the full SDLC pipeline from skills and delegates per repository following the graph |
 | `garry doctor` | runs the `drift-check` skill: the installed contract version against the latest in the registry |
-| `garry skills` | lists and validates the available skills from `@garry/skills` |
+| `garry skills` | lists and validates the available skills |
 
 Delegation (Implement, Review, Test) uses a `delegate(repo, task, skills[])` tool that spawns a Claude Code subagent in the given repository with the injected set of skills.
 
@@ -134,7 +134,7 @@ Stack (lightweight, audited before install): the interaction engine is `@clack/p
 1. Spec -> registry/features/FEAT-123.md
 2. garry feature FEAT-123
    - PLAN: touches shell, checkout-mfe and search-mfe
-   - DESIGN: changes the events.json contract, bumps @garry/registry
+   - DESIGN: changes the events.json contract, bumps the registry
    - graph:  [events.json] -> [checkout agent] -> [shell agent]
                             -> [search agent]
    - IMPLEMENT: delegates agents following the graph (the one that changes the contract first)
@@ -229,11 +229,10 @@ garry-tool/                (WHO, the orchestrator, a headless core)
     frontend/          the registry the tests run against (three microfrontends)
     backend/           the same for two backend services
 
-garry-registry/            (WHAT, published as @garry/registry)
-  catalog/ contracts/ features/ adr/        schema (zod) and validation
+garry-tool/src/registry/schema/   (WHAT: zod schema and validation of a registry:
+                                   catalog/ contracts/ features/ adr/)
 
-garry-skills/              (HOW, published as @garry/skills)
-  skills/ manifest.json    atomic skills and index
+garry-tool/skills/                (HOW: skills/ and manifest.json, atomic skills and index)
 
 garry-ui/                  (FACE, Vite and React, served by garry-tool/server)
   app/ components/         dashboard, pipeline, pull requests, model and agent routing
@@ -241,7 +240,7 @@ garry-ui/                  (FACE, Vite and React, served by garry-tool/server)
 
 Tooling stack: TypeScript and Node. UI: Vite and React 19.
 
-Why separate repositories: the registry changes per project or client, the skills are reusable globally, the tool and the UI have their own release cycles. Splitting them lets each layer be versioned and swapped independently. The CLI and the UI are two layers over the same supervisor, so there is no duplicated logic.
+Why one package: the registry is the team's own repository and changes per project; its schema, the skills and the tool ship together as `garry`, so they never drift apart. Teams add their own skills locally or propose them upstream. The CLI and the UI are two layers over the same supervisor, so there is no duplicated logic.
 
 ## 12. UI, GitHub, model and agent routing
 
@@ -266,9 +265,9 @@ Garry gets its own panel (`garry-ui`) that talks to `garry-tool/server`. The sam
 | Live stream | SSE (`EventSource`) | the Pipeline panel: logs of subagents per skill, live, without WebSocket overhead |
 | Pipeline graph | React Flow | nodes are services and stages, edges are the delegation order from the dependency graph |
 | Raw agent output | xterm.js or a virtualized log | a view of what the agent actually does |
-| Forms and config | react-hook-form plus zod from `@garry/registry` | the routing matrix and contract editing validated by the same schema as the backend |
+| Forms and config | react-hook-form plus zod from the registry schema | the routing matrix and contract editing validated by the same schema as the backend |
 
-Key alignment: the UI reuses the zod schemas from `@garry/registry` and `@garry/skills`, so the same validation runs in the browser, the server and the CLI. One source of truth end to end.
+Key alignment: the UI reuses the zod schemas of the registry and the skills, so the same validation runs in the browser, the server and the CLI. One source of truth end to end.
 
 White label (open source): a company overrides `tokens.css` (CSS variables) for its own branding without a fork and without recompiling components. The tokens come from `design-tokens.json`, so the theme is a part of the contract, not of the UI code.
 
@@ -281,7 +280,7 @@ Alternative (lighter): Vite plus a React SPA plus a separate `garry-tool/server`
 | Dashboard | a report, not a control panel. The human drops raw ideas and watches. Three lanes: Ideas (captured, not yet features), Agents at work (features the agents build, review, test and ship on their own, with a live SDLC track) and Shipped. An idea becomes a feature only after a conversation with Garry in the voice dock; nothing is advanced by a run button or drag |
 | Pipeline | the dependency graph of a feature, a live stream of subagents (SSE), logs per skill |
 | Registry | a view of catalog, contracts and features (live state) |
-| Skills | the list of skills from `@garry/skills`, enable or disable, a view of `SKILL.md` |
+| Skills | the list of skills shipped with Garry, enable or disable, a view of `SKILL.md` |
 | GitHub | repositories, pull requests, status checks, the branch per feature |
 | Routing | the model by agent matrix per stage or skill |
 
@@ -318,7 +317,7 @@ The repository ships with CI, a mandatory security review and automated code rev
 
 ### CI workflow (`.github/workflows/ci.yml`)
 
-- `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the tool packages and `pnpm -C garry-registry` validation of the mfe and backend test registries plus `pnpm -C garry-skills validate`.
+- `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the packages, validation of the mfe and backend test registries (`pnpm -C garry-tool check:registry`) and of the skills (`check:skills`).
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash, en dash, figure dash or horizontal bar is found in tracked text files, which enforces the plain ASCII punctuation rule automatically.
 - `security`: the security review as CI steps. It runs `pnpm audit` (fails on a high or critical advisory) across the workspace and a Semgrep static analysis scan. The repository is private, so CodeQL and dependency review are not used (both need paid GitHub Advanced Security on a private repository); Semgrep runs entirely inside the job with no token.
 
@@ -334,7 +333,7 @@ Copilot reviews pull requests for free, following `.github/copilot-instructions.
 
 ## 14. Implementation plan (phased)
 
-- Phase 0, format foundations. Done. `garry-registry` (zod schema and validation plus a sample) and `garry-skills` (the `SKILL.md` format, `manifest.json`, a validator and the first end to end skill `contract-validate`). CI and the dash guard included.
+- Phase 0, format foundations. Done. The registry schema (zod schema and validation plus a sample) and the skills (the `SKILL.md` format, `manifest.json`, a validator and the first end to end skill `contract-validate`). CI and the dash guard included.
 - Phase 1, scaffolding and wizard. Done. The `scaffold-mfe-shell` and `scaffold-mfe-remote` skills, structured stack fields in the manifest, `garry scaffold`, a catalog entry and `AGENTS.md`, all in the interactive wizard mode (ANSI banner, stepper, spinner). A headless flag driven mode is available for automation and CI.
 - Phase 2, sync. Done. `garry sync` runs `sync-contracts` (injects the service specific contract slice into `.garry/contracts/`) and `generate-types` (emits `.garry/types/contracts.d.ts`). Zero config inside a scaffolded repo via `.garry/service.json`.
 - Phase 3, workspace (multicheckout). Done. `garry ws create` keeps a mirror clone per repo in a cache and adds a git worktree per service on the shared `feat/<FEAT-id>` branch. Fan out commands follow: `garry ws status | sync | push | pr`.

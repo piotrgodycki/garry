@@ -18,7 +18,7 @@ export interface SkillEntry {
   audit: { verdict: Verdict; counts: Record<Severity, number> } | null;
 }
 
-/** The skills that ship with a @garry/skills repository (the pre-installed ones). */
+/** The skills that ship with Garry (the pre-installed ones). */
 export function loadBuiltinSkills(skillsRoot: string): SkillEntry[] {
   const raw = JSON.parse(readFileSync(join(skillsRoot, "manifest.json"), "utf8")) as {
     skills: (Partial<SkillEntry> & { path?: string })[];

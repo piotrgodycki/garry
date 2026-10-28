@@ -56,7 +56,7 @@ expect("removed", !existsSync(join(registry, "catalog", "shell.yaml")));
 
 // the server: POST adds, DELETE removes (this computer)
 const server = createGarryServer(
-  { registry, skills: "garry-skills", routing: join(registry, "routing.json") },
+  { registry, skills: "garry-tool/skills", routing: join(registry, "routing.json") },
   new DeviceStore(join(registry, "devices.json")),
 );
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));

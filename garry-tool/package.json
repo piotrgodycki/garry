@@ -42,6 +42,8 @@
     "smoke": "node scripts/smoke.mjs",
     "typecheck": "tsc --noEmit",
     "validate": "tsx src/cli.ts --help",
+    "check:registry": "tsx src/registry/schema/cli.ts",
+    "check:skills": "tsx src/skills/schema/cli.ts skills",
     "scaffold": "tsx src/cli.ts scaffold",
     "serve": "tsx src/cli.ts serve",
     "test:audit": "tsx src/skills/audit.selftest.ts",

@@ -1,7 +1,7 @@
 /**
- * Regression test for routing profiles: Garry's example stays read only, your
- * own are created from it, changed, made active and removed, a feature can pick
- * one, and the server does the same. Run with: pnpm -C garry-tool test:routing
+ * Regression test for routing profiles: the default one (Garry's values until
+ * changed, and back on reset), your own created from it, changed, made active
+ * and removed, a feature can pick one, and the server does the same. Run with: pnpm -C garry-tool test:routing
  * (CI runs it too).
  */
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -35,9 +35,13 @@ const HAIKU = "claude-haiku-4-5-20251001";
 const SONNET = "claude-sonnet-4-6";
 
 expect("a fresh registry uses the example", activeProfileName(registry) === "default" && listProfiles(registry).profiles.length === 1);
-expect("the example cannot be changed", status(() => setStageRoute(registry, "default", "spec", { model: HAIKU })) === 400);
-expect("the example cannot be removed", status(() => removeProfile(registry, "default")) === 400);
-expect("no profile may be called default", status(() => saveProfile(registry, { name: "default", from: "default" })) === 400);
+expect("the default starts with Garry's values", readProfile(registry, "default")!.builtin === true);
+const changedDefault = setStageRoute(registry, "default", "spec", { model: HAIKU });
+expect("the default can be changed like any profile", changedDefault.stages.spec!.model === HAIKU && readProfile(registry, "default")!.stages.spec!.model === HAIKU && !readProfile(registry, "default")!.builtin && existsSync(join(registry, "routing", "default.json")));
+expect("it is listed once", listProfiles(registry).profiles.filter((p) => p.name === "default").length === 1 && listProfiles(registry).profiles.length === 1);
+expect("a new default cannot be created over it", status(() => saveProfile(registry, { name: "default", from: "default" })) === 409);
+removeProfile(registry, "default");
+expect("reset puts Garry's values back", readProfile(registry, "default")!.builtin === true && readProfile(registry, "default")!.stages.spec!.model === DEFAULT_PROFILE.stages.spec!.model && !existsSync(join(registry, "routing", "default.json")));
 expect("an unknown model is refused", status(() => saveProfile(registry, { name: "x", defaults: { agent: "garry-dev", model: "gpt-9" } })) === 400);
 
 const fast = saveProfile(registry, { name: "fast", from: "default" });
@@ -87,7 +91,8 @@ const post = (path: string, body: unknown, headers: Record<string, string> = {})
   fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
 const listed = (await fetch(`${base}/api/routings`).then((r) => r.json())) as { active: string; profiles: { name: string }[] };
 expect("GET /api/routings lists the example and yours", listed.active === "default" && listed.profiles.map((p) => p.name).join() === "default,team");
-expect("POST /api/routing refuses the example", (await post("/api/routing", { stage: "spec", model: HAIKU })).status === 400);
+expect("POST /api/routing changes the default too", (await post("/api/routing", { profile: "default", stage: "test", model: HAIKU })).status === 200 && readProfile(registry, "default")!.stages.test?.model === HAIKU);
+expect("DELETE /api/routings/default resets it", (await fetch(`${base}/api/routings/default`, { method: "DELETE" })).status === 200 && readProfile(registry, "default")!.builtin === true);
 expect("POST /api/routings/active switches", (await post("/api/routings/active", { name: "team" })).status === 200);
 expect("POST /api/routing changes the active profile", (await post("/api/routing", { stage: "spec", model: HAIKU })).status === 200 && readProfile(registry, "team")!.stages.spec?.model === HAIKU);
 const active = (await fetch(`${base}/api/routing`).then((r) => r.json())) as { name: string };

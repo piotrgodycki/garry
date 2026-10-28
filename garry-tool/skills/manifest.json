@@ -76,7 +76,7 @@
       "name": "version-bump",
       "stage": "design",
       "path": "skills/design/version-bump",
-      "summary": "Bumps the @garry/registry version after a contract change.",
+      "summary": "Bumps the registry version after a contract change.",
       "inputs": ["validation-report"],
       "outputs": ["registry-version"],
       "dependsOn": ["contract-validate"]
