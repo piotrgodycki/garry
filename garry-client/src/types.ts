@@ -220,6 +220,30 @@ export interface ArchEdge {
 export interface Architecture {
   nodes: ArchNode[];
   edges: ArchEdge[];
+  /** the wizard's answers the board was built from; null clears them */
+  wizard?: WizardAnswers | null;
+}
+
+/** The architecture wizard's answers. */
+export interface WizardAnswers {
+  clients: ("web" | "ios" | "android")[];
+  platform: "vercel" | "cloudflare" | "aws" | "supabase" | "self-hosted" | "kubernetes";
+  data: "sql" | "document" | "none";
+  extras: ("auth" | "cms" | "files" | "queue" | "cache" | "search" | "email" | "cdn" | "events")[];
+  services: boolean;
+}
+
+/** One question of the wizard: its title and its choices. */
+export interface WizardQuestion {
+  title: string;
+  choices: { id: string; label: string; hint: string }[];
+}
+
+/** A board: the whole project's (id "") or a repository's (id = its name). */
+export interface ArchBoard {
+  id: string;
+  name: string;
+  blocks: number;
 }
 
 export interface ArchIssue {
@@ -246,6 +270,11 @@ export interface ArchitectureState {
   issues: ArchIssue[];
   /** ready-made architectures to start from */
   templates: ArchTemplate[];
+  /** the board shown ("" the whole project's) and every board there is */
+  board: string;
+  boards: ArchBoard[];
+  /** the wizard's questions */
+  wizard: Record<"clients" | "platform" | "data" | "extras", WizardQuestion>;
 }
 
 export interface ArchTemplate {

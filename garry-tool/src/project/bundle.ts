@@ -32,7 +32,7 @@ const MAX_FILES = 2000;
 /** Only what a registry holds, and nothing that climbs out of it. */
 export function bundlePathOk(path: string): boolean {
   if (path === "architecture.json") return true;
-  if (!/^(catalog|contracts|features|stacks|routing|adr)\/[A-Za-z0-9._/-]+$/.test(path)) return false;
+  if (!/^(catalog|contracts|features|stacks|routing|adr|architecture)\/[A-Za-z0-9._/-]+$/.test(path)) return false;
   return path.split("/").every((seg) => seg !== "" && seg !== "." && seg !== ".." && !seg.startsWith("."));
 }
 

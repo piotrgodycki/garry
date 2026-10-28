@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { kindInfo } from "./kinds.js";
+import { WizardAnswersSchema } from "./wizard.js";
 
 /**
  * The architecture board: blocks (your services and the platforms they run on)
@@ -135,6 +136,8 @@ const EdgeSchema = z.object({
 export const ArchitectureSchema = z.object({
   nodes: z.array(NodeSchema).max(300).default([]),
   edges: z.array(EdgeSchema).max(1000).default([]),
+  /** the wizard's answers the board was built from, so the wizard opens with them */
+  wizard: WizardAnswersSchema.nullable().optional(),
 });
 export type Architecture = z.infer<typeof ArchitectureSchema>;
 

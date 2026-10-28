@@ -369,3 +369,17 @@ path.relationOn {
 .relationOff {
   opacity: 0.25;
 }
+
+/* the board picker and what can be done with the board */
+.boardBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.boardBar :global(.gselect) {
+  min-width: 220px;
+}
+.boardBarFill {
+  flex: 1;
+}

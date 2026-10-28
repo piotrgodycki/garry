@@ -1,0 +1,142 @@
+.wizard {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stepDot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.stepDot span {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 11px;
+}
+.stepDone {
+  color: var(--color-text-default);
+}
+.stepOn {
+  border-color: var(--accent);
+  color: var(--color-text-default);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.title {
+  margin: 0;
+  font-size: 20px;
+}
+.sub {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px;
+}
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.choice:hover {
+  border-color: var(--color-text-muted);
+}
+.choice:focus-visible,
+.stepDot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.check {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1px solid var(--border-strong);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.on .check {
+  border-color: var(--accent);
+}
+.choiceText {
+  display: grid;
+  gap: 3px;
+}
+.choiceLabel {
+  font-weight: 650;
+}
+.choiceHint {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+.services {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.review {
+  display: grid;
+  gap: 10px;
+}
+.blocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .choices {
+    grid-template-columns: 1fr;
+  }
+}

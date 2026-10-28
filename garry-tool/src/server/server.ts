@@ -14,6 +14,7 @@ import { listManifests, readContracts } from "../sync/registryIO.js";
 import { DEVICE_COOKIE, DeviceStore, hostAllowed, isLoopback, requestToken } from "./auth.js";
 import { serveUi } from "./static.js";
 import { ThreadManager } from "../threads/manager.js";
+import { ZodError } from "zod";
 import { fileRoute } from "../threads/files.js";
 import { SERVICE_KINDS } from "../registry/schema/kinds.js";
 import { STACK_TEMPLATES } from "../registry/schema/stack-templates.js";
@@ -24,7 +25,8 @@ import { readdirSync } from "node:fs";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
 import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
 import { StackError, listStacks, removeStack, saveStack } from "../registry/stacks.js";
-import { ArchitectureError, architectureState, checkDraft, readArchitecture, saveArchitecture } from "../registry/architecture.js";
+import { ArchitectureError, architectureState, checkDraft, listBoards, readArchitecture, resetArchitecture, saveArchitecture } from "../registry/architecture.js";
+import { WIZARD_QUESTIONS, buildFromWizard } from "../architecture/wizard.js";
 import { ArchitectureSchema, CAPABILITIES, COMPONENTS, PROVIDERS } from "../registry/schema/architecture.js";
 import { ARCHITECTURE_TEMPLATES } from "../registry/schema/templates.js";
 import { aiSuggestions, quickFixes } from "../architecture/suggest.js";
@@ -487,7 +489,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   // Suggestions for the board: quick fixes from the rules, and with ai Garry's own (Claude Code on this computer)
   if (req.method === "POST" && path === "/api/architecture/suggest") {
     const body = (await readBody(req)) as { goal?: string; ai?: boolean; board?: unknown };
-    const parsed = ArchitectureSchema.safeParse(body.board ?? readArchitecture(cfg.registry));
+    const parsed = ArchitectureSchema.safeParse(body.board ?? readArchitecture(cfg.registry, url.searchParams.get("board") ?? ""));
     if (!parsed.success) return json(res, 400, { error: "board: not a valid architecture" });
     const services = listManifests(cfg.registry).map((m) => ({ name: m.name, kind: m.kind as string | undefined, db: m.db }));
     const fixes = quickFixes(parsed.data, services);
@@ -500,14 +502,30 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     }
   }
 
-  // The architecture board: save it (this machine and paired devices), check a draft
-  if (req.method === "POST" && (path === "/api/architecture" || path === "/api/architecture/check")) {
-    const body = await readBody(req);
+  // The architecture boards (the whole project's, one per repository, ?board=<repo>): save one
+  // (this machine and paired devices), check a draft, build one from the wizard's answers
+  // (a preview, saved by the next POST), reset one (this machine only)
+  if (path === "/api/architecture" || path === "/api/architecture/check" || path === "/api/architecture/wizard") {
+    const board = url.searchParams.get("board") ?? "";
     try {
-      if (path === "/api/architecture/check") return json(res, 200, { issues: checkDraft(cfg.registry, body) });
-      return json(res, 200, saveArchitecture(cfg.registry, body));
+      if (req.method === "DELETE" && path === "/api/architecture") {
+        if (!local) return json(res, 403, { error: "a board is reset on the computer running Garry" });
+        resetArchitecture(cfg.registry, board);
+        return json(res, 200, { ok: true });
+      }
+      if (req.method === "POST") {
+        const body = await readBody(req);
+        if (path === "/api/architecture/check") return json(res, 200, { issues: checkDraft(cfg.registry, body) });
+        if (path === "/api/architecture/wizard") {
+          const services = listManifests(cfg.registry).map((m) => ({ name: m.name, kind: m.kind as string | undefined, db: m.db }));
+          const architecture = buildFromWizard((body as { answers?: unknown }).answers, services);
+          return json(res, 200, { architecture, issues: checkDraft(cfg.registry, architecture) });
+        }
+        return json(res, 200, saveArchitecture(cfg.registry, body, board));
+      }
     } catch (e) {
       if (e instanceof ArchitectureError) return json(res, e.status, { error: e.message });
+      if (e instanceof ZodError) return json(res, 400, { error: e.issues.map((i) => `${i.path.map(String).join(".")}: ${i.message}`).join("; ") });
       throw e;
     }
   }
@@ -721,7 +739,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "POST /api/skills/propose {content | path, stage?, acknowledge?} (opens a pull request)",
         "GET /api/registry",
         "GET /api/stacks (the stacks, the technology catalog, its categories and ready-made stacks)",
-        "GET /api/architecture (the board, the blocks, what does not fit), POST /api/architecture {nodes, edges}, POST /api/architecture/check",
+        "GET /api/architecture?board=<repo> (the board, the boards, the blocks, the wizard's questions, what does not fit), POST /api/architecture?board= {nodes, edges, wizard?}, POST /api/architecture/check, POST /api/architecture/wizard {answers} (a preview), DELETE /api/architecture?board= (reset, this machine only)",
         "POST /api/architecture/suggest {goal?, ai?, board?} (quick fixes; with ai, Garry's suggestions from Claude Code)",
         "POST /api/stacks {name, description?, technologies: [{id, version?}], replace?}, POST /api/stacks/check {technologies: [id]}",
         "DELETE /api/stacks/:name (this machine only)",
@@ -746,7 +764,16 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   }
   if (path === "/api/models") return json(res, 200, { models: MODELS });
   if (path === "/api/service-kinds") return json(res, 200, { kinds: SERVICE_KINDS });
-  if (path === "/api/architecture") return json(res, 200, { ...architectureState(cfg.registry), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS, templates: ARCHITECTURE_TEMPLATES });
+  if (path === "/api/architecture") {
+    const board = url.searchParams.get("board") ?? "";
+    const repos = cfg.threads!.store.projectsOf(activeGarryProject().id).map((r) => r.name);
+    try {
+      return json(res, 200, { ...architectureState(cfg.registry, board), board, boards: listBoards(cfg.registry, repos), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS, templates: ARCHITECTURE_TEMPLATES, wizard: WIZARD_QUESTIONS });
+    } catch (e) {
+      if (e instanceof ArchitectureError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
   if (path === "/api/stacks") return json(res, 200, { stacks: listStacks(cfg.registry), catalog: CATALOG, categories: CATEGORIES, templates: STACK_TEMPLATES });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });

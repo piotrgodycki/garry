@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent, WizardAnswers } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -103,8 +103,12 @@ export class GarryClient {
   pullRequests = (id: string) => this.request<{ prs: PullRequest[] }>(`/api/features/${encodeURIComponent(id)}/prs`).then((r) => r.prs);
   registry = () => this.request<Registry>("/api/registry");
   /** The architecture board, every block Garry offers, your services as blocks, and what does not fit. */
-  architecture = () => this.request<ArchitectureState>("/api/architecture");
-  saveArchitecture = (a: Architecture) => this.post<{ architecture: Architecture; issues: ArchIssue[] }>("/api/architecture", a);
+  architecture = (board = "") => this.request<ArchitectureState>(`/api/architecture${board ? `?board=${encodeURIComponent(board)}` : ""}`);
+  saveArchitecture = (a: Architecture, board = "") => this.post<{ architecture: Architecture; issues: ArchIssue[] }>(`/api/architecture${board ? `?board=${encodeURIComponent(board)}` : ""}`, a);
+  /** Empties a board (this computer only). */
+  resetArchitecture = (board = "") => this.request<{ ok: true }>(`/api/architecture${board ? `?board=${encodeURIComponent(board)}` : ""}`, { method: "DELETE" });
+  /** The board the wizard's answers make (nothing is saved). */
+  wizardArchitecture = (answers: WizardAnswers) => this.post<{ architecture: Architecture; issues: ArchIssue[] }>("/api/architecture/wizard", { answers });
   /** Quick fixes from the rules; with ai, Garry's own suggestions too (Claude Code on the computer running Garry; can take a minute). */
   suggestArchitecture = (board: Architecture, goal = "", ai = false) =>
     this.post<{ quickFixes: ArchSuggestion[]; summary?: string; suggestions?: ArchSuggestion[]; error?: string }>("/api/architecture/suggest", { board, goal, ai });

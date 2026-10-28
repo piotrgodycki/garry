@@ -33,8 +33,12 @@ and model doing it for Garry and for every service.
 ![Live agents](docs/screenshots/live-agents.png)
 
 **Architecture**: services and the platforms they run on, joined like puzzle
-pieces. Logos, relations in words, proxies marked, ready-made architectures to
-start from, and Garry saying what is missing.
+pieces, on a board for the whole project and one for each repository. A wizard
+builds a board from a few plain questions (who uses it, where it runs, what data
+it keeps, what else it needs) and opens again with your answers to change them;
+the board stays editable by hand. Logos, relations in words, proxies marked,
+ready-made architectures to start from, a reset per board after you confirm, and
+Garry saying what is missing.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/architecture-board-dark.png" />

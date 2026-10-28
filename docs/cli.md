@@ -199,19 +199,25 @@ The server takes the same as `POST /api/registry/services`; `DELETE
 
 ## garry architecture
 
-The architecture board (`architecture.json` in the registry): your services and
+The architecture boards: the whole project's (`architecture.json` in the
+registry) and one per repository (`architecture/<repo>.json`). Each holds your services and
 the platforms they run on (AWS, Cloudflare, Vercel, Netlify, Supabase,
 self-hosted, SaaS), joined like puzzle pieces. Every block provides some
 capabilities (web, HTTP API, SQL, cache, queue, events, file storage, sign in,
 CDN, CMS content, ...) and needs others; a link always goes from a need to a
 block that provides it, so only fitting pieces join. Build it on the dashboard's
-Architecture page (drag blocks in, join a need on the right of a block to a
-provide on the left of another); it saves itself.
+Architecture page, step by step with the wizard (who uses it, where it runs:
+Vercel, Cloudflare, AWS, Supabase, your own server or Kubernetes; what data it
+keeps; what else it needs) or by hand (drag blocks in, join a need on the right
+of a block to a provide on the left of another); it saves itself. The wizard's
+answers are kept with the board, so it opens with them again; a board is reset
+on its own, on the computer running Garry, after you confirm.
 
 ```bash
 garry architecture blocks   # every block, what it provides and needs
 garry architecture show
 garry architecture check    # exit code 1 when something does not fit
+garry architecture check --board shop   # a repository's board
 ```
 
 The check reports links to something that does not provide what is needed,
