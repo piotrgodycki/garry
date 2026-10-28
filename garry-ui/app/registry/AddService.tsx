@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import type { RegistryIssue, RegistryService, ServiceKind, Stack } from "garry-client";
+import type { RegistryIssue, RegistryService, ServiceKind, ServiceKindInfo, Stack } from "garry-client";
 import Link from "../lib/router";
 import { client } from "../lib/client";
 import styles from "./addService.module.css";
 
-const KINDS: { kind: ServiceKind; label: string; hint: string; stack: string }[] = [
-  { kind: "mfe-remote", label: "Microfrontend", hint: "exposes modules other frontends load", stack: "react + vite + module-federation-2" },
-  { kind: "mfe-shell", label: "Shell", hint: "the host that loads the microfrontends", stack: "react + vite + module-federation-2" },
-  { kind: "backend", label: "Backend", hint: "an API, its own database", stack: "node + fastify + postgres" },
+const DATABASES = [
+  { engine: "", label: "None" },
+  { engine: "postgres", label: "PostgreSQL" },
+  { engine: "mysql", label: "MySQL" },
+  { engine: "mongodb", label: "MongoDB" },
+  { engine: "sqlite", label: "SQLite" },
 ];
 
 const csv = (v: string) => v.split(",").map((s) => s.trim()).filter(Boolean);
@@ -21,8 +23,11 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
   const [stack, setStack] = useState("");
   const [stacks, setStacks] = useState<Stack[]>([]);
   const [stackRef, setStackRef] = useState("");
+  const [kinds, setKinds] = useState<ServiceKindInfo[]>([]);
+  const [db, setDb] = useState("");
   useEffect(() => {
     client.stacks().then((d) => setStacks(d.stacks), () => undefined);
+    client.serviceKinds().then(setKinds, () => undefined);
   }, []);
   const [exposes, setExposes] = useState("");
   // "service:module" pairs this one uses
@@ -48,7 +53,17 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
       (consumes[k.slice(0, i)] ??= []).push(k.slice(i + 1));
     }
     try {
-      const r = await client.addService({ name: name.trim(), kind, repo: repo.trim(), owner: owner.trim() || undefined, stack: stackRef ? undefined : stack.trim() || undefined, stackRef: stackRef || undefined, exposes: csv(exposes), consumes });
+      const r = await client.addService({
+        name: name.trim(),
+        kind,
+        repo: repo.trim(),
+        owner: owner.trim() || undefined,
+        stack: stackRef ? undefined : stack.trim() || undefined,
+        stackRef: stackRef || undefined,
+        exposes: current?.exposes ? csv(exposes) : [],
+        consumes,
+        db: current?.db && db ? { engine: db } : null,
+      });
       onAdded(r.issues);
     } catch (e) {
       setError(String((e as Error).message ?? e));
@@ -58,7 +73,7 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
   };
 
   const ready = /^[a-z][a-z0-9-]*$/.test(name.trim()) && repo.trim() !== "" && !busy;
-  const current = KINDS.find((k) => k.kind === kind)!;
+  const current = kinds.find((k) => k.id === kind);
   return (
     <form
       className={`card ${styles.form}`}
@@ -67,14 +82,21 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
         if (ready) void submit();
       }}
     >
-      <div className={styles.kinds} role="radiogroup" aria-label="Kind of service">
-        {KINDS.map((k) => (
-          <button key={k.kind} type="button" role="radio" aria-checked={kind === k.kind} className={`${styles.kind} ${kind === k.kind ? styles.kindOn : ""}`} onClick={() => setKind(k.kind)}>
-            <span className={styles.kindLabel}>{k.label}</span>
-            <span className={styles.kindHint}>{k.hint}</span>
-          </button>
-        ))}
-      </div>
+      {(["Frontend", "Backend"] as const).map((group) => (
+        <div key={group} className={styles.kindGroup}>
+          <span className="eyebrow">{group}</span>
+          <div className={styles.kinds} role="radiogroup" aria-label={`${group} kinds`}>
+            {kinds
+              .filter((k) => k.group === group)
+              .map((k) => (
+                <button key={k.id} type="button" role="radio" aria-checked={kind === k.id} className={`${styles.kind} ${kind === k.id ? styles.kindOn : ""}`} onClick={() => setKind(k.id)}>
+                  <span className={styles.kindLabel}>{k.label}</span>
+                  <span className={styles.kindHint}>{k.hint}</span>
+                </button>
+              ))}
+          </div>
+        </div>
+      ))}
 
       <div className={styles.fields}>
         <label className={styles.field}>
@@ -91,27 +113,41 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
         </label>
         <label className={styles.field}>
           <span className="eyebrow">Stack</span>
-          {stacks.length > 0 ? (
-            <select className="select" value={stackRef} onChange={(e) => setStackRef(e.target.value)}>
-              <option value="">Not one of our stacks</option>
-              {stacks.map((s) => (
-                <option key={s.name} value={s.name}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          ) : null}
-          {!stackRef && <input className="input" placeholder={current.stack} value={stack} onChange={(e) => setStack(e.target.value)} />}
+          <select className="select" value={stackRef} onChange={(e) => setStackRef(e.target.value)} aria-label="stack">
+            {stacks.length > 0 && (
+              <optgroup label="Our stacks">
+                {stacks.map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            <option value="">{stack.trim() ? `Another: ${stack.trim()}` : `Garry's default for this kind: ${current?.stack ?? "…"}`}</option>
+          </select>
+          {!stackRef && <input className="input" placeholder={`or type one, e.g. ${current?.stack ?? ""}`} value={stack} onChange={(e) => setStack(e.target.value)} aria-label="another stack" />}
           {stacks.length === 0 && (
             <span className={styles.kindHint}>
-              Or define one in <Link href="/stacks">Stacks</Link>.
+              Define your stacks in <Link href="/stacks">Stacks</Link> to pick them here.
             </span>
           )}
         </label>
-        {kind !== "mfe-shell" && (
+        {current?.db && (
+          <label className={styles.field}>
+            <span className="eyebrow">Database it owns</span>
+            <select className="select" value={db} onChange={(e) => setDb(e.target.value)} aria-label="database">
+              {DATABASES.map((d) => (
+                <option key={d.engine} value={d.engine}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {current?.exposes && (
           <label className={`${styles.field} ${styles.wide}`}>
-            <span className="eyebrow">{kind === "backend" ? "Endpoints it offers" : "Modules it exposes"}</span>
-            <input className="input mono" placeholder={kind === "backend" ? "POST /orders, GET /orders/:id" : "./Checkout, ./CartSummary"} value={exposes} onChange={(e) => setExposes(e.target.value)} />
+            <span className="eyebrow">{current.exposes.label}</span>
+            <input className="input mono" placeholder={current.exposes.placeholder} value={exposes} onChange={(e) => setExposes(e.target.value)} />
           </label>
         )}
       </div>

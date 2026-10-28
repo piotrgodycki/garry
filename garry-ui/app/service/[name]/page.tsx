@@ -42,6 +42,7 @@ export default function ServicePage() {
   const [featureId, setFeatureId] = useState<string | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [models, setModels] = useState<Record<string, string>>({});
+  const [kinds, setKinds] = useState<Record<string, string>>({});
   const [streaming, setStreaming] = useState(false);
   const [finished, setFinished] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
@@ -59,6 +60,10 @@ export default function ServicePage() {
     fetch(`${apiBase}/api/models`)
       .then((r) => r.json())
       .then((d) => setModels(Object.fromEntries(((d.models as Model[]) ?? []).map((m) => [m.id, m.label]))))
+      .catch(() => undefined);
+    fetch(`${apiBase}/api/service-kinds`)
+      .then((r) => r.json())
+      .then((d) => setKinds(Object.fromEntries(((d.kinds as { id: string; label: string }[]) ?? []).map((k) => [k.id, k.label]))))
       .catch(() => undefined);
   }, [name]);
 
@@ -137,7 +142,7 @@ export default function ServicePage() {
         lede={svc.stack}
         actions={
           <>
-            {svc.kind && <span className="badge">{svc.kind}</span>}
+            {svc.kind && <span className="badge">{kinds[svc.kind] ?? svc.kind}</span>}
             {svc.owner && <span className="badge">{svc.owner}</span>}
           </>
         }

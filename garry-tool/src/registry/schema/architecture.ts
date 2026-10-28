@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { kindInfo } from "./kinds.js";
 
 /**
  * The architecture board: blocks (your services and the platforms they run on)
@@ -107,14 +108,11 @@ const lc = (label: string) => (/^[A-Z][A-Z]/.test(label) ? label : label[0].toLo
 const BY_ID = new Map(COMPONENTS.map((c) => [c.id, c]));
 export const componentById = (id: string): Component | undefined => BY_ID.get(id);
 
-/** A registry service as a block: what its kind offers and needs. */
+/** A registry service as a block: what its kind offers and needs (a database it owns adds SQL). */
 export function serviceBlock(service: { name: string; kind?: string; consumes?: Record<string, string[]>; db?: unknown }): Component {
-  const kind = service.kind ?? "mfe-remote";
-  if (kind === "backend")
-    return { id: `service:${service.name}`, name: service.name, provider: "Your services", group: "compute", provides: ["http"], needs: ["compute", ...(service.db ? (["sql"] as Capability[]) : [])] };
-  // a shell is what the browser loads; it pulls in the microfrontends
-  if (kind === "mfe-shell") return { id: `service:${service.name}`, name: service.name, provider: "Your services", group: "client", provides: ["web"], needs: ["module"] };
-  return { id: `service:${service.name}`, name: service.name, provider: "Your services", group: "client", provides: ["module"] };
+  const k = kindInfo(service.kind);
+  const needs: Capability[] = [...k.block.needs, ...(service.db && k.db ? (["sql"] as Capability[]) : [])];
+  return { id: `service:${service.name}`, name: service.name, provider: "Your services", group: k.block.group, provides: [...k.block.provides], ...(needs.length ? { needs } : {}) };
 }
 
 const NodeSchema = z.object({

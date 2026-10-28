@@ -166,13 +166,33 @@ garry service remove checkout   # refused while another service consumes it
 
 | Option | Default | What it does |
 |---|---|---|
-| `--kind` | (required) | `mfe-remote`, `mfe-shell` or `backend` |
+| `--kind` | (required) | see the kinds below |
 | `--repo` | (required) | the service's git repository |
 | `--owner` | `unassigned` | the owning team |
 | `--stack` | by kind | e.g. `react + vite + module-federation-2` |
-| `--exposes` | none | modules (or endpoints) it offers, comma separated |
+| `--exposes` | none | what it offers, comma separated: modules (microfrontend), endpoints (API, BFF, function) or jobs (worker) |
 | `--consumes` | none | `service:a,b`, repeatable; each must be exposed by that service |
 | `--replace` | off | overwrite an existing manifest |
+
+Kinds (`GET /api/service-kinds` lists them with a description each):
+
+| Kind | What it is | Default stack | May own a database |
+|---|---|---|---|
+| `mfe-remote` | microfrontend: a part of a page a shell loads at run time | react + vite + module-federation-2 | no |
+| `mfe-shell` | shell: the host page that loads the microfrontends | react + vite + module-federation-2 | no |
+| `spa` | single-page app, rendered in the browser | react + vite | no |
+| `ssr` | server-rendered app | next.js | yes |
+| `isr` | static pages rebuilt in the background (ISR) | next.js | yes |
+| `ssg` | static site, built ahead of time | astro | no |
+| `mobile` | iPhone or Android app | expo + react-native | no |
+| `backend` | API | node | yes |
+| `bff` | backend for frontend: an API made for one frontend | node + fastify | no |
+| `worker` | background jobs, from a queue or a schedule | node + bullmq | yes |
+| `function` | serverless function | node | yes |
+
+On the architecture board each kind needs what it cannot work without: a BFF
+an API behind it, a worker a queue, a server-rendered app a place to run, a
+mobile app an API.
 
 The server takes the same as `POST /api/registry/services`; `DELETE
 /api/registry/services/:name` works from this computer only.

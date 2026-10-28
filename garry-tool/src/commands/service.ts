@@ -12,7 +12,7 @@ the code of a new microfrontend and adds it too, garry adopt derives the entry
 from an existing one.
 
 Options for add:
-  --kind <kind>            ${SERVICE_KINDS.join(" | ")} (required)
+  --kind <kind>            ${SERVICE_KINDS.map((k) => k.id).join(" | ")} (required)
   --repo <url>             the service's git repository (required)
   --owner <team>           default: unassigned
   --stack <text>           e.g. "react + vite + module-federation-2"

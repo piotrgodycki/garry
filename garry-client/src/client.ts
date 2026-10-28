@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, TerminalInfo, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -116,6 +116,8 @@ export class GarryClient {
   saveStack = (stack: Stack, replace = false) => this.post<{ stack: Stack; issues: StackIssue[] }>("/api/stacks", { ...stack, replace });
   /** Removes a stack (this computer only); refused while a service is built on it. */
   removeStack = (name: string) => this.request<{ ok: true }>(`/api/stacks/${encodeURIComponent(name)}`, { method: "DELETE" });
+  /** The kinds of service a registry holds (microfrontend, SPA, API, BFF, worker...). */
+  serviceKinds = () => this.request<{ kinds: ServiceKindInfo[] }>("/api/service-kinds").then((r) => r.kinds);
   /** Adds a service to the registry (catalog/<name>.yaml); issues is what the registry check says afterwards. */
   addService = (service: NewService) => this.post<{ service: RegistryService; issues: RegistryIssue[] }>("/api/registry/services", service);
   /** Removes a service (this computer only); refused while another service consumes it. */

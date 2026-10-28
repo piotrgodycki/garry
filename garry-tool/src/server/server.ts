@@ -15,6 +15,7 @@ import { DEVICE_COOKIE, DeviceStore, hostAllowed, isLoopback, requestToken } fro
 import { serveUi } from "./static.js";
 import { ThreadManager } from "../threads/manager.js";
 import { fileRoute } from "../threads/files.js";
+import { SERVICE_KINDS } from "../registry/schema/kinds.js";
 import { TerminalError, TerminalManager, terminalEnabled } from "../terminal/terminal.js";
 import { cloneRepo, forgetToken, githubStatus, listRepos, pollDeviceFlow, saveToken, startDeviceFlow } from "../github/connect.js";
 import { threadRoutes } from "../threads/routes.js";
@@ -707,6 +708,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "GET /api/features/:id/plan",
         "GET /api/features/:id/stream (SSE)",
         "GET /api/features/:id/prs",
+        "GET /api/service-kinds",
         "GET /api/features/:id/service-models",
         "POST /api/features/:id/service-models {service, model}",
         "GET /api/skills",
@@ -742,6 +744,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     });
   }
   if (path === "/api/models") return json(res, 200, { models: MODELS });
+  if (path === "/api/service-kinds") return json(res, 200, { kinds: SERVICE_KINDS });
   if (path === "/api/architecture") return json(res, 200, { ...architectureState(cfg.registry), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS, templates: ARCHITECTURE_TEMPLATES });
   if (path === "/api/stacks") return json(res, 200, { stacks: listStacks(cfg.registry), catalog: CATALOG, categories: CATEGORIES });
   if (path === "/api/registry") {
