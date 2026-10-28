@@ -48,6 +48,8 @@ export const COMPONENTS: Component[] = [
   // clients
   { id: "browser", name: "Browser", provider: "Clients", group: "client", provides: [], needs: ["web"] },
   { id: "mobile-app", name: "Mobile app", provider: "Clients", group: "client", provides: [], needs: ["http"] },
+  { id: "ios-app", name: "iOS app", provider: "Clients", group: "client", provides: [], needs: ["http"], note: "iPhone and iPad" },
+  { id: "android-app", name: "Android app", provider: "Clients", group: "client", provides: [], needs: ["http"] },
   // AWS
   { id: "aws-cloudfront", name: "CloudFront", provider: "AWS", group: "edge", provides: ["cdn", "web"], needs: ["web"] },
   { id: "aws-s3-site", name: "S3 static site", provider: "AWS", group: "edge", provides: ["web"] },

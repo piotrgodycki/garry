@@ -1,5 +1,7 @@
 import {
   siAlgolia,
+  siAndroid,
+  siApple,
   siApachekafka,
   siAuth0,
   siClerk,
@@ -75,6 +77,8 @@ const LOGOS: Record<string, Logo> = {
   wordpress: icon(siWordpress),
   strapi: icon(siStrapi),
   vps: icon(siLinux),
+  "ios-app": icon(siApple),
+  "android-app": icon(siAndroid),
   kubernetes: icon(siKubernetes),
   upstash: icon(siUpstash),
   neon: icon(siNeon),

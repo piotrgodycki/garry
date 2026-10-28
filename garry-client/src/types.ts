@@ -177,6 +177,17 @@ export interface Stacks {
   stacks: (Stack & { usedBy: string[]; issues: StackIssue[] })[];
   catalog: CatalogTech[];
   categories: { id: string; label: string; single?: boolean }[];
+  /** ready-made stacks to start from (MERN, Jamstack, Expo...) */
+  templates: StackTemplate[];
+}
+
+/** A ready-made stack: a known combination, and the kinds of service it suits. */
+export interface StackTemplate {
+  name: string;
+  title: string;
+  description: string;
+  kinds: ServiceKind[];
+  technologies: { id: string }[];
 }
 
 /** A block on the architecture board: a platform piece or one of your services (service:<name>). */

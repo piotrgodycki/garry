@@ -53,7 +53,7 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry service <sub>` | the services in the registry (`list`, `add`, `remove`) |
 | `garry architecture <sub>` | the architecture board: `check`, `show`, `blocks` |
 | `garry routing <sub>` | routing profiles: which agent and model per stage (`list`, `show`, `new`, `use`, `set`, `remove`) |
-| `garry stack <sub>` | the tech stacks services are built with (`list`, `catalog`, `add`, `check`, `remove`) |
+| `garry stack <sub>` | the tech stacks services are built with (`list`, `catalog`, `ready`, `add`, `check`, `remove`) |
 | `garry scaffold [name]` | create a new microfrontend and register it |
 | `garry adopt <repo>` | derive a registry entry from an existing repo |
 | `garry sync` | put a service's contracts and generated types into `.garry/` |
@@ -265,7 +265,17 @@ observability, and its rules flag what does not fit (Next.js with Vite,
 WordPress on Vercel, D1 without Workers, two runtimes). A conflict is reported,
 not refused. The dashboard's Stacks page does the same with a picker.
 
+Ready-made stacks are well known combinations to start from, each checked
+against the rules: Microfrontends, MERN, MEAN, MEVN, PERN, LAMP, Jamstack,
+type-safe Next.js (tRPC, Prisma, Tailwind), TanStack Start, Remix, a React SPA,
+a Node.js API, Kotlin with Spring Boot, event-driven with Kafka, a background
+worker, Expo, React Native, iOS with SwiftUI, Android with Jetpack Compose and
+Flutter. The Stacks page lists them (Use this), and Add service offers the ones
+that suit the kind of service being added.
+
 ```bash
+garry stack ready                       # the ready-made stacks
+garry stack add shop --from pern --tech react@19
 garry stack catalog
 garry stack check nextjs,vite,react
 garry stack add web --tech typescript,react@19,vite,module-federation,tailwind --description "Our microfrontends"
@@ -277,7 +287,7 @@ garry stack remove web          # refused while a service is built on it
 A service with `stackRef` gets its stack line filled from the stack, the registry
 check reports a `stackRef` with no stack, and `garry sync` writes the stack to
 `.garry/stack.json` in the service's repository so its agent works in it. Server:
-`GET /api/stacks` (stacks, catalog, categories), `POST /api/stacks`, `POST
+`GET /api/stacks` (stacks, catalog, categories, ready-made stacks), `POST /api/stacks`, `POST
 /api/stacks/check`, `DELETE /api/stacks/:name` (this computer only).
 
 ## garry scaffold

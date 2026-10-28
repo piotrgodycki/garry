@@ -8,7 +8,9 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { AddressInfo } from "node:net";
-import { CATALOG, CATEGORIES, checkStack } from "./schema/stacks.js";
+import { CATALOG, CATEGORIES, StackSchema, checkStack, techById } from "./schema/stacks.js";
+import { STACK_TEMPLATES } from "./schema/stack-templates.js";
+import { SERVICE_KIND_IDS } from "./schema/kinds.js";
 import { validateRegistry } from "./schema/validate.js";
 import { StackError, listStacks, removeStack, saveStack } from "./stacks.js";
 import { ServiceError, addService } from "./services.js";
@@ -88,7 +90,30 @@ expect("POST /api/stacks/check reports issues", checked.issues.some((i) => i.lev
 expect("POST /api/stacks saves", (await post("/api/stacks", { name: "api", technologies: [{ id: "node" }, { id: "fastify" }] })).status === 200 && existsSync(join(registry, "stacks", "api.yaml")));
 expect("POST from another site refused", (await post("/api/stacks", { name: "evil", technologies: [{ id: "node" }] }, { origin: "https://evil.example" })).status === 403);
 expect("DELETE removes an unused stack", (await fetch(`${base}/api/stacks/api`, { method: "DELETE" })).status === 200 && !existsSync(join(registry, "stacks", "api.yaml")));
+const served = (await (await fetch(`${base}/api/stacks`)).json()) as { templates: { name: string }[] };
+expect("GET /api/stacks offers the ready-made stacks", served.templates.length === STACK_TEMPLATES.length && served.templates.some((x) => x.name === "mern"));
 server.close();
+
+// ready-made stacks: each one is valid, fits the rules as it is, and names real kinds
+for (const tpl of STACK_TEMPLATES) {
+  const ids = tpl.technologies.map((x) => x.id);
+  const unknown = ids.filter((id) => !techById(id));
+  const issues = checkStack(ids);
+  expect(`the ready-made stack ${tpl.name} is valid and fits`, StackSchema.safeParse(tpl).success && !unknown.length && !issues.length && tpl.kinds.length > 0 && tpl.kinds.every((k) => (SERVICE_KIND_IDS as readonly string[]).includes(k)), JSON.stringify({ unknown, issues }));
+}
+expect("ready-made stacks have different names", new Set(STACK_TEMPLATES.map((x) => x.name)).size === STACK_TEMPLATES.length);
+const has = (name: string, ...ids: string[]) => ids.every((id) => STACK_TEMPLATES.find((x) => x.name === name)?.technologies.some((x) => x.id === id));
+expect("MERN is MongoDB, Express, React and Node", has("mern", "mongodb", "express", "react", "node"));
+expect("MEAN has Angular and MEVN has Vue", has("mean", "mongodb", "express", "angular", "node") && has("mevn", "mongodb", "express", "vue", "node"));
+expect("PERN is PostgreSQL, Express, React and Node", has("pern", "postgres", "express", "react", "node"));
+expect("LAMP is Apache, MySQL and PHP", has("lamp", "apache", "mysql", "php"));
+expect("there are stacks for iPhone, Android and both", has("ios-swiftui", "swiftui") && has("android-compose", "jetpack-compose") && has("flutter", "flutter") && has("expo", "expo", "react-native"));
+// a ready-made stack saved into the registry is an ordinary stack a service can use
+const pern = saveStack(registry, { name: "pern", description: "from Garry", technologies: STACK_TEMPLATES.find((x) => x.name === "pern")!.technologies });
+expect("a ready-made stack saves as one of yours", pern.stack.name === "pern" && pern.issues.length === 0 && addService(registry, { name: "orders-api", kind: "backend", repo: "r", stackRef: "pern" }).service.stack.includes("PostgreSQL"));
+// the rules for what the new technologies need
+expect("Expo needs React Native, SwiftUI needs Swift, Flutter needs Dart", checkStack(["expo"]).some((i) => i.message.includes("React Native")) && checkStack(["swiftui"]).some((i) => i.message.includes("Swift")) && checkStack(["flutter"]).some((i) => i.message.includes("Dart")));
+expect("TanStack Start and Next.js do not go together", checkStack(["react", "vite", "tanstack-start", "nextjs"]).some((i) => i.level === "error"));
 
 if (failed) {
   console.error(`${failed} stack check(s) failed`);
