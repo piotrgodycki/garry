@@ -40,9 +40,8 @@ export default function Registry() {
   return (
     <main className="page">
       <PageHeader
-        eyebrow="Configure"
-        title="Contract registry"
-        lede="Every service, what it exposes and what it consumes. Agents read this before they touch a repository, so no change can break a contract."
+        title="Services"
+        lede="Every service in this project, what it exposes and what it uses from the others. Agents read this before they touch a repository, so no change can break a contract."
       />
 
       {error && <ServerNotice />}

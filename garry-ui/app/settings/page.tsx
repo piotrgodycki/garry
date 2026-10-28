@@ -7,7 +7,7 @@ import styles from "./settings.module.css";
 export default function Settings() {
   return (
     <main className="page">
-      <PageHeader eyebrow="Settings" title="Settings" lede="Your projects and how Garry connects to the outside world. Changed on the computer running Garry." />
+      <PageHeader title="Settings" lede="Your projects and how Garry connects to the outside world. Changed on the computer running Garry." />
       <section id="projects" className={`card ${styles.section}`} aria-labelledby="projects-title">
         <h2 id="projects-title" className={styles.title}>
           Projects

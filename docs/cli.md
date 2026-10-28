@@ -153,7 +153,7 @@ repositories only. It is never logged.
 ## garry service
 
 The services in the registry, one manifest each in `catalog/<name>.yaml`. Garry
-ships none: add the ones you have here or in the dashboard (Registry, Add
+ships none: add the ones you have here or in the dashboard (Services, Add
 service). `garry scaffold` creates the code of a new microfrontend and adds it as
 well; `garry adopt` derives the entry from an existing repository.
 

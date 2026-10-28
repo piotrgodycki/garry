@@ -97,7 +97,6 @@ export default function Skills() {
   return (
     <main className="page">
       <PageHeader
-        eyebrow="Configure"
         title="Skills"
         lede="Atomic capabilities the agents use, grouped by SDLC stage. Pre-installed skills ship with the project; install your own locally and they join their stage in every feature's plan."
         actions={

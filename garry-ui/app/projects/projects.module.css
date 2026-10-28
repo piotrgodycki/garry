@@ -152,7 +152,8 @@
 @media (max-width: 900px) {
   .switcher {
     margin: 0;
-    flex: none;
+    flex: 0 1 auto;
+    min-width: 0;
   }
   .current {
     padding: 4px 6px;
@@ -162,8 +163,11 @@
   .current .currentLabel {
     display: none;
   }
+  .current {
+    max-width: 100%;
+  }
   .current .currentName {
-    max-width: 96px;
+    max-width: min(200px, 40vw);
     font-size: 12.5px;
   }
   .current .avatar {
@@ -177,8 +181,4 @@
     width: min(280px, 80vw);
   }
 }
-@media (max-width: 640px) {
-  .current .currentName {
-    display: none;
-  }
-}
+

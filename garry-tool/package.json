@@ -64,7 +64,8 @@
     "test:dropdown": "tsx src/ui/dropdown.selftest.ts",
     "test:marks": "tsx src/ui/marks.selftest.ts",
     "test:wizard": "tsx src/architecture/wizard.selftest.ts",
-    "test:build-ui": "tsx src/ui/build.selftest.ts"
+    "test:build-ui": "tsx src/ui/build.selftest.ts",
+    "test:layout": "tsx src/ui/layout.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

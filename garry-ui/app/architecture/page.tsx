@@ -447,7 +447,6 @@ export default function ArchitecturePage() {
   return (
     <main className="page">
       <PageHeader
-        eyebrow="Configure"
         title="Architecture"
         lede="Your services and the platforms they run on: one board for the whole project and one for each repository. Build one step by step with the wizard, or by hand; every block shows what it provides (left) and what it needs (right), only fitting pieces join, and Garry says what is missing or will not work."
       />

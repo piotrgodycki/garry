@@ -81,7 +81,6 @@ export default function Prs() {
   return (
     <main className="page">
       <PageHeader
-        eyebrow="Deliver"
         title="Pull requests"
         lede={<>One pull request per service on branch <code>feat/{selected || "FEATURE"}</code>. Search, filter and paging keep the view usable at hundreds of PRs.</>}
       />
@@ -112,7 +111,7 @@ export default function Prs() {
       </div>
 
       <div className="card tableWrap">
-        <table className="table">
+        <table className="table cards">
           <thead>
             <tr>
               <th>Service</th>
@@ -131,21 +130,21 @@ export default function Prs() {
                 onClick={() => pr.url && window.open(pr.url, "_blank", "noopener")}
                 title={pr.url ? "open on GitHub" : undefined}
               >
-                <td>
+                <td data-label="Service">
                   <span className={styles.svc}>
                     <span className={styles.gh}>{Icon.github}</span>
                     {pr.service}
                   </span>
                 </td>
-                <td><span className="chip mono">{pr.branch}</span></td>
-                <td><span className={`badge ${stateTone(pr.state)}`}>{pr.state}</span></td>
-                <td>
+                <td data-label="Branch"><span className="chip mono">{pr.branch}</span></td>
+                <td data-label="State"><span className={`badge ${stateTone(pr.state)}`}>{pr.state}</span></td>
+                <td data-label="Checks">
                   <span className={`badge ${checkTone(pr.checks)}`}>
                     <span className={`dot ${checkTone(pr.checks) || "wait"}`} />
                     {pr.checks}
                   </span>
                 </td>
-                <td className={styles.repo}>{pr.repo}</td>
+                <td className={styles.repo} data-label="Repository">{pr.repo}</td>
                 <td className={styles.open}>
                   {pr.url ? (
                     <a href={pr.url} target="_blank" rel="noopener noreferrer" className="btn btnGhost iconBtn" aria-label={`open ${pr.service} on GitHub`} onClick={(e) => e.stopPropagation()}>

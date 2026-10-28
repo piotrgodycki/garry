@@ -3,49 +3,51 @@ import { usePathname } from "./lib/router";
 import type { ReactNode } from "react";
 import { Icon } from "./icons";
 
-// Grouped by the job the human is doing: build with agents, watch the work, configure Garry, review delivery.
-const GROUPS: { label: string; links: { href: string; label: string; icon: ReactNode }[] }[] = [
+// Grouped the way the work flows: the work itself (an idea, agents building it,
+// the pull requests it ships as), the project it happens in, and how Garry works.
+export const GROUPS: { label: string; links: { href: string; label: string; icon: ReactNode; also?: string[] }[] }[] = [
   {
-    label: "Build",
+    label: "Work",
     links: [
-      { href: "/build", label: "Build", icon: Icon.code },
+      { href: "/", label: "Dashboard", icon: Icon.dashboard },
+      { href: "/build", label: "Build", icon: Icon.code, also: ["/agent", "/pipeline", "/service"] },
+      { href: "/github", label: "Pull requests", icon: Icon.prs },
+    ],
+  },
+  {
+    label: "Project",
+    links: [
+      { href: "/registry", label: "Services", icon: Icon.registry },
+      { href: "/architecture", label: "Architecture", icon: Icon.puzzle },
+      { href: "/stacks", label: "Stacks", icon: Icon.stack },
       { href: "/files", label: "Files", icon: Icon.folder },
     ],
   },
   {
-    label: "Overview",
+    label: "Garry",
     links: [
-      { href: "/", label: "Dashboard", icon: Icon.dashboard },
-    ],
-  },
-  {
-    label: "Configure",
-    links: [
-      { href: "/registry", label: "Registry", icon: Icon.registry },
-      { href: "/stacks", label: "Stacks", icon: Icon.stack },
-      { href: "/architecture", label: "Architecture", icon: Icon.puzzle },
       { href: "/skills", label: "Skills", icon: Icon.skills },
       { href: "/routing", label: "Model routing", icon: Icon.routing },
-      { href: "/settings", label: "Settings", icon: Icon.settings },
+      { href: "/settings", label: "Settings", icon: Icon.settings, also: ["/pair"] },
     ],
-  },
-  {
-    label: "Deliver",
-    links: [{ href: "/github", label: "Pull requests", icon: Icon.prs }],
   },
 ];
 
+/** The menu group a page belongs to, for its eyebrow: the same words as the menu. */
+export const groupOf = (path: string) => GROUPS.find((g) => g.links.some((l) => matches(l, path)))?.label;
+
+const matches = (l: { href: string; also?: string[] }, path: string) =>
+  l.href === "/" ? path === "/" : [l.href, ...(l.also ?? [])].some((h) => path === h || path.startsWith(`${h}/`));
+
 export default function Nav() {
   const path = usePathname();
-  const isActive = (href: string) =>
-    href === "/" ? path === "/" : path.startsWith(href) || (href === "/build" && (path.startsWith("/agent") || path.startsWith("/service") || path.startsWith("/pipeline")));
   return (
     <nav className="nav" aria-label="main">
       {GROUPS.map((g) => (
         <div key={g.label} className="navGroup">
           <span className="navLabel">{g.label}</span>
           {g.links.map((l) => {
-            const active = isActive(l.href);
+            const active = matches(l, path);
             return (
               <Link key={l.href} href={l.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>
                 <span className="navIcon">{l.icon}</span>

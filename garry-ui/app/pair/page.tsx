@@ -35,7 +35,7 @@ export default function Pair() {
 
   return (
     <main className="page">
-      <PageHeader eyebrow="Devices" title="Pair this browser" lede="Connects this browser to the Garry server on your computer." />
+      <PageHeader title="Pair this browser" lede="Connects this browser to the Garry server on your computer." />
       {!state ? (
         <p className="notice">Pairing…</p>
       ) : (

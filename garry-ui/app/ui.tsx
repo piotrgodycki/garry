@@ -1,8 +1,12 @@
 import type { ReactNode } from "react";
-import Link from "./lib/router";
+import Link, { usePathname } from "./lib/router";
+import { groupOf } from "./Nav";
 import { Icon } from "./icons";
 
-/** The header every page starts with: breadcrumb or eyebrow, title, one line of context, actions. */
+/**
+ * The header every page starts with: a way back or the menu group the page is
+ * in (the same words as the menu), title, one line of context, actions.
+ */
 export function PageHeader({
   eyebrow,
   back,
@@ -16,6 +20,8 @@ export function PageHeader({
   lede?: ReactNode;
   actions?: ReactNode;
 }) {
+  const group = groupOf(usePathname());
+  eyebrow ??= group;
   return (
     <header className="pageHead">
       <div className="pageHeadText">

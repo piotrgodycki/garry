@@ -63,11 +63,11 @@ export default function Routing() {
 
   const row = (stage: string, r: RoutingProfile["defaults"]) => (
     <tr key={stage}>
-      <td className={`strong ${styles.cap}`}>{stage === "defaults" ? "Everything else" : stage}</td>
-      <td>
+      <td className={`strong ${styles.cap}`} data-label="Stage">{stage === "defaults" ? "Everything else" : stage}</td>
+      <td data-label="Agent">
         <Select className={own.agentSelect} ariaLabel={`agent for ${stage}`} value={r.agent} onChange={(agent) => void change(stage, { agent })} options={[...new Set([r.agent, ...AGENTS])].map((a) => ({ value: a, label: a }))} />
       </td>
-      <td>
+      <td data-label="Model">
         <>
           <Select
             ariaLabel={`model for ${stage}`}
@@ -84,7 +84,6 @@ export default function Routing() {
   return (
     <main className="page">
       <PageHeader
-        eyebrow="Configure"
         title="Model routing"
         lede="Which agent role and which model handle each SDLC stage. The default profile is used unless you pick another; change it, or make profiles of your own from it, and let a feature use another (routing: in its frontmatter)."
       />
@@ -160,7 +159,7 @@ export default function Routing() {
                 </span>
               </div>
               <div className="card tableWrap">
-                <table className="table">
+                <table className="table cards">
                   <thead>
                     <tr>
                       <th>Stage</th>
