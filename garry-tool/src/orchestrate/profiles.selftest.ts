@@ -10,6 +10,7 @@ import { join } from "node:path";
 import type { AddressInfo } from "node:net";
 import { DEFAULT_PROFILE, RoutingError, activeProfileName, listProfiles, readProfile, removeProfile, saveProfile, setActiveProfile, setStageRoute } from "./profiles.js";
 import { resolveRouting, routeFor } from "./routing.js";
+import { MODELS } from "./models.js";
 import { createFeature } from "../registry/features.js";
 import { addService } from "../registry/services.js";
 import { loadFeature } from "./plan.js";
@@ -31,8 +32,8 @@ const status = (fn: () => unknown): number => {
 };
 
 const registry = mkdtempSync(join(tmpdir(), "garry-routing-"));
-const HAIKU = "claude-haiku-4-5-20251001";
-const SONNET = "claude-sonnet-4-6";
+const HAIKU = "claude-haiku-5-5";
+const SONNET = "claude-sonnet-5-5";
 
 expect("a fresh registry uses the example", activeProfileName(registry) === "default" && listProfiles(registry).profiles.length === 1);
 expect("the default starts with Garry's values", readProfile(registry, "default")!.builtin === true);
@@ -43,6 +44,12 @@ expect("a new default cannot be created over it", status(() => saveProfile(regis
 removeProfile(registry, "default");
 expect("reset puts Garry's values back", readProfile(registry, "default")!.builtin === true && readProfile(registry, "default")!.stages.spec!.model === DEFAULT_PROFILE.stages.spec!.model && !existsSync(join(registry, "routing", "default.json")));
 expect("an unknown model is refused", status(() => saveProfile(registry, { name: "x", defaults: { agent: "garry-dev", model: "gpt-9" } })) === 400);
+
+// Claude 5 by default; a profile saved with an earlier generation keeps working
+expect("the default routes to Claude 5", [DEFAULT_PROFILE.defaults, ...Object.values(DEFAULT_PROFILE.stages)].every((r) => r && MODELS.some((m) => m.id === r.model && !m.previous)));
+expect("the newest models are offered first", MODELS.slice(0, 4).map((m) => m.label).join() === "Opus 5.5,Sonnet 5.5,Haiku 5.5,Fable 5.1" && MODELS.slice(4).every((m) => m.previous));
+expect("a profile on an earlier model is still accepted", status(() => saveProfile(registry, { name: "older", defaults: { agent: "garry-dev", model: "claude-opus-4-8" } })) === 200 && readProfile(registry, "older")?.defaults.model === "claude-opus-4-8");
+if (readProfile(registry, "older")) removeProfile(registry, "older");
 
 const fast = saveProfile(registry, { name: "fast", from: "default" });
 expect("a profile starts as a copy", JSON.stringify(fast.stages) === JSON.stringify(DEFAULT_PROFILE.stages) && fast.description === "Started from default");

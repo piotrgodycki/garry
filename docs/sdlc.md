@@ -124,8 +124,8 @@ the repository. A local skill cannot take the name of a pre-installed one.
 
 ```json
 {
-  "defaults": { "agent": "garry-dev", "model": "claude-sonnet-4-6" },
-  "stages": { "review": { "agent": "garry-reviewer", "model": "claude-opus-4-8" } }
+  "defaults": { "agent": "garry-dev", "model": "claude-sonnet-5-5" },
+  "stages": { "review": { "agent": "garry-reviewer", "model": "claude-opus-5-5" } }
 }
 ```
 

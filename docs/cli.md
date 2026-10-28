@@ -88,8 +88,8 @@ stage. Prints every task; calls no model yet.
 ```bash
 pnpm garry feature FEAT-123
 # services (delegation order): search-mfe -> checkout-mfe -> shell
-# [spec] supervisor via garry-analyst:claude-opus-4-8
-# [implement] search-mfe via garry-dev:claude-haiku-4-5-20251001
+# [spec] supervisor via garry-analyst:claude-opus-5-5
+# [implement] search-mfe via garry-dev:claude-haiku-5-5
 # ...
 # Plan complete. This was a dry run; no model was called.
 ```
@@ -221,10 +221,10 @@ routing page does the same.
 
 ```bash
 garry routing list
-garry routing set default implement --model claude-sonnet-4-6
+garry routing set default implement --model claude-sonnet-5-5
 garry routing new fast --from default
-garry routing set fast implement --model claude-sonnet-4-6
-garry routing set fast review --agent garry-reviewer --model claude-opus-4-8
+garry routing set fast implement --model claude-sonnet-5-5
+garry routing set fast review --agent garry-reviewer --model claude-opus-5-5
 garry routing use fast
 garry routing show fast
 ```

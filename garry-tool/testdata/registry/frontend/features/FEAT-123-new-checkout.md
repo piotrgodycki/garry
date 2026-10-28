@@ -5,7 +5,7 @@ status: design
 services: [shell, checkout-mfe, search-mfe]
 contractChanges: [events.json]
 routingOverride:
-  review: { agent: garry-reviewer, model: claude-opus-4-8 }
+  review: { agent: garry-reviewer, model: claude-opus-5-5 }
 ---
 
 ## Goal

@@ -29,15 +29,15 @@ export const DEFAULT_PROFILE: RoutingProfile = {
   name: "default",
   description: "The strongest model thinks and reviews, a fast one writes the code",
   builtin: true,
-  defaults: { agent: "garry-dev", model: "claude-sonnet-4-6" },
+  defaults: { agent: "garry-dev", model: "claude-sonnet-5-5" },
   stages: {
-    spec: { agent: "garry-analyst", model: "claude-opus-4-8" },
-    plan: { agent: "garry-analyst", model: "claude-opus-4-8" },
-    design: { agent: "garry-analyst", model: "claude-opus-4-8" },
-    implement: { agent: "garry-dev", model: "claude-haiku-4-5-20251001" },
-    review: { agent: "garry-reviewer", model: "claude-opus-4-8" },
-    test: { agent: "garry-dev", model: "claude-sonnet-4-6" },
-    integrate: { agent: "garry-dev", model: "claude-sonnet-4-6" },
+    spec: { agent: "garry-analyst", model: "claude-opus-5-5" },
+    plan: { agent: "garry-analyst", model: "claude-opus-5-5" },
+    design: { agent: "garry-analyst", model: "claude-opus-5-5" },
+    implement: { agent: "garry-dev", model: "claude-haiku-5-5" },
+    review: { agent: "garry-reviewer", model: "claude-opus-5-5" },
+    test: { agent: "garry-dev", model: "claude-sonnet-5-5" },
+    integrate: { agent: "garry-dev", model: "claude-sonnet-5-5" },
   },
 };
 

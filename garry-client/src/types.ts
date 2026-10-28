@@ -54,6 +54,8 @@ export interface PullRequest {
 export interface Model {
   id: string;
   label: string;
+  /** An earlier generation, offered only where it is already chosen. */
+  previous?: boolean;
 }
 
 export interface Route {
