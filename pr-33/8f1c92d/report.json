@@ -1,6 +1,6 @@
 {
   "baseLabel": "main 1e05441",
-  "headLabel": "4bca9ec",
+  "headLabel": "8f1c92d",
   "entries": [
     {
       "name": "dashboard--desktop--light",
@@ -57,7 +57,7 @@
       "status": "changed",
       "head": "head/architecture--desktop--light.png",
       "base": "base/architecture--desktop--light.png",
-      "ratio": 0.39258562325766627,
+      "ratio": 0.39306003584229393,
       "diff": "diff/architecture--desktop--light.png"
     },
     {
@@ -185,7 +185,7 @@
       "status": "changed",
       "head": "head/architecture--desktop--dark.png",
       "base": "base/architecture--desktop--dark.png",
-      "ratio": 0.39987704101951416,
+      "ratio": 0.40050328554360815,
       "diff": "diff/architecture--desktop--dark.png"
     },
     {
@@ -310,7 +310,7 @@
       "status": "changed",
       "head": "head/architecture--mobile--light.png",
       "base": "base/architecture--mobile--light.png",
-      "ratio": 0.37461206407826747,
+      "ratio": 0.3880759641355943,
       "diff": "diff/architecture--mobile--light.png"
     },
     {
@@ -434,7 +434,7 @@
       "status": "changed",
       "head": "head/architecture--mobile--dark.png",
       "base": "base/architecture--mobile--dark.png",
-      "ratio": 0.3845738104108287,
+      "ratio": 0.39790058442146536,
       "diff": "diff/architecture--mobile--dark.png"
     },
     {
