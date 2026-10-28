@@ -579,3 +579,247 @@
     display: none;
   }
 }
+
+/* ---- the run in one line ---- */
+.runBar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+}
+.runCore {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  cursor: pointer;
+}
+.runCore.busy {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.runAction {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+.runWho {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-size: 13px;
+}
+.runProgress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 200px;
+}
+.runProgress .bar {
+  flex: 1;
+}
+.runProgress .progressNum {
+  font-size: 15px;
+}
+.runWave {
+  width: 120px;
+  height: 28px;
+}
+
+/* ---- the orchestration, left to right ---- */
+.flowCard {
+  padding: 0;
+  overflow-x: auto;
+  margin-bottom: var(--space-md);
+}
+.flow {
+  display: grid;
+  width: 100%;
+}
+.flowCorner,
+.flowStage {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.flowStage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--color-text-muted);
+}
+.flowStep {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  font-size: 10.5px;
+}
+.flowStep svg {
+  width: 12px;
+  height: 12px;
+}
+.flowStage.st_active {
+  color: var(--color-text-default);
+}
+.flowStage.st_active .flowStep {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-brand);
+  animation: flowPulse 1.4s ease-in-out infinite;
+}
+.flowStage.st_done .flowStep {
+  border-color: #16a34a;
+  background: #16a34a;
+  color: #fff;
+}
+.flowLane {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+.laneLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+.laneIcon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  color: var(--color-text-muted);
+}
+.laneIcon svg {
+  width: 16px;
+  height: 16px;
+}
+.laneName {
+  font-weight: 650;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 6px;
+}
+.flowLane.st_active .laneName {
+  color: var(--accent);
+}
+.flowCell {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  min-height: 52px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+/* the lane's rail: work flows along it from left to right */
+.flowRail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+}
+.flowTask {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 11.5px;
+  min-width: 0;
+}
+.flowTaskText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.flowAgent {
+  font-family: var(--font-family-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flowTask.st_idle {
+  opacity: 0.55;
+}
+.flowTask.st_active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.flowTask.st_done {
+  border-color: color-mix(in srgb, #16a34a 45%, var(--border));
+}
+@keyframes flowPulse {
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+}
+
+/* ---- contracts and the log side by side, a fixed height ---- */
+.below {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: start;
+}
+/* both panels the same height; each scrolls on its own */
+.below > :global(.card) {
+  max-height: 360px;
+  overflow-y: auto;
+}
+.below .logBody {
+  max-height: none;
+}
+@media (max-width: 1000px) {
+  .below {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .flowCard,
+  .runWave {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flowStage.st_active .flowStep {
+    animation: none;
+  }
+}

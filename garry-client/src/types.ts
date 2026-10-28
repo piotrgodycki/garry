@@ -262,6 +262,38 @@ export interface PairedDevice {
   lastSeenAt: string | null;
 }
 
+// ---- Garry projects ----
+export interface PendingRepo {
+  name: string;
+  remote: string;
+  settings?: Partial<ProjectSettings>;
+}
+export interface GarryProject {
+  id: string;
+  name: string;
+  description?: string;
+  path: string;
+  createdAt: string;
+  /** repositories an imported project names that are not cloned here yet */
+  pendingRepos?: PendingRepo[];
+  repos?: { id: string; name: string }[];
+}
+export interface GarryProjects {
+  active: string;
+  /** the registry the server reads now */
+  registry: string;
+  projects: GarryProject[];
+}
+export interface GarryBundle {
+  format: "garry-project";
+  version: number;
+  name: string;
+  description?: string;
+  exportedAt: string;
+  files: Record<string, string>;
+  repos: PendingRepo[];
+}
+
 // ---- GitHub ----
 export interface GithubStatus {
   connected: boolean;

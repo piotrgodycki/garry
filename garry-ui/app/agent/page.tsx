@@ -39,21 +39,6 @@ interface LogEntry {
   action: string;
 }
 
-const C = 280; // stage center in viewBox units
-const R = 200; // orbit radius
-
-/** A gentle curved path between two points (quadratic bezier arced to one side). */
-function curve(x1: number, y1: number, x2: number, y2: number, bend = 0.1): string {
-  const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2;
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const len = Math.hypot(dx, dy) || 1;
-  const cx = mx + (-dy / len) * len * bend;
-  const cy = my + (dx / len) * len * bend;
-  return `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
-}
-
 export default function AgentView() {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selected, setSelected] = useState("");
@@ -69,13 +54,6 @@ export default function AgentView() {
   const [offline, setOffline] = useState(false);
   const [noFeatures, setNoFeatures] = useState(false);
   const esRef = useRef<EventSource | null>(null);
-
-  // User placed positions for the service nodes (percent of the stage box). When a
-  // service has no override it falls back to its computed orbit position.
-  const [pos, setPos] = useState<Record<string, { left: number; top: number }>>({});
-  const stageRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ svc: string; sx: number; sy: number; baseLeft: number; baseTop: number; moved: boolean } | null>(null);
-  const draggedRef = useRef(false);
 
   useEffect(() => {
     fetch(`${apiBase}/api/features`)
@@ -158,41 +136,7 @@ export default function AgentView() {
 
   const pickFeature = (id: string) => {
     setSelected(id);
-    setPos({});
     window.history.replaceState(null, "", `/agent?feature=${id}`);
-  };
-
-  // Drag the service nodes around the stage. Positions are percent of the stage box.
-  const clampPct = (v: number) => Math.max(5, Math.min(95, v));
-  const onNodeDown = (e: React.PointerEvent, svc: string, curLeft: number, curTop: number) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    dragRef.current = { svc, sx: e.clientX, sy: e.clientY, baseLeft: curLeft, baseTop: curTop, moved: false };
-  };
-  const onNodeMove = (e: React.PointerEvent) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const rect = stageRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const dx = ((e.clientX - d.sx) / rect.width) * 100;
-    const dy = ((e.clientY - d.sy) / rect.height) * 100;
-    if (Math.abs(e.clientX - d.sx) > 3 || Math.abs(e.clientY - d.sy) > 3) {
-      d.moved = true;
-      draggedRef.current = true;
-    }
-    setPos((p) => ({ ...p, [d.svc]: { left: clampPct(d.baseLeft + dx), top: clampPct(d.baseTop + dy) } }));
-  };
-  const onNodeUp = (e: React.PointerEvent) => {
-    const d = dragRef.current;
-    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-    dragRef.current = null;
-    if (d?.moved) setTimeout(() => (draggedRef.current = false), 0);
-    else draggedRef.current = false;
-  };
-  const onNodeClick = (e: React.MouseEvent) => {
-    if (draggedRef.current) {
-      e.preventDefault();
-      draggedRef.current = false;
-    }
   };
 
   // the latest detailed (per skill) action for a service, shown on its own node
@@ -206,43 +150,20 @@ export default function AgentView() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [logs]);
 
-  const baseNodes = useMemo(() => {
-    const order = plan?.order ?? [];
-    const n = order.length || 1;
-    return order.map((svc, i) => {
-      const a = (-90 + (i * 360) / n) * (Math.PI / 180);
-      const x = C + R * Math.cos(a);
-      const y = C + R * Math.sin(a);
-      return { svc, x, y, left: (x / (C * 2)) * 100, top: (y / (C * 2)) * 100 };
+  // The flow, left to right: one column per stage (in the order the plan runs
+  // them), one lane for Garry's own work and one per service.
+  const flow = useMemo(() => {
+    const tasks = plan?.tasks ?? [];
+    const stages = [...new Set(tasks.map((t) => t.stage))];
+    const lanes = [...(tasks.some((t) => t.scope === "global") ? ["supervisor"] : []), ...(plan?.order ?? [])];
+    const cell = new Map<string, number[]>();
+    tasks.forEach((t, i) => {
+      const key = `${t.scope === "global" ? "supervisor" : t.service}|${t.stage}`;
+      cell.set(key, [...(cell.get(key) ?? []), i + 1]);
     });
+    return { stages, lanes, cell };
   }, [plan]);
-
-  // Effective node positions: the user override wins over the computed orbit. The
-  // spokes and arcs read from here too, so the lines follow a dragged node.
-  const nodes = useMemo(
-    () =>
-      baseNodes.map((nd) => {
-        const p = pos[nd.svc];
-        if (!p) return nd;
-        const left = p.left;
-        const top = p.top;
-        return { svc: nd.svc, left, top, x: (left / 100) * (C * 2), y: (top / 100) * (C * 2) };
-      }),
-    [baseNodes, pos],
-  );
-
-  // Edges between services that communicate, from the consumes contract.
-  const edges = useMemo(() => {
-    const posMap = new Map(nodes.map((nd) => [nd.svc, nd]));
-    const out: { from: string; to: string; x1: number; y1: number; x2: number; y2: number }[] = [];
-    for (const nd of nodes) {
-      for (const dep of consumes[nd.svc] ?? []) {
-        const target = posMap.get(dep);
-        if (target) out.push({ from: nd.svc, to: dep, x1: nd.x, y1: nd.y, x2: target.x, y2: target.y });
-      }
-    }
-    return out;
-  }, [nodes, consumes]);
+  const nodes = (plan?.order ?? []).map((svc) => ({ svc }));
 
   const task = current && plan ? plan.tasks[current - 1] : null;
   const busy = task !== null;
@@ -250,8 +171,12 @@ export default function AgentView() {
   const total = plan?.tasks.length ?? 0;
   const progress = finished ? total : done;
   const pct = total ? progress / total : 0;
-  const RING_R = 94;
-  const RING_C = 2 * Math.PI * RING_R;
+  const taskState = (i: number): "active" | "done" | "idle" => (current === i ? "active" : finished || i <= done ? "done" : "idle");
+  const stageState = (stage: string): "active" | "done" | "idle" => {
+    const idx = (plan?.tasks ?? []).map((t, i) => (t.stage === stage ? i + 1 : -1)).filter((i) => i > 0);
+    if (idx.some((i) => taskState(i) === "active")) return "active";
+    return idx.length && idx.every((i) => taskState(i) === "done") ? "done" : "idle";
+  };
 
   const serviceStatus = (svc: string): "active" | "done" | "idle" => {
     if (!plan) return "idle";
@@ -287,7 +212,7 @@ export default function AgentView() {
             {featureTitle}
           </span>
         }
-        lede="Garry sits at the center and delegates each stage to one agent per service. Drag a service to rearrange the map, click it for its detailed work log."
+        lede="The orchestration from left to right: each stage, and the agent and model doing it for Garry and for every service. Click a service for its detailed work log."
         actions={
           <>
             {features.length > 1 && (
@@ -364,175 +289,108 @@ export default function AgentView() {
         </ul>
       </div>
 
-      <div className={styles.layout}>
-      <div className={`card ${styles.stageCard}`}>
-      <div className={styles.stage} ref={stageRef}>
-        <svg className={styles.links} viewBox="0 0 560 560" aria-hidden="true">
-          <defs>
-            <radialGradient id="spokeFade" cx={C} cy={C} r={R} gradientUnits="userSpaceOnUse">
-              <stop offset="0" style={{ stopColor: "var(--color-text-muted)", stopOpacity: 0.55 }} />
-              <stop offset="1" style={{ stopColor: "var(--color-text-muted)", stopOpacity: 0.12 }} />
-            </radialGradient>
-            <linearGradient id="brandStroke" x1="0" y1="0" x2="560" y2="560" gradientUnits="userSpaceOnUse">
-              <stop offset="0" style={{ stopColor: "var(--color-brand-primary)" }} />
-              <stop offset="1" style={{ stopColor: "var(--color-brand-secondary)" }} />
-            </linearGradient>
-          </defs>
-          {/* orbit guide the services sit on */}
-          <circle cx={C} cy={C} r={R} className={styles.orbitGuide} />
-          {/* inter service communication arcs, only while a related service is active */}
-          {edges.map((e) => {
-            const hot = serviceStatus(e.from) === "active" || serviceStatus(e.to) === "active";
-            if (!hot) return null;
-            const id = `e-${e.from}-${e.to}`;
-            const d = curve(e.x1, e.y1, e.x2, e.y2, 0.16);
-            return (
-              <g key={id}>
-                <path id={id} d={d} className={styles.edgePath} />
-                <circle r={3.2} className={styles.pulseEdge}>
-                  <animateMotion dur="1.1s" repeatCount="indefinite">
-                    <mpath href={`#${id}`} />
-                  </animateMotion>
-                </circle>
-              </g>
-            );
-          })}
-          {/* spokes from the hub to each service, each carrying a flowing pulse */}
-          {nodes.map((nd) => {
-            const st = serviceStatus(nd.svc);
-            const id = `s-${nd.svc}`;
-            const d = curve(C, C, nd.x, nd.y, 0.08);
-            return (
-              <g key={id}>
-                <path id={id} d={d} className={`${styles.spoke} ${st === "active" ? styles.spokeActive : ""} ${st === "done" ? styles.spokeDone : ""}`} />
-                {st === "active" && (
-                  <circle r={4} className={styles.pulseActive}>
-                    <animateMotion dur="1s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear">
-                      <mpath href={`#${id}`} />
-                    </animateMotion>
-                  </circle>
-                )}
-              </g>
-            );
-          })}
-          {/* progress ring around the hub */}
-          <circle cx={C} cy={C} r={RING_R} className={styles.ringTrack} />
-          <circle
-            cx={C}
-            cy={C}
-            r={RING_R}
-            className={styles.ringProgress}
-            strokeDasharray={`${(pct * RING_C).toFixed(1)} ${RING_C.toFixed(1)}`}
-            transform={`rotate(-90 ${C} ${C})`}
-          />
-        </svg>
-
-        <div className={`${styles.voice} ${busy ? styles.voiceActive : ""}`}>
-          <span className={styles.halo} />
-          <span className={styles.orbit} />
-          <span className={styles.comet} />
-          <span className={styles.ripple} />
-          <span className={`${styles.ripple} ${styles.rippleLate}`} />
-          <button
-            className={`${styles.core} ${busy ? styles.busy : ""}`}
-            onClick={() => window.dispatchEvent(new Event("garry:voice"))}
-            title="talk to Garry (Cmd/Ctrl+K)"
-            aria-label="talk to Garry"
-          >
-            <GarryMark size={58} busy={busy} />
-            <span className={styles.corePct}>{Math.round(pct * 100)}%</span>
-            <span className={styles.coreHint}>talk ⌘K</span>
-          </button>
-        </div>
-
-        {nodes.map((nd) => {
-          const st = serviceStatus(nd.svc);
-          const rm = roleModel(nd.svc);
-          return (
-            <Link
-              key={nd.svc}
-              href={`/service/${nd.svc}?feature=${selected}`}
-              className={`${styles.node} ${st === "active" ? styles.active : ""} ${st === "done" ? styles.done : ""} ${pos[nd.svc] ? styles.moved : ""}`}
-              style={{ left: `${nd.left}%`, top: `${nd.top}%` }}
-              title={`drag to reposition, click to open ${nd.svc}`}
-              draggable={false}
-              onPointerDown={(e) => onNodeDown(e, nd.svc, nd.left, nd.top)}
-              onPointerMove={onNodeMove}
-              onPointerUp={onNodeUp}
-              onClick={onNodeClick}
-            >
-              <div className={styles.nodeHead}>
-                <span className={styles.icon}>{Icon.service}</span>
-                <span className={styles.svc}>{nd.svc}</span>
-                <span className={`dot ${st === "active" ? "run" : st === "done" ? "ok" : "wait"}`} />
-              </div>
-              <span className={styles.stageLabel}>
-                {st === "active" ? (lastAction(nd.svc) ?? task?.stage ?? "") : st === "done" ? "Done" : "Waiting"}
+      {/* the status of the whole run, in one line */}
+      <div className={`card ${styles.runBar}`}>
+        <button className={`${styles.runCore} ${busy ? styles.busy : ""}`} onClick={() => window.dispatchEvent(new Event("garry:voice"))} title="talk to Garry (Cmd/Ctrl+K)" aria-label="talk to Garry">
+          <GarryMark size={34} busy={busy} />
+        </button>
+        <span className={`badge ${statusTone}`}>
+          <span className={`dot ${statusTone}`} />
+          {statusText}
+        </span>
+        <span className={styles.runAction}>
+          {stopped ? (
+            <>All agents halted</>
+          ) : task ? (
+            <>
+              <span className={styles.em}>{task.stage}</span> {task.scope === "service" ? <>on {task.service}</> : <>by Garry</>}
+              <span className={styles.runWho}>
+                {task.agent} <ModelChip id={task.model} label={models[task.model] ?? task.model} />
               </span>
-              {rm.model && (
-                <div className={styles.tags}>
-                  <ModelChip id={rm.modelId} label={rm.model} />
-                </div>
-              )}
-            </Link>
-          );
-        })}
-      </div>
-      <div className={styles.legend}>
-        <span><span className="dot wait" /> Waiting</span>
-        <span><span className="dot run" /> Running</span>
-        <span><span className="dot ok" /> Done</span>
-      </div>
+            </>
+          ) : finished ? (
+            <>Every stage is done</>
+          ) : plan ? (
+            <span className={styles.idle}>Waiting for the agents · {plan.order.length} services</span>
+          ) : (
+            <span className={styles.idle}>{noFeatures ? "No features yet" : "Connect the server with pnpm serve"}</span>
+          )}
+        </span>
+        <span className={styles.runProgress}>
+          <span className={styles.bar} role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={progress}>
+            <span style={{ width: `${pct * 100}%` }} />
+          </span>
+          <span className={styles.progressNum}>
+            {progress}
+            <span className={styles.progressTotal}> / {total}</span>
+          </span>
+        </span>
+        <span className={styles.runWave}>
+          <Waveform bars={18} active={busy} />
+        </span>
       </div>
 
-      <div className={styles.side}>
-        <div className={`card ${styles.status}`}>
-          <div className={styles.statusTop}>
-            <span className={`badge ${statusTone}`}>
-              <span className={`dot ${statusTone}`} />
-              {statusText}
-            </span>
-            <span className={styles.progressNum}>
-              {progress}<span className={styles.progressTotal}> / {total} tasks</span>
-            </span>
-          </div>
-          <div className={styles.action}>
-            {stopped ? (
-              <>All agents halted</>
-            ) : task ? (
-              task.scope === "service" ? (
-                <><span className={styles.em}>{task.stage}</span> on {task.service}</>
-              ) : (
-                <><span className={styles.em}>{task.stage}</span> by the supervisor</>
-              )
-            ) : finished ? (
-              <>Every stage is done</>
-            ) : (
-              <span className={styles.idle}>Waiting for the agents</span>
-            )}
-          </div>
-          <div className={styles.sub}>
-            {task ? (
-              <>
-                <span>{task.agent}</span>
-                <ModelChip id={task.model} label={models[task.model] ?? task.model} />
-              </>
-            ) : plan ? (
-              `${plan.order.length} services in this feature`
-            ) : noFeatures ? (
-              "No features yet"
-            ) : (
-              "Connect the server with pnpm serve"
-            )}
-          </div>
-          <div className={styles.bar} role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={progress}>
-            <span style={{ width: `${pct * 100}%` }} />
-          </div>
-          <div className={styles.wave}>
-            <Waveform bars={36} active={busy} />
+      {/* the orchestration, left to right: stages as columns, Garry and each service as lanes */}
+      {plan && flow.stages.length > 0 && (
+        <div className={`card ${styles.flowCard}`}>
+          <div className={styles.flow} style={{ gridTemplateColumns: `152px repeat(${flow.stages.length}, minmax(108px, 1fr))` }}>
+            <span className={styles.flowCorner} />
+            {flow.stages.map((stage, i) => {
+              const st = stageState(stage);
+              return (
+                <div key={stage} className={`${styles.flowStage} ${styles[`st_${st}`]}`}>
+                  <span className={styles.flowStep}>{st === "done" ? Icon.check : i + 1}</span>
+                  <span className={styles.flowStageName}>{stage}</span>
+                </div>
+              );
+            })}
+            {flow.lanes.map((lane) => {
+              const isGarry = lane === "supervisor";
+              const laneSt = isGarry ? (task?.scope === "global" ? "active" : "idle") : serviceStatus(lane);
+              return [
+                <div key={`${lane}-head`} className={`${styles.flowLane} ${styles[`st_${laneSt}`]}`}>
+                  {isGarry ? (
+                    <>
+                      <span className={styles.laneIcon}>
+                        <GarryMark size={18} busy={task?.scope === "global"} />
+                      </span>
+                      <span className={styles.laneName}>Garry</span>
+                    </>
+                  ) : (
+                    <Link href={`/service/${lane}?feature=${selected}`} className={styles.laneLink} title={`open ${lane}`}>
+                      <span className={styles.laneIcon}>{Icon.service}</span>
+                      <span className={styles.laneName}>{lane}</span>
+                    </Link>
+                  )}
+                </div>,
+                ...flow.stages.map((stage) => {
+                  const idx = flow.cell.get(`${lane}|${stage}`) ?? [];
+                  return (
+                    <div key={`${lane}-${stage}`} className={styles.flowCell}>
+                      <span className={styles.flowRail} />
+                      {idx.map((i) => {
+                        const t = plan.tasks[i - 1];
+                        const ts = taskState(i);
+                        return (
+                          <div key={i} className={`${styles.flowTask} ${styles[`st_${ts}`]}`} title={`${t.stage} · ${t.agent} · ${models[t.model] ?? t.model}`}>
+                            <span className={`dot ${ts === "active" ? "run" : ts === "done" ? "ok" : "wait"}`} />
+                            <span className={styles.flowTaskText}>
+                              <span className={styles.flowAgent}>{ts === "active" && !isGarry ? (lastAction(lane) ?? t.agent) : t.agent}</span>
+                              <ModelChip id={t.model} label={models[t.model] ?? t.model} />
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }),
+              ];
+            })}
           </div>
         </div>
+      )}
 
+      <div className={styles.below}>
         {plan && (
           <ContractPanel
             contractChanges={plan.feature.contractChanges ?? []}
@@ -576,7 +434,6 @@ export default function AgentView() {
             )}
           </div>
         </div>
-      </div>
       </div>
     </main>
   );

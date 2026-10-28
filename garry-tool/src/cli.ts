@@ -9,6 +9,7 @@ import { runShots } from "./commands/shots.js";
 import { runSkills } from "./commands/skills.js";
 import { runDevices, runPair } from "./commands/pair.js";
 import { runProjects } from "./commands/projects.js";
+import { runProject } from "./commands/project.js";
 import { runService } from "./commands/service.js";
 import { runStack } from "./commands/stack.js";
 import { runQa } from "./commands/qa.js";
@@ -34,7 +35,8 @@ Commands:
   serve      start the HTTP server (REST plus SSE) over the supervisor
   pair       pair a phone or another computer with a running server (QR code)
   devices    list or revoke paired devices
-  projects   the repositories agents can work on (list, add <path>, import <owner/name>)
+  project    Garry projects: list, new, use, export, import (one .garry.json file)
+  repos      the repositories of the active project (list, add <path>, import <owner/name>)
   github     connect Garry to GitHub (status, login, logout, repos)
   skills     list the skills, install or remove local ones
   shots      screenshots for code review: capture, compare, comment on the PR
@@ -81,6 +83,11 @@ async function main(): Promise<void> {
     case "github":
       await runGithub(rest);
       break;
+    case "project":
+      runProject(rest);
+      break;
+    // the repositories of the active project ("projects" is the old name)
+    case "repos":
     case "projects":
       runProjects(rest);
       break;

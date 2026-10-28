@@ -255,3 +255,35 @@
   align-items: center;
   font-size: 14px;
 }
+
+/* which repository the work happens in, and its push settings behind the gear */
+.repoBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.repoName {
+  font-family: var(--font-family-mono);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.gear {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.gear:hover,
+.gearOn {
+  color: var(--color-text-default);
+  border-color: var(--border);
+}

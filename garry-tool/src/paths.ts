@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync } from "node:fs";
-import { homedir } from "node:os";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { activeGarryProject } from "./project/store.js";
 
 /**
  * Where garry finds its skills and its registry when no flag names them.
@@ -20,15 +20,14 @@ export function defaultSkillsRoot(): string {
 }
 
 /**
- * The registry: ./registry when it holds a catalog, else ~/.garry/registry,
- * created empty on first use. Services and features are added from there on
- * (garry service add, the dashboard).
+ * The registry: ./registry when it holds a catalog, else the active Garry
+ * project's (the default project's is ~/.garry/registry), created empty on
+ * first use. Services and features are added from there on (garry service add,
+ * the dashboard).
  */
 export function defaultRegistry(): string {
   if (existsSync(join("registry", "catalog"))) return "registry";
-  const home = join(process.env.GARRY_HOME ?? join(homedir(), ".garry"), "registry");
-  for (const dir of ["catalog", "contracts", "features"]) mkdirSync(join(home, dir), { recursive: true });
-  return home;
+  return activeGarryProject().path;
 }
 
 /** The built dashboard: garry-ui/dist in the monorepo (after pnpm -C garry-ui build), else the one shipped with garry. */

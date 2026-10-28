@@ -45,6 +45,8 @@ function setFeatureStatus(registry: string, id: string, status: string): boolean
   return false;
 }
 import { githubToken } from "../github/env.js";
+import { GarryProjectError, createGarryProject, garryProject, listGarryProjects, removeGarryProject, updateGarryProject, useGarryProject, activeGarryProject } from "../project/store.js";
+import { exportGarryProject, importGarryProject, originOf } from "../project/bundle.js";
 import { GitHub, parseSlug } from "../github/client.js";
 
 export interface ServerConfig {
@@ -93,12 +95,12 @@ function json(res: ServerResponse, code: number, body: unknown): void {
   res.end(JSON.stringify(body, null, 2));
 }
 
-function readBody(req: IncomingMessage): Promise<unknown> {
+function readBody(req: IncomingMessage, limit = 1_000_000): Promise<unknown> {
   return new Promise((resolve, reject) => {
     let data = "";
     req.on("data", (c) => {
       data += c;
-      if (data.length > 1_000_000) reject(new Error("body too large"));
+      if (data.length > limit) reject(new Error("body too large"));
     });
     req.on("end", () => {
       try {
@@ -339,10 +341,78 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
       if (req.method === "POST" && path === "/api/projects/import") {
         const repo = String(((await readBody(req)) as { repo?: string }).repo ?? "");
         const dir = cloneRepo(token, repo);
-        return json(res, 200, cfg.threads!.store.addProject(dir, repo.split("/")[1]));
+        return json(res, 200, cfg.threads!.store.addProject(dir, repo.split("/")[1], activeGarryProject().id));
       }
       return json(res, 405, { error: "method not allowed" });
     } catch (e) {
+      return json(res, 400, { error: String((e as Error).message ?? e).replace(/AUTHORIZATION: basic \S+/gi, "AUTHORIZATION: ***") });
+    }
+  }
+
+  // Garry projects: everything one product is made of (the registry and its repositories), switched,
+  // exported and imported as one. Reading the list is open to paired devices; the rest is this computer only.
+  if (path === "/api/garry-projects" || path.startsWith("/api/garry-projects/")) {
+    const list = () => {
+      const { active, projects } = listGarryProjects();
+      const store = cfg.threads?.store;
+      return {
+        active,
+        registry: cfg.registry,
+        projects: projects.map((p) => ({ ...p, repos: store ? store.projectsOf(p.id).map((r) => ({ id: r.id, name: r.name })) : [] })),
+      };
+    };
+    if (req.method === "GET" && path === "/api/garry-projects") return json(res, 200, list());
+    if (!local) return json(res, 403, { error: "projects are managed on the computer running Garry" });
+    try {
+      if (req.method === "POST" && path === "/api/garry-projects") {
+        const p = createGarryProject((await readBody(req)) as { name?: unknown; description?: unknown });
+        return json(res, 200, p);
+      }
+      if (req.method === "POST" && path === "/api/garry-projects/active") {
+        const p = useGarryProject(String(((await readBody(req)) as { id?: string }).id ?? ""));
+        // everything that reads the registry reads the new one from here on
+        cfg.registry = p.path;
+        return json(res, 200, list());
+      }
+      if (req.method === "POST" && path === "/api/garry-projects/import") {
+        const p = importGarryProject(await readBody(req, 12_000_000));
+        return json(res, 200, p);
+      }
+      const one = /^\/api\/garry-projects\/([a-z0-9-]{1,64})(\/export|\/repos\/clone)?$/.exec(path);
+      if (one) {
+        const [, id, action] = one;
+        if (req.method === "GET" && action === "/export") {
+          const store = cfg.threads?.store;
+          const repos = store ? store.projectsOf(id).map((r) => ({ name: r.name, remote: originOf(r.path), ...(r.settings ? { settings: r.settings } : {}) })).filter((r) => r.remote) : [];
+          const bundle = exportGarryProject(id, repos as { name: string; remote: string }[]);
+          res.setHeader("content-disposition", `attachment; filename="${id}.garry.json"`);
+          return json(res, 200, bundle);
+        }
+        if (req.method === "POST" && action === "/repos/clone") {
+          const p = garryProject(id);
+          if (!p) return json(res, 404, { error: "no such project" });
+          const remote = String(((await readBody(req)) as { remote?: string }).remote ?? "");
+          const pending = (p.pendingRepos ?? []).find((r) => r.remote === remote);
+          if (!pending) return json(res, 404, { error: "that repository is not waiting to be cloned" });
+          const slug = /github\.com[:/]([^/]+)\/([^/]+?)(?:\.git)?$/.exec(remote);
+          if (!slug) return json(res, 400, { error: "only GitHub repositories are cloned from Garry; clone it yourself and add it" });
+          const token = githubToken();
+          if (!token) return json(res, 400, { error: "connect GitHub first (Settings, GitHub)" });
+          const dir = cloneRepo(token, `${slug[1]}/${slug[2]}`);
+          const repo = cfg.threads!.store.addProject(dir, pending.name, id);
+          if (pending.settings) cfg.threads!.store.saveSettings(repo.id, pending.settings);
+          updateGarryProject(id, { pendingRepos: (p.pendingRepos ?? []).filter((r) => r.remote !== remote) });
+          return json(res, 200, repo);
+        }
+        if (req.method === "POST" && !action) return json(res, 200, updateGarryProject(id, (await readBody(req)) as { name?: unknown; description?: unknown }));
+        if (req.method === "DELETE" && !action) {
+          removeGarryProject(id);
+          return json(res, 200, list());
+        }
+      }
+      return json(res, 405, { error: "method not allowed" });
+    } catch (e) {
+      if (e instanceof GarryProjectError) return json(res, e.status, { error: e.message });
       return json(res, 400, { error: String((e as Error).message ?? e).replace(/AUTHORIZATION: basic \S+/gi, "AUTHORIZATION: ***") });
     }
   }

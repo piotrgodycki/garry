@@ -61,7 +61,8 @@ this repository (`pnpm ui`). `garry shots` needs Playwright as well
 | `garry serve` | start the HTTP server the dashboard talks to |
 | `garry pair` | pair a phone or another computer (QR code) |
 | `garry devices` | list or revoke paired devices |
-| `garry projects` | the repositories agents can work on (`list`, `add <path>`, `import <owner/name>`, `settings <project>`) |
+| `garry project` | Garry projects: `list`, `new`, `use`, `export`, `import` (one `.garry.json` file), `remove` |
+| `garry repos` | the repositories of the active project (`list`, `add <path>`, `import <owner/name>`, `settings <repo>`; `garry projects` is the old name) |
 | `garry github <sub>` | connect GitHub (`status`, `login [--token]`, `logout`, `repos [query]`) |
 | `garry shots <sub>` | screenshots for code review |
 | `garry qa` | does a change need a person to try it (label and checklist on the PR) |
@@ -383,6 +384,33 @@ pnpm -C garry-tool test:audit              # the audit's own regression corpus
 The audit is static: rules over the text, no model. It catches known attack
 shapes, not every possible one, so read a skill from an unknown source anyway.
 
+## garry project
+
+A Garry project is everything one product is made of: its registry (services,
+contracts, features, stacks, routing, the architecture board) and the
+repositories agents work on in it, with their push settings. Switch in the
+dashboard (the switcher at the top of the sidebar) or here; every command and
+page then works on that project. The default project is the registry Garry
+always used (`~/.garry/registry`); new ones live in
+`~/.garry/garry-projects/<id>/`. `./registry` in the current folder still wins
+when it holds a catalog.
+
+```bash
+garry project list
+garry project new "Shop v2"
+garry project use shop-v2
+garry project export --out shop.garry.json   # the active project, or name one
+garry project import shop.garry.json         # a new project from the file
+```
+
+The `.garry.json` file holds the registry files and the repositories as
+remotes to clone, never tokens, never code; credentials in a remote URL are
+dropped. Import only ever writes registry files (`catalog/`, `contracts/`,
+`features/`, `stacks/`, `routing/`, `adr/`, `architecture.json`) into the new
+project's folder, and refuses a file that names anything else. The
+repositories it lists show on the Build page with a Clone button (GitHub).
+Settings, Projects does all of this in the dashboard, on this computer only.
+
 ## garry github
 
 Connects Garry to GitHub, so you can import repositories as projects and open
@@ -396,7 +424,7 @@ garry github status           # who is connected, and through what
 garry github login            # sign in with a code (GARRY_GITHUB_CLIENT_ID set), else paste a token
 garry github login --token    # paste a personal access token
 garry github repos shop       # your repositories, filtered
-garry projects import octo/shop   # clone into ~/.garry/repos/octo/shop and add it as a project
+garry repos import octo/shop      # clone into ~/.garry/repos/octo/shop and add it to the active project
 garry github logout           # forget the token Garry saved
 ```
 
@@ -423,9 +451,9 @@ Pushes are never forced and push only the thread's own branch. Change the
 settings on the Build page (Push and branch settings, this computer only) or:
 
 ```bash
-garry projects settings shop                          # show
-garry projects settings shop --push never
-garry projects settings shop --base develop --draft true --protect "main,prod/*"
+garry repos settings shop                          # show
+garry repos settings shop --push never
+garry repos settings shop --base develop --draft true --protect "main,prod/*"
 ```
 
 ## garry serve
