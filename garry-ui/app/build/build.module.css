@@ -288,3 +288,33 @@
   color: var(--color-text-default);
   border-color: var(--border);
 }
+
+/* Work and the feature pipeline, one tab */
+.views {
+  display: inline-flex;
+  gap: 0;
+  margin-top: 4px;
+  border: 1px solid var(--border-strong);
+  justify-self: start;
+}
+.view {
+  padding: 8px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.view + .view {
+  border-left: 1px solid var(--border-strong);
+}
+.viewOn {
+  background: var(--color-text-default);
+  color: var(--surface);
+}
+.view:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

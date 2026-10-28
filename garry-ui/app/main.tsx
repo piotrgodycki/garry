@@ -1,10 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, Navigate, RouterProvider, useLocation } from "react-router";
 import "./globals.css";
 import Shell from "./layout";
 import Dashboard from "./page";
-import AgentView from "./agent/page";
 import Registry from "./registry/page";
 import Stacks from "./stacks/page";
 import ArchitecturePage from "./architecture/page";
@@ -20,12 +19,19 @@ import Settings from "./settings/page";
 import Files from "./files/page";
 import { Empty } from "./ui";
 
+/** An old link to Live agents opens the feature pipeline in Build, the same feature picked. */
+function AgentRedirect() {
+  const feature = new URLSearchParams(useLocation().search).get("feature");
+  return <Navigate replace to={`/build?view=pipeline${feature ? `&feature=${encodeURIComponent(feature)}` : ""}`} />;
+}
+
 const router = createBrowserRouter([
   {
     element: <Shell />,
     children: [
       { path: "/", element: <Dashboard /> },
-      { path: "/agent", element: <AgentView /> },
+      // Live agents now lives in Build, as the feature pipeline
+      { path: "/agent", element: <AgentRedirect /> },
       { path: "/registry", element: <Registry /> },
       { path: "/stacks", element: <Stacks /> },
       { path: "/architecture", element: <ArchitecturePage /> },

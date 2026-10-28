@@ -12,6 +12,8 @@ const out = (o) => process.stdout.write(JSON.stringify(o) + "\n");
 if (prompt.includes("SLOW")) await new Promise((r) => setTimeout(r, 30000));
 out({ type: "system", subtype: "init", session_id: resume ?? "fake-session-1" });
 out({ type: "assistant", message: { content: [{ type: "tool_use", id: "t1", name: "Write", input: { file_path: "NOTES.md" } }] } });
+// BUSY keeps working after its first tool, so what it is doing can be seen
+if (prompt.includes("BUSY")) await new Promise((r) => setTimeout(r, 30000));
 appendFileSync("NOTES.md", `${prompt}\n`);
 out({ type: "user", message: { content: [{ type: "tool_result", tool_use_id: "t1", content: "File written" }] } });
 // ASK ends the turn with a question to the person; FAIL ends it with an error

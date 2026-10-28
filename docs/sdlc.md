@@ -75,8 +75,8 @@ it to its stage everywhere. Some skills are planned (no `SKILL.md` yet);
 | Stage | You |
 |---|---|
 | Spec | Drop an idea on the dashboard and talk it through with Garry (Talk to Garry, Cmd or Ctrl+K). An idea becomes a feature only after that conversation. |
-| Plan, Design | Nothing, unless a contract change needs a human decision. Watch it on Live agents. |
-| Implement | Nothing. Each service shows its current step on Live agents; click a service for its detailed work log. Stop all agents is the kill switch. |
+| Plan, Design | Nothing, unless a contract change needs a human decision. Watch it in Build, Feature pipeline. |
+| Implement | Nothing. Each service shows its current step in Build (Feature pipeline); click a service for its detailed work log. Stop all agents is the kill switch. |
 | Review | Review the pull requests. Each one shows before and after screenshots of every changed view, and an AI review by the review skills (inline findings plus a summary). Approve or request changes. |
 | Test | Nothing, unless a test fails and Garry asks. |
 | Integrate | Approve the merge. Garry merges every repo together and tags the version. |

@@ -16,7 +16,6 @@ const GROUPS: { label: string; links: { href: string; label: string; icon: React
     label: "Overview",
     links: [
       { href: "/", label: "Dashboard", icon: Icon.dashboard },
-      { href: "/agent", label: "Live agents", icon: Icon.agent },
     ],
   },
   {
@@ -39,7 +38,7 @@ const GROUPS: { label: string; links: { href: string; label: string; icon: React
 export default function Nav() {
   const path = usePathname();
   const isActive = (href: string) =>
-    href === "/" ? path === "/" : path.startsWith(href) || (href === "/agent" && (path.startsWith("/service") || path.startsWith("/pipeline")));
+    href === "/" ? path === "/" : path.startsWith(href) || (href === "/build" && (path.startsWith("/agent") || path.startsWith("/service") || path.startsWith("/pipeline")));
   return (
     <nav className="nav" aria-label="main">
       {GROUPS.map((g) => (

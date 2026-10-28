@@ -27,10 +27,12 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 
 ## Screenshots
 
-**Live agents**: the orchestration from left to right. Each stage, and the agent
-and model doing it for Garry and for every service.
+**Build** is the one place for agents: "Agents now" shows every agent at a
+glance (what it is doing right now, what it asks you, what is ready), and the
+feature pipeline view shows a feature's orchestration from left to right, each
+stage with the agent and model doing it for Garry and for every service.
 
-![Live agents](docs/screenshots/live-agents.png)
+![Feature pipeline](docs/screenshots/live-agents.png)
 
 **Architecture**: services and the platforms they run on, joined like puzzle
 pieces, on a board for the whole project and one for each repository. A wizard

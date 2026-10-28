@@ -446,6 +446,8 @@ export interface Thread {
   running?: boolean;
   /** what it needs from you: the same reading as the menu bar */
   attention?: "working" | "needs-you" | "done" | null;
+  /** in one line: what the agent is doing now, what it asks, or that it is ready */
+  activity?: string | null;
   commit?: string;
   pr?: { number: number; url: string };
 }

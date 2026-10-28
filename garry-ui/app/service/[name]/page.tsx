@@ -109,7 +109,7 @@ export default function ServicePage() {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [log]);
 
-  const back = { href: featureId ? `/agent?feature=${featureId}` : "/agent", label: "Live agents" };
+  const back = { href: featureId ? `/build?view=pipeline&feature=${featureId}` : "/build?view=pipeline", label: "Feature pipeline" };
 
   if (missing)
     return (
