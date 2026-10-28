@@ -9,6 +9,8 @@ import { css } from "@codemirror/lang-css";
 import { html } from "@codemirror/lang-html";
 import { markdown } from "@codemirror/lang-markdown";
 import { yaml } from "@codemirror/lang-yaml";
+import { syntaxHighlighting } from "@codemirror/language";
+import { classHighlighter } from "@lezer/highlight";
 
 function language(path: string): Extension {
   const ext = path.split(".").pop()?.toLowerCase() ?? "";
@@ -52,6 +54,8 @@ export default function CodeEditor({ path, value, readOnly, onChange, onSave }: 
           basicSetup,
           keymap.of([indentWithTab, { key: "Mod-s", preventDefault: true, run: () => (cb.current.onSave(), true) }]),
           language(path),
+          // tok-* classes, coloured in globals.css for light and dark
+          syntaxHighlighting(classHighlighter),
           theme,
           editable.current.of([EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)]),
           EditorView.updateListener.of((u) => u.docChanged && cb.current.onChange(u.state.doc.toString())),

@@ -59,7 +59,8 @@
     "test:push": "tsx src/threads/settings.selftest.ts",
     "test:project": "tsx src/project/project.selftest.ts",
     "test:status": "tsx src/status/status.selftest.ts",
-    "test:push-notify": "tsx src/status/push.selftest.ts"
+    "test:push-notify": "tsx src/status/push.selftest.ts",
+    "test:terminal": "tsx src/terminal/terminal.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",
