@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -140,6 +140,11 @@ export class GarryClient {
   projects = () => this.request<{ projects: Project[] }>("/api/projects").then((r) => r.projects);
   /** Imports a GitHub repository (owner/name): cloned on this computer and added as a project. */
   importProject = (repo: string) => this.post<Project>("/api/projects/import", { repo });
+
+  // ---- Garry at a glance: working, needs you, ready (the menu bar, the phone) ----
+  status = () => this.request<GarryStatus>("/api/status");
+  /** A paired phone asks to be notified (an Expo push token), or stops (null). */
+  setPushToken = (token: string | null) => this.post<{ ok: true; notifications: boolean; enabled: boolean }>("/api/push/token", { token });
 
   // ---- Garry projects: everything one product is made of ----
   garryProjects = () => this.request<GarryProjects>("/api/garry-projects");

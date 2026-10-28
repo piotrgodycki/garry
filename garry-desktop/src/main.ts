@@ -13,6 +13,7 @@ import { ThreadManager } from "../../garry-tool/src/threads/manager.js";
 import { fileURLToPath } from "node:url";
 import { setupTouchId, touchIdAvailable } from "./touchid.js";
 import { setupTray } from "./tray.js";
+import { startPushNotifier } from "../../garry-tool/src/status/push.js";
 
 /**
  * The Garry desktop app: runs garry serve inside the app and shows the dashboard
@@ -52,6 +53,7 @@ let win: BrowserWindow | null = null;
 let touch: ReturnType<typeof setupTouchId>;
 let threads: ThreadManager | undefined;
 let followThreads: (() => void) | null = null;
+let stopPush: (() => void) | null = null;
 const dashboard = () => `http://127.0.0.1:${port}/`;
 
 /** Starts the server in the project folder: on :8123, or a free port when that is taken. */
@@ -88,6 +90,9 @@ async function startServer(): Promise<void> {
     listen(PORT);
   });
   server = s;
+  // phones that asked to be notified hear when work needs them or is ready
+  stopPush?.();
+  stopPush = startPushNotifier(threads, devices);
 }
 
 async function restartServer(): Promise<void> {

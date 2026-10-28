@@ -38,6 +38,12 @@
         }
       ],
       [
+        "expo-notifications",
+        {
+          "color": "#0a0a0a"
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Garry uses the camera to scan the pairing QR code from your computer."

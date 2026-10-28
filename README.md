@@ -206,6 +206,16 @@ Settings, Require Face ID turns it off. Expo Go cannot use Face ID (it falls bac
 to the passcode); a development build (`npx expo run:ios` on a Mac with Xcode, or
 `eas build --profile development`) has the real thing.
 
+**Notifications on the iPhone:** Settings, Notifications. When a piece of work
+needs you (the agent ended with a question, or stopped) or is ready for review,
+the phone gets a notification, also with Garry closed; tapping it opens the
+work. The home screen shows the same at a glance. Garry on your computer sends
+them through Expo's push service. For a company: `GARRY_PUSH=off` turns them off
+for everyone, `GARRY_PUSH_URL` sends to a push relay of your own, and
+`GARRY_PUSH_DETAIL=minimal` leaves project and work names out of them. Needs a
+build of the app with an EAS project id (`eas init`); Expo Go and the simulator
+cannot receive them.
+
 TestFlight and App Store builds come from Expo's build service:
 `eas build --platform ios --profile production`, then `eas submit --platform ios`
 ([`eas.json`](./garry-mobile/eas.json)). That needs an Expo account and an Apple
