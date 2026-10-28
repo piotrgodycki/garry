@@ -147,3 +147,38 @@
   font-size: 13px;
   line-height: 1.5;
 }
+
+/* in the top bar of a narrow screen: just the initial and a short name */
+@media (max-width: 900px) {
+  .switcher {
+    margin: 0;
+    flex: none;
+  }
+  .current {
+    padding: 4px 6px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+  .current .currentLabel {
+    display: none;
+  }
+  .current .currentName {
+    max-width: 96px;
+    font-size: 12.5px;
+  }
+  .current .avatar {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+  .menu {
+    left: 0;
+    right: auto;
+    width: min(280px, 80vw);
+  }
+}
+@media (max-width: 640px) {
+  .current .currentName {
+    display: none;
+  }
+}
