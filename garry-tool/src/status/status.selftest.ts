@@ -1,7 +1,7 @@
 /**
  * Regression test for Garry at a glance: real threads run by a stand-in for
  * Claude Code, each ending a different way, and the status the menu bar and
- * the iPhone widget read (working, needs you, ready, nothing) both directly
+ * the iPhone app read (working, needs you, ready, nothing) both directly
  * and over /api/status. Run with: pnpm -C garry-tool test:status (CI runs it too).
  */
 import { execFileSync } from "node:child_process";
@@ -87,7 +87,7 @@ expect("a running turn is working", byId(s, slow.id)?.state === "working");
 expect("working is not news", !statusChanges(null, s).some((i) => i.threadId === slow.id));
 stop();
 
-// over HTTP: what the menu bar and the iPhone widget read
+// over HTTP: what the menu bar and the iPhone app read
 const server = createGarryServer({ registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads }, new DeviceStore(join(home, "devices.json")));
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const api = (await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}/api/status`).then((r) => r.json())) as ReturnType<typeof garryStatus>;

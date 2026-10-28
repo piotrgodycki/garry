@@ -3,7 +3,7 @@ import type { Thread, ThreadEvent } from "../threads/store.js";
 
 /**
  * Garry at a glance: is an agent working, does one need you, is something
- * ready. One answer for the menu bar on a Mac, the iPhone widget and the
+ * ready. One answer for the menu bar on a Mac, the iPhone app and the
  * dashboard, worked out from the threads and their event logs.
  *
  * - working: an agent is in a turn right now
