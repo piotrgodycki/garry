@@ -40,7 +40,9 @@ builds a board from a few plain questions (who uses it, where it runs, what data
 it keeps, what else it needs) and opens again with your answers to change them;
 the board stays editable by hand. Logos, relations in words, proxies marked,
 ready-made architectures to start from, a reset per board after you confirm, and
-Garry saying what is missing.
+Garry saying what is missing. Platforms include AWS, Cloudflare, Vercel,
+Supabase, Kubernetes, your own servers and Adobe Experience Manager (AEM Sites,
+Edge Delivery Services, Document Authoring, AEM Assets, App Builder, I/O Events).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/architecture-board-dark.png" />

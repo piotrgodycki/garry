@@ -6,7 +6,7 @@ import { z } from "zod";
  */
 
 export const WIZARD_CLIENTS = ["web", "ios", "android"] as const;
-export const WIZARD_PLATFORMS = ["vercel", "cloudflare", "aws", "supabase", "self-hosted", "kubernetes"] as const;
+export const WIZARD_PLATFORMS = ["vercel", "cloudflare", "aws", "supabase", "adobe", "self-hosted", "kubernetes"] as const;
 export const WIZARD_DATA = ["sql", "document", "none"] as const;
 export const WIZARD_EXTRAS = ["auth", "cms", "files", "queue", "cache", "search", "email", "cdn", "events"] as const;
 
@@ -37,6 +37,7 @@ export const WIZARD_QUESTIONS = {
       { id: "cloudflare", label: "Cloudflare", hint: "fast everywhere, at the edge, low cost" },
       { id: "aws", label: "AWS", hint: "the widest choice of services, for teams that already use it" },
       { id: "supabase", label: "Supabase", hint: "database, sign in and files in one, with the app on Vercel" },
+      { id: "adobe", label: "Adobe Experience Manager", hint: "AEM with Edge Delivery Services for pages, App Builder for APIs; for enterprise sites" },
       { id: "self-hosted", label: "Your own server", hint: "a VPS with Docker; you run everything" },
       { id: "kubernetes", label: "Kubernetes", hint: "your own cluster, for many services and teams" },
     ],

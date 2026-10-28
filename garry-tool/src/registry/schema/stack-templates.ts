@@ -89,6 +89,20 @@ export const STACK_TEMPLATES: StackTemplate[] = [
     technologies: t("typescript", "react", "remix", "vite", "prisma", "postgres", "tailwind", "ssr", "vitest"),
   },
   {
+    name: "aem-eds",
+    title: "AEM with Edge Delivery",
+    description: "Adobe Experience Manager for authoring, Edge Delivery Services for pages: plain JS and CSS blocks served from the edge.",
+    kinds: ["ssg", "isr", "ssr"],
+    technologies: t("javascript", "eds", "java", "aem", "edge-caching", "image-optimization", "web-vitals", "playwright"),
+  },
+  {
+    name: "aem",
+    title: "Adobe Experience Manager",
+    description: "AEM Sites on Java: Sling models, HTL components and OSGi services, rendered on Publish.",
+    kinds: ["ssr"],
+    technologies: t("java", "jvm", "aem", "ssr", "http-caching", "junit"),
+  },
+  {
     name: "react-spa",
     title: "React single-page app",
     description: "React and Vite with TanStack Query: a fast app served as static files.",

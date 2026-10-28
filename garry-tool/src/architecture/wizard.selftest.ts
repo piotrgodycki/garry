@@ -52,6 +52,21 @@ for (const clients of subsets(WIZARD_CLIENTS).filter((s) => s.length))
       }
 expect(`all ${boards} combinations of answers build a sound board with everything asked for`, boards > 60000 && bad.length === 0, `${bad.length} bad, e.g. ${bad.slice(0, 3).join(" | ")}`);
 
+// on Adobe, pages come from Edge Delivery with their content from AEM, code runs on App Builder
+const adobe = buildFromWizard({ clients: ["web", "ios"], platform: "adobe", data: "none", extras: ["cms", "files", "events"], services: false });
+const idOf = (block: string) => adobe.nodes.find((n) => n.block === block)?.id;
+const has = (from: string | undefined, to: string | undefined, capability: string) => adobe.edges.some((e) => e.from === from && e.to === to && e.capability === capability);
+expect(
+  "on Adobe a browser gets pages from Edge Delivery, which takes its content from AEM Sites",
+  has("browser", idOf("aem-eds"), "web") && has(idOf("aem-eds"), idOf("aem-sites"), "content"),
+  JSON.stringify(adobe.edges),
+);
+expect(
+  "on Adobe the app runs on App Builder, with files in AEM Assets and events through I/O Events",
+  has("ios", idOf("adobe-app-builder"), "http") && has(idOf("adobe-app-builder"), idOf("aem-assets"), "blob") && has(idOf("adobe-app-builder"), idOf("adobe-io-events"), "events"),
+  JSON.stringify(adobe.edges),
+);
+
 // wrong answers are refused
 const refused = (a: unknown) => {
   try {
