@@ -38,7 +38,7 @@ Where the commands look when you pass no flag:
 |---|---|---|
 | registry (`--registry`) | `./registry` if it has a `catalog/`, else `~/.garry/registry` (created empty) | the same |
 | pre-installed skills (`--skills`) | `garry-tool/skills` | the skills shipped with the package |
-| routing (`--routing`) | `garry.routing.json`: the example profile | `garry.routing.json` in the current folder (optional); profiles of your own live in the registry (`garry routing`) |
+| routing (`--routing`) | `garry.routing.json`: Garry's setup for the default profile | `garry.routing.json` in the current folder (optional); profiles of your own live in the registry (`garry routing`) |
 
 The npm package is the CLI and the server (`garry serve`); the dashboard runs from
 this repository (`pnpm ui`). `garry shots` needs Playwright as well
@@ -210,15 +210,17 @@ for each; one click adds a suggestion to the board. Server: `GET /api/architectu
 ## garry routing
 
 Routing profiles: which agent role and which model handle each SDLC stage.
-`default` is Garry's example (the folder's `garry.routing.json`, else the
-built-in) and stays as it is. Make your own from it, change it, and make it the
-active one; a feature can use another with `routing: <name>` in its
+`default` is used unless another is active. It starts as Garry's setup (the
+folder's `garry.routing.json`, else the built-in); change it like any profile
+(saved as `routing/default.json`) and `garry routing remove default` puts
+Garry's setup back. Make your own from it and make one the active one; a feature can use another with `routing: <name>` in its
 frontmatter (the New feature form has a picker). Profiles live in the registry
 as `routing/<name>.json`, the active one in `routing/index.json`. The Model
 routing page does the same.
 
 ```bash
 garry routing list
+garry routing set default implement --model claude-sonnet-4-6
 garry routing new fast --from default
 garry routing set fast implement --model claude-sonnet-4-6
 garry routing set fast review --agent garry-reviewer --model claude-opus-4-8
@@ -229,7 +231,7 @@ garry routing show fast
 A feature's `routingOverride` still wins for the stages it names. Server: `GET
 /api/routings`, `POST /api/routings` (`{name, from}` or a full profile), `POST
 /api/routings/active`, `POST /api/routing {profile?, stage, model?, agent?}`,
-`DELETE /api/routings/:name` (this computer only). `GET /api/routing` returns
+`DELETE /api/routings/:name` (this computer only; for `default`, back to Garry's setup). `GET /api/routing` returns
 the active profile.
 
 ## garry stack
@@ -547,7 +549,7 @@ Set `GARRY_CHROMIUM_PATH` to use an already installed Chromium.
 
 | File | Used by | |
 |---|---|---|
-| `garry.routing.json` | `feature`, `serve` | the example routing profile (`default`); your own are `routing/<name>.json` in the registry |
+| `garry.routing.json` | `feature`, `serve` | Garry's setup for the default routing profile; changes and your own are `routing/<name>.json` in the registry |
 | `garry.screenshots.json` | `shots` | routes, viewports and themes to capture |
 | `.env.local` (or `.env`) | every command | all variables, see `.env.example` |
 | `~/.garry/skills/` | `skills`, `feature`, `serve` | locally installed skills |
