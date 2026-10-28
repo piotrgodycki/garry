@@ -167,7 +167,7 @@ export class ThreadManager {
     const slug = remoteSlug(project.path);
     if (!slug) throw new Error("the project has no GitHub origin remote");
     const token = githubToken();
-    if (!token) throw new Error("connect GitHub first (Build, Import from GitHub) or set GARRY_GITHUB_TOKEN in .env.local");
+    if (!token) throw new Error("connect GitHub first (Settings, GitHub) or set GARRY_GITHUB_TOKEN in .env.local");
     if (this.running.has(threadId)) throw new Error("wait for the agent to finish");
     if (git(t.worktree, ["status", "--porcelain"]).trim()) throw new Error("commit the changes first");
     const gh = new GitHub(token);

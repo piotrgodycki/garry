@@ -398,8 +398,8 @@ garry projects import octo/shop   # clone into ~/.garry/repos/octo/shop and add 
 garry github logout           # forget the token Garry saved
 ```
 
-The dashboard does the same on the Build page (Import from GitHub), on this
-computer only: a paired phone cannot connect GitHub or import. Pushes and clones
+The dashboard does the same in Settings (GitHub: paste, replace or remove
+the token) and on the Build page (Import from GitHub), on this computer only: a paired phone cannot connect GitHub or import. Pushes and clones
 pass the token to git for that one command; it is never written into a
 repository's config.
 
