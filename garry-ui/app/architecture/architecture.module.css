@@ -31,9 +31,13 @@
 }
 .paletteItem {
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  padding: 6px 8px;
+  padding: 5px 8px;
   text-align: left;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: inherit;
@@ -88,66 +92,162 @@
 
 /* a block: provides on the left, needs on the right */
 .block {
+  --tone: #64748b;
   position: relative;
   box-sizing: border-box;
   width: 300px;
-  padding: 10px 12px;
+  padding: 10px 0 0;
   background: var(--surface);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   color: var(--color-text-default);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 18px -8px rgba(0, 0, 0, 0.18);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.block::before {
+  /* a strip of the block's colour along the top */
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: 12px 12px 0 0;
+  background: var(--tone);
+}
+.block:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 10px 24px -8px rgba(0, 0, 0, 0.25);
 }
 .blockSelected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  border-color: var(--tone);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 35%, transparent), 0 10px 24px -8px rgba(0, 0, 0, 0.25);
 }
 .error {
   border-color: var(--color-brand-secondary);
-  box-shadow: inset 3px 0 0 var(--color-brand-secondary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-secondary) 30%, transparent);
 }
 .warn {
-  box-shadow: inset 3px 0 0 #d97706;
+  border-color: #d97706;
 }
+.g_client { --tone: #6366f1; }
+.g_service { --tone: var(--accent); }
+.g_edge { --tone: #0ea5e9; }
+.g_compute { --tone: #f59e0b; }
+.g_data { --tone: #10b981; }
+.g_storage { --tone: #14b8a6; }
+.g_messaging { --tone: #ec4899; }
+.g_identity { --tone: #8b5cf6; }
+.g_content { --tone: #f97316; }
+.g_external { --tone: #64748b; }
 .blockHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px;
+}
+.blockIcon {
+  flex: none;
   display: grid;
-  gap: 2px;
-  height: 32px;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+}
+.blockIcon svg {
+  width: 19px;
+  height: 19px;
+}
+.blockIconSmall {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+.blockIconSmall svg {
+  width: 13px;
+  height: 13px;
+}
+.blockIconSmall .monogram {
+  font-size: 8px;
+}
+.monogram {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.blockTitle {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
 }
 .blockName {
   font-weight: 650;
-  font-size: 13.5px;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .blockProvider {
   font-size: 11px;
   color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-/* puzzle tabs */
+.blockFlag {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: #d97706;
+}
+.error .blockFlag {
+  background: var(--color-brand-secondary);
+}
+.blockPorts {
+  display: grid;
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.portRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 14px;
+  font-size: 11px;
+}
+.provideLabel {
+  color: var(--color-text-muted);
+}
+.needLabel {
+  color: var(--color-text-default);
+  font-weight: 550;
+  text-align: right;
+}
+/* the plugs: hollow sockets in, filled plugs out */
 .port {
-  width: 14px !important;
-  height: 14px !important;
-  border-radius: 3px !important;
-  border: 1px solid var(--color-text-default) !important;
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  border: 2px solid var(--tone) !important;
+  transition: scale 0.12s;
+}
+.port:hover {
+  scale: 1.35;
 }
 .provide {
   background: var(--surface) !important;
-  left: -8px !important;
+  left: -7px !important;
 }
 .need {
-  background: var(--color-text-default) !important;
-  right: -8px !important;
-}
-.portLabel {
-  position: absolute;
-  top: -1px;
-  white-space: nowrap;
-  font-size: 10.5px;
-  color: var(--color-text-muted);
-  pointer-events: none;
-}
-.provide .portLabel {
-  left: 18px;
-}
-.need .portLabel {
-  right: 18px;
+  background: var(--tone) !important;
+  right: -7px !important;
 }
 @media (max-width: 1100px) {
   .layout {

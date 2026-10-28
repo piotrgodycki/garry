@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from "react";
 import {
   addEdge,
   Background,
@@ -22,34 +22,83 @@ import type { ArchBlock, ArchIssue, ArchSuggestion, ArchTemplate, Architecture, 
 import { client } from "../lib/client";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./architecture.module.css";
+import { isDark, logoOf } from "./logos";
 
 // the block's header, then one row per port
-const HEAD = 52;
-const ROW = 22;
+const HEAD = 58;
+const ROW = 26;
 
-type BlockData = { block: ArchBlock; label?: string; caps: Record<string, string>; level?: "error" | "warn" };
+type BlockData = { block: ArchBlock; label?: string; caps: Record<string, string>; level?: "error" | "warn"; uses?: string[] };
 type BlockNode = Node<BlockData, "block">;
+
+/** One glyph per kind of block, drawn on the 24px grid like the rest of the icons. */
+const GLYPH: Record<string, ReactNode> = {
+  client: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></>,
+  edge: <><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.5 2.3 3.7 5.2 3.7 8.5s-1.2 6.2-3.7 8.5c-2.5-2.3-3.7-5.2-3.7-8.5S9.5 5.8 12 3.5z" /></>,
+  compute: <><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9 2.5v3.5M15 2.5v3.5M9 18v3.5M15 18v3.5M2.5 9h3.5M2.5 15h3.5M18 9h3.5M18 15h3.5" /></>,
+  data: <><ellipse cx="12" cy="6" rx="7.5" ry="2.8" /><path d="M4.5 6v12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V6M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8" /></>,
+  storage: <><path d="M3.5 7.5l8.5-4 8.5 4v9l-8.5 4-8.5-4z" /><path d="M3.5 7.5l8.5 4 8.5-4M12 11.5v9" /></>,
+  messaging: <><path d="M4 5h16v10H9l-5 4z" /><path d="M8 9h8M8 12h5" /></>,
+  identity: <><rect x="4.5" y="10.5" width="15" height="10" rx="2" /><path d="M8 10.5V8a4 4 0 018 0v2.5M12 14.5v2.5" /></>,
+  content: <><path d="M6 3.5h8l4 4v13H6z" /><path d="M14 3.5v4h4M9 12h6M9 15.5h6" /></>,
+  external: <><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1" /></>,
+};
+
+/** The service's logo, its monogram, or the glyph of its kind (browsers, your own services). */
+function BlockLogo({ blockId, group, small }: { blockId: string; group: string; small?: boolean }) {
+  const logo = logoOf(blockId);
+  const color = logo ? (isDark(logo.hex) ? "var(--color-text-default)" : logo.hex) : undefined;
+  return (
+    <span className={`${styles.blockIcon} ${small ? styles.blockIconSmall : ""} ${styles[`g_${group}`] ?? ""}`} aria-hidden="true" style={color ? ({ "--tone": color } as CSSProperties) : undefined}>
+      {logo && "path" in logo ? (
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d={logo.path} />
+        </svg>
+      ) : logo ? (
+        <span className={styles.monogram}>{logo.text}</span>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          {GLYPH[group] ?? GLYPH.compute}
+        </svg>
+      )}
+    </span>
+  );
+}
 
 /** A puzzle piece: what it provides sockets in on the left, what it needs plugs out on the right. */
 function BlockCard({ data, selected }: NodeProps<BlockNode>) {
   const { block, caps } = data;
-  const needs = block.needs ?? [];
+  // what it needs, plus what it is linked to beyond that (a platform using a database)
+  const needs = [...(block.needs ?? []), ...(data.uses ?? []).filter((c) => !(block.needs ?? []).includes(c))];
   const rows = Math.max(block.provides.length, needs.length, 1);
+  const group = block.id.startsWith("service:") ? "service" : block.group;
   return (
-    <div className={`${styles.block} ${selected ? styles.blockSelected : ""} ${data.level ? styles[data.level] : ""}`} style={{ height: HEAD + rows * ROW + 8 }}>
+    <div className={`${styles.block} ${styles[`g_${group}`] ?? ""} ${selected ? styles.blockSelected : ""} ${data.level ? styles[data.level] : ""}`} style={{ height: HEAD + rows * ROW + 10 }}>
       <div className={styles.blockHead}>
-        <span className={styles.blockName}>{data.label || block.name}</span>
-        <span className={styles.blockProvider}>{block.provider}</span>
+        <BlockLogo blockId={block.id} group={group} />
+        <span className={styles.blockTitle}>
+          <span className={styles.blockName}>{data.label || block.name}</span>
+          <span className={styles.blockProvider}>{data.label && data.label !== block.name ? `${block.name} · ${block.provider}` : block.provider}</span>
+        </span>
+        {data.level && (
+          <span className={styles.blockFlag} title={data.level === "error" ? "does not fit" : "something is missing"}>
+            !
+          </span>
+        )}
+      </div>
+      <div className={styles.blockPorts} style={{ gridTemplateRows: `repeat(${rows}, ${ROW}px)` }}>
+        {Array.from({ length: rows }, (_, i) => (
+          <div key={i} className={styles.portRow}>
+            <span className={styles.provideLabel}>{block.provides[i] ? (caps[block.provides[i]] ?? block.provides[i]) : ""}</span>
+            <span className={styles.needLabel}>{needs[i] ? (caps[needs[i]] ?? needs[i]) : ""}</span>
+          </div>
+        ))}
       </div>
       {block.provides.map((c, i) => (
-        <Handle key={`p-${c}`} id={c} type="target" position={Position.Left} className={`${styles.port} ${styles.provide}`} style={{ top: HEAD + i * ROW + ROW / 2 }}>
-          <span className={styles.portLabel}>{caps[c] ?? c}</span>
-        </Handle>
+        <Handle key={`p-${c}`} id={c} type="target" position={Position.Left} className={`${styles.port} ${styles.provide}`} style={{ top: HEAD + i * ROW + ROW / 2 }} title={`provides ${caps[c] ?? c}`} />
       ))}
       {needs.map((c, i) => (
-        <Handle key={`n-${c}`} id={c} type="source" position={Position.Right} className={`${styles.port} ${styles.need}`} style={{ top: HEAD + i * ROW + ROW / 2 }}>
-          <span className={styles.portLabel}>{caps[c] ?? c}</span>
-        </Handle>
+        <Handle key={`n-${c}`} id={c} type="source" position={Position.Right} className={`${styles.port} ${styles.need}`} style={{ top: HEAD + i * ROW + ROW / 2 }} title={`needs ${caps[c] ?? c}`} />
       ))}
     </div>
   );
@@ -57,8 +106,10 @@ function BlockCard({ data, selected }: NodeProps<BlockNode>) {
 const nodeTypes = { block: BlockCard };
 
 const toFlow = (a: Architecture, blocks: Map<string, ArchBlock>, caps: Record<string, string>): { nodes: BlockNode[]; edges: Edge[] } => ({
-  nodes: a.nodes.filter((n) => blocks.has(n.block)).map((n) => ({ id: n.id, type: "block", position: { x: n.x, y: n.y }, data: { block: blocks.get(n.block)!, label: n.label, caps } })),
-  edges: a.edges.map((e) => ({ id: `${e.from}>${e.to}:${e.capability}`, source: e.from, target: e.to, sourceHandle: e.capability, targetHandle: e.capability, label: caps[e.capability] ?? e.capability })),
+  nodes: a.nodes
+    .filter((n) => blocks.has(n.block))
+    .map((n) => ({ id: n.id, type: "block", position: { x: n.x, y: n.y }, data: { block: blocks.get(n.block)!, label: n.label, caps, uses: [...new Set(a.edges.filter((e) => e.from === n.id).map((e) => e.capability))] } })),
+  edges: a.edges.map((e) => ({ id: `${e.from}>${e.to}:${e.capability}`, source: e.from, target: e.to, sourceHandle: e.capability, targetHandle: e.capability })),
 });
 const fromFlow = (nodes: BlockNode[], edges: Edge[]): Architecture => ({
   nodes: nodes.map((n) => ({ id: n.id, block: n.data.block.id, label: n.data.label, x: n.position.x, y: n.position.y })),
@@ -74,15 +125,19 @@ function Board({ state }: { state: ArchitectureState }) {
   const [saved, setSaved] = useState<"saved" | "saving" | "error" | null>(null);
   const [query, setQuery] = useState("");
   const flow = useReactFlow();
-  // fit the board once its blocks are measured (fitView on mount runs before that)
-  const measured = useNodesInitialized();
-  const fitted = useRef(false);
-  useEffect(() => {
-    if (!measured || fitted.current) return;
-    fitted.current = true;
-    void flow.fitView({ maxZoom: 1, padding: 0.2 });
-  }, [measured, flow]);
   const wrap = useRef<HTMLDivElement>(null);
+  // fit the board once its blocks are measured, and again whenever the canvas
+  // changes size (the page settles around it), until you move the view yourself
+  const measured = useNodesInitialized();
+  const moved = useRef(false);
+  useEffect(() => {
+    if (!measured || !wrap.current) return;
+    const fit = () => !moved.current && void flow.fitView({ maxZoom: 1, padding: 0.15 });
+    fit();
+    const ro = new ResizeObserver(() => fit());
+    ro.observe(wrap.current);
+    return () => ro.disconnect();
+  }, [measured, flow]);
 
   // save a moment after the last change; the answer carries what the check says
   const board = JSON.stringify(fromFlow(nodes, edges));
@@ -123,7 +178,7 @@ function Board({ state }: { state: ArchitectureState }) {
   const isValidConnection = useCallback((c: Connection | Edge) => c.source !== c.target && !!c.sourceHandle && c.sourceHandle === c.targetHandle, []);
   const onConnect = useCallback(
     (c: Connection) =>
-      setEdges((es) => addEdge({ ...c, id: `${c.source}>${c.target}:${c.sourceHandle}`, label: state.capabilities[c.sourceHandle ?? ""] ?? c.sourceHandle }, es)),
+      setEdges((es) => addEdge({ ...c, id: `${c.source}>${c.target}:${c.sourceHandle}` }, es)),
     [setEdges, state.capabilities],
   );
 
@@ -177,7 +232,7 @@ function Board({ state }: { state: ArchitectureState }) {
       sg.links.reduce((acc, l) => {
         const from = ref(l.from);
         const to = ref(l.to);
-        return from && to ? addEdge({ id: `${from}>${to}:${l.capability}`, source: from, target: to, sourceHandle: l.capability, targetHandle: l.capability, label: state.capabilities[l.capability] ?? l.capability }, acc) : acc;
+        return from && to ? addEdge({ id: `${from}>${to}:${l.capability}`, source: from, target: to, sourceHandle: l.capability, targetHandle: l.capability }, acc) : acc;
       }, es),
     );
   };
@@ -210,6 +265,7 @@ function Board({ state }: { state: ArchitectureState }) {
                 onClick={() => add(b)}
                 title={b.note ?? `provides ${b.provides.join(", ") || "nothing"}${b.needs?.length ? `; needs ${b.needs.join(", ")}` : ""}`}
               >
+                <BlockLogo blockId={b.id} group={b.id.startsWith("service:") ? "service" : b.group} small />
                 {b.name}
               </button>
             ))}
@@ -229,8 +285,14 @@ function Board({ state }: { state: ArchitectureState }) {
           isValidConnection={isValidConnection}
           fitView
           fitViewOptions={{ maxZoom: 1, padding: 0.2 }}
+          minZoom={0.2}
           defaultViewport={{ x: 40, y: 40, zoom: 1 }}
           proOptions={{ hideAttribution: true }}
+          onMoveStart={(e) => {
+            // a wheel, drag or pinch (not a fit) means you placed the view
+            if (e) moved.current = true;
+          }}
+          defaultEdgeOptions={{ type: "smoothstep", style: { strokeWidth: 1.8, stroke: "var(--color-text-muted)" } }}
           deleteKeyCode={["Backspace", "Delete"]}
         >
           <Background gap={20} />
