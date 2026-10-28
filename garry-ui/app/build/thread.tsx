@@ -111,7 +111,7 @@ export default function ThreadView() {
   const changed = diff?.files.length ?? 0;
   return (
     <main className="page">
-      <PageHeader back={{ href: "/build", label: "Build" }} title={thread.title} lede={<span className={styles.meta}>{thread.branch}</span>} />
+      <PageHeader back={{ href: "/build", label: "Build" }} title={thread.title} lede={<span className={`${styles.meta} ${styles.branch}`}>{thread.branch}</span>} />
       <div className={styles.layout}>
         <section className="card" style={{ padding: 0 }}>
           <div className={styles.timeline}>

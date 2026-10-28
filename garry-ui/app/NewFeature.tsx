@@ -84,7 +84,7 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
           <span className="muted">Loading services…</span>
         ) : services.length === 0 ? (
           <span className="muted">
-            No services yet. <Link href="/registry">Add them in the registry</Link>, or leave this for the plan stage.
+            No services yet. <Link href="/registry">Add them in Services</Link>, or leave this for the plan stage.
           </span>
         ) : (
           <div className={styles.chips}>

@@ -47,6 +47,12 @@ Garry saying what is missing.
   <img src="docs/screenshots/architecture-board-light.png" alt="Architecture board" />
 </picture>
 
+The dashboard's menu follows the work: **Work** (Dashboard, Build, Pull
+requests) is the idea, the agents building it and what it ships as; **Project**
+(Services, Architecture, Stacks, Files) is what it happens in; **Garry**
+(Skills, Model routing, Settings) is how Garry works. Every page uses the whole
+width of the screen and works on a phone, where the menu becomes a drawer.
+
 <table>
   <tr>
     <td width="50%"><b>Build</b>: describe a change, an agent works on it in its own branch.<br><img src="docs/screenshots/build.png" alt="Build" /></td>
@@ -91,7 +97,7 @@ pnpm dev
 http://localhost:8123 and the UI with hot reload on http://localhost:3000.
 
 Garry starts empty: there is no sample data. Add your services in the dashboard
-(Registry, Add service) or with `garry service add`, optionally on a tech stack
+(Services, Add service) or with `garry service add`, optionally on a tech stack
 you compose first (Stacks, or `garry stack add`), and lay out how they fit together
 with the platforms they run on (Architecture); they go to `./registry` when
 it has a `catalog/`, else to `~/.garry/registry`. Then create a feature (New

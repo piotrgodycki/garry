@@ -215,15 +215,19 @@ select {
 
 /* ---- app shell ------------------------------------------------------------ */
 .shell {
+  --topbar-h: 57px;
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   min-height: 100vh;
+  min-height: 100dvh;
+  transition: margin-right 0.3s var(--ease);
 }
 .sidebar {
   position: sticky;
   top: 0;
   align-self: start;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
@@ -231,8 +235,38 @@ select {
   background: var(--surface);
   border-right: 1px solid var(--border);
 }
+.sidebarTop {
+  display: grid;
+  gap: var(--space-lg);
+}
+.menuButton,
+.talkTop {
+  display: none;
+}
+/* the menu scrolls on a short screen; the foot (talk, server, theme) stays in view */
+.sidebarMenu {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+.sidebarMenu .nav {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
 .content {
   min-width: 0;
+}
+.scrim {
+  display: none;
+}
+/* the voice dock sits beside the page on a wide screen instead of over it */
+@media (min-width: 1280px) {
+  html[data-dock="open"] .shell {
+    margin-right: 424px;
+  }
 }
 
 .brand {
@@ -413,72 +447,109 @@ select {
   box-shadow: var(--shadow-xs);
 }
 
-/* Narrow screens: the sidebar becomes a top bar with a scrollable nav. */
+/* Tablet and phone: the sidebar folds into a top bar (menu, Garry, the
+   project, talk) and the menu slides in from the left as a drawer. */
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
-    /* the top bar keeps its height; the page takes the rest */
     grid-template-rows: auto minmax(0, 1fr);
   }
   .sidebar {
-    position: sticky;
-    z-index: 40;
-    height: auto;
+    z-index: 60;
+    height: var(--topbar-h);
     flex-direction: row;
     align-items: center;
-    gap: var(--space-sm);
-    padding: 8px var(--space-md);
+    padding: 0 12px;
     border-right: none;
     border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--surface) 88%, transparent);
-    backdrop-filter: blur(12px);
+  }
+  .sidebarTop {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+  .menuButton {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--color-text-default);
+    cursor: pointer;
+  }
+  .menuButton svg {
+    width: 20px;
+    height: 20px;
+  }
+  .brand {
+    flex: none;
+    padding: 4px;
   }
   .brandText {
     display: none;
   }
-  .nav {
-    display: flex;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    flex: 1;
-    min-width: 0;
-  }
-  .navGroup {
-    display: contents;
-  }
-  .navLabel {
-    display: none;
-  }
-  .nav a {
-    white-space: nowrap;
-    padding: 7px 10px;
-  }
-  .navIcon {
-    display: none;
-  }
-  .sidebarFoot {
-    margin: 0;
+  .talkTop {
     display: flex;
     flex: none;
+    margin-left: auto;
   }
-  .talkButton {
-    width: auto;
-    padding: 9px;
+  .talkTop .talkButton {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
   }
-  .talkButton .talkLabel,
-  .talkButton .kbd,
-  .footRow {
+  .talkTop .talkButton .talkLabel,
+  .talkTop .talkButton .kbd {
     display: none;
+  }
+  .sidebarMenu {
+    position: fixed;
+    z-index: 60;
+    top: var(--topbar-h);
+    left: 0;
+    bottom: 0;
+    width: min(320px, 88vw);
+    padding: var(--space-md) 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s var(--ease), visibility 0s linear 0.25s;
+  }
+  .menuOpen .sidebarMenu {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s var(--ease), visibility 0s;
+  }
+  .sidebarMenu .nav {
+    overflow: visible;
+  }
+  /* talk is already in the top bar */
+  .sidebarMenu .talkButton {
+    display: none;
+  }
+  .scrim {
+    display: block;
+    position: fixed;
+    z-index: 55;
+    inset: var(--topbar-h) 0 0 0;
+    background: rgba(0, 0, 0, 0.4);
   }
 }
 
 /* ---- page layout ---------------------------------------------------------- */
 .page {
   width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: var(--space-xl) var(--space-xl) 56px;
+  padding: var(--space-xl) clamp(var(--space-md), 3vw, 48px) 56px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-lg);
@@ -518,6 +589,7 @@ select {
 }
 .lede {
   margin: 0;
+  overflow-wrap: anywhere;
   color: var(--color-text-muted);
   font-size: 14px;
   max-width: 68ch;
@@ -536,7 +608,14 @@ select {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-sm);
+  flex-wrap: wrap;
+  gap: 4px var(--space-sm);
+}
+/* the heading keeps its line; a caption beside it moves under it when there is no room */
+.sectionHead > h2,
+.sectionHead > h3 {
+  flex: none;
+  max-width: 100%;
 }
 .sectionHead .count {
   font-size: 12px;
@@ -575,7 +654,7 @@ select {
 /* KPI tiles */
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
   gap: 12px;
 }
 .stat {
@@ -737,6 +816,58 @@ select {
 }
 
 /* ---- data table ----------------------------------------------------------- */
+/* A table marked "cards" turns each row into a card on a phone: every cell
+   on its own line under the name of its column (data-label). */
+@media (max-width: 640px) {
+  .table.cards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .table.cards,
+  .table.cards tbody,
+  .table.cards tr,
+  .table.cards td {
+    display: block;
+  }
+  .table.cards tr {
+    display: grid;
+    gap: 8px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .table.cards tbody tr:last-child {
+    border-bottom: none;
+  }
+  .table.cards td {
+    padding: 0;
+    border: none;
+    min-width: 0;
+  }
+  .table.cards td[data-label] {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+  }
+  .table.cards td[data-label] > * {
+    justify-self: start;
+    max-width: 100%;
+  }
+  .table.cards td[data-label]::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .table.cards td:empty {
+    display: none;
+  }
+}
 .tableWrap {
   overflow-x: auto;
 }

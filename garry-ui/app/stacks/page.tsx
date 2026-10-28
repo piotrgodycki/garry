@@ -178,7 +178,6 @@ export default function Stacks() {
   return (
     <main className="page">
       <PageHeader
-        eyebrow="Configure"
         title="Tech stacks"
         lede="The technologies your services are built with. Compose a stack from the catalog, and Garry tells you what does not fit; services point at a stack, and their agents work in it."
         actions={

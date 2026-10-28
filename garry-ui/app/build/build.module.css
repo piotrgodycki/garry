@@ -45,6 +45,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* the branch under a work's title: whole, on as many lines as it needs */
+.branch {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 
 /* the thread: conversation on the left, changes on the right */
 .layout {

@@ -45,6 +45,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selected, setSelected] = useState("");
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [planError, setPlanError] = useState<string | null>(null);
   const [models, setModels] = useState<Record<string, string>>({});
   const [consumes, setConsumes] = useState<Record<string, string[]>>({});
   const [current, setCurrent] = useState<number | null>(null);
@@ -87,10 +88,18 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
 
   const loadPlan = useCallback(() => {
     if (!selected) return;
+    setPlanError(null);
     fetch(`${apiBase}/api/features/${selected}/plan`)
-      .then((r) => r.json())
-      .then((p: Plan) => setPlan(p))
-      .catch(() => undefined);
+      .then(async (r) => {
+        const body = await r.json();
+        // an error is no plan: say so instead of drawing one
+        if (!r.ok || !Array.isArray(body?.tasks)) throw new Error(body?.error ?? `HTTP ${r.status}`);
+        return body as Plan;
+      })
+      .then(setPlan, (e: Error) => {
+        setPlan(null);
+        setPlanError(e.message);
+      });
   }, [selected]);
   useEffect(() => loadPlan(), [loadPlan]);
 
@@ -247,14 +256,24 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
       />
       )}
 
+      {planError && (
+        <div className="notice" role="alert">
+          {Icon.alert}
+          <div>
+            <strong>Garry could not plan {selected}</strong>
+            <span>{planError}</span>
+          </div>
+        </div>
+      )}
+
       {noFeatures && (
         <div className="notice" role="status">
           {Icon.alert}
           <div>
             <strong>No features yet</strong>
             <span>
-              Capture an idea on the <Link href="/">dashboard</Link> and talk it through with Garry, or start with your services in
-              the <Link href="/registry">registry</Link>.
+              Capture an idea on the <Link href="/">dashboard</Link> and talk it through with Garry, or start with your services in{" "}
+              <Link href="/registry">Services</Link>.
             </span>
           </div>
         </div>
@@ -350,7 +369,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
       {/* the orchestration, left to right: stages as columns, Garry and each service as lanes */}
       {plan && flow.stages.length > 0 && (
         <div className={`card ${styles.flowCard}`}>
-          <div className={styles.flow} style={{ gridTemplateColumns: `152px repeat(${flow.stages.length}, minmax(108px, 1fr))` }}>
+          <div className={styles.flow} style={{ gridTemplateColumns: `152px repeat(${flow.stages.length}, minmax(150px, 1fr))` }}>
             <span className={styles.flowCorner} />
             {flow.stages.map((stage, i) => {
               const st = stageState(stage);

@@ -22,6 +22,7 @@ export const Icon = {
   mic: svg(<><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></>),
   send: svg(<path d="M5 12h14M13 6l6 6-6 6" />),
   close: svg(<path d="M6 6l12 12M18 6L6 18" />),
+  menu: svg(<path d="M4 7h16M4 12h16M4 17h16" />),
   back: svg(<path d="M15 6l-6 6 6 6" />),
   chevron: svg(<path d="M9 6l6 6-6 6" />),
   external: svg(<path d="M7 17L17 7M9 7h8v8" />),

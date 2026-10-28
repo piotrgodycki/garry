@@ -84,7 +84,7 @@ export default function Build() {
   const names = new Map((projects ?? []).map((p) => [p.id, p.name]));
   return (
     <main className="page">
-      <PageHeader eyebrow="Build" title="Build with agents" lede="Describe the change. An agent works on it in its own branch; you review the diff, commit and open the pull request. Every agent's work shows here, live." />
+      <PageHeader title="Build with agents" lede="Describe the change. An agent works on it in its own branch; you review the diff, commit and open the pull request. Every agent's work shows here, live." />
       {offline && <ServerNotice />}
 
       <AgentsNow threads={threads} projects={projects ?? []} />

@@ -59,6 +59,11 @@ export default function VoiceDock() {
     };
   }, []);
 
+  // a wide screen makes room for the dock beside the page (globals.css)
+  useEffect(() => {
+    document.documentElement.dataset.dock = open ? "open" : "closed";
+  }, [open]);
+
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 120);

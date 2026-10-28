@@ -98,7 +98,6 @@ export default function Dashboard() {
   return (
     <main className="page">
       <PageHeader
-        eyebrow="Overview"
         title="Dashboard"
         lede="Drop an idea and talk it through with Garry. The agents build, review, test and ship it on their own. You watch."
         actions={
@@ -108,7 +107,7 @@ export default function Dashboard() {
             </button>
             <Link className="btn" href="/build?view=pipeline">
               {Icon.agent}
-              Open live agents
+              Watch the agents
             </Link>
           </>
         }
