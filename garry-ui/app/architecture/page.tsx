@@ -9,6 +9,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useEdgesState,
+  useNodesInitialized,
   useNodesState,
   useReactFlow,
   type Connection,
@@ -17,7 +18,7 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import type { ArchBlock, ArchIssue, ArchSuggestion, Architecture, ArchitectureState } from "garry-client";
+import type { ArchBlock, ArchIssue, ArchSuggestion, ArchTemplate, Architecture, ArchitectureState } from "garry-client";
 import { client } from "../lib/client";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./architecture.module.css";
@@ -73,6 +74,14 @@ function Board({ state }: { state: ArchitectureState }) {
   const [saved, setSaved] = useState<"saved" | "saving" | "error" | null>(null);
   const [query, setQuery] = useState("");
   const flow = useReactFlow();
+  // fit the board once its blocks are measured (fitView on mount runs before that)
+  const measured = useNodesInitialized();
+  const fitted = useRef(false);
+  useEffect(() => {
+    if (!measured || fitted.current) return;
+    fitted.current = true;
+    void flow.fitView({ maxZoom: 1, padding: 0.2 });
+  }, [measured, flow]);
   const wrap = useRef<HTMLDivElement>(null);
 
   // save a moment after the last change; the answer carries what the check says
@@ -276,9 +285,29 @@ function Board({ state }: { state: ArchitectureState }) {
 export default function ArchitecturePage() {
   const [state, setState] = useState<ArchitectureState | null>(null);
   const [offline, setOffline] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  // a new board (a template) remounts the canvas so it fits the view again
+  const [version, setVersion] = useState(0);
+  const [templateError, setTemplateError] = useState<string | null>(null);
   useEffect(() => {
     client.architecture().then(setState, () => setOffline(true));
   }, []);
+
+  const applyTemplate = async (t: ArchTemplate) => {
+    // the board's latest state is on the server (it saves as you go)
+    const current = await client.architecture();
+    if (current.architecture.nodes.length && !window.confirm(`Replace the board with ${t.name}? What is on it now is replaced.`)) return;
+    setTemplateError(null);
+    try {
+      await client.saveArchitecture(t.architecture);
+      setState(await client.architecture());
+      setVersion((v) => v + 1);
+      setShowTemplates(false);
+    } catch (e) {
+      setTemplateError(String((e as Error).message ?? e));
+    }
+  };
+  const templatesOpen = state ? showTemplates || (state.architecture.nodes.length === 0 && version === 0) : false;
   return (
     <main className="page">
       <PageHeader
@@ -288,8 +317,33 @@ export default function ArchitecturePage() {
       />
       {offline && <ServerNotice />}
       {!state && !offline && <Skeleton rows={2} height={200} />}
+      {state && state.templates.length > 0 && (
+        <section className={styles.templates} aria-label="ready-made architectures">
+          <div className={styles.templatesHead}>
+            <span className="eyebrow">Start from a ready-made architecture</span>
+            <button className="btn btnSm btnGhost" aria-expanded={templatesOpen} onClick={() => setShowTemplates(!templatesOpen)}>
+              {templatesOpen ? "Hide" : "Show"}
+            </button>
+          </div>
+          {templatesOpen && (
+            <div className={styles.templateGrid}>
+              {state.templates.map((t) => (
+                <div key={t.id} className={`card ${styles.template}`}>
+                  <span className={styles.templateName}>{t.name}</span>
+                  <span className={styles.templateSummary}>{t.summary}</span>
+                  <span className={styles.templateFor}>Good for: {t.goodFor}</span>
+                  <button className="btn btnSm" onClick={() => void applyTemplate(t)}>
+                    Use this
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {templateError && <span className="badge danger">{templateError}</span>}
+        </section>
+      )}
       {state && (
-        <ReactFlowProvider>
+        <ReactFlowProvider key={version}>
           <Board state={state} />
         </ReactFlowProvider>
       )}

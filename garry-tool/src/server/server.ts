@@ -23,6 +23,7 @@ import { FeatureError, createFeature, removeFeature, type FeatureInput } from ".
 import { StackError, listStacks, removeStack, saveStack } from "../registry/stacks.js";
 import { ArchitectureError, architectureState, checkDraft, readArchitecture, saveArchitecture } from "../registry/architecture.js";
 import { ArchitectureSchema, CAPABILITIES, COMPONENTS, PROVIDERS } from "../registry/schema/architecture.js";
+import { ARCHITECTURE_TEMPLATES } from "../registry/schema/templates.js";
 import { aiSuggestions, quickFixes } from "../architecture/suggest.js";
 import { resolveRouting, routeFor } from "../orchestrate/routing.js";
 import { CATALOG, CATEGORIES, checkStack } from "../registry/schema/stacks.js";
@@ -634,7 +635,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     });
   }
   if (path === "/api/models") return json(res, 200, { models: MODELS });
-  if (path === "/api/architecture") return json(res, 200, { ...architectureState(cfg.registry), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS });
+  if (path === "/api/architecture") return json(res, 200, { ...architectureState(cfg.registry), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS, templates: ARCHITECTURE_TEMPLATES });
   if (path === "/api/stacks") return json(res, 200, { stacks: listStacks(cfg.registry), catalog: CATALOG, categories: CATEGORIES });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });
