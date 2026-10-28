@@ -123,6 +123,12 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.tech,
+.techChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .tech {
   cursor: pointer;
   font: inherit;
@@ -134,6 +140,10 @@
   background: var(--accent);
   color: var(--surface);
   border-color: var(--accent);
+}
+/* a picked chip is filled with the accent: its logo goes the chip's text colour */
+.on :global(.techIcon) {
+  color: var(--surface) !important;
 }
 .clash {
   opacity: 0.45;
