@@ -4,6 +4,7 @@ import { GarryError, type FileContent, type FileEntry, type Project, type Termin
 import { client } from "../lib/client";
 import { Icon } from "../icons";
 import styles from "./files.module.css";
+import Select from "../Select";
 
 // the editor and the terminal load only when they are first needed
 const CodeEditor = lazy(() => import("../build/CodeEditor"));
@@ -252,18 +253,12 @@ export default function FilesPage() {
         <aside className={styles.side}>
           <label className={styles.rootPick}>
             <span className={styles.sideTitle}>Explorer</span>
-            <select className="select" value={rootKey} onChange={(e) => pickRoot(e.target.value)} aria-label="folder">
-              {!current && <option value={rootKey}>{rootKey}</option>}
-              {groups.map(({ g, items }) => (
-                <optgroup key={g} label={g}>
-                  {items.map((r) => (
-                    <option key={r.key} value={r.key}>
-                      {r.label}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+            <Select
+              ariaLabel="folder"
+              value={rootKey}
+              onChange={pickRoot}
+              options={[...(current ? [] : [{ value: rootKey, label: rootKey }]), ...groups.flatMap(({ g, items }) => items.map((r) => ({ value: r.key, label: r.label, group: g })))]}
+            />
           </label>
           <nav className={styles.tree} aria-label="files">
             <Folder api={api} path="" depth={0} open={open} onOpen={choose} selected={active} version={version} />

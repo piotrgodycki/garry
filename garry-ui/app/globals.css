@@ -1153,3 +1153,128 @@ h1 {
 .tok-emphasis { font-style: italic; }
 .tok-strong { font-weight: 700; }
 .tok-invalid { color: var(--syn-invalid); }
+
+/* ---- dropdowns (Select.tsx): the dashboard's own, in place of the browser's -- */
+.gselect {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  text-align: left;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6472' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 14px;
+}
+:root[data-theme="dark"] .gselect {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23959dae' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .gselect {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23959dae' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E");
+  }
+}
+.gselect:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.gselectValue {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gselectPlaceholder {
+  color: var(--color-text-muted);
+}
+.gselectIcon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.gselectIcon svg {
+  width: 16px;
+  height: 16px;
+}
+.gselectList {
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow-y: auto;
+  max-width: min(440px, calc(100vw - 16px));
+  background: var(--surface);
+  color: var(--color-text-default);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  font-size: 13.5px;
+  animation: rise 0.12s ease-out;
+}
+.gselectUp {
+  transform: translateY(-100%);
+  animation: none;
+}
+.gselectGroup {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.gselectOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  user-select: none;
+}
+.gselectOption[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.gselectActive {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.gselectChosen {
+  font-weight: 600;
+}
+.gselectText {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+.gselectText > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gselectHint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+.gselectTick {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gselectList {
+    animation: none;
+  }
+}

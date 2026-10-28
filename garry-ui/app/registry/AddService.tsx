@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { RegistryIssue, RegistryService, ServiceKind, ServiceKindInfo, Stack, StackTemplate } from "garry-client";
 import Link from "../lib/router";
 import { client } from "../lib/client";
+import Select from "../Select";
 import styles from "./addService.module.css";
 
 const DATABASES = [
@@ -140,27 +141,16 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
         </label>
         <label className={styles.field}>
           <span className="eyebrow">Stack</span>
-          <select className="select" value={stackRef} onChange={(e) => setStackRef(e.target.value)} aria-label="stack">
-            {stacks.length > 0 && (
-              <optgroup label="Our stacks">
-                {stacks.map((s) => (
-                  <option key={s.name} value={s.name}>
-                    {s.name}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            {fitting.length > 0 && (
-              <optgroup label="Ready-made for this kind">
-                {fitting.map((t) => (
-                  <option key={t.name} value={`template:${t.name}`}>
-                    {t.title}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            <option value="">{stack.trim() ? `Another: ${stack.trim()}` : `Garry's default for this kind: ${current?.stack ?? "…"}`}</option>
-          </select>
+          <Select
+            ariaLabel="stack"
+            value={stackRef}
+            onChange={setStackRef}
+            options={[
+              ...stacks.map((x) => ({ value: x.name, label: x.name, hint: x.description, group: "Our stacks" })),
+              ...fitting.map((t) => ({ value: `template:${t.name}`, label: t.title, hint: t.description, group: "Ready-made for this kind" })),
+              { value: "", label: stack.trim() ? `Another: ${stack.trim()}` : `Garry's default for this kind: ${current?.stack ?? "…"}`, group: stacks.length || fitting.length ? "Other" : undefined },
+            ]}
+          />
           {!stackRef && <input className="input" placeholder={`or type one, e.g. ${current?.stack ?? ""}`} value={stack} onChange={(e) => setStack(e.target.value)} aria-label="another stack" />}
           {stacks.length === 0 && (
             <span className={styles.kindHint}>
@@ -171,13 +161,7 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
         {current?.db && (
           <label className={styles.field}>
             <span className="eyebrow">Database it owns</span>
-            <select className="select" value={db} onChange={(e) => setDb(e.target.value)} aria-label="database">
-              {DATABASES.map((d) => (
-                <option key={d.engine} value={d.engine}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
+            <Select ariaLabel="database" value={db} onChange={setDb} options={DATABASES.map((d) => ({ value: d.engine, label: d.label }))} />
           </label>
         )}
         {current?.exposes && (

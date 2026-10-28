@@ -52,25 +52,6 @@
   font-family: var(--font-family-mono);
   font-size: 13.5px;
 }
-.modelPick {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding-left: 10px;
-  height: 30px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-}
-.modelPick select {
-  font: inherit;
-  font-size: 12.5px;
-  border: none;
-  background-color: transparent;
-  color: var(--color-text-default);
-  height: 100%;
-  cursor: pointer;
-}
 .stages {
   display: flex;
   gap: 8px;

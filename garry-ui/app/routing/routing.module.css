@@ -55,9 +55,10 @@
   font-size: 13px;
 }
 .agentSelect {
-  padding: 4px 6px;
+  padding: 4px 30px 4px 8px;
+  height: 32px;
   border: 1px solid var(--border);
-  background: transparent;
+  background-color: transparent;
   color: inherit;
   font: inherit;
   font-family: var(--font-family-mono);

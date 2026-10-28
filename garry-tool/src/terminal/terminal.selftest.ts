@@ -108,11 +108,26 @@ const late = follow(term.id);
 expect("a late view replays the output so far", await until(() => late.seen.includes("sum=42")));
 late.abort.abort();
 
+// the shell's own process, to check it really ends
+await type(term.id, "echo shell-pid=$$\n");
+await until(() => /shell-pid=(\d+)/.test(view.seen.replace(/echo shell-pid=\$\$/g, "")));
+const shellPid = Number(/shell-pid=(\d+)/.exec(view.seen.replace(/echo shell-pid=\$\$/g, ""))?.[1]);
+const alive = (pid: number) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 // listed, then closed: the shell ends
 const listed = (await (await fetch(`${base}/api/terminals`)).json()) as { enabled: boolean; terminals: { id: string; root: string }[] };
 expect("open terminals are listed", listed.enabled && listed.terminals.some((t) => t.id === term.id && t.root === `project:${project.id}`));
+const closedAt = Date.now();
 expect("closing it is accepted", (await fetch(`${base}/api/terminals/${term.id}`, { method: "DELETE" })).status === 200);
-expect("closing ends the shell", await until(() => view.exited));
+expect("closing ends the shell at once", (await until(() => view.exited)) && Date.now() - closedAt < 1000, `${Date.now() - closedAt} ms`);
+expect("the shell's process is gone, not left behind", shellPid > 1 && (await until(() => !alive(shellPid), 3000)), `pid ${shellPid}`);
 expect("typing into a closed terminal is refused", (await type(term.id, "echo nope\n")).status === 404);
 
 // the registry is a root too
@@ -138,6 +153,14 @@ const many: string[] = [];
 for (let i = 0; i < MAX_TERMINALS; i++) many.push(((await (await post("/api/terminals", { root: "registry" })).json()) as { id: string }).id);
 expect(`more than ${MAX_TERMINALS} at once is refused`, many.every(Boolean) && (await post("/api/terminals", { root: "registry" })).status === 429);
 for (const id of many) await fetch(`${base}/api/terminals/${id}`, { method: "DELETE" });
+const leftovers = () => {
+  try {
+    return execFileSync("pgrep", ["-f", "garry-term-[A-Za-z0-9]{6}/tty"], { encoding: "utf8" }).trim();
+  } catch {
+    return "";
+  }
+};
+expect("closed terminals leave no processes behind", await until(() => leftovers() === "", 3000), leftovers());
 
 // a company can turn it off
 process.env.GARRY_TERMINAL = "off";
@@ -151,7 +174,7 @@ let lastExited = false;
 terminals.attach(last.id, (e) => e.type === "exit" && (lastExited = true));
 server.close();
 server.closeAllConnections();
-expect("stopping the server ends its shells", (await until(() => lastExited)) && terminals.list().length === 0);
+expect("stopping the server ends its shells", (await until(() => lastExited)) && terminals.list().length === 0 && (await until(() => leftovers() === "", 3000)), leftovers());
 
 if (failed) {
   console.error(`${failed} terminal check(s) failed`);

@@ -60,7 +60,8 @@
     "test:project": "tsx src/project/project.selftest.ts",
     "test:status": "tsx src/status/status.selftest.ts",
     "test:push-notify": "tsx src/status/push.selftest.ts",
-    "test:terminal": "tsx src/terminal/terminal.selftest.ts"
+    "test:terminal": "tsx src/terminal/terminal.selftest.ts",
+    "test:dropdown": "tsx src/ui/dropdown.selftest.ts"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

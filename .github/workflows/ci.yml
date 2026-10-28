@@ -29,6 +29,11 @@ jobs:
           pnpm -C garry-ui typecheck
       - name: Build the dashboard
         run: pnpm -C garry-ui build
+      # the dashboard's own controls, clicked and typed into in a real browser
+      - name: Dashboard in a browser
+        run: |
+          pnpm -C garry-tool exec playwright install --with-deps chromium
+          pnpm -C garry-tool test:dropdown
       - name: Validate registry (mfe and backend test registries)
         run: |
           pnpm -C garry-tool check:registry testdata/registry/frontend

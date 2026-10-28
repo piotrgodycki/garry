@@ -4,6 +4,7 @@ import Link from "./lib/router";
 import { client } from "./lib/client";
 import { confirmAction } from "./lib/desktop";
 import styles from "./newFeature.module.css";
+import Select from "./Select";
 
 const CONTRACTS = ["events.json", "remotes.json", "shared-deps.json", "design-tokens.json", "api.json"];
 
@@ -97,14 +98,12 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
       </div>
       <div className={styles.field}>
         <span className="eyebrow">Routing</span>
-        <select className="select" value={routing} onChange={(e) => setRouting(e.target.value)} aria-label="routing profile">
-          <option value="">The active profile{profiles ? ` (${profiles.active})` : ""}</option>
-          {(profiles?.profiles ?? []).map((p) => (
-            <option key={p.name} value={p.name}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+        <Select
+          ariaLabel="routing profile"
+          value={routing}
+          onChange={setRouting}
+          options={[{ value: "", label: `The active profile${profiles ? ` (${profiles.active})` : ""}` }, ...(profiles?.profiles ?? []).map((p) => ({ value: p.name, label: p.name }))]}
+        />
       </div>
       <div className={styles.field}>
         <span className="eyebrow">Contracts it changes</span>

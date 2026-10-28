@@ -42,6 +42,7 @@ interface Terminal extends TerminalInfo {
   backlog: string;
   listeners: Set<Listener>;
   ttyFile: string;
+  pidFile: string;
   tmp: string;
 }
 
@@ -85,13 +86,15 @@ export class TerminalManager {
     const shell = defaultShell();
     const tmp = mkdtempSync(join(tmpdir(), "garry-term-"));
     const ttyFile = join(tmp, "tty");
-    // size the terminal, note its device so it can be resized later, then hand over to the shell
-    const start = `stty cols ${cols} rows ${rows} 2>/dev/null; tty > ${quote(ttyFile)}; exec ${quote(shell)} -il`;
+    const pidFile = join(tmp, "pid");
+    // size the terminal, note its device (to resize it later) and the shell's process
+    // (exec keeps it: closing signals the shell itself), then hand over to the shell
+    const start = `stty cols ${cols} rows ${rows} 2>/dev/null; tty > ${quote(ttyFile)}; echo $$ > ${quote(pidFile)}; exec ${quote(shell)} -il`;
     const args = process.platform === "darwin" ? ["-q", "/dev/null", "/bin/sh", "-c", start] : ["-qfec", start, "/dev/null"];
     const env = { ...process.env, TERM: "xterm-256color", COLORTERM: "truecolor", GARRY_TERMINAL_ROOT: root };
     const proc = spawn("script", args, { cwd, env, stdio: ["pipe", "pipe", "pipe"] });
     const id = randomBytes(6).toString("hex");
-    const t: Terminal = { id, root, cwd, shell, createdAt: new Date().toISOString(), exited: false, proc, backlog: "", listeners: new Set(), ttyFile, tmp };
+    const t: Terminal = { id, root, cwd, shell, createdAt: new Date().toISOString(), exited: false, proc, backlog: "", listeners: new Set(), ttyFile, pidFile, tmp };
     const decoder = new StringDecoder("utf8");
     const emit = (data: string) => {
       if (!data) return;
@@ -157,10 +160,29 @@ export class TerminalManager {
   close(id: string): void {
     const t = this.must(id);
     this.terms.delete(id);
-    if (!t.exited) {
-      t.proc.kill("SIGHUP");
-      setTimeout(() => !t.exited && t.proc.kill("SIGKILL"), 2000).unref();
+    if (t.exited) return;
+    // script ignores SIGHUP and an interactive shell ignores SIGTERM: hang up on the shell
+    // itself, as closing a terminal window does; script then ends with it
+    let shellPid = 0;
+    try {
+      shellPid = Number(readFileSync(t.pidFile, "utf8").trim());
+    } catch {
+      /* not started yet */
     }
+    const signal = (pid: number, sig: NodeJS.Signals) => {
+      try {
+        if (pid > 1) process.kill(pid, sig);
+      } catch {
+        /* already gone */
+      }
+    };
+    signal(shellPid, "SIGHUP");
+    // script ends on its own once the shell is gone
+    setTimeout(() => {
+      if (t.exited) return;
+      signal(shellPid, "SIGKILL");
+      t.proc.kill("SIGKILL");
+    }, 2000).unref();
   }
 
   closeAll(): void {

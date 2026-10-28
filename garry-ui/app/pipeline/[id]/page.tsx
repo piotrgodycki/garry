@@ -4,6 +4,7 @@ import styles from "./pipeline.module.css";
 import { apiBase } from "../../lib/api";
 import { offered, tierOf } from "../../ModelChip";
 import { PageHeader, Skeleton } from "../../ui";
+import Select from "../../Select";
 
 interface Task {
   stage: string;
@@ -163,14 +164,14 @@ export default function Activity() {
               <div key={svc} className={`card ${styles.lane}`}>
                 <div className={styles.laneHead}>
                   <span className={styles.svcName}>{svc}</span>
-                  <label className={styles.modelPick}>
-                    <span className={`tier ${tierOf(model)}`} />
-                    <select value={model} onChange={(e) => changeModel(svc, e.target.value)} aria-label={`model for ${svc}`}>
-                      {offered(models, model).map((m) => (
-                        <option key={m.id} value={m.id}>{m.label}</option>
-                      ))}
-                    </select>
-                  </label>
+                  <>
+                    <Select
+                      ariaLabel={`model for ${svc}`}
+                      value={model}
+                      onChange={(m) => changeModel(svc, m)}
+                      options={offered(models, model).map((m) => ({ value: m.id, label: m.label, icon: <span className={`tier ${tierOf(m.id)}`} />, group: m.previous ? "Earlier models" : undefined }))}
+                    />
+                  </>
                 </div>
                 <div className={styles.stages}>
                   {tasks.map((t) => {

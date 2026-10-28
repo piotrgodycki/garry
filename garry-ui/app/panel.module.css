@@ -152,40 +152,6 @@
 .cap {
   text-transform: capitalize;
 }
-.modelCell {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 4px 0 12px;
-  height: 34px;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.modelCell:hover {
-  border-color: var(--accent-line);
-}
-.modelCell:focus-within {
-  border-color: var(--accent);
-  box-shadow: var(--ring);
-}
-.modelSelect {
-  font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  border: none;
-  background-color: transparent;
-  color: var(--color-text-default);
-  cursor: pointer;
-  height: 100%;
-  padding-left: 0;
-  outline: none;
-}
-.modelSelect:focus-visible {
-  box-shadow: none;
-}
 .savedCell {
   width: 110px;
   text-align: right;
