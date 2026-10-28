@@ -4,6 +4,7 @@ import Link from "../lib/router";
 import { client } from "../lib/client";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./stacks.module.css";
+import TechIcon from "../TechIcon";
 
 function Issues({ issues }: { issues: StackIssue[] }) {
   const shown = issues.filter((i) => i.level !== "info");
@@ -80,6 +81,7 @@ function Composer({ data, initial, template, onSaved, onCancel }: { data: Stacks
           <div className={styles.pickedList}>
             {picked.map((p) => (
               <span key={p.id} className={`${styles.pick} ${issues.some((i) => i.tech === p.id && i.level === "error") ? styles.pickBad : ""}`}>
+                <TechIcon id={p.id} />
                 <span>{byId.get(p.id)?.name ?? p.id}</span>
                 <input
                   className={styles.version}
@@ -118,6 +120,7 @@ function Composer({ data, initial, template, onSaved, onCancel }: { data: Stacks
                     title={t.note ?? (clashes(t) ? "does not work with something you picked" : undefined)}
                     onClick={() => toggle(t)}
                   >
+                    <TechIcon id={t.id} />
                     {t.name}
                     {t.side && <span className={styles.side}>{t.side}</span>}
                   </button>
@@ -228,7 +231,8 @@ export default function Stacks() {
               {s.description && <p className={styles.desc}>{s.description}</p>}
               <div className={styles.chips}>
                 {s.technologies.map((t) => (
-                  <span key={t.id} className="chip">
+                  <span key={t.id} className={`chip ${styles.techChip}`}>
+                    <TechIcon id={t.id} />
                     {names.get(t.id) ?? t.id}
                     {t.version && <span className="muted"> {t.version}</span>}
                   </span>
@@ -285,7 +289,8 @@ export default function Stacks() {
                   <p className={styles.desc}>{t.description}</p>
                   <div className={styles.chips}>
                     {t.technologies.map((x) => (
-                      <span key={x.id} className="chip">
+                      <span key={x.id} className={`chip ${styles.techChip}`}>
+                        <TechIcon id={x.id} />
                         {names.get(x.id) ?? x.id}
                       </span>
                     ))}
