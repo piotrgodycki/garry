@@ -378,7 +378,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     }
   }
 
-  // Garry at a glance (the menu bar, the iPhone widget): working, needs you, ready; the active project's work
+  // Garry at a glance (the Mac menu bar, the iPhone app): working, needs you, ready; the active project's work
   if (req.method === "GET" && path === "/api/status") {
     if (!cfg.threads) return json(res, 200, { state: "idle", counts: { needsYou: 0, working: 0, done: 0 }, items: [] });
     const store = cfg.threads.store;
