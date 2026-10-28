@@ -20,7 +20,12 @@ export interface Device {
   tokenHash: string;
   createdAt: string;
   lastSeenAt: string | null;
+  /** an Expo push token the device asked to be notified on (Garry needs you, work is ready) */
+  pushToken?: string;
 }
+
+/** What Expo hands an app for its push notifications. */
+export const PUSH_TOKEN = /^Expo(nent)?PushToken\[[A-Za-z0-9_-]{8,200}\]$/;
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 const MAX_FAILED_PAIRS_PER_MINUTE = 20;
@@ -104,6 +109,18 @@ export class DeviceStore {
       }
     }
     return device;
+  }
+
+  /** Sets (or with null, clears) the push token of one device. */
+  setPushToken(id: string, pushToken: string | null): boolean {
+    if (pushToken !== null && !PUSH_TOKEN.test(pushToken)) throw new Error("not an Expo push token");
+    const devices = this.list();
+    const d = devices.find((x) => x.id === id);
+    if (!d) return false;
+    if (pushToken) d.pushToken = pushToken;
+    else delete d.pushToken;
+    this.save(devices);
+    return true;
   }
 
   revoke(id: string): boolean {

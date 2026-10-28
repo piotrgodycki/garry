@@ -11,7 +11,7 @@ export interface Routing {
   override: Record<string, Route>;
 }
 
-const DEFAULT_ROUTE: Route = { agent: "garry-dev", model: "claude-sonnet-4-6" };
+const DEFAULT_ROUTE: Route = { agent: "garry-dev", model: "claude-sonnet-5-5" };
 
 /**
  * Resolves the routing: the profile (the feature's `routing:`, else the active

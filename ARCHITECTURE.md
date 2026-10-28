@@ -297,12 +297,12 @@ The heart of switching models and agents. Per SDLC stage (or per skill) you choo
 ```jsonc
 // garry.routing.json (defaults plus per feature overrides in the UI)
 {
-  "defaults": { "agent": "garry-dev", "model": "claude-sonnet-4-6" },
+  "defaults": { "agent": "garry-dev", "model": "claude-sonnet-5-5" },
   "stages": {
-    "spec":      { "agent": "garry-analyst",  "model": "claude-opus-4-8" },
-    "scaffold":  { "agent": "garry-dev",      "model": "claude-haiku-4-5-20251001" },
-    "review":    { "agent": "garry-reviewer", "model": "claude-opus-4-8" },
-    "test":      { "agent": "garry-dev",      "model": "claude-sonnet-4-6" }
+    "spec":      { "agent": "garry-analyst",  "model": "claude-opus-5-5" },
+    "scaffold":  { "agent": "garry-dev",      "model": "claude-haiku-5-5" },
+    "review":    { "agent": "garry-reviewer", "model": "claude-opus-5-5" },
+    "test":      { "agent": "garry-dev",      "model": "claude-sonnet-5-5" }
   }
 }
 ```

@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { Link, Redirect, Stack, useFocusEffect, useRouter } from "expo-router";
-import { GarryError, type Feature, type Thread } from "garry-client";
+import { GarryError, type Feature, type GarryStatus, type Thread } from "garry-client";
 import { useConnection } from "../lib/connection";
 import { STAGES, usePalette } from "../lib/theme";
 import { Body, Button, Card, Chip, Label, Loading, Notice, Stages, Title } from "../lib/ui";
@@ -13,15 +13,17 @@ export default function Home() {
   const p = usePalette();
   const [features, setFeatures] = useState<Feature[] | null>(null);
   const [work, setWork] = useState<Thread[]>([]);
+  const [status, setStatus] = useState<GarryStatus | null>(null);
   const [error, setError] = useState<GarryError | Error | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     if (!client) return;
     try {
-      const [f, w] = await Promise.all([client.features(), client.threads().catch(() => [])]);
+      const [f, w, st] = await Promise.all([client.features(), client.threads().catch(() => []), client.status().catch(() => null)]);
       setFeatures(f);
       setWork(w);
+      setStatus(st);
       setError(null);
     } catch (e) {
       setError(e as Error);
@@ -63,13 +65,26 @@ export default function Home() {
             <Button kind="ghost" onPress={() => router.push("/new")}>New work</Button>
           </View>
         </View>
+        {/* Garry at a glance: the same reading as the menu bar on the Mac */}
+        {status && status.state !== "idle" && (
+          <Card>
+            <Label live={status.state === "working"}>
+              {status.state === "needs-you" ? "Garry needs you" : status.state === "working" ? "Agents are working" : "Work is ready"}
+            </Label>
+            <Body>
+              {[status.counts.needsYou && `${status.counts.needsYou} need you`, status.counts.working && `${status.counts.working} working`, status.counts.done && `${status.counts.done} ready for review`].filter(Boolean).join(" · ")}
+            </Body>
+          </Card>
+        )}
         {work.length > 0 && <Label>Work</Label>}
         {work.map((t) => (
           <Link key={t.id} href={{ pathname: "/thread/[id]", params: { id: t.id } }} asChild>
             <Pressable accessibilityRole="button">
               <Card>
                 <View style={s.between}>
-                  <Label live={t.status === "running"}>{t.status === "running" ? "Working" : t.pr ? "PR open" : t.commit ? "Committed" : t.status === "error" ? "Stopped" : "Ready for review"}</Label>
+                  <Label live={t.status === "running"}>
+                    {t.status === "running" ? "Working" : t.attention === "needs-you" ? (t.status === "error" ? "Stopped" : "Needs you") : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review"}
+                  </Label>
                 </View>
                 <Title>{t.title}</Title>
                 <Body muted>{t.branch}</Body>

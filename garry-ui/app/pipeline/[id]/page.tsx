@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import styles from "./pipeline.module.css";
 import { apiBase } from "../../lib/api";
-import { tierOf } from "../../ModelChip";
+import { offered, tierOf } from "../../ModelChip";
 import { PageHeader, Skeleton } from "../../ui";
 
 interface Task {
@@ -21,6 +21,7 @@ interface Plan {
 interface Model {
   id: string;
   label: string;
+  previous?: boolean;
 }
 
 const GLOBAL_STAGES = ["spec", "plan", "design", "integrate"];
@@ -165,7 +166,7 @@ export default function Activity() {
                   <label className={styles.modelPick}>
                     <span className={`tier ${tierOf(model)}`} />
                     <select value={model} onChange={(e) => changeModel(svc, e.target.value)} aria-label={`model for ${svc}`}>
-                      {models.map((m) => (
+                      {offered(models, model).map((m) => (
                         <option key={m.id} value={m.id}>{m.label}</option>
                       ))}
                     </select>

@@ -54,6 +54,8 @@ export interface PullRequest {
 export interface Model {
   id: string;
   label: string;
+  /** An earlier generation, offered only where it is already chosen. */
+  previous?: boolean;
 }
 
 export interface Route {
@@ -260,6 +262,21 @@ export interface PairedDevice {
   name: string;
   createdAt: string;
   lastSeenAt: string | null;
+}
+
+// ---- Garry at a glance ----
+export interface GarryStatusItem {
+  threadId: string;
+  title: string;
+  projectId: string;
+  state: "working" | "needs-you" | "done";
+  detail: string;
+  at: string;
+}
+export interface GarryStatus {
+  state: "idle" | "working" | "needs-you" | "done";
+  counts: { needsYou: number; working: number; done: number };
+  items: GarryStatusItem[];
 }
 
 // ---- Garry projects ----

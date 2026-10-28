@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { Model, RoutingProfile, RoutingProfiles } from "garry-client";
 import styles from "../panel.module.css";
 import own from "./routing.module.css";
-import { tierOf } from "../ModelChip";
+import { offered, tierOf } from "../ModelChip";
 import { client } from "../lib/client";
 import { Icon } from "../icons";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
@@ -76,7 +76,7 @@ export default function Routing() {
         <label className={styles.modelCell}>
           <span className={`tier ${tierOf(r.model)}`} />
           <select className={styles.modelSelect} value={r.model} onChange={(e) => void change(stage, { model: e.target.value })} aria-label={`model for ${stage}`}>
-            {models.map((m) => (
+            {offered(models, r.model).map((m) => (
               <option key={m.id} value={m.id}>
                 {m.label}
               </option>

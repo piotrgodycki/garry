@@ -48,6 +48,7 @@ import { githubToken } from "../github/env.js";
 import { GarryProjectError, createGarryProject, garryProject, listGarryProjects, removeGarryProject, updateGarryProject, useGarryProject, activeGarryProject } from "../project/store.js";
 import { exportGarryProject, importGarryProject, originOf } from "../project/bundle.js";
 import { garryStatus } from "../status/status.js";
+import { pushEnabled } from "../status/push.js";
 import { GitHub, parseSlug } from "../github/client.js";
 
 export interface ServerConfig {
@@ -295,6 +296,19 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   const presented = local ? null : requestToken(req, url);
   const device = presented ? devices.verify(presented) : null;
   if (!local && !device) return json(res, 401, { error: "pair this device first: run garry pair on the computer running Garry" });
+
+  // A paired phone asks to be notified (or stops): its own push token, nothing else
+  if (path === "/api/push/token") {
+    if (!device) return json(res, 400, { error: "only a paired device registers for notifications" });
+    if (req.method !== "POST") return json(res, 405, { error: "method not allowed" });
+    const body = (await readBody(req)) as { token?: string | null };
+    try {
+      devices.setPushToken(device.id, body.token ? String(body.token) : null);
+      return json(res, 200, { ok: true, notifications: Boolean(body.token), enabled: pushEnabled() });
+    } catch (e) {
+      return json(res, 400, { error: String((e as Error).message ?? e) });
+    }
+  }
 
   // Managing devices is for this machine only, so a stolen token cannot mint more.
   if (path === "/api/pair/codes" || path.startsWith("/api/devices")) {
