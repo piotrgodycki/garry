@@ -106,7 +106,7 @@ export default function Dashboard() {
             <button className="btn btnPrimary" onClick={() => setDraft({ title: "" })}>
               New feature
             </button>
-            <Link className="btn" href="/agent">
+            <Link className="btn" href="/build?view=pipeline">
               {Icon.agent}
               Open live agents
             </Link>
@@ -199,7 +199,7 @@ export default function Dashboard() {
               const idx = stageIndex(f.status);
               const steps = STAGES.slice(0, STAGES.length - 1);
               return (
-                <Link key={f.id} href={`/agent?feature=${f.id}`} className={`card cardLink ${styles.row}`}>
+                <Link key={f.id} href={`/build?view=pipeline&feature=${f.id}`} className={`card cardLink ${styles.row}`}>
                   <div className={styles.rowTop}>
                     <span className={styles.id}>{f.id}</span>
                     <span className="badge run"><span className="dot run" />{f.status}</span>
@@ -243,7 +243,7 @@ export default function Dashboard() {
             </div>
           ) : (
             shipped.map((f) => (
-              <Link key={f.id} href={`/agent?feature=${f.id}`} className={`card cardLink ${styles.row}`}>
+              <Link key={f.id} href={`/build?view=pipeline&feature=${f.id}`} className={`card cardLink ${styles.row}`}>
                 <div className={styles.rowTop}>
                   <span className={styles.id}>{f.id}</span>
                   <span className="badge ok">{Icon.check}Shipped</span>

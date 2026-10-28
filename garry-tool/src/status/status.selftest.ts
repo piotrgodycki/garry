@@ -85,6 +85,8 @@ await until(() => threads.isRunning(slow.id));
 s = garryStatus(threads);
 expect("a running turn is working", byId(s, slow.id)?.state === "working");
 expect("working is not news", !statusChanges(null, s).some((i) => i.threadId === slow.id));
+const busy = threads.create(project.id, "BUSY job");
+await until(() => threads.store.events(busy.id).some((e) => e.type === "tool"));
 stop();
 
 // over HTTP: what the menu bar and the iPhone app read
@@ -92,10 +94,14 @@ const server = createGarryServer({ registry: join(home, "reg"), skills: join(hom
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const api = (await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}/api/status`).then((r) => r.json())) as ReturnType<typeof garryStatus>;
 const port = (server.address() as AddressInfo).port;
-const listed = (await fetch(`http://127.0.0.1:${port}/api/threads`).then((r) => r.json())) as { threads: { id: string; attention: string | null }[] };
+const listed = (await fetch(`http://127.0.0.1:${port}/api/threads`).then((r) => r.json())) as { threads: { id: string; attention: string | null; activity: string | null }[] };
+const activity = (id: string) => listed.threads.find((t) => t.id === id)?.activity;
+expect("each piece of work says what its agent is doing now", activity(slow.id) === "Working" && activity(busy.id) === "Write NOTES.md" && /Stopped/.test(activity(fails.id) ?? "") && activity(asks.id) === "Ready for your review" && activity(fine.id) == null, JSON.stringify(listed.threads.map((t) => [t.id, t.activity])));
 expect("the thread list carries the same reading", listed.threads.find((t) => t.id === slow.id)?.attention === "working" && listed.threads.find((t) => t.id === fails.id)?.attention === "needs-you");
-expect("GET /api/status says the same", api.state === s.state && api.items.length === s.items.length && api.counts.working === 1);
+const now = garryStatus(threads);
+expect("GET /api/status says the same", api.state === now.state && api.items.length === now.items.length && api.counts.working === 2);
 threads.stop(slow.id);
+threads.stop(busy.id);
 server.close();
 
 if (failed) {

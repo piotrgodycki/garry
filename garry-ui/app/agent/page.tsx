@@ -40,7 +40,8 @@ interface LogEntry {
   action: string;
 }
 
-export default function AgentView() {
+/** The orchestration of a feature, left to right. Embedded, it sits in Build under its own toolbar. */
+export default function AgentView({ embedded = false }: { embedded?: boolean } = {}) {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [selected, setSelected] = useState("");
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -137,7 +138,7 @@ export default function AgentView() {
 
   const pickFeature = (id: string) => {
     setSelected(id);
-    window.history.replaceState(null, "", `/agent?feature=${id}`);
+    window.history.replaceState(null, "", `/build?view=pipeline&feature=${id}`);
   };
 
   // the latest detailed (per skill) action for a service, shown on its own node
@@ -199,13 +200,31 @@ export default function AgentView() {
     return { role: first?.agent ?? "", modelId: id, model: id ? models[id] ?? id : "" };
   };
 
-  const featureTitle = plan?.feature.title ?? (offline || noFeatures ? "Live agents" : "Loading feature");
+  const Wrap = embedded ? "section" : "main";
+  const featureTitle = plan?.feature.title ?? (offline || noFeatures ? "Feature pipeline" : "Loading feature");
   const statusTone = stopped ? "danger" : finished ? "ok" : busy ? "run" : "wait";
   const statusText = stopped ? "Stopped" : finished ? "Shipped" : busy ? "Running" : "Waiting";
 
   return (
-    <main className={`page ${styles.page}`}>
-      <PageHeader
+    <Wrap className={embedded ? styles.page : `page ${styles.page}`}>
+      {embedded ? (
+        <div className={styles.embedBar}>
+          <span className={styles.titleRow}>
+            {plan && <span className={styles.featureId}>{plan.feature.id}</span>}
+            <strong>{featureTitle}</strong>
+          </span>
+          <span className={styles.embedActions}>
+            {features.length > 1 && (
+              <Select ariaLabel="feature" value={selected} onChange={pickFeature} options={features.map((f) => ({ value: f.id, label: `${f.id} ${f.title}` }))} />
+            )}
+            <button className="btn btnDanger" onClick={stopAll} disabled={stopped || finished || !plan} aria-label="stop all agents">
+              {Icon.stop}
+              {stopped ? "Stopped" : "Stop all agents"}
+            </button>
+          </span>
+        </div>
+      ) : (
+        <PageHeader
         back={{ href: "/", label: "Dashboard" }}
         title={
           <span className={styles.titleRow}>
@@ -226,6 +245,7 @@ export default function AgentView() {
           </>
         }
       />
+      )}
 
       {noFeatures && (
         <div className="notice" role="status">
@@ -432,6 +452,6 @@ export default function AgentView() {
           </div>
         </div>
       </div>
-    </main>
+    </Wrap>
   );
 }

@@ -9,7 +9,7 @@
   ],
   "routes": [
     { "name": "dashboard", "path": "/" },
-    { "name": "live-agents", "path": "/agent", "wait": 2500, "live": true },
+    { "name": "live-agents", "path": "/build?view=pipeline", "wait": 2500, "live": true },
     { "name": "registry", "path": "/registry" },
     { "name": "stacks", "path": "/stacks" },
     { "name": "architecture", "path": "/architecture" },

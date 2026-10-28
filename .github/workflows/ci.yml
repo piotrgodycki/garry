@@ -34,6 +34,7 @@ jobs:
         run: |
           pnpm -C garry-tool exec playwright install --with-deps chromium
           pnpm -C garry-tool test:dropdown
+          pnpm -C garry-tool test:build-ui
       - name: Validate registry (mfe and backend test registries)
         run: |
           pnpm -C garry-tool check:registry testdata/registry/frontend

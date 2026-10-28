@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import type { GarryProject, Project, Thread } from "garry-client";
 import Link from "../lib/router";
 import { client } from "../lib/client";
@@ -10,6 +10,8 @@ import styles from "./build.module.css";
 import GithubImport from "./GithubImport";
 import ProjectSettingsPanel from "./ProjectSettings";
 import Select from "../Select";
+import AgentsNow from "./AgentsNow";
+import AgentView from "../agent/page";
 
 const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.attention === "needs-you" ? "danger" : t.pr ? "ok" : "");
 const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.attention === "needs-you" ? (t.status === "error" ? "Stopped" : "Needs you") : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
@@ -17,6 +19,8 @@ const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : 
 /** Start work in a project and follow every piece of work in progress. */
 export default function Build() {
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const pipeline = params.get("view") === "pipeline";
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [projectId, setProjectId] = useState("");
@@ -58,7 +62,8 @@ export default function Build() {
         })
         .catch(() => setOffline(true));
     void load();
-    const timer = setInterval(load, 5000);
+    // often enough that what each agent is doing reads as live
+    const timer = setInterval(load, 2500);
     return () => clearInterval(timer);
   }, []);
 
@@ -79,8 +84,24 @@ export default function Build() {
   const names = new Map((projects ?? []).map((p) => [p.id, p.name]));
   return (
     <main className="page">
-      <PageHeader eyebrow="Build" title="Build with agents" lede="Describe the change. An agent works on it in its own branch; you review the diff, commit and open the pull request." />
+      <PageHeader eyebrow="Build" title="Build with agents" lede="Describe the change. An agent works on it in its own branch; you review the diff, commit and open the pull request. Every agent's work shows here, live." />
       {offline && <ServerNotice />}
+
+      <AgentsNow threads={threads} projects={projects ?? []} />
+
+      <div className={styles.views} role="tablist" aria-label="view">
+        <button role="tab" aria-selected={!pipeline} className={`${styles.view} ${!pipeline ? styles.viewOn : ""}`} onClick={() => setParams({})}>
+          Work
+        </button>
+        <button role="tab" aria-selected={pipeline} className={`${styles.view} ${pipeline ? styles.viewOn : ""}`} onClick={() => setParams({ view: "pipeline" })}>
+          Feature pipeline
+        </button>
+      </div>
+
+      {pipeline ? (
+        <AgentView embedded />
+      ) : (
+        <>
 
       <section className={`card ${styles.newForm}`}>
         {projects === null ? (
@@ -178,6 +199,8 @@ export default function Build() {
             </Link>
           ))}
         </div>
+      )}
+        </>
       )}
     </main>
   );
