@@ -17,6 +17,7 @@
     { "name": "routing", "path": "/routing" },
     { "name": "pull-requests", "path": "/github" },
     { "name": "build", "path": "/build" },
+    { "name": "files", "path": "/files" },
     { "name": "settings", "path": "/settings" },
     { "name": "service", "path": "/service/checkout-mfe", "wait": 1500, "live": true }
   ]

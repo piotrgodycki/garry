@@ -159,6 +159,7 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  text-decoration: none;
 }
 .fileLink:hover {
   text-decoration: underline;

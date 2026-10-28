@@ -105,6 +105,17 @@ export interface RegistryService {
 }
 
 /** One entry of a worktree folder (files are opened and edited on the computer running Garry only). */
+/** A shell opened from the Files tab on the computer running Garry. */
+export interface TerminalInfo {
+  id: string;
+  /** "registry", "project:<id>" or "thread:<id>" */
+  root: string;
+  cwd: string;
+  shell: string;
+  createdAt: string;
+  exited: boolean;
+}
+
 export interface FileEntry {
   name: string;
   path: string;

@@ -125,13 +125,14 @@ works on it:
   branch, the remote and the commits; each project can change that (ask, allow,
   never), its base branch, branch prefix and protected branches (Push and branch
   settings), and agents themselves can never push;
-- **Files** browses the worktree and lets you change any file by hand in a code
-  editor (Cmd/Ctrl+S saves); your edits land in the same diff. It is read only
-  while the agent works, and a file the agent changed since you opened it is
-  not overwritten. Files open on this computer only, never on a paired phone;
-- the Build page also shows the selected project's own checkout (the Garry
-  repository itself when `garry serve` runs in it), and the Registry page the
-  registry's files (catalog, contracts, features, stacks), with the same editor.
+- **Files** (its own tab) works like a code editor: an explorer of the registry,
+  each repo and each piece of work in progress, files open in tabs, Cmd/Ctrl+S
+  saves, and a terminal along the bottom (Ctrl+`) opens a shell in that folder.
+  Your edits land in the same diff. A worktree is read only while its agent
+  works, and a file changed on disk since you opened it is not overwritten. A
+  changed file in a piece of work's diff opens straight in Files. Files and the
+  terminal open on this computer only, never on a paired phone; a company can
+  turn the terminal off with `GARRY_TERMINAL=off`.
 
 The agent is [Claude Code](https://docs.claude.com/en/docs/claude-code) on your
 own Claude plan, run on the computer that runs Garry: install it and sign in once
@@ -399,6 +400,10 @@ The pipeline is kept cheap on purpose:
   GHSA-mrhx-c7xc-m3w5 (zod 3, used to validate Expo dev tools plugins; Garry's own
   packages use the fixed zod 4). The list is `pnpm.auditConfig` in `package.json`;
   drop an entry as soon as Expo ships a fixed version.
+- The terminal in Files is a shell on the computer running Garry, so only that
+  computer may open one: paired devices get 403, writes from another site are
+  refused, at most 8 run at once, and they end when Garry stops.
+  `GARRY_TERMINAL=off` turns it off for everyone.
 - `garry serve` listens on `127.0.0.1` only. Phones and other computers connect after
   pairing with a one-time QR code and send a per-device token; see
   [Phones and other computers](./docs/cli.md#phones-and-other-computers).

@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, TerminalInfo, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -195,6 +195,37 @@ export class GarryClient {
   threadFiles = (id: string, path = "") => this.listFiles(`/api/threads/${id}`, path);
   readThreadFile = (id: string, path: string) => this.readFile(`/api/threads/${id}`, path);
   writeThreadFile = (id: string, path: string, content: string, sha?: string) => this.writeFile(`/api/threads/${id}`, path, content, sha);
+
+  // ---- terminals (the Files tab; the computer running Garry only) ----
+  /** Open terminals, and whether this computer allows them (GARRY_TERMINAL=off). */
+  terminals = () => this.request<{ enabled: boolean; terminals: TerminalInfo[] }>("/api/terminals");
+  /** Opens a shell in a root: "registry", "project:<id>" or "thread:<id>". */
+  openTerminal = (root: string, cols?: number, rows?: number) => this.post<TerminalInfo>("/api/terminals", { root, cols, rows });
+  terminalInput = (id: string, data: string) => this.post<{ ok: true }>(`/api/terminals/${id}/input`, { data });
+  resizeTerminal = (id: string, cols: number, rows: number) => this.post<{ ok: true }>(`/api/terminals/${id}/resize`, { cols, rows });
+  closeTerminal = (id: string) => this.request<{ ok: true }>(`/api/terminals/${id}`, { method: "DELETE" });
+
+  /** Follows a terminal: what it printed so far, then each new piece, until it exits or the signal aborts. */
+  async followTerminal(id: string, onData: (data: string) => void, signal?: AbortSignal): Promise<{ code: number | null } | null> {
+    const res = await this.f(`${this.base}/api/terminals/${id}/stream`, { headers: this.headers({ accept: "text/event-stream" }), signal });
+    if (!res.ok || !res.body) throw new GarryError(`terminal: ${res.status}`, res.status);
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) return null;
+      buffer += decoder.decode(value, { stream: true });
+      const blocks = buffer.split("\n\n");
+      buffer = blocks.pop() ?? "";
+      for (const b of blocks) {
+        const data = b.split("\n").find((l) => l.startsWith("data:"))?.slice(5).trim();
+        if (!data) continue;
+        if (b.startsWith("event: exit")) return JSON.parse(data) as { code: number | null };
+        onData(JSON.parse(data) as string);
+      }
+    }
+  }
 
   /** Follows a thread: every event so far, then each new one, until the signal aborts. */
   async threadEvents(id: string, onEvent: (e: ThreadEvent) => void, signal?: AbortSignal): Promise<void> {

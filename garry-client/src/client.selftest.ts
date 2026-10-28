@@ -53,6 +53,21 @@ try {
   expect("stream: feature first, done last", events[0]?.type === "feature" && events.at(-1)?.type === "done");
   expect("stream: every task and its logs", events.filter((e) => e.type === "task").length === plan.tasks.length && events.some((e) => e.type === "log"));
 
+  {
+    // a terminal in the registry: what is typed runs and streams back, closing ends it
+    const term = await local.openTerminal("registry", 80, 24);
+    let seen = "";
+    const abort = new AbortController();
+    const ended = local.followTerminal(term.id, (d) => (seen += d), abort.signal);
+    await local.terminalInput(term.id, "echo from-the-$((2+3))-client\n");
+    const until = Date.now() + 8000;
+    while (!seen.includes("from-the-5-client") && Date.now() < until) await new Promise((r) => setTimeout(r, 50));
+    expect("a terminal runs what is typed", seen.includes("from-the-5-client"));
+    await local.closeTerminal(term.id);
+    expect("closing a terminal ends its stream", (await Promise.race([ended, new Promise((r) => setTimeout(() => r("timeout"), 5000))])) !== "timeout");
+    abort.abort();
+  }
+
   expect("a pairing link parses", parsePairingLink("http://192.168.1.5:8123/pair?code=abc")?.code === "abc");
   expect("other links do not", parsePairingLink("http://evil.example/other?code=abc") === null && parsePairingLink("not a link") === null);
 

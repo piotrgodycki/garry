@@ -17,6 +17,7 @@ import Pair from "./pair/page";
 import Build from "./build/page";
 import ThreadView from "./build/thread";
 import Settings from "./settings/page";
+import Files from "./files/page";
 import { Empty } from "./ui";
 
 const router = createBrowserRouter([
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
       { path: "/service/:name", element: <ServicePage /> },
       { path: "/build", element: <Build /> },
       { path: "/build/:id", element: <ThreadView /> },
+      { path: "/files", element: <Files /> },
       { path: "/pair", element: <Pair /> },
       { path: "/settings", element: <Settings /> },
       { path: "*", element: <main className="page"><Empty>Page not found.</Empty></main> },

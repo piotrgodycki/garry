@@ -417,6 +417,8 @@ select {
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
+    /* the top bar keeps its height; the page takes the rest */
+    grid-template-rows: auto minmax(0, 1fr);
   }
   .sidebar {
     position: sticky;
@@ -675,7 +677,8 @@ select {
   padding: 0 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  background: var(--surface);
+  /* the colour only: the chevron image comes from the select rule above */
+  background-color: var(--surface);
   color: var(--color-text-default);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -1104,3 +1107,49 @@ h1 {
   background: var(--color-brand-primary);
   color: var(--on-brand);
 }
+
+/* ---- code colours (the Files editor; CodeMirror's tok-* classes) ---------- */
+:root {
+  --syn-keyword: #a626a4;
+  --syn-name: #0b5cad;
+  --syn-type: #b45309;
+  --syn-string: #1a7f37;
+  --syn-number: #b45309;
+  --syn-comment: #6b7280;
+  --syn-meta: #6b7280;
+  --syn-invalid: #cf222e;
+}
+:root[data-theme="dark"] {
+  --syn-keyword: #d7a6ff;
+  --syn-name: #8cc8ff;
+  --syn-type: #f5c26b;
+  --syn-string: #8fdc9b;
+  --syn-number: #f5c26b;
+  --syn-comment: #8b93a1;
+  --syn-meta: #8b93a1;
+  --syn-invalid: #ff8a8a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --syn-keyword: #d7a6ff;
+    --syn-name: #8cc8ff;
+    --syn-type: #f5c26b;
+    --syn-string: #8fdc9b;
+    --syn-number: #f5c26b;
+    --syn-comment: #8b93a1;
+    --syn-meta: #8b93a1;
+    --syn-invalid: #ff8a8a;
+  }
+}
+.tok-keyword, .tok-operatorKeyword, .tok-modifier { color: var(--syn-keyword); }
+.tok-variableName.tok-definition, .tok-propertyName.tok-definition, .tok-function, .tok-labelName { color: var(--syn-name); }
+.tok-typeName, .tok-className, .tok-namespace { color: var(--syn-type); }
+.tok-string, .tok-string2, .tok-url { color: var(--syn-string); }
+.tok-number, .tok-bool, .tok-atom { color: var(--syn-number); }
+.tok-comment { color: var(--syn-comment); font-style: italic; }
+.tok-meta, .tok-processingInstruction { color: var(--syn-meta); }
+.tok-heading { font-weight: 700; color: var(--syn-name); }
+.tok-link { text-decoration: underline; }
+.tok-emphasis { font-style: italic; }
+.tok-strong { font-weight: 700; }
+.tok-invalid { color: var(--syn-invalid); }

@@ -15,6 +15,7 @@ import { DEVICE_COOKIE, DeviceStore, hostAllowed, isLoopback, requestToken } fro
 import { serveUi } from "./static.js";
 import { ThreadManager } from "../threads/manager.js";
 import { fileRoute } from "../threads/files.js";
+import { TerminalError, TerminalManager, terminalEnabled } from "../terminal/terminal.js";
 import { cloneRepo, forgetToken, githubStatus, listRepos, pollDeviceFlow, saveToken, startDeviceFlow } from "../github/connect.js";
 import { threadRoutes } from "../threads/routes.js";
 import { readdirSync } from "node:fs";
@@ -62,6 +63,8 @@ export interface ServerConfig {
   hosts?: string[];
   /** projects and agent threads; one is created when not given */
   threads?: ThreadManager;
+  /** shells opened from the Files tab; one is created when not given */
+  terminals?: TerminalManager;
 }
 
 const CORS = {
@@ -252,9 +255,12 @@ function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
 /** Builds the Garry HTTP server (REST plus SSE) over the supervisor. */
 export function createGarryServer(cfg: ServerConfig, devices = new DeviceStore()): Server {
   cfg.threads ??= new ThreadManager();
-  return createServer((req, res) => {
+  const terminals = (cfg.terminals ??= new TerminalManager());
+  const server = createServer((req, res) => {
     void handle(req, res, cfg, devices).catch((e) => json(res, 500, { error: String((e as Error).message ?? e) }));
   });
+  server.on("close", () => terminals.closeAll());
+  return server;
 }
 
 async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConfig, devices: DeviceStore): Promise<void> {
@@ -330,6 +336,12 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   const bearer = Boolean(device && req.headers.authorization?.startsWith("Bearer "));
   if ((req.method === "POST" || req.method === "DELETE") && !bearer && !writeAllowed(req)) {
     return json(res, 403, { error: `writes are not allowed from ${req.headers.origin}; add it to GARRY_UI_ORIGINS` });
+  }
+
+  // Terminals for the Files tab: a shell is this computer's to open, never a paired device's
+  if (path === "/api/terminals" || path.startsWith("/api/terminals/")) {
+    if (!local) return json(res, 403, { error: "the terminal opens on the computer running Garry" });
+    return terminalRoutes(req, res, path, cfg);
   }
 
   // Projects and agent threads (the IDE): this machine and paired devices
@@ -688,6 +700,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "POST /api/threads/:id/messages {text}, /stop, /commit {message}, /pr {title?, body?}",
         "DELETE /api/threads/:id (this machine only: removes the worktree and branch)",
         "GET /api/threads/:id/files?path=, GET /api/threads/:id/file?path=, POST /api/threads/:id/file {path, content, sha?} (this machine only)",
+        "GET /api/terminals, POST /api/terminals {root: registry|project:<id>|thread:<id>, cols?, rows?}, GET /api/terminals/:id/stream (SSE), POST /api/terminals/:id/input {data}, POST /api/terminals/:id/resize {cols, rows}, DELETE /api/terminals/:id (this machine only; GARRY_TERMINAL=off turns it off)",
         "GET /api/features",
         "POST /api/features {title, goal?, services?, contractChanges?}",
         "DELETE /api/features/:id (this machine only)",
@@ -753,4 +766,66 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   if (stream) return streamPlan(res, cfg, decodeURIComponent(stream[1]));
 
   json(res, 404, { error: "not found", path });
+}
+
+/** Where a Files tab root lives on disk: the registry, a repo's checkout, a piece of work's worktree. */
+function rootDir(cfg: ServerConfig, root: string): string | null {
+  if (root === "registry") {
+    mkdirSync(cfg.registry, { recursive: true });
+    return cfg.registry;
+  }
+  const m = /^(project|thread):([a-z0-9]{4,16})$/.exec(root);
+  if (!m) return null;
+  const store = cfg.threads!.store;
+  if (m[1] === "project") return store.project(m[2])?.path ?? null;
+  return store.get(m[2])?.worktree ?? null;
+}
+
+async function terminalRoutes(req: IncomingMessage, res: ServerResponse, path: string, cfg: ServerConfig): Promise<void> {
+  const terminals = cfg.terminals!;
+  const m = req.method ?? "GET";
+  try {
+    if (path === "/api/terminals") {
+      if (m === "GET") return json(res, 200, { enabled: terminalEnabled(), terminals: terminals.list() });
+      if (m !== "POST") return json(res, 405, { error: "method not allowed" });
+      const body = (await readBody(req)) as { root?: string; cols?: number; rows?: number };
+      const root = String(body.root ?? "");
+      const dir = rootDir(cfg, root);
+      if (!dir) return json(res, 404, { error: `no such folder to open a terminal in: ${root || "(none)"}` });
+      return json(res, 200, terminals.open(root, dir, body));
+    }
+    const one = /^\/api\/terminals\/([a-f0-9]{12})(\/stream|\/input|\/resize)?$/.exec(path);
+    if (!one) return json(res, 404, { error: "not found", path });
+    const [, id, action = ""] = one;
+    if (action === "/stream" && m === "GET") {
+      if (!terminals.get(id)) return json(res, 404, { error: "no such terminal" });
+      res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive", ...CORS });
+      const off = terminals.attach(id, (e) => {
+        if (e.type === "data") res.write(`data: ${JSON.stringify(e.data)}\n\n`);
+        else {
+          res.write(`event: exit\ndata: ${JSON.stringify({ code: e.code })}\n\n`);
+          res.end();
+        }
+      });
+      req.on("close", off);
+      return;
+    }
+    if (action === "/input" && m === "POST") {
+      const body = (await readBody(req)) as { data?: unknown };
+      terminals.write(id, body.data);
+      return json(res, 200, { ok: true });
+    }
+    if (action === "/resize" && m === "POST") {
+      await terminals.resize(id, (await readBody(req)) as { cols?: number; rows?: number });
+      return json(res, 200, { ok: true });
+    }
+    if (action === "" && m === "DELETE") {
+      terminals.close(id);
+      return json(res, 200, { ok: true });
+    }
+    return json(res, 405, { error: "method not allowed" });
+  } catch (e) {
+    if (e instanceof TerminalError) return json(res, e.status, { error: e.message });
+    throw e;
+  }
 }

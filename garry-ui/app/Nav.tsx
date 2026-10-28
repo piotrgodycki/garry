@@ -7,7 +7,10 @@ import { Icon } from "./icons";
 const GROUPS: { label: string; links: { href: string; label: string; icon: ReactNode }[] }[] = [
   {
     label: "Build",
-    links: [{ href: "/build", label: "Build", icon: Icon.code }],
+    links: [
+      { href: "/build", label: "Build", icon: Icon.code },
+      { href: "/files", label: "Files", icon: Icon.folder },
+    ],
   },
   {
     label: "Overview",
