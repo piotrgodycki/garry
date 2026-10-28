@@ -273,10 +273,12 @@ not refused. The dashboard's Stacks page does the same with a picker.
 
 Ready-made stacks are well known combinations to start from, each checked
 against the rules: Microfrontends, MERN, MEAN, MEVN, PERN, LAMP, Jamstack,
-type-safe Next.js (tRPC, Prisma, Tailwind), TanStack Start, Remix, a React SPA,
-a Node.js API, Kotlin with Spring Boot, event-driven with Kafka, a background
-worker, Expo, React Native, iOS with SwiftUI, Android with Jetpack Compose and
-Flutter. The Stacks page lists them (Use this), and Add service offers the ones
+type-safe Next.js (tRPC, Prisma, Tailwind), TanStack Start, Remix, a React SPA;
+backends in every common language: a Node.js API, NestJS, Python with FastAPI,
+Django, Go, Java and Kotlin with Spring Boot, .NET, Laravel, Ruby on Rails,
+Elixir with Phoenix, an API at the edge (Hono on Workers), event-driven with
+Kafka and a background worker; and Expo, React Native, iOS with SwiftUI, Android
+with Jetpack Compose and Flutter. The Stacks page lists them (Use this), and Add service offers the ones
 that suit the kind of service being added.
 
 ```bash

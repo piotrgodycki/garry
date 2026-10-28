@@ -72,6 +72,9 @@ export const CATALOG: Tech[] = [
   { id: "kotlin", name: "Kotlin", category: "language" },
   { id: "swift", name: "Swift", category: "language" },
   { id: "dart", name: "Dart", category: "language" },
+  { id: "csharp", name: "C#", category: "language" },
+  { id: "ruby", name: "Ruby", category: "language" },
+  { id: "elixir", name: "Elixir", category: "language" },
   // UI
   { id: "react", name: "React", category: "frontend" },
   { id: "vue", name: "Vue", category: "frontend" },
@@ -125,6 +128,8 @@ export const CATALOG: Tech[] = [
   { id: "php-fpm", name: "PHP-FPM", category: "runtime", requires: [["php"]] },
   { id: "python-runtime", name: "CPython", category: "runtime", requires: [["python"]] },
   { id: "jvm", name: "JVM", category: "runtime", requires: [["java", "kotlin"]] },
+  { id: "dotnet", name: ".NET", category: "runtime", requires: [["csharp"]] },
+  { id: "beam", name: "Erlang VM (BEAM)", category: "runtime", requires: [["elixir"]] },
   // backend frameworks
   { id: "fastify", name: "Fastify", category: "backend", requires: [["node", "bun"]] },
   { id: "express", name: "Express", category: "backend", requires: [["node", "bun"]] },
@@ -135,6 +140,10 @@ export const CATALOG: Tech[] = [
   { id: "laravel", name: "Laravel", category: "backend", requires: [["php"]] },
   { id: "spring-boot", name: "Spring Boot", category: "backend", requires: [["jvm"]] },
   { id: "quarkus", name: "Quarkus", category: "backend", requires: [["jvm"]] },
+  { id: "gin", name: "Gin", category: "backend", requires: [["go"]] },
+  { id: "aspnet", name: "ASP.NET Core", category: "backend", requires: [["dotnet"]] },
+  { id: "rails", name: "Ruby on Rails", category: "backend", requires: [["ruby"]] },
+  { id: "phoenix", name: "Phoenix", category: "backend", requires: [["beam"]] },
   // API style
   { id: "rest", name: "REST (OpenAPI)", category: "api" },
   { id: "graphql", name: "GraphQL", category: "api" },
@@ -156,6 +165,7 @@ export const CATALOG: Tech[] = [
   { id: "typeorm", name: "TypeORM", category: "orm", requires: [SQL] },
   { id: "mongoose", name: "Mongoose", category: "orm", requires: [["mongodb"]] },
   { id: "sqlalchemy", name: "SQLAlchemy", category: "orm", requires: [["python"], SQL] },
+  { id: "efcore", name: "Entity Framework Core", category: "orm", requires: [["csharp"], SQL] },
   // cache
   { id: "redis", name: "Redis", category: "cache" },
   { id: "valkey", name: "Valkey", category: "cache" },
@@ -168,6 +178,8 @@ export const CATALOG: Tech[] = [
   { id: "rabbitmq", name: "RabbitMQ", category: "queue" },
   { id: "bullmq", name: "BullMQ", category: "queue", requires: [["redis", "valkey", "upstash"], ["node", "bun"]] },
   { id: "cf-queues", name: "Cloudflare Queues", category: "queue", requires: [["workers"]] },
+  { id: "celery", name: "Celery", category: "queue", requires: [["python"], ["redis", "valkey", "rabbitmq"]] },
+  { id: "sidekiq", name: "Sidekiq", category: "queue", requires: [["ruby"], ["redis", "valkey"]] },
   // storage
   { id: "s3", name: "Amazon S3", category: "storage" },
   { id: "r2", name: "Cloudflare R2", category: "storage" },
@@ -237,6 +249,7 @@ export const CATALOG: Tech[] = [
   { id: "tsc", name: "TypeScript checks (tsc)", category: "testing", requires: [["typescript"]] },
   { id: "zod", name: "Zod", category: "testing", requires: [["typescript", "javascript"]], note: "runtime validation of inputs and contracts" },
   { id: "valibot", name: "Valibot", category: "testing", requires: [["typescript", "javascript"]] },
+  { id: "pydantic", name: "Pydantic", category: "testing", requires: [["python"]], note: "runtime validation of inputs and contracts" },
   { id: "oxlint", name: "Oxlint", category: "testing", requires: [["typescript", "javascript"]] },
   { id: "eslint", name: "ESLint", category: "testing", requires: [["typescript", "javascript"]] },
   { id: "biome", name: "Biome", category: "testing", requires: [["typescript", "javascript"]] },

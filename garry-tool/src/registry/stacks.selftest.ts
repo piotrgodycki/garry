@@ -113,6 +113,12 @@ const pern = saveStack(registry, { name: "pern", description: "from Garry", tech
 expect("a ready-made stack saves as one of yours", pern.stack.name === "pern" && pern.issues.length === 0 && addService(registry, { name: "orders-api", kind: "backend", repo: "r", stackRef: "pern" }).service.stack.includes("PostgreSQL"));
 // the rules for what the new technologies need
 expect("Expo needs React Native, SwiftUI needs Swift, Flutter needs Dart", checkStack(["expo"]).some((i) => i.message.includes("React Native")) && checkStack(["swiftui"]).some((i) => i.message.includes("Swift")) && checkStack(["flutter"]).some((i) => i.message.includes("Dart")));
+// a backend in every common language
+const backends = STACK_TEMPLATES.filter((x) => x.kinds.includes("backend"));
+const speaks = (lang: string) => backends.some((x) => x.technologies.some((t) => t.id === lang));
+expect("there is a ready-made backend in TypeScript, Python, Go, Java, Kotlin, C#, PHP, Ruby and Elixir", ["typescript", "python", "go", "java", "kotlin", "csharp", "php", "ruby", "elixir"].every(speaks), ["typescript", "python", "go", "java", "kotlin", "csharp", "php", "ruby", "elixir"].filter((l) => !speaks(l)).join());
+expect("Python has FastAPI and Django, Node has NestJS, PHP has Laravel", has("python-fastapi", "fastapi") && has("django", "django") && has("nestjs", "nestjs") && has("laravel", "laravel"));
+expect("Rails needs Ruby, Celery a broker, Phoenix the Erlang VM", checkStack(["rails"]).some((i) => i.message.includes("Ruby")) && checkStack(["python", "celery"]).some((i) => i.message.includes("Redis")) && checkStack(["phoenix"]).some((i) => i.message.includes("BEAM")));
 expect("TanStack Start and Next.js do not go together", checkStack(["react", "vite", "tanstack-start", "nextjs"]).some((i) => i.level === "error"));
 
 if (failed) {
