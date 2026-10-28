@@ -47,6 +47,7 @@ function setFeatureStatus(registry: string, id: string, status: string): boolean
 import { githubToken } from "../github/env.js";
 import { GarryProjectError, createGarryProject, garryProject, listGarryProjects, removeGarryProject, updateGarryProject, useGarryProject, activeGarryProject } from "../project/store.js";
 import { exportGarryProject, importGarryProject, originOf } from "../project/bundle.js";
+import { garryStatus } from "../status/status.js";
 import { GitHub, parseSlug } from "../github/client.js";
 
 export interface ServerConfig {
@@ -347,6 +348,15 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     } catch (e) {
       return json(res, 400, { error: String((e as Error).message ?? e).replace(/AUTHORIZATION: basic \S+/gi, "AUTHORIZATION: ***") });
     }
+  }
+
+  // Garry at a glance (the menu bar, the iPhone widget): working, needs you, ready; the active project's work
+  if (req.method === "GET" && path === "/api/status") {
+    if (!cfg.threads) return json(res, 200, { state: "idle", counts: { needsYou: 0, working: 0, done: 0 }, items: [] });
+    const store = cfg.threads.store;
+    const repos = new Set(store.projectsOf(activeGarryProject().id).map((r) => r.id));
+    const ids = new Set(store.threads().filter((t) => repos.has(t.projectId)).map((t) => t.id));
+    return json(res, 200, garryStatus(cfg.threads, ids));
   }
 
   // Garry projects: everything one product is made of (the registry and its repositories), switched,

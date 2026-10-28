@@ -132,6 +132,12 @@ and Other Computers, then Pair a Device, shows the pairing QR code.
   screen locks, the Mac sleeps or after ten idle minutes (or Devices, Lock Garry),
   and asks for Touch ID before it starts new work, commits or opens a pull request.
   Devices, Require Touch ID turns it off (with Touch ID).
+- **In the menu bar**: Garry's G shows whether an agent is working (moving
+  dots), needs you (! with how many beside it: a question at the end of its
+  turn, or it stopped) or has work ready for review (a tick). Its menu lists
+  the work and opens it; notifications say when something becomes ready or
+  needs you, and the Dock icon carries the count. The same status is
+  `GET /api/status`.
 - From source: `pnpm desktop` builds the app and starts it (Electron is downloaded
   on the first run).
 - The installers are not code signed yet. macOS then says the app "cannot be

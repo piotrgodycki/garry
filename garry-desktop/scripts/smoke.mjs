@@ -19,6 +19,16 @@ try {
   const features = await win.evaluate(() => fetch("/api/features").then((r) => r.json()));
   if (!Array.isArray(features.features) || features.features.length) throw new Error(`expected no features, got ${JSON.stringify(features)}`);
   console.log(`ok  the app shows the dashboard at ${url} and its server answers`);
+  // the menu bar icon: its images ship with the app, and the status it shows answers
+  const icons = await app.evaluate(({ app: electronApp }) => {
+    const fs = process.getBuiltinModule("node:fs");
+    const path = process.getBuiltinModule("node:path");
+    return ["idle", "working-1", "needs", "done"].every((n) => fs.existsSync(path.join(electronApp.getAppPath(), "build", "tray", `${n}Template@2x.png`)));
+  });
+  if (!icons) throw new Error("the menu bar icons are missing from the app");
+  const status = await win.evaluate(() => fetch("/api/status").then((r) => r.json()));
+  if (status.state !== "idle") throw new Error(`expected an idle status, got ${JSON.stringify(status)}`);
+  console.log("ok  the menu bar icons ship with the app and the status answers");
 } finally {
   await app.close();
 }
