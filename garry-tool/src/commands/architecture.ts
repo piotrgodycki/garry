@@ -3,11 +3,13 @@ import { defaultRegistry } from "../paths.js";
 import { architectureState } from "../registry/architecture.js";
 import { CAPABILITIES, COMPONENTS, PROVIDERS } from "../registry/schema/architecture.js";
 
-const HELP = `garry architecture [check | show | blocks]
+const HELP = `garry architecture [check | show | blocks] [--board <repo>]
 
-The architecture board (architecture.json in the registry): your services and
-the platforms they run on, joined by what one needs and the other provides.
-Build it on the dashboard's Architecture page; here you can check it and read it.
+The architecture boards: the whole project's (architecture.json in the
+registry) and one per repository (architecture/<repo>.json, --board <repo>):
+your services and the platforms they run on, joined by what one needs and the
+other provides. Build them on the dashboard's Architecture page (step by step
+with its wizard, or by hand); here you can check them and read them.
 
   check    what is missing or does not fit (exit code 1 on an error)
   show     the blocks and their links
@@ -31,7 +33,9 @@ export function runArchitecture(argv: string[]): void {
     console.log(pc.dim(`\ncapabilities: ${Object.keys(CAPABILITIES).join(", ")}`));
     return;
   }
-  const { architecture, issues } = architectureState(registry);
+  const b = argv.indexOf("--board");
+  const board = b >= 0 ? argv[b + 1] : "";
+  const { architecture, issues } = architectureState(registry, board);
   if (sub === "show") {
     const name = new Map(architecture.nodes.map((n) => [n.id, n.label ?? n.block]));
     for (const n of architecture.nodes) console.log(`${pc.bold(n.label ?? n.block)} ${pc.dim(n.block)}`);

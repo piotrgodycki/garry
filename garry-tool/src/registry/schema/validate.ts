@@ -89,17 +89,18 @@ export function validateRegistry(root: string): ValidationIssue[] {
     if (svc.stackRef && !stacks.has(svc.stackRef)) err(`catalog/${name}`, `stackRef ${svc.stackRef} has no stacks/${svc.stackRef}.yaml`);
   }
 
-  // architecture.json (optional): parses, and nothing on it is broken
-  const archFile = join(root, "architecture.json");
-  if (existsSync(archFile)) {
+  // the architecture boards (optional): the whole project's architecture.json and one per
+  // repository in architecture/; each parses, and nothing on it is broken
+  const boards = ["architecture.json", ...(existsSync(join(root, "architecture")) ? readdirSync(join(root, "architecture")).filter((f) => f.endsWith(".json")).map((f) => `architecture/${f}`) : [])];
+  for (const board of boards) {
     try {
-      const r = ArchitectureSchema.safeParse(JSON.parse(readFileSync(archFile, "utf8")));
-      if (!r.success) err("architecture.json", zodMsg(r.error));
+      const r = ArchitectureSchema.safeParse(JSON.parse(readFileSync(join(root, board), "utf8")));
+      if (!r.success) err(board, zodMsg(r.error));
       else
         for (const i of checkArchitecture(r.data, Object.values(services).map((s) => ({ name: s.name, kind: s.kind, db: s.db }))))
-          if (i.level === "error") err("architecture.json", i.message);
+          if (i.level === "error") err(board, i.message);
     } catch (e) {
-      err("architecture.json", `invalid JSON: ${(e as Error).message}`);
+      if (existsSync(join(root, board))) err(board, `invalid JSON: ${(e as Error).message}`);
     }
   }
 

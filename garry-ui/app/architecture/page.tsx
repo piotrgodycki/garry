@@ -29,6 +29,9 @@ import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./architecture.module.css";
 import { isDark, logoOf } from "./logos";
 import { relationOf } from "./relations";
+import { useSearchParams } from "react-router";
+import Select from "../Select";
+import Wizard from "./Wizard";
 
 // the block's header, then one row per port
 const HEAD = 58;
@@ -151,7 +154,7 @@ const fromFlow = (nodes: BlockNode[], edges: Edge[]): Architecture => ({
   edges: edges.map((e) => ({ from: e.source, to: e.target, capability: String(e.sourceHandle) })),
 });
 
-function Board({ state }: { state: ArchitectureState }) {
+function Board({ state, boardId }: { state: ArchitectureState; boardId: string }) {
   const blocks = useMemo(() => new Map([...state.services, ...state.components].map((b) => [b.id, b])), [state]);
   const initial = useMemo(() => toFlow(state.architecture, blocks, state.capabilities), [state, blocks]);
   const [nodes, setNodes, onNodesChange] = useNodesState<BlockNode>(initial.nodes);
@@ -186,7 +189,7 @@ function Board({ state }: { state: ArchitectureState }) {
     last.current = board;
     setSaved("saving");
     const t = setTimeout(() => {
-      client.saveArchitecture(JSON.parse(board) as Architecture).then(
+      client.saveArchitecture(JSON.parse(board) as Architecture, boardId).then(
         (r) => {
           setIssues(r.issues);
           setSaved("saved");
@@ -343,7 +346,7 @@ function Board({ state }: { state: ArchitectureState }) {
         </ReactFlow>
         </FocusContext.Provider>
         {nodes.length === 0 && <p className={styles.empty}>Drag blocks here from the left, then join a need (right side) to a block that provides it (left side).</p>}
-        <span className={styles.saved}>{saved === "saving" ? "Saving…" : saved === "saved" ? "Saved to architecture.json" : saved === "error" ? "Not saved" : ""}</span>
+        <span className={styles.saved}>{saved === "saving" ? "Saving…" : saved === "saved" ? `Saved to ${boardId ? `architecture/${boardId}.json` : "architecture.json"}` : saved === "error" ? "Not saved" : ""}</span>
       </div>
 
       <aside className={`card ${styles.issues}`}>
@@ -386,51 +389,103 @@ function Board({ state }: { state: ArchitectureState }) {
   );
 }
 
-/** Your services and the platforms they run on, joined like puzzle pieces. */
+/** Your services and the platforms they run on, joined like puzzle pieces: a board for the whole project and one per repository. */
 export default function ArchitecturePage() {
+  const [params, setParams] = useSearchParams();
+  const boardId = params.get("board") ?? "";
   const [state, setState] = useState<ArchitectureState | null>(null);
   const [offline, setOffline] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
-  // a new board (a template) remounts the canvas so it fits the view again
+  const [wizardOpen, setWizardOpen] = useState(false);
+  // a new board (the wizard, a template, a reset) remounts the canvas so it fits the view again
   const [version, setVersion] = useState(0);
-  const [templateError, setTemplateError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = useCallback(() => client.architecture(boardId).then(setState, () => setOffline(true)), [boardId]);
   useEffect(() => {
-    client.architecture().then(setState, () => setOffline(true));
-  }, []);
+    setState(null);
+    setWizardOpen(false);
+    setShowTemplates(false);
+    void load();
+  }, [load]);
 
+  const boardName = state?.boards.find((b) => b.id === boardId)?.name ?? (boardId || "Whole project");
+  const replaced = async (a: Architecture) => {
+    await client.saveArchitecture(a, boardId);
+    await load();
+    setVersion((v) => v + 1);
+    setWizardOpen(false);
+    setShowTemplates(false);
+  };
   const applyTemplate = async (t: ArchTemplate) => {
     // the board's latest state is on the server (it saves as you go)
-    const current = await client.architecture();
-    if (current.architecture.nodes.length && !window.confirm(`Replace the board with ${t.name}? What is on it now is replaced.`)) return;
-    setTemplateError(null);
+    const current = await client.architecture(boardId);
+    if (current.architecture.nodes.length && !window.confirm(`Replace the ${boardName} board with ${t.name}? What is on it now is replaced.`)) return;
+    setError(null);
     try {
-      await client.saveArchitecture(t.architecture);
-      setState(await client.architecture());
-      setVersion((v) => v + 1);
-      setShowTemplates(false);
+      await replaced({ ...t.architecture, wizard: null });
     } catch (e) {
-      setTemplateError(String((e as Error).message ?? e));
+      setError(String((e as Error).message ?? e));
     }
   };
-  const templatesOpen = state ? showTemplates || (state.architecture.nodes.length === 0 && version === 0) : false;
+  const reset = async () => {
+    const current = await client.architecture(boardId);
+    const n = current.architecture.nodes.length;
+    if (!window.confirm(`Reset the ${boardName} board? Its ${n} block${n === 1 ? "" : "s"}, their links and the wizard's answers are removed. Other boards stay as they are.`)) return;
+    setError(null);
+    try {
+      await client.resetArchitecture(boardId);
+      await load();
+      setVersion((v) => v + 1);
+    } catch (e) {
+      setError(String((e as Error).message ?? e));
+    }
+  };
+
+  const empty = state ? state.architecture.nodes.length === 0 : false;
+  // an empty board starts with the wizard; the ready-made ones are the other way in
+  const showWizard = state ? wizardOpen || (empty && !showTemplates) : false;
   return (
     <main className="page">
       <PageHeader
         eyebrow="Configure"
         title="Architecture"
-        lede="Your services and the platforms they run on. Every block shows what it provides (left) and what it needs (right); only fitting pieces join, and Garry says what is missing or will not work."
+        lede="Your services and the platforms they run on: one board for the whole project and one for each repository. Build one step by step with the wizard, or by hand; every block shows what it provides (left) and what it needs (right), only fitting pieces join, and Garry says what is missing or will not work."
       />
       {offline && <ServerNotice />}
       {!state && !offline && <Skeleton rows={2} height={200} />}
+      {state && (
+        <div className={styles.boardBar}>
+          <span className="eyebrow">Board</span>
+          <Select
+            ariaLabel="board"
+            value={boardId}
+            onChange={(id) => setParams(id ? { board: id } : {})}
+            options={state.boards.map((b) => ({ value: b.id, label: b.name, hint: b.blocks ? `${b.blocks} blocks` : "empty", group: b.id ? "Repositories" : undefined }))}
+          />
+          <span className={styles.boardBarFill} />
+          {!showWizard && (
+            <button className="btn btnSm" onClick={() => setWizardOpen(true)}>
+              {state.architecture.wizard ? "Change the answers" : "Build with the wizard"}
+            </button>
+          )}
+          {!empty && (
+            <button className="btn btnSm btnGhost" onClick={() => void reset()}>
+              Reset board
+            </button>
+          )}
+        </div>
+      )}
+      {error && <span className="badge danger">{error}</span>}
+      {state && showWizard && <Wizard key={`${boardId}:${version}`} state={state} boardName={boardName} onBuilt={replaced} onClose={empty ? undefined : () => setWizardOpen(false)} />}
       {state && state.templates.length > 0 && (
         <section className={styles.templates} aria-label="ready-made architectures">
           <div className={styles.templatesHead}>
-            <span className="eyebrow">Start from a ready-made architecture</span>
-            <button className="btn btnSm btnGhost" aria-expanded={templatesOpen} onClick={() => setShowTemplates(!templatesOpen)}>
-              {templatesOpen ? "Hide" : "Show"}
+            <span className="eyebrow">Or start from a ready-made architecture</span>
+            <button className="btn btnSm btnGhost" aria-expanded={showTemplates} onClick={() => setShowTemplates(!showTemplates)}>
+              {showTemplates ? "Hide" : "Show"}
             </button>
           </div>
-          {templatesOpen && (
+          {showTemplates && (
             <div className={styles.templateGrid}>
               {state.templates.map((t) => (
                 <div key={t.id} className={`card ${styles.template}`}>
@@ -444,12 +499,11 @@ export default function ArchitecturePage() {
               ))}
             </div>
           )}
-          {templateError && <span className="badge danger">{templateError}</span>}
         </section>
       )}
-      {state && (
-        <ReactFlowProvider key={version}>
-          <Board state={state} />
+      {state && !showWizard && (
+        <ReactFlowProvider key={`${boardId}:${version}`}>
+          <Board state={state} boardId={boardId} />
         </ReactFlowProvider>
       )}
     </main>
