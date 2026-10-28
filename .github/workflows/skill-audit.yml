@@ -44,7 +44,7 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          if git diff --name-only "$BASE_SHA" HEAD -- garry-skills garry-tool/src/skills .github/workflows/skill-audit.yml | grep -q .; then
+          if git diff --name-only "$BASE_SHA" HEAD -- garry-tool/skills garry-tool/src/skills .github/workflows/skill-audit.yml | grep -q .; then
             echo "relevant=true" >> "$GITHUB_OUTPUT"
           else
             echo "relevant=false" >> "$GITHUB_OUTPUT"
@@ -71,9 +71,9 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          # skill folders are garry-skills/skills/<stage>/<name>/
-          dirs=$(git diff --name-only --diff-filter=ACMR "$BASE_SHA" HEAD -- garry-skills/skills \
-            | awk -F/ 'NF >= 5 { print $1"/"$2"/"$3"/"$4 }' | sort -u \
+          # skill folders are garry-tool/skills/skills/<stage>/<name>/
+          dirs=$(git diff --name-only --diff-filter=ACMR "$BASE_SHA" HEAD -- garry-tool/skills/skills \
+            | awk -F/ 'NF >= 6 { print $1"/"$2"/"$3"/"$4"/"$5 }' | sort -u \
             | while read -r d; do [ -f "$d/SKILL.md" ] && echo "$d"; done || true)
           echo "dirs<<EOF" >> "$GITHUB_OUTPUT"
           echo "$dirs" >> "$GITHUB_OUTPUT"
@@ -84,7 +84,7 @@ jobs:
         if: steps.scope.outputs.relevant == 'true'
         id: validate
         continue-on-error: true
-        run: pnpm -C garry-skills validate
+        run: pnpm -C garry-tool check:skills
 
       - name: Garry skill security audit
         if: steps.scope.outputs.relevant == 'true'
@@ -112,7 +112,7 @@ jobs:
           echo "${GITLEAKS_SHA256}  gitleaks.tgz" | sha256sum -c -
           tar -xzf gitleaks.tgz gitleaks
           cd "$GITHUB_WORKSPACE"
-          targets="${DIRS:-garry-skills/skills}"
+          targets="${DIRS:-garry-tool/skills/skills}"
           status=0
           for t in $targets; do
             "$RUNNER_TEMP/gitleaks" dir "$t" --no-banner --redact || status=1
@@ -129,7 +129,7 @@ jobs:
           set -euo pipefail
           python3 -m pip install --quiet --disable-pip-version-check semgrep
           # shellcheck disable=SC2086
-          semgrep scan --config p/security-audit --config p/secrets --error --metrics=off ${DIRS:-garry-skills/skills}
+          semgrep scan --config p/security-audit --config p/secrets --error --metrics=off ${DIRS:-garry-tool/skills/skills}
 
       - name: Report on the pull request
         if: always() && steps.scope.outputs.relevant == 'true' && github.event.pull_request.head.repo.full_name == github.repository

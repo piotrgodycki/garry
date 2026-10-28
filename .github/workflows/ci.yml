@@ -25,18 +25,16 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Typecheck (tool packages)
         run: |
-          pnpm -C garry-registry typecheck
-          pnpm -C garry-skills typecheck
           pnpm -C garry-tool typecheck
           pnpm -C garry-ui typecheck
       - name: Build the dashboard
         run: pnpm -C garry-ui build
       - name: Validate registry (mfe and backend test registries)
         run: |
-          pnpm -C garry-registry exec tsx src/cli.ts testdata/frontend
-          pnpm -C garry-registry exec tsx src/cli.ts testdata/backend
+          pnpm -C garry-tool check:registry testdata/registry/frontend
+          pnpm -C garry-tool check:registry testdata/registry/backend
       - name: Validate skills
-        run: pnpm -C garry-skills validate
+        run: pnpm -C garry-tool check:skills
       # Every skill is a set of instructions an agent follows with access to code
       # and tokens: the pre-installed ones must pass the security audit, and the
       # audit itself must keep catching the known attacks.

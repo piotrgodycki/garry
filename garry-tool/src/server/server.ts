@@ -22,10 +22,10 @@ import { ServiceError, addService, removeService, type ServiceInput } from "../r
 import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
 import { StackError, listStacks, removeStack, saveStack } from "../registry/stacks.js";
 import { ArchitectureError, architectureState, checkDraft, readArchitecture, saveArchitecture } from "../registry/architecture.js";
-import { ArchitectureSchema, CAPABILITIES, COMPONENTS, PROVIDERS } from "../../../garry-registry/src/architecture.js";
+import { ArchitectureSchema, CAPABILITIES, COMPONENTS, PROVIDERS } from "../registry/schema/architecture.js";
 import { aiSuggestions, quickFixes } from "../architecture/suggest.js";
 import { resolveRouting, routeFor } from "../orchestrate/routing.js";
-import { CATALOG, CATEGORIES, checkStack } from "../../../garry-registry/src/stacks.js";
+import { CATALOG, CATEGORIES, checkStack } from "../registry/schema/stacks.js";
 
 /** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
 function setFeatureStatus(registry: string, id: string, status: string): boolean {

@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { CAPABILITIES, COMPONENTS, checkArchitecture, componentById, serviceBlock, type Architecture, type ArchitectureIssue, type Capability } from "../../../garry-registry/src/architecture.js";
+import { CAPABILITIES, COMPONENTS, checkArchitecture, componentById, serviceBlock, type Architecture, type ArchitectureIssue, type Capability } from "../registry/schema/architecture.js";
 
 /**
  * Suggestions for the architecture board. Quick fixes come from the rules and

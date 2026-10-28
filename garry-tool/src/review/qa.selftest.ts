@@ -27,7 +27,7 @@ expect("auth code is security", areas([{ path: "garry-tool/src/server/auth.ts", 
 expect("Touch ID is security", areas([{ path: "garry-desktop/src/touchid.ts", added: ["await systemPreferences.promptTouchID(r);"] }]) === "desktop,security");
 expect("a header check is security", areas([{ path: "src/server/routes.ts", added: ['  const bearer = req.headers.authorization?.startsWith("Bearer ");'] }]) === "security");
 expect("the words alone are not", areas([{ path: "src/notes.ts", added: ["// we call promptTouchID and send an Authorization header", "const re = /promptTouchID|Authorization/;"] }]) === "");
-expect("a schema change is saved data", areas([{ path: "garry-registry/src/schema.ts", added: ["stackRef: z.string().optional(),"] }]) === "data");
+expect("a schema change is saved data", areas([{ path: "garry-tool/src/registry/schema/schema.ts", added: ["stackRef: z.string().optional(),"] }]) === "data");
 
 const diff = parseDiff(
   [

@@ -33,7 +33,7 @@ obfuscation and supply chain risk. Critical or high findings block a skill;
 medium findings are warnings a human has to accept.
 
 Options:
-  --skills <path>  skills root (default: ./garry-skills or the bundled skills)
+  --skills <path>  skills root (default: the skills shipped with garry)
 `;
 
 export async function runSkills(argv: string[]): Promise<void> {

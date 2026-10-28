@@ -23,16 +23,16 @@ test and ship.
 
 | Block | Where | What it is |
 |---|---|---|
-| Feature | `garry-registry/.../features/FEAT-x.md` | the unit of work: id, title, status, services, contract changes, optional routing override |
+| Feature | `<registry>/features/FEAT-x.md` | the unit of work: id, title, status, services, contract changes, optional routing override |
 | Service manifest | `.../catalog/<service>.yaml` | one per service: repo url, stack, owner, what it exposes and consumes |
 | Contracts | `.../contracts/*.json` | the shared truth between services: remotes, shared deps, events, design tokens, APIs |
-| Skill | `garry-skills/skills/<stage>/<name>/SKILL.md` | one atomic capability of an agent, indexed in `garry-skills/manifest.json` |
+| Skill | `garry-tool/skills/skills/<stage>/<name>/SKILL.md` | one atomic capability of an agent, indexed in `garry-tool/skills/manifest.json` |
 | Routing | `garry.routing.json` (the example), `routing/<name>.json` in the registry (yours) | which agent role and which model handles each stage |
 | Workspace | `~/garry-workspaces/FEAT-x/` | one git worktree per service on the shared branch `feat/FEAT-x` |
 
 The examples below use a feature `FEAT-123` that touches three microfrontends:
 `shell`, `checkout-mfe` and `search-mfe` (the registry the tests run against,
-`garry-registry/testdata/frontend`).
+`garry-tool/testdata/registry/frontend`).
 
 ## The rule that orders everything: contract first
 
@@ -65,10 +65,10 @@ therefore has 4 + 3 x 3 = 13 tasks.
 | 6 | Test | per service | garry-dev, Sonnet | `test-unit`, `test-e2e`, `drift-check`, `api-compatibility` | green tests, no contract drift |
 | 7 | Integrate | once | garry-dev, Sonnet | `cross-repo-merge`, `version-tag`, `changelog` | all pull requests merged together, a version tag, a changelog |
 
-The skill lists come from `garry-skills/manifest.json` (the pre-installed skills)
+The skill lists come from `garry-tool/skills/manifest.json` (the pre-installed skills)
 plus the skills installed locally on your machine (see below); adding a skill adds
 it to its stage everywhere. Some skills are planned (no `SKILL.md` yet);
-`pnpm -C garry-skills validate` lists them as warnings.
+`pnpm -C garry-tool check:skills` lists them as warnings.
 
 ### What you do at each stage
 

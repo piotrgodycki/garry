@@ -1,6 +1,6 @@
 ---
 name: contract-validate
-description: Validates the contracts in @garry/registry, both the schema (zod) and cross service consistency (consumes, exposes, remotes, events). Run it in the Design stage after every contract change, and in the Test stage as part of garry doctor.
+description: Validates the contracts in the registry, both the schema (zod) and cross service consistency (consumes, exposes, remotes, events). Run it in the Design stage after every contract change, and in the Test stage as part of garry doctor.
 ---
 
 # contract-validate
@@ -39,10 +39,10 @@ and a part of garry doctor.
 
 ## Reference implementation
 
-The logic lives in `@garry/registry`:
+The logic lives in garry (`garry-tool/src/registry/schema/validate.ts`):
 
 ```ts
-import { validateRegistry, hasErrors } from "@garry/registry";
+import { validateRegistry, hasErrors } from "./registry/schema/validate.js";
 
 const issues = validateRegistry(registryRoot);
 if (hasErrors(issues)) throw new Error("The contract is inconsistent, Design is blocked");

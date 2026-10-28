@@ -37,7 +37,7 @@ Where the commands look when you pass no flag:
 | What | Inside this repository | Anywhere else |
 |---|---|---|
 | registry (`--registry`) | `./registry` if it has a `catalog/`, else `~/.garry/registry` (created empty) | the same |
-| pre-installed skills (`--skills`) | `garry-skills` | the skills bundled with the package |
+| pre-installed skills (`--skills`) | `garry-tool/skills` | the skills shipped with the package |
 | routing (`--routing`) | `garry.routing.json`: the example profile | `garry.routing.json` in the current folder (optional); profiles of your own live in the registry (`garry routing`) |
 
 The npm package is the CLI and the server (`garry serve`); the dashboard runs from
@@ -96,7 +96,7 @@ pnpm garry feature FEAT-123
 | Option | Default | |
 |---|---|---|
 | `--registry` | `./registry`, else `~/.garry/registry` | registry root |
-| `--skills` | `garry-skills` | skills repo root |
+| `--skills` | the skills shipped with garry | skills root |
 | `--routing` | `garry.routing.json` | routing matrix |
 | `--root` or `--ws` | none | where the feature's worktrees are, so the tasks point at real directories |
 
@@ -198,7 +198,7 @@ blocks that are only reachable from their own platform (D1, KV and Queues from
 Workers, ElastiCache from AWS), needs left open (WordPress without a database, a
 backend with a database but none linked, a shell without its microfrontends),
 RDS reached from outside AWS without pooling, and registry services that are not
-on the board yet. The registry check (`garry-registry validate`) reports the
+on the board yet. The registry check (`pnpm -C garry-tool check:registry <dir>`) reports the
 errors too. The page also offers **quick fixes** for every open need (a
 block that provides it, the platform you already use first, never one that
 cannot be reached from there) and **Ask Garry**: describe what it is for, and
@@ -318,7 +318,7 @@ garry skills propose <folder|SKILL.md> [--stage <stage>] [--accept-warnings]
 garry skills audit [folder ...] [--report <file>]
 ```
 
-The skills the agents use: the pre-installed ones in `garry-skills`, plus the ones
+The skills the agents use: the pre-installed ones in `garry-tool/skills`, plus the ones
 installed locally on this machine in `~/.garry/skills` (or `GARRY_SKILLS_HOME`).
 A local skill joins its stage in every feature's plan. The same is available on
 the dashboard's Skills page (Install skill).
@@ -338,7 +338,7 @@ the frontmatter has none and `--replace` to overwrite a local skill.
 
 `propose` (or Propose to team in the dashboard) runs the same audit, then opens a
 pull request that adds the skill to the pre-installed ones:
-`garry-skills/skills/<stage>/<name>/` plus a `manifest.json` entry, on the branch
+`garry-tool/skills/skills/<stage>/<name>/` plus a `manifest.json` entry, on the branch
 `skills/add-<name>`, ready for review. The `skill-audit` workflow audits it again
 with a secret scanner and Semgrep, a code owner approves it, and after the merge
 every teammate gets it. A skill that fails the audit is never proposed.
@@ -551,6 +551,6 @@ Set `GARRY_CHROMIUM_PATH` to use an already installed Chromium.
 | `garry.screenshots.json` | `shots` | routes, viewports and themes to capture |
 | `.env.local` (or `.env`) | every command | all variables, see `.env.example` |
 | `~/.garry/skills/` | `skills`, `feature`, `serve` | locally installed skills |
-| `garry-skills/manifest.json` | `feature`, `serve` | the skills per stage |
-| `garry-registry/.../features/*.md` | `feature`, `ws`, `serve` | the features |
-| `garry-registry/.../catalog/*.yaml` | everything | the services |
+| `garry-tool/skills/manifest.json` | `feature`, `serve` | the skills per stage |
+| `<registry>/features/*.md` | `feature`, `ws`, `serve` | the features |
+| `<registry>/catalog/*.yaml` | everything | the services |

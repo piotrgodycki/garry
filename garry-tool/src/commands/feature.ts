@@ -22,7 +22,7 @@ the workspace.
 
 Options:
   --registry <path>  registry root (default: ./registry, else ~/.garry/registry)
-  --skills <path>    skills root (default: ./garry-skills or the bundled skills)
+  --skills <path>    skills root (default: the skills shipped with garry)
   --routing <file>   routing matrix (default: garry.routing.json)
   --root <dir>       workspaces root, used to locate the worktrees
   --ws <dir>         explicit workspace directory

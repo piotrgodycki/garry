@@ -1,7 +1,6 @@
-// Builds the publishable garry package: one ESM bundle in dist/ (the registry and
-// skills code is inlined, npm dependencies stay external), plus the built
-// dashboard, the pre-installed skills and the sample registry copied next to it
-// (see src/paths.ts).
+// Builds the publishable garry package: one ESM bundle in dist/ (npm
+// dependencies stay external) and the built dashboard copied next to it. The
+// pre-installed skills already live in skills/ (see src/paths.ts).
 import { execFileSync } from "node:child_process";
 import { build } from "esbuild";
 import { cpSync, existsSync, rmSync } from "node:fs";
@@ -11,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const pkg = join(dirname(fileURLToPath(import.meta.url)), "..");
 const repo = join(pkg, "..");
 
-for (const dir of ["dist", "ui", "skills", "examples", "LICENSE"]) rmSync(join(pkg, dir), { recursive: true, force: true });
+for (const dir of ["dist", "ui", "LICENSE"]) rmSync(join(pkg, dir), { recursive: true, force: true });
 
 await build({
   entryPoints: [join(pkg, "src/cli.ts")],
@@ -31,6 +30,4 @@ const copy = (from, to) => {
 execFileSync("pnpm", ["-C", join(repo, "garry-ui"), "build"], { stdio: "inherit" });
 copy(join(repo, "garry-ui/dist"), "ui");
 copy(join(repo, "LICENSE"), "LICENSE");
-copy(join(repo, "garry-skills/manifest.json"), "skills/manifest.json");
-copy(join(repo, "garry-skills/skills"), "skills/skills");
-console.log("bundled dist/cli.js, ui/, skills/ and LICENSE");
+console.log("bundled dist/cli.js, ui/ and LICENSE");

@@ -29,9 +29,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 
 | Package | Role |
 |---|---|
-| `garry-registry` (`@garry/registry`) | Contract Registry: zod schemas and validation for cross service contracts |
-| `garry-skills` (`@garry/skills`) | atomic, reusable agent capabilities per SDLC stage |
-| `garry-tool` (`garry` on npm) | the `garry` CLI plus the HTTP server (REST and SSE) |
+| `garry-tool` (`garry` on npm, the only published package) | the `garry` CLI plus the HTTP server (REST and SSE); also the registry schemas and validation (`src/registry/schema`), the pre-installed skills (`skills/`) and the test registries (`testdata/registry`) |
 | `garry-ui` | the dashboard (Vite and React), served by `garry serve` |
 | `garry-desktop` | the desktop app for macOS (Electron, with `garry serve` built in) |
 | `garry-mobile` | the app for iOS (Expo, React Native) |
@@ -184,8 +182,8 @@ client against a real server, a typecheck and a full bundle.
 | `pnpm garry projects` | the repositories agents can work on (`add <path>` adds one) |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
-| `pnpm -C garry-registry validate` | validate the test registry |
-| `pnpm -C garry-skills validate` | validate the skills manifest |
+| `pnpm -C garry-tool check:registry <dir>` | validate a registry (for example `testdata/registry/frontend`) |
+| `pnpm -C garry-tool check:skills` | validate the skills manifest |
 
 ## Continuous integration
 
@@ -193,8 +191,8 @@ CI lives in [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) and runs on
 every push and pull request. It has four jobs:
 
 - `validate`: `pnpm install --frozen-lockfile`, then `pnpm -C <pkg> typecheck` for the
-  tool packages and `pnpm -C garry-registry` validation of the mfe and backend test registries
-  plus `pnpm -C garry-skills validate`, and the skill security audit: every
+  tool packages, validation of the mfe and backend test registries
+  (`check:registry`) and of the skills (`check:skills`), and the skill security audit: every
   pre-installed skill must pass it, and the audit's regression corpus must behave.
 - `package`: builds the `garry` npm package, packs it, installs the tarball into an
   empty project and runs the CLI there (`pnpm -C garry-tool smoke`).
@@ -271,7 +269,7 @@ review is the only way a skill reaches an agent.
 [`.github/workflows/code-review.yml`](./.github/workflows/code-review.yml) reviews
 every pull request that is ready for review, and again on every push, with the same
 rules the Garry reviewer agent follows: the review skills in
-[`garry-skills/skills/review/`](./garry-skills/skills/review/) (correctness, spec
+[`garry-tool/skills/skills/review/`](./garry-tool/skills/skills/review/) (correctness, spec
 match, contract compliance, security). Blocker and major findings are posted inline
 on the diff; one summary comment lists every finding and is updated on each push.
 The `code review` check fails when the review finds a blocker, so it can be added to

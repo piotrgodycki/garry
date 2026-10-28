@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { ArchitectureSchema, checkArchitecture, serviceBlock, type Architecture, type ArchitectureIssue, type Component } from "../../../garry-registry/src/architecture.js";
+import { ArchitectureSchema, checkArchitecture, serviceBlock, type Architecture, type ArchitectureIssue, type Component } from "./schema/architecture.js";
 import { listManifests } from "../sync/registryIO.js";
 
 /** The registry's architecture board, architecture.json. Used by the Architecture page and garry architecture. */

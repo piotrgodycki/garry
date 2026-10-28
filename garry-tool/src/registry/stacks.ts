@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
-import { StackSchema, checkStack, type Stack, type StackIssue } from "../../../garry-registry/src/stacks.js";
+import { StackSchema, checkStack, type Stack, type StackIssue } from "./schema/stacks.js";
 import { listManifests } from "../sync/registryIO.js";
 
 /**

@@ -1,7 +1,7 @@
 import pc from "picocolors";
 import { defaultRegistry } from "../paths.js";
 import { architectureState } from "../registry/architecture.js";
-import { CAPABILITIES, COMPONENTS, PROVIDERS } from "../../../garry-registry/src/architecture.js";
+import { CAPABILITIES, COMPONENTS, PROVIDERS } from "../registry/schema/architecture.js";
 
 const HELP = `garry architecture [check | show | blocks]
 

@@ -21,7 +21,7 @@ if (!remote) {
 
 const store = new DeviceStore(join(mkdtempSync(join(tmpdir(), "garry-auth-")), "devices.json"));
 const server = createGarryServer(
-  { registry: "garry-registry/testdata/frontend", skills: "garry-skills", routing: "garry.routing.json", hosts: [remote] },
+  { registry: "garry-tool/testdata/registry/frontend", skills: "garry-tool/skills", routing: "garry.routing.json", hosts: [remote] },
   store,
 );
 await new Promise<void>((r) => server.listen(0, "0.0.0.0", r));

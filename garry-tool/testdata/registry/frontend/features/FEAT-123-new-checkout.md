@@ -37,5 +37,5 @@ checkout-mfe in parallel, and finally shell.
 
 ## Notes
 
-- Changing the cart:item-added contract requires a @garry/registry version bump.
+- Changing the cart:item-added contract requires a registry version bump.
 - After all pull requests are merged, tag the versions and run changelog.

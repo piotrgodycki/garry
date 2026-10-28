@@ -6,21 +6,17 @@ import { fileURLToPath } from "node:url";
 /**
  * Where garry finds its skills and its registry when no flag names them.
  *
- * Skills: the folder of the monorepo, else the copy bundled in the package
- * (scripts/bundle.mjs puts it next to dist/). The registry is always the user's
- * own: Garry ships no sample services or features.
+ * Skills: the ones shipped with garry (skills/ in the package, which is
+ * garry-tool/skills in the monorepo). The registry is always the user's own:
+ * Garry ships no sample services or features.
  */
 
 /** The package root: garry-tool/ when run from source, the installed package when bundled. */
 export const PACKAGE_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
-const REPO_SKILLS = "garry-skills";
-
-/** The pre-installed skills: ./garry-skills in the monorepo, else the ones shipped with garry. */
+/** The pre-installed skills, shipped with garry. */
 export function defaultSkillsRoot(): string {
-  if (existsSync(join(REPO_SKILLS, "manifest.json"))) return REPO_SKILLS;
-  const bundled = join(PACKAGE_ROOT, "skills");
-  return existsSync(join(bundled, "manifest.json")) ? bundled : REPO_SKILLS;
+  return join(PACKAGE_ROOT, "skills");
 }
 
 /**

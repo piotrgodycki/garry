@@ -1,7 +1,7 @@
 import pc from "picocolors";
 import { defaultRegistry } from "../paths.js";
 import { listStacks, removeStack, saveStack } from "../registry/stacks.js";
-import { CATALOG, CATEGORIES, checkStack, stackLine, type StackIssue } from "../../../garry-registry/src/stacks.js";
+import { CATALOG, CATEGORIES, checkStack, stackLine, type StackIssue } from "../registry/schema/stacks.js";
 
 const HELP = `garry stack [list | catalog | add <name> --tech <a,b@1.2,...> | check <a,b,...> | remove <name>]
 

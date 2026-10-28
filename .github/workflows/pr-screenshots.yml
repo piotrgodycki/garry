@@ -9,9 +9,8 @@ on:
     types: [opened, reopened, ready_for_review, review_requested, synchronize, closed]
     paths:
       - "garry-ui/**"
-      - "garry-skills/**"
       - "garry-tool/src/**"
-      - "garry-registry/testdata/**"
+      - "garry-tool/testdata/**"
       - "garry.screenshots.json"
       - ".github/workflows/pr-screenshots.yml"
   workflow_dispatch:
@@ -80,7 +79,7 @@ jobs:
       - name: Build and start the head
         run: |
           pnpm -C garry-ui build
-          nohup pnpm serve --port 8123 --registry garry-registry/testdata/frontend > "$RUNNER_TEMP/head-server.log" 2>&1 &
+          nohup pnpm serve --port 8123 --registry garry-tool/testdata/registry/frontend > "$RUNNER_TEMP/head-server.log" 2>&1 &
           timeout 120 bash -c 'until curl -sf http://localhost:8123/api/features > /dev/null && curl -sf http://localhost:8123/ > /dev/null; do sleep 2; done'
       - name: Capture the head
         run: pnpm garry shots capture --url http://localhost:8123 --out "$RUNNER_TEMP/shots/head"
@@ -98,7 +97,8 @@ jobs:
           pnpm install --frozen-lockfile
           # older bases loaded their bundled sample registry by default
           reg=""
-          if [ -d garry-registry/testdata/frontend ]; then reg="--registry garry-registry/testdata/frontend"; fi
+          if [ -d garry-tool/testdata/registry/frontend ]; then reg="--registry garry-tool/testdata/registry/frontend"
+          elif [ -d garry-registry/testdata/frontend ]; then reg="--registry garry-registry/testdata/frontend"; fi
           if [ -f garry-ui/vite.config.ts ]; then
             # the dashboard is served by garry serve itself
             pnpm -C garry-ui build
