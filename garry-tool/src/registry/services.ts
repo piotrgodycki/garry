@@ -6,6 +6,7 @@ import { validateRegistry, type ValidationIssue } from "./schema/validate.js";
 import { listManifests } from "../sync/registryIO.js";
 import { readStack } from "./stacks.js";
 import { stackLine } from "./schema/stacks.js";
+import { SERVICE_KIND_IDS, isServiceKind, kindInfo } from "./schema/kinds.js";
 
 /**
  * Adds services to the registry and removes them: one manifest per service in
@@ -22,8 +23,8 @@ export class ServiceError extends Error {
   }
 }
 
-export type ServiceKind = "mfe-shell" | "mfe-remote" | "backend";
-export const SERVICE_KINDS: ServiceKind[] = ["mfe-remote", "mfe-shell", "backend"];
+export type { ServiceKind } from "./schema/kinds.js";
+export { SERVICE_KINDS } from "./schema/kinds.js";
 
 export interface ServiceInput {
   name?: string;
@@ -36,16 +37,11 @@ export interface ServiceInput {
   exposes?: string[];
   /** service name to the modules (or endpoints) it uses from that service */
   consumes?: Record<string, string[]>;
-  /** backend only: the database it owns */
+  /** the database it owns, for kinds that may own one (API, worker, server-rendered app...) */
   db?: { engine: string; name?: string; migrations?: string } | null;
 }
 
 const NAME = /^[a-z][a-z0-9-]{0,62}$/;
-const DEFAULT_STACK: Record<ServiceKind, string> = {
-  "mfe-shell": "react + vite + module-federation-2",
-  "mfe-remote": "react + vite + module-federation-2",
-  backend: "node",
-};
 
 const file = (registry: string, name: string) => join(registry, "catalog", `${name}.yaml`);
 const list = (v: unknown): string[] => (Array.isArray(v) ? v.map((x) => String(x).trim()).filter(Boolean) : []);
@@ -58,8 +54,9 @@ export function addService(
 ): { service: ServiceManifest; file: string; issues: ValidationIssue[] } {
   const name = (input.name ?? "").trim();
   if (!NAME.test(name)) throw new ServiceError("name: lowercase letters, digits and dashes, starting with a letter", 400);
-  const kind = (input.kind ?? "") as ServiceKind;
-  if (!SERVICE_KINDS.includes(kind)) throw new ServiceError(`kind: one of ${SERVICE_KINDS.join(", ")}`, 400);
+  const kind = input.kind ?? "";
+  if (!isServiceKind(kind)) throw new ServiceError(`kind: one of ${SERVICE_KIND_IDS.join(", ")}`, 400);
+  const info = kindInfo(kind);
   const repo = (input.repo ?? "").trim();
   if (!repo) throw new ServiceError("repo: the git URL (or path) of the service's repository", 400);
   if (existsSync(file(registry, name)) && !opts.replace) throw new ServiceError(`service ${name} already exists`, 409);
@@ -81,13 +78,13 @@ export function addService(
   const parsed = ServiceManifestSchema.safeParse({
     name,
     repo,
-    stack: input.stack?.trim() || (linked ? stackLine(linked) : DEFAULT_STACK[kind]),
+    stack: input.stack?.trim() || (linked ? stackLine(linked) : info.stack),
     stackRef,
     kind,
     owner: input.owner?.trim() || "unassigned",
-    exposes: kind === "mfe-shell" ? [] : list(input.exposes),
+    exposes: info.exposes ? list(input.exposes) : [],
     consumes,
-    db: kind === "backend" ? (input.db ?? null) : null,
+    db: info.db ? (input.db ?? null) : null,
   });
   if (!parsed.success) throw new ServiceError(parsed.error.issues.map((i) => `${i.path.map(String).join(".")}: ${i.message}`).join("; "), 400);
 

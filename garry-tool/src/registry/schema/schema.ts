@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SERVICE_KIND_IDS } from "./kinds.js";
 
 /**
  * Contract Registry schemas (Garry).
@@ -27,7 +28,7 @@ export const DbSchema = z.union([
 ]);
 
 /** The kind of service, so Garry picks the right adapters and skills. */
-export const ServiceKindSchema = z.enum(["mfe-shell", "mfe-remote", "backend"]);
+export const ServiceKindSchema = z.enum(SERVICE_KIND_IDS);
 
 /**
  * api: for a backend service, a reference to its API contract. The OpenAPI (REST)

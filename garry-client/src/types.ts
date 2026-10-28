@@ -91,7 +91,18 @@ export interface SkillSummary {
   audit: { verdict: "pass" | "warn" | "fail"; counts: Record<string, number> } | null;
 }
 
-export type ServiceKind = "mfe-remote" | "mfe-shell" | "backend";
+export type ServiceKind = "mfe-remote" | "mfe-shell" | "spa" | "ssr" | "isr" | "ssg" | "mobile" | "backend" | "bff" | "worker" | "function";
+
+/** A kind of service: what it is, what it exposes, whether it may own a database, and the stack it starts from. */
+export interface ServiceKindInfo {
+  id: ServiceKind;
+  label: string;
+  group: "Frontend" | "Backend";
+  hint: string;
+  exposes: { label: string; placeholder: string } | null;
+  db: boolean;
+  stack: string;
+}
 
 export interface RegistryService {
   name: string;
@@ -255,6 +266,8 @@ export interface NewService {
   stackRef?: string;
   exposes?: string[];
   consumes?: Record<string, string[]>;
+  /** the database it owns, for kinds that may own one */
+  db?: { engine: string; name?: string } | null;
 }
 
 export interface RegistryIssue {
