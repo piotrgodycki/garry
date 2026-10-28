@@ -1,6 +1,6 @@
 {
   "baseLabel": "main 2d03c3c",
-  "headLabel": "20ff542",
+  "headLabel": "65e6e4e",
   "entries": [
     {
       "name": "dashboard--desktop--light",
@@ -8,10 +8,11 @@
       "path": "/",
       "viewport": "desktop",
       "theme": "light",
-      "status": "unchanged",
+      "status": "changed",
       "head": "head/dashboard--desktop--light.png",
       "base": "base/dashboard--desktop--light.png",
-      "ratio": 0
+      "ratio": 0.004285493827160494,
+      "diff": "diff/dashboard--desktop--light.png"
     },
     {
       "name": "live-agents--desktop--light",
@@ -128,10 +129,11 @@
       "path": "/",
       "viewport": "desktop",
       "theme": "dark",
-      "status": "unchanged",
+      "status": "changed",
       "head": "head/dashboard--desktop--dark.png",
       "base": "base/dashboard--desktop--dark.png",
-      "ratio": 0
+      "ratio": 0.0046103395061728395,
+      "diff": "diff/dashboard--desktop--dark.png"
     },
     {
       "name": "live-agents--desktop--dark",
@@ -248,10 +250,11 @@
       "path": "/",
       "viewport": "mobile",
       "theme": "light",
-      "status": "unchanged",
+      "status": "changed",
       "head": "head/dashboard--mobile--light.png",
       "base": "base/dashboard--mobile--light.png",
-      "ratio": 0
+      "ratio": 0.05815547386517429,
+      "diff": "diff/dashboard--mobile--light.png"
     },
     {
       "name": "live-agents--mobile--light",
@@ -368,10 +371,11 @@
       "path": "/",
       "viewport": "mobile",
       "theme": "dark",
-      "status": "unchanged",
+      "status": "changed",
       "head": "head/dashboard--mobile--dark.png",
       "base": "base/dashboard--mobile--dark.png",
-      "ratio": 0
+      "ratio": 0.06404266798346685,
+      "diff": "diff/dashboard--mobile--dark.png"
     },
     {
       "name": "live-agents--mobile--dark",
