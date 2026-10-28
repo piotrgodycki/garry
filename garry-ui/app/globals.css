@@ -520,7 +520,6 @@ select {
     overscroll-behavior: contain;
     background: var(--surface);
     border-right: 1px solid var(--border);
-    box-shadow: var(--shadow-lg);
     transform: translateX(-100%);
     visibility: hidden;
     transition: transform 0.25s var(--ease), visibility 0s linear 0.25s;
