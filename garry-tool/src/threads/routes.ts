@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { PushError, type ThreadManager } from "./manager.js";
 import { fileRoute } from "./files.js";
 import { activeGarryProject } from "../project/store.js";
+import { threadState } from "../status/status.js";
 
 /**
  * /api/projects and /api/threads. Called after the server checked who is
@@ -70,7 +71,8 @@ export async function threadRoutes(
       const project = new URL(req.url ?? "/", "http://x").searchParams.get("project") ?? undefined;
       const repos = new Set(store.projectsOf(activeGarryProject().id).map((p) => p.id));
       const list = store.threads(project).filter((t) => project || repos.has(t.projectId));
-      return (json(res, 200, { threads: list.map((t) => ({ ...t, running: threads.isRunning(t.id) })) }), true);
+      // attention: the same reading as the menu bar (needs you, working, ready)
+      return (json(res, 200, { threads: list.map((t) => ({ ...t, running: threads.isRunning(t.id), attention: threadState(t, store.events(t.id), threads.isRunning(t.id))?.state ?? null })) }), true);
     }
     if (m === "POST") {
       const body = (await readBody(req)) as { projectId?: string; prompt?: string; title?: string };

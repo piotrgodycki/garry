@@ -25,6 +25,41 @@ its own repository, database and stack.
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 
+## Screenshots
+
+**Live agents**: the orchestration from left to right. Each stage, and the agent
+and model doing it for Garry and for every service.
+
+![Live agents](docs/screenshots/live-agents.png)
+
+**Architecture**: services and the platforms they run on, joined like puzzle
+pieces. Logos, relations in words, proxies marked, ready-made architectures to
+start from, and Garry saying what is missing.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/architecture-board-dark.png" />
+  <img src="docs/screenshots/architecture-board-light.png" alt="Architecture board" />
+</picture>
+
+<table>
+  <tr>
+    <td width="50%"><b>Build</b>: describe a change, an agent works on it in its own branch.<br><img src="docs/screenshots/build.png" alt="Build" /></td>
+    <td width="50%"><b>A piece of work</b>: the conversation, the diff, commit and pull request.<br><img src="docs/screenshots/thread.png" alt="A thread" /></td>
+  </tr>
+  <tr>
+    <td><b>Dashboard</b>: ideas, agents at work, shipped.<br><img src="docs/screenshots/dashboard.png" alt="Dashboard" /></td>
+    <td><b>Architecture</b>: the whole page, with the blocks to add.<br><img src="docs/screenshots/architecture.png" alt="Architecture page" /></td>
+  </tr>
+  <tr>
+    <td><b>Stacks</b>: the technologies each service is built with.<br><img src="docs/screenshots/stacks.png" alt="Stacks" /></td>
+    <td><b>Model routing</b>: which agent and model handle each stage.<br><img src="docs/screenshots/routing.png" alt="Model routing" /></td>
+  </tr>
+  <tr>
+    <td><b>Settings</b>: projects (export and import) and the GitHub connection.<br><img src="docs/screenshots/settings.png" alt="Settings" /></td>
+    <td></td>
+  </tr>
+</table>
+
 ## Packages
 
 | Package | Role |

@@ -10,8 +10,8 @@ import styles from "./build.module.css";
 import GithubImport from "./GithubImport";
 import ProjectSettingsPanel from "./ProjectSettings";
 
-const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.status === "error" ? "danger" : t.pr ? "ok" : "");
-const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.status === "error" ? "Stopped" : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
+const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.attention === "needs-you" ? "danger" : t.pr ? "ok" : "");
+const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.attention === "needs-you" ? (t.status === "error" ? "Stopped" : "Needs you") : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
 
 /** Start work in a project and follow every piece of work in progress. */
 export default function Build() {
