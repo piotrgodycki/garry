@@ -65,6 +65,14 @@ Configuration is optional: copy [`.env.example`](./.env.example) to `.env.local`
 and fill in what you need. GitHub needs no file at all: paste a token in Settings
 (GitHub) or with `garry github login`, or sign in with the GitHub CLI.
 
+## Projects
+
+Everything one product is made of (services, contracts, features, stacks,
+routing, the architecture board, and the repositories agents work on) lives in
+a Garry project. Switch projects at the top of the sidebar; export one to a
+single `.garry.json` file and import it on another computer (Settings,
+Projects, or `garry project export` / `import`). See [docs/cli.md](./docs/cli.md#garry-project).
+
 ## Build with agents (the IDE)
 
 Garry is where you work on code with agents. Open **Build** in the dashboard, the
@@ -97,7 +105,7 @@ worktree and run read-only git commands; anything else it asks for is refused fo
 now (approving commands is the next step).
 
 Projects are git repositories on that computer: `garry serve` adds the one it
-starts in, the desktop app adds the folder you open, and `garry projects add
+starts in, the desktop app adds the folder you open, and `garry repos add
 <path>` adds others. Your phone can start and steer work once it is paired, but
 only this computer can add folders, open and edit files, or discard work.
 
@@ -179,7 +187,7 @@ client against a real server, a typecheck and a full bundle.
 | `pnpm ui` | UI only with hot reload, on :3000 (needs the server) |
 | `pnpm desktop` | build and start the desktop app |
 | `pnpm mobile` | start the mobile app for Expo Go (scan the QR code with your phone) |
-| `pnpm garry projects` | the repositories agents can work on (`add <path>` adds one) |
+| `pnpm garry repos` | the repositories of the active project (`add <path>` adds one) |
 | `pnpm scaffold` | the interactive scaffolding wizard |
 | `pnpm -r typecheck` | type check every package |
 | `pnpm -C garry-tool check:registry <dir>` | validate a registry (for example `testdata/registry/frontend`) |

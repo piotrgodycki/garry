@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryProject, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ThreadDiff, ThreadEvent } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -140,6 +140,19 @@ export class GarryClient {
   projects = () => this.request<{ projects: Project[] }>("/api/projects").then((r) => r.projects);
   /** Imports a GitHub repository (owner/name): cloned on this computer and added as a project. */
   importProject = (repo: string) => this.post<Project>("/api/projects/import", { repo });
+
+  // ---- Garry projects: everything one product is made of ----
+  garryProjects = () => this.request<GarryProjects>("/api/garry-projects");
+  createGarryProject = (name: string, description?: string) => this.post<GarryProject>("/api/garry-projects", { name, description });
+  /** Switches the project in use; the registry and the repositories follow. */
+  useGarryProject = (id: string) => this.post<GarryProjects>("/api/garry-projects/active", { id });
+  updateGarryProject = (id: string, patch: { name?: string; description?: string }) => this.post<GarryProject>(`/api/garry-projects/${encodeURIComponent(id)}`, patch);
+  removeGarryProject = (id: string) => this.request<GarryProjects>(`/api/garry-projects/${encodeURIComponent(id)}`, { method: "DELETE" });
+  /** The project as one .garry.json file (registry files, repositories as remotes; never tokens). */
+  exportGarryProject = (id: string) => this.request<GarryBundle>(`/api/garry-projects/${encodeURIComponent(id)}/export`);
+  importGarryProject = (bundle: unknown) => this.post<GarryProject>("/api/garry-projects/import", bundle);
+  /** Clones a repository an imported project names (GitHub only). */
+  clonePendingRepo = (id: string, remote: string) => this.post<Project>(`/api/garry-projects/${encodeURIComponent(id)}/repos/clone`, { remote });
 
   // ---- GitHub (this computer only) ----
   githubStatus = () => this.request<GithubStatus>("/api/github");

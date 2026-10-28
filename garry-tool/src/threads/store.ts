@@ -17,6 +17,8 @@ export interface Project {
   path: string;
   /** what Garry may do with the remote; missing fields are the defaults */
   settings?: Partial<ProjectSettings>;
+  /** the Garry project it belongs to; none is the default project */
+  garryProject?: string;
 }
 
 export type ThreadStatus = "running" | "idle" | "error";
@@ -76,14 +78,19 @@ export class ThreadStore {
     return this.projects().find((p) => p.id === id);
   }
 
-  /** Registers a git repository (once; the same path returns the same project). */
-  addProject(path: string, name?: string): Project {
+  /** The repositories of one Garry project. */
+  projectsOf(garryProject: string): Project[] {
+    return this.projects().filter((p) => (p.garryProject ?? "default") === garryProject);
+  }
+
+  /** Registers a git repository (once; the same path returns the same project) in a Garry project. */
+  addProject(path: string, name?: string, garryProject?: string): Project {
     const abs = resolve(path);
     if (!existsSync(join(abs, ".git"))) throw new Error(`${abs} is not a git repository`);
     const list = this.projects();
     const known = list.find((p) => p.path === abs);
     if (known) return known;
-    const p = { id: id(), name: (name ?? basename(abs)).slice(0, 64), path: abs };
+    const p: Project = { id: id(), name: (name ?? basename(abs)).slice(0, 64), path: abs, ...(garryProject && garryProject !== "default" ? { garryProject } : {}) };
     this.write(join(this.root, "projects.json"), { projects: [...list, p] });
     return p;
   }

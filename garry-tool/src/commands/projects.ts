@@ -2,10 +2,12 @@ import pc from "picocolors";
 import { ThreadStore } from "../threads/store.js";
 import { githubToken } from "../github/env.js";
 import { cloneRepo } from "../github/connect.js";
+import { activeGarryProject } from "../project/store.js";
 
-const HELP = `garry projects [list | add <path> [--name <name>] | import <owner/name> | settings <project> [options]]
+const HELP = `garry repos [list | add <path> [--name <name>] | import <owner/name> | settings <project> [options]]
 
-The git repositories agents can work on. garry serve adds the repository it
+The git repositories agents can work on in the active Garry project (garry
+project). garry serve adds the repository it
 starts in; add others here, then start threads in them from the dashboard,
 the desktop app or your phone. Each thread works in its own branch and
 worktree, so the checkout you work in is never touched.
@@ -28,7 +30,7 @@ export function runProjects(argv: string[]): void {
     const token = githubToken();
     if (!token) throw new Error("connect GitHub first: garry github login");
     const dir = cloneRepo(token, repo);
-    const p = new ThreadStore().addProject(dir, repo.split("/")[1]);
+    const p = new ThreadStore().addProject(dir, repo.split("/")[1], activeGarryProject().id);
     console.log(pc.green(`Project ${p.name} (${p.id}): ${p.path}`));
     return;
   }
@@ -39,7 +41,7 @@ export function runProjects(argv: string[]): void {
   }
   const store = new ThreadStore();
   if (sub === "list") {
-    const list = store.projects();
+    const list = store.projectsOf(activeGarryProject().id);
     if (!list.length) console.log(pc.dim("No projects yet. garry projects add <path>, or run garry serve inside a repository."));
     for (const p of list) console.log(`${p.id}  ${pc.bold(p.name.padEnd(24))} ${p.path}`);
     return;
@@ -72,7 +74,7 @@ export function runProjects(argv: string[]): void {
   if (sub === "add") {
     if (!path) throw new Error("garry projects add needs a path to a git repository");
     const i = argv.indexOf("--name");
-    const p = store.addProject(path, i >= 0 ? argv[i + 1] : undefined);
+    const p = store.addProject(path, i >= 0 ? argv[i + 1] : undefined, activeGarryProject().id);
     console.log(pc.green(`Project ${p.name} (${p.id}): ${p.path}`));
     return;
   }

@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { PushError, type ThreadManager } from "./manager.js";
 import { fileRoute } from "./files.js";
+import { activeGarryProject } from "../project/store.js";
 
 /**
  * /api/projects and /api/threads. Called after the server checked who is
@@ -27,12 +28,13 @@ export async function threadRoutes(
   const fail = (e: unknown, code = 400) => json(res, code, { error: String((e as Error).message ?? e) });
 
   if (path === "/api/projects") {
-    if (m === "GET") return (json(res, 200, { projects: store.projects() }), true);
+    // the repositories of the Garry project in use
+    if (m === "GET") return (json(res, 200, { projects: store.projectsOf(activeGarryProject().id) }), true);
     if (m === "POST") {
       if (!local) return (json(res, 403, { error: "projects are added on the computer running Garry" }), true);
       const body = (await readBody(req)) as { path?: string; name?: string };
       try {
-        return (json(res, 200, store.addProject(String(body.path ?? ""), body.name)), true);
+        return (json(res, 200, store.addProject(String(body.path ?? ""), body.name, activeGarryProject().id)), true);
       } catch (e) {
         return (fail(e), true);
       }
@@ -66,7 +68,9 @@ export async function threadRoutes(
   if (path === "/api/threads") {
     if (m === "GET") {
       const project = new URL(req.url ?? "/", "http://x").searchParams.get("project") ?? undefined;
-      return (json(res, 200, { threads: store.threads(project).map((t) => ({ ...t, running: threads.isRunning(t.id) })) }), true);
+      const repos = new Set(store.projectsOf(activeGarryProject().id).map((p) => p.id));
+      const list = store.threads(project).filter((t) => project || repos.has(t.projectId));
+      return (json(res, 200, { threads: list.map((t) => ({ ...t, running: threads.isRunning(t.id) })) }), true);
     }
     if (m === "POST") {
       const body = (await readBody(req)) as { projectId?: string; prompt?: string; title?: string };

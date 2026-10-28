@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import type { Project, Thread } from "garry-client";
+import type { GarryProject, Project, Thread } from "garry-client";
 import Link from "../lib/router";
 import { client } from "../lib/client";
 import { confirmAction } from "../lib/desktop";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
+import { Icon } from "../icons";
 import styles from "./build.module.css";
 import GithubImport from "./GithubImport";
 import ProjectSettingsPanel from "./ProjectSettings";
@@ -24,6 +25,26 @@ export default function Build() {
   const [offline, setOffline] = useState(false);
   const [importing, setImporting] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  // repositories an imported project names that are not cloned here yet
+  const [garry, setGarry] = useState<GarryProject | null>(null);
+  const [cloning, setCloning] = useState<string | null>(null);
+  const loadGarry = () => client.garryProjects().then((g) => setGarry(g.projects.find((p) => p.id === g.active) ?? null), () => undefined);
+  useEffect(() => void loadGarry(), []);
+  const clone = async (remote: string) => {
+    if (!garry) return;
+    setCloning(remote);
+    setError(null);
+    try {
+      const p = await client.clonePendingRepo(garry.id, remote);
+      setProjects((cur) => [...(cur ?? []).filter((x) => x.id !== p.id), p]);
+      setProjectId(p.id);
+      await loadGarry();
+    } catch (e) {
+      setError(String((e as Error).message ?? e));
+    } finally {
+      setCloning(null);
+    }
+  };
 
   useEffect(() => {
     const load = () =>
@@ -64,22 +85,32 @@ export default function Build() {
         {projects === null ? (
           <Skeleton />
         ) : projects.length === 0 ? (
-          <Empty>No projects yet. Import one from GitHub below, run garry serve inside a git repository, or garry projects add &lt;path&gt;.</Empty>
+          <Empty>No repositories in this project yet. Import one from GitHub below, run garry serve inside a git repository, or garry repos add &lt;path&gt;.</Empty>
         ) : (
           <>
-            <div className={styles.row}>
-              <label className="eyebrow" htmlFor="project">
-                Project
-              </label>
-              <select id="project" className="select" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <button className="btn btnGhost" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((v) => !v)}>
-                {settingsOpen ? "Hide settings" : "Push and branch settings"}
+            <div className={styles.repoBar}>
+              <span className="eyebrow">Works in</span>
+              {projects.length > 1 ? (
+                <select id="project" aria-label="repository" className="select" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className={styles.repoName} title={projects[0]?.path}>
+                  {projects[0]?.name}
+                </span>
+              )}
+              <button
+                className={`${styles.gear} ${settingsOpen ? styles.gearOn : ""}`}
+                aria-expanded={settingsOpen}
+                aria-label="push and branch settings for this repository"
+                title="Push and branch settings"
+                onClick={() => setSettingsOpen((v) => !v)}
+              >
+                {Icon.settings}
               </button>
             </div>
             {settingsOpen && projectId && <ProjectSettingsPanel projectId={projectId} />}
@@ -101,6 +132,21 @@ export default function Build() {
           </>
         )}
       </section>
+
+      {garry?.pendingRepos?.length ? (
+        <section className={`card ${styles.newForm}`} style={{ marginTop: 16 }}>
+          <span className="eyebrow">To clone · from the imported project {garry.name}</span>
+          {garry.pendingRepos.map((r) => (
+            <div key={r.remote} className={styles.repo}>
+              <span className={styles.itemTitle}>{r.name}</span>
+              <button className="btn" disabled={!!cloning} onClick={() => void clone(r.remote)}>
+                {cloning === r.remote ? "Cloning…" : "Clone"}
+              </button>
+              <span className={styles.meta}>{r.remote}</span>
+            </div>
+          ))}
+        </section>
+      ) : null}
 
       <div className={styles.row} style={{ marginTop: 16 }}>
         <button className="btn" onClick={() => setImporting((v) => !v)} aria-expanded={importing || projects?.length === 0}>

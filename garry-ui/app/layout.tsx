@@ -1,6 +1,7 @@
 import { Outlet } from "react-router";
 import Link from "./lib/router";
 import Nav from "./Nav";
+import ProjectSwitcher from "./projects/ProjectSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import VoiceDock from "./VoiceDock";
 import TalkButton from "./TalkButton";
@@ -20,6 +21,7 @@ export default function Shell() {
               <span className="brandSub">AI SDLC orchestrator</span>
             </span>
           </Link>
+          <ProjectSwitcher />
           <Nav />
           <div className="sidebarFoot">
             <TalkButton />
