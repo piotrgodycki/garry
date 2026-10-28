@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { RegistryIssue, RegistryService, ServiceKind, ServiceKindInfo, Stack } from "garry-client";
+import type { RegistryIssue, RegistryService, ServiceKind, ServiceKindInfo, Stack, StackTemplate } from "garry-client";
 import Link from "../lib/router";
 import { client } from "../lib/client";
 import styles from "./addService.module.css";
@@ -24,9 +24,16 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
   const [stacks, setStacks] = useState<Stack[]>([]);
   const [stackRef, setStackRef] = useState("");
   const [kinds, setKinds] = useState<ServiceKindInfo[]>([]);
+  const [templates, setTemplates] = useState<StackTemplate[]>([]);
   const [db, setDb] = useState("");
   useEffect(() => {
-    client.stacks().then((d) => setStacks(d.stacks), () => undefined);
+    client.stacks().then(
+      (d) => {
+        setStacks(d.stacks);
+        setTemplates(d.templates ?? []);
+      },
+      () => undefined,
+    );
     client.serviceKinds().then(setKinds, () => undefined);
   }, []);
   const [exposes, setExposes] = useState("");
@@ -53,13 +60,20 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
       (consumes[k.slice(0, i)] ??= []).push(k.slice(i + 1));
     }
     try {
+      // a ready-made stack becomes one of yours first, so the service can point at it
+      let ref = stackRef;
+      if (ref.startsWith("template:")) {
+        const t = templates.find((x) => `template:${x.name}` === ref)!;
+        if (!stacks.some((x) => x.name === t.name)) await client.saveStack({ name: t.name, description: t.description, technologies: t.technologies });
+        ref = t.name;
+      }
       const r = await client.addService({
         name: name.trim(),
         kind,
         repo: repo.trim(),
         owner: owner.trim() || undefined,
-        stack: stackRef ? undefined : stack.trim() || undefined,
-        stackRef: stackRef || undefined,
+        stack: ref ? undefined : stack.trim() || undefined,
+        stackRef: ref || undefined,
         exposes: current?.exposes ? csv(exposes) : [],
         consumes,
         db: current?.db && db ? { engine: db } : null,
@@ -74,6 +88,8 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
 
   const ready = /^[a-z][a-z0-9-]*$/.test(name.trim()) && repo.trim() !== "" && !busy;
   const current = kinds.find((k) => k.id === kind);
+  // ready-made stacks for this kind that are not already one of yours
+  const fitting = templates.filter((t) => t.kinds.includes(kind) && !stacks.some((x) => x.name === t.name));
   return (
     <form
       className={`card ${styles.form}`}
@@ -89,7 +105,18 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
             {kinds
               .filter((k) => k.group === group)
               .map((k) => (
-                <button key={k.id} type="button" role="radio" aria-checked={kind === k.id} className={`${styles.kind} ${kind === k.id ? styles.kindOn : ""}`} onClick={() => setKind(k.id)}>
+                <button
+                  key={k.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={kind === k.id}
+                  className={`${styles.kind} ${kind === k.id ? styles.kindOn : ""}`}
+                  onClick={() => {
+                    setKind(k.id);
+                    // a ready-made stack picked for another kind may not fit this one
+                    if (stackRef.startsWith("template:")) setStackRef("");
+                  }}
+                >
                   <span className={styles.kindLabel}>{k.label}</span>
                   <span className={styles.kindHint}>{k.hint}</span>
                 </button>
@@ -123,12 +150,21 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
                 ))}
               </optgroup>
             )}
+            {fitting.length > 0 && (
+              <optgroup label="Ready-made for this kind">
+                {fitting.map((t) => (
+                  <option key={t.name} value={`template:${t.name}`}>
+                    {t.title}
+                  </option>
+                ))}
+              </optgroup>
+            )}
             <option value="">{stack.trim() ? `Another: ${stack.trim()}` : `Garry's default for this kind: ${current?.stack ?? "…"}`}</option>
           </select>
           {!stackRef && <input className="input" placeholder={`or type one, e.g. ${current?.stack ?? ""}`} value={stack} onChange={(e) => setStack(e.target.value)} aria-label="another stack" />}
           {stacks.length === 0 && (
             <span className={styles.kindHint}>
-              Define your stacks in <Link href="/stacks">Stacks</Link> to pick them here.
+              Your own stacks live in <Link href="/stacks">Stacks</Link>.
             </span>
           )}
         </label>

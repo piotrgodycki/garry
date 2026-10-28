@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CatalogTech, Stack, StackIssue, Stacks as StacksData } from "garry-client";
+import type { CatalogTech, Stack, StackIssue, StackTemplate, Stacks as StacksData } from "garry-client";
 import Link from "../lib/router";
 import { client } from "../lib/client";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
@@ -20,10 +20,11 @@ function Issues({ issues }: { issues: StackIssue[] }) {
 }
 
 /** Build or change a stack: pick technologies from the catalog, pin versions, see what does not fit. */
-function Composer({ data, initial, onSaved, onCancel }: { data: StacksData; initial: Stack | null; onSaved: () => void; onCancel: () => void }) {
-  const [name, setName] = useState(initial?.name ?? "");
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [picked, setPicked] = useState<Stack["technologies"]>(initial?.technologies ?? []);
+function Composer({ data, initial, template, onSaved, onCancel }: { data: StacksData; initial: Stack | null; template?: StackTemplate; onSaved: () => void; onCancel: () => void }) {
+  const start = initial ?? (template ? { name: template.name, description: template.description, technologies: template.technologies } : null);
+  const [name, setName] = useState(start?.name ?? "");
+  const [description, setDescription] = useState(start?.description ?? "");
+  const [picked, setPicked] = useState<Stack["technologies"]>(start?.technologies ?? []);
   const [query, setQuery] = useState("");
   const [issues, setIssues] = useState<StackIssue[]>([]);
   const [busy, setBusy] = useState(false);
@@ -144,6 +145,7 @@ export default function Stacks() {
   const [data, setData] = useState<StacksData | null>(null);
   const [offline, setOffline] = useState(false);
   const [editing, setEditing] = useState<Stack | "new" | null>(null);
+  const [fromTemplate, setFromTemplate] = useState<StackTemplate | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = () =>
@@ -179,7 +181,13 @@ export default function Stacks() {
         actions={
           data &&
           !editing && (
-            <button className="btn btnPrimary" onClick={() => setEditing("new")}>
+            <button
+              className="btn btnPrimary"
+              onClick={() => {
+                setFromTemplate(null);
+                setEditing("new");
+              }}
+            >
               New stack
             </button>
           )
@@ -189,9 +197,10 @@ export default function Stacks() {
       {!data && !offline && <Skeleton rows={2} height={140} />}
       {data && editing && (
         <Composer
-          key={editing === "new" ? "new" : editing.name}
+          key={editing === "new" ? `new:${fromTemplate?.name ?? ""}` : editing.name}
           data={data}
           initial={editing === "new" ? null : editing}
+          template={editing === "new" ? (fromTemplate ?? undefined) : undefined}
           onCancel={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
@@ -200,7 +209,7 @@ export default function Stacks() {
         />
       )}
       {error && <p className="badge danger">{error}</p>}
-      {data && data.stacks.length === 0 && !editing && <Empty>No stacks yet. Create the first one: the frontends, the APIs, the CMS.</Empty>}
+      {data && data.stacks.length === 0 && !editing && <Empty>No stacks yet. Start from a ready-made one below, or create your own.</Empty>}
       {data && data.stacks.length > 0 && (
         <div className={styles.grid}>
           {data.stacks.map((s) => (
@@ -244,6 +253,48 @@ export default function Stacks() {
             </article>
           ))}
         </div>
+      )}
+      {data && !editing && (
+        <section className="section" aria-labelledby="ready-made">
+          <div className="sectionHead">
+            <h2 id="ready-made">Ready-made stacks</h2>
+            <span className="count">well known combinations to start from, then change</span>
+          </div>
+          <div className={styles.grid}>
+            {(data.templates ?? []).map((t) => {
+              const taken = data.stacks.some((s) => s.name === t.name);
+              return (
+                <article key={t.name} className={`card ${styles.stack}`}>
+                  <div className={styles.stackHead}>
+                    <span className={styles.stackName}>{t.title}</span>
+                    <span className={styles.stackActions}>
+                      <button
+                        className="btn btnSm"
+                        disabled={taken}
+                        title={taken ? "you already have a stack with this name" : undefined}
+                        onClick={() => {
+                          setFromTemplate(t);
+                          setEditing("new");
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                      >
+                        {taken ? "Added" : "Use this"}
+                      </button>
+                    </span>
+                  </div>
+                  <p className={styles.desc}>{t.description}</p>
+                  <div className={styles.chips}>
+                    {t.technologies.map((x) => (
+                      <span key={x.id} className="chip">
+                        {names.get(x.id) ?? x.id}
+                      </span>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
       )}
     </main>
   );

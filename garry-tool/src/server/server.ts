@@ -16,6 +16,7 @@ import { serveUi } from "./static.js";
 import { ThreadManager } from "../threads/manager.js";
 import { fileRoute } from "../threads/files.js";
 import { SERVICE_KINDS } from "../registry/schema/kinds.js";
+import { STACK_TEMPLATES } from "../registry/schema/stack-templates.js";
 import { TerminalError, TerminalManager, terminalEnabled } from "../terminal/terminal.js";
 import { cloneRepo, forgetToken, githubStatus, listRepos, pollDeviceFlow, saveToken, startDeviceFlow } from "../github/connect.js";
 import { threadRoutes } from "../threads/routes.js";
@@ -719,7 +720,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         "DELETE /api/skills/:name (local skills only)",
         "POST /api/skills/propose {content | path, stage?, acknowledge?} (opens a pull request)",
         "GET /api/registry",
-        "GET /api/stacks (the stacks, the technology catalog and its categories)",
+        "GET /api/stacks (the stacks, the technology catalog, its categories and ready-made stacks)",
         "GET /api/architecture (the board, the blocks, what does not fit), POST /api/architecture {nodes, edges}, POST /api/architecture/check",
         "POST /api/architecture/suggest {goal?, ai?, board?} (quick fixes; with ai, Garry's suggestions from Claude Code)",
         "POST /api/stacks {name, description?, technologies: [{id, version?}], replace?}, POST /api/stacks/check {technologies: [id]}",
@@ -746,7 +747,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   if (path === "/api/models") return json(res, 200, { models: MODELS });
   if (path === "/api/service-kinds") return json(res, 200, { kinds: SERVICE_KINDS });
   if (path === "/api/architecture") return json(res, 200, { ...architectureState(cfg.registry), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS, templates: ARCHITECTURE_TEMPLATES });
-  if (path === "/api/stacks") return json(res, 200, { stacks: listStacks(cfg.registry), catalog: CATALOG, categories: CATEGORIES });
+  if (path === "/api/stacks") return json(res, 200, { stacks: listStacks(cfg.registry), catalog: CATALOG, categories: CATEGORIES, templates: STACK_TEMPLATES });
   if (path === "/api/registry") {
     return json(res, 200, { services: listManifests(cfg.registry), contracts: readContracts(cfg.registry) });
   }

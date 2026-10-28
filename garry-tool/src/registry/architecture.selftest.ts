@@ -28,6 +28,13 @@ const levels = (a: Architecture, services: { name: string; kind?: string; db?: u
 // the catalog
 const caps = new Set(Object.keys(CAPABILITIES));
 expect("block ids are unique", new Set(COMPONENTS.map((c) => c.id)).size === COMPONENTS.length);
+{
+  // an iPhone app and an Android app are clients that need an API
+  const apps = { nodes: [{ id: "ios", block: "ios-app", x: 0, y: 0 }, { id: "android", block: "android-app", x: 1, y: 0 }, { id: "api", block: "aws-lambda", x: 2, y: 0 }], edges: [{ from: "ios", to: "api", capability: "http" as const }] };
+  const said = checkArchitecture(apps, []).map((i) => i.message);
+  expect("an Android app without an API is told it needs one", said.some((m) => m.startsWith("Android app needs HTTP API")));
+  expect("an iOS app linked to an API is fine", !said.some((m) => m.startsWith("iOS app needs")));
+}
 expect("every block names known capabilities", COMPONENTS.every((c) => [...c.provides, ...(c.needs ?? [])].every((x) => caps.has(x))));
 expect("every block has a known provider", COMPONENTS.every((c) => PROVIDERS.includes(c.provider)));
 

@@ -17,6 +17,7 @@ export interface Category {
 export const CATEGORIES: Category[] = [
   { id: "language", label: "Language" },
   { id: "frontend", label: "UI framework", single: true },
+  { id: "mobile", label: "Mobile", single: true },
   { id: "state", label: "State and data fetching" },
   { id: "meta", label: "App framework", single: true },
   { id: "bundler", label: "Bundler", single: true },
@@ -69,6 +70,8 @@ export const CATALOG: Tech[] = [
   { id: "rust", name: "Rust", category: "language" },
   { id: "java", name: "Java", category: "language" },
   { id: "kotlin", name: "Kotlin", category: "language" },
+  { id: "swift", name: "Swift", category: "language" },
+  { id: "dart", name: "Dart", category: "language" },
   // UI
   { id: "react", name: "React", category: "frontend" },
   { id: "vue", name: "Vue", category: "frontend" },
@@ -76,6 +79,12 @@ export const CATALOG: Tech[] = [
   { id: "angular", name: "Angular", category: "frontend", requires: [["typescript"]] },
   { id: "solid", name: "SolidJS", category: "frontend" },
   { id: "preact", name: "Preact", category: "frontend" },
+  // mobile
+  { id: "react-native", name: "React Native", category: "mobile", requires: [["react"]] },
+  { id: "expo", name: "Expo", category: "meta", requires: [["react-native"]], note: "React Native with builds, updates and native modules handled for you" },
+  { id: "swiftui", name: "SwiftUI", category: "mobile", requires: [["swift"]], note: "iPhone, iPad and Mac apps" },
+  { id: "jetpack-compose", name: "Jetpack Compose", category: "mobile", requires: [["kotlin"]], note: "Android apps" },
+  { id: "flutter", name: "Flutter", category: "mobile", requires: [["dart"]], note: "one codebase for iPhone and Android" },
   // state and data fetching
   { id: "zustand", name: "Zustand", category: "state", requires: [["react", "preact"]] },
   { id: "redux", name: "Redux Toolkit", category: "state" },
@@ -86,6 +95,7 @@ export const CATALOG: Tech[] = [
   { id: "xstate", name: "XState", category: "state" },
   { id: "nanostores", name: "Nano Stores", category: "state" },
   { id: "tanstack-query", name: "TanStack Query", category: "state", requires: [UI] },
+  { id: "tanstack-router", name: "TanStack Router", category: "state", requires: [["react", "solid"]], note: "type-safe routing" },
   { id: "swr", name: "SWR", category: "state", requires: [["react", "preact"]] },
   // app frameworks
   { id: "nextjs", name: "Next.js", category: "meta", requires: [["react"]], conflicts: ["vite", "module-federation"], note: "brings its own bundler; Module Federation is not supported" },
@@ -93,6 +103,8 @@ export const CATALOG: Tech[] = [
   { id: "nuxt", name: "Nuxt", category: "meta", requires: [["vue"]] },
   { id: "sveltekit", name: "SvelteKit", category: "meta", requires: [["svelte"]] },
   { id: "astro", name: "Astro", category: "meta" },
+  { id: "remix", name: "Remix", category: "meta", requires: [["react"]], note: "carried on as React Router's framework mode" },
+  { id: "tanstack-start", name: "TanStack Start", category: "meta", requires: [["react", "solid"], ["vite"]], conflicts: ["nextjs"] },
   // bundlers
   { id: "vite", name: "Vite", category: "bundler" },
   { id: "webpack", name: "Webpack", category: "bundler" },
@@ -190,6 +202,8 @@ export const CATALOG: Tech[] = [
   { id: "fly", name: "Fly.io", category: "hosting" },
   { id: "kubernetes", name: "Kubernetes", category: "hosting" },
   { id: "vps", name: "VPS (Docker)", category: "hosting" },
+  { id: "apache", name: "Apache HTTP Server", category: "hosting" },
+  { id: "nginx", name: "nginx", category: "hosting" },
   // rendering
   { id: "csr", name: "Client-side rendering (SPA)", category: "rendering", side: "client", conflicts: ["rsc"], note: "server components need a server" },
   { id: "ssr", name: "Server-side rendering", category: "rendering", side: "server" },
