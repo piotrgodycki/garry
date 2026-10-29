@@ -97,6 +97,8 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(String(e)));
+  const consoleErrors: string[] = [];
+  page.on("console", (m) => m.type() === "error" && consoleErrors.push(m.text().slice(0, 400)));
 
   // a piece of work in a repository not on GitHub
   await page.goto(`${base}/build/${t.id}`);
@@ -119,7 +121,7 @@ try {
     .then(() => true)
     .catch(() => false);
   // when it is not there, say what the server logged and what the page shows, so a failure elsewhere can be read
-  const why = logged ? "" : `server log: ${JSON.stringify(store.events(t.id).map((e) => `${e.type}${"action" in e ? `:${e.action}:${e.detail}` : ""}`))}; page errors: ${errors.join("; ")}; page: ${(await page.locator("main").innerText().catch(() => "")).slice(0, 1500)}`;
+  const why = logged ? "" : `server log: ${JSON.stringify(store.events(t.id).map((e) => `${e.type}${"action" in e ? `:${e.action}:${e.detail}` : ""}`))}; page errors: ${errors.join("; ")}; console: ${consoleErrors.join(" | ")}; url: ${page.url()}; page: ${(await page.locator("body").innerText().catch(() => "")).slice(0, 1500)}`;
   expect("the work's log says so", logged, why);
 
   // a repository's settings in Build offer the same on their own
