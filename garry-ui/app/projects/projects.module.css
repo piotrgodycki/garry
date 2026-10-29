@@ -129,6 +129,18 @@
   border: 1px solid var(--border);
   border-radius: 10px;
 }
+/* asked in place before a project is removed */
+.confirm {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 6%, transparent);
+}
+.confirm .rowActions {
+  justify-content: flex-start;
+}
 .rowActions {
   display: flex;
   gap: 6px;

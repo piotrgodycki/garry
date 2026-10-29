@@ -1,4 +1,5 @@
 import {
+  siAkamai,
   siAlgolia,
   siAndroid,
   siApple,
@@ -9,6 +10,7 @@ import {
   siCloudflarepages,
   siCloudflareworkers,
   siContentful,
+  siFastly,
   siKeycloak,
   siKubernetes,
   siLinux,
@@ -89,6 +91,13 @@ const LOGOS: Record<string, Logo> = {
   // Adobe's marks are not for redistribution: monograms in its red
   "aem-sites": mono("AEM", "#EB1000"),
   "aem-eds": mono("EDS", "#EB1000"),
+  "aem-author": mono("AU", "#EB1000"),
+  "aem-publish": mono("PUB", "#EB1000"),
+  "aem-dispatcher": mono("DSP", "#EB1000"),
+  "adobe-cdn": mono("CDN", "#EB1000"),
+  "reverse-proxy": mono("RP", "#6B7280"),
+  akamai: icon(siAkamai),
+  fastly: icon(siFastly),
   "aem-da": mono("DA", "#EB1000"),
   "aem-assets": mono("AS", "#EB1000"),
   "adobe-app-builder": mono("AB", "#EB1000"),

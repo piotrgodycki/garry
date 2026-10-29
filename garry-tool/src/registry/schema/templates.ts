@@ -69,6 +69,58 @@ export const ARCHITECTURE_TEMPLATES: ArchitectureTemplate[] = [
     ],
   },
   {
+    id: "aem-cloud-service",
+    name: "AEM Sites: Author, Publish, Dispatcher, CDN",
+    summary: "The classic AEM as a Cloud Service setup: authors on Author, pages from Publish behind the Dispatcher and Adobe's CDN, assets in AEM Assets.",
+    goodFor: "enterprise sites with many authors, workflows and translations",
+    columns: [
+      [["browser", "browser", "Visitors"]],
+      [["cdn", "adobe-cdn"]],
+      [["dispatcher", "aem-dispatcher"]],
+      [["publish", "aem-publish"]],
+      [
+        ["author", "aem-author"],
+        ["assets", "aem-assets"],
+      ],
+    ],
+    links: [
+      ["browser", "cdn", "web"],
+      ["cdn", "dispatcher", "web"],
+      ["dispatcher", "publish", "web"],
+      ["publish", "author", "content"],
+      ["publish", "assets", "blob"],
+    ],
+  },
+  {
+    id: "aem-own-cdn",
+    name: "AEM behind your own CDN",
+    summary: "AEM with Akamai in front of Adobe's CDN for your WAF, rules and domains, and a reverse proxy for the apps beside it.",
+    goodFor: "enterprises with a CDN contract and security rules of their own",
+    columns: [
+      [["browser", "browser", "Visitors"]],
+      [["edge", "akamai"]],
+      [
+        ["cdn", "adobe-cdn"],
+        ["proxy", "reverse-proxy", "Apps proxy"],
+      ],
+      [
+        ["dispatcher", "aem-dispatcher"],
+        ["apps", "kubernetes", "Other apps"],
+      ],
+      [["publish", "aem-publish"]],
+      [["author", "aem-author"]],
+    ],
+    links: [
+      ["browser", "edge", "web"],
+      ["edge", "cdn", "web"],
+      ["edge", "proxy", "web"],
+      ["cdn", "dispatcher", "web"],
+      ["proxy", "apps", "web"],
+      ["dispatcher", "publish", "web"],
+      ["publish", "author", "content"],
+    ],
+  },
+  {
     id: "eds-documents",
     name: "Edge Delivery from documents",
     summary: "A fast site written as documents (Document Authoring, SharePoint or Google Drive) and served by Edge Delivery Services.",

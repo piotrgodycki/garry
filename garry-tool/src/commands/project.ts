@@ -64,8 +64,9 @@ export function runProject(argv: string[]): void {
   }
   if (sub === "remove") {
     if (!arg) throw new Error("garry project remove <id>");
-    removeGarryProject(arg);
-    console.log(pc.green(`Removed ${arg}`));
+    const now = removeGarryProject(arg);
+    const repos = new ThreadStore().forgetProjectsOf(arg);
+    console.log(pc.green(`Removed ${arg}`) + pc.dim(`${repos ? ` (${repos} repositories left Build; they stay on disk)` : ""}. ${now.name} is the active project.`));
     return;
   }
   throw new Error(`unknown subcommand: ${sub}\n\n${HELP}`);
