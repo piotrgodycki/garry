@@ -4,6 +4,7 @@ import { loadSkills, usableSkills, type SkillEntry } from "../orchestrate/skills
 import { readArchitecture } from "./architecture.js";
 import { listStacks } from "./stacks.js";
 import { readLayers, resolveLayers, type From, type Resolved } from "./layers.js";
+import { memoryPrompt } from "../garry/memory.js";
 
 /** Everything an agent in one repository is given, and where each piece comes from. */
 export interface AgentContext extends Resolved {
@@ -32,7 +33,14 @@ export function servicesIn(registry: string, repo: { name: string; path: string 
 export function agentContext(opts: { registry: string; skillsRoot: string; project?: string; repo: { name: string; path: string } }): AgentContext {
   const { registry, repo } = opts;
   const services = servicesIn(registry, repo);
-  const all = usableSkills(loadSkills(opts.skillsRoot));
+  // skills that cannot be read leave the rest (stacks, architecture, notes, memory) in place
+  const all = (() => {
+    try {
+      return usableSkills(loadSkills(opts.skillsRoot));
+    } catch {
+      return [];
+    }
+  })();
   const byName = new Map<string, SkillEntry>(all.map((s) => [s.name, s]));
   const resolved = resolveLayers(readLayers(registry), {
     repo: repo.name,
@@ -65,6 +73,8 @@ export function agentContext(opts: { registry: string; skillsRoot: string; proje
     for (const s of skills) lines.push(`- ${s.name}: ${byName.get(s.name)!.summary} (${byName.get(s.name)!.dir}/SKILL.md; from ${where(s.from)})`);
   }
   for (const n of resolved.notes) lines.push("", `Notes from the team for ${where(n.from)}:`, n.text);
+  const memory = memoryPrompt(registry);
+  if (memory) lines.push("", memory);
   const prompt = lines.join("\n").slice(0, MAX_PROMPT);
   const dirs = skills.map((s) => byName.get(s.name)!.dir).filter((d): d is string => Boolean(d));
   return { ...resolved, skills, repo: repo.name, services: services.map((s) => s.name), missing, prompt, dirs };

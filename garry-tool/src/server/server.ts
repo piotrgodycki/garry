@@ -144,7 +144,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   }
 
   // Talking to Garry: messages in line, one at a time (garry/routes.ts)
-  if (path.startsWith("/api/garry/queue") && (await queueRoutes(req, res, path, { queue: cfg.queue!, threads: cfg.threads!, json, readBody }))) return;
+  if (/^\/api\/garry\/(queue|commands|memory)(\/|$)/.test(path) && (await queueRoutes(req, res, path, { queue: cfg.queue!, threads: cfg.threads!, teams: cfg.teams!, registry: cfg.registry, json, readBody }))) return;
 
   // Agents working together: pairs and chains (garry/team-routes.ts)
   if (/^\/api\/(teams|pairs|chains)(\/|$)/.test(path) && (await teamRoutes(req, res, path, { teams: cfg.teams!, threads: cfg.threads!, json, readBody })) !== false) return;

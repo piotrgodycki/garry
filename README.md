@@ -46,7 +46,9 @@ conversation per repository so it remembers, and sending more never
 interrupts the work in progress. What runs, what waits (with its place in
 line, and a cross to drop it) and what Garry answered sit just above the
 field. **Cmd/Ctrl+K** focuses it; a page's name goes to that page, and the
-arrows pick separate work in Build instead. Paper by day, graphite by night; colour only ever means a
+arrows pick separate work in Build instead. A slash starts a command:
+`/remember` (Garry and every agent in the project keep it in mind; see
+**Memory**), `/forget`, `/memory`, `/new`, `/pair`, `/stop`, `/help`. Paper by day, graphite by night; colour only ever means a
 state. Every page title has its icon, Garry's crew has an icon per role (the
 analyst's spec, the developer's code, the reviewer's lens) on a tile in its
 state's colour, and empty pages show a picture instead of a blank: sprouts in

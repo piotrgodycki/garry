@@ -2,6 +2,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ThreadManager } from "../threads/manager.js";
 import { activeGarryProject } from "../project/store.js";
 import type { GarryQueue } from "./queue.js";
+import type { Teams } from "./teams.js";
+import { CommandError, commandList, runCommand } from "./commands.js";
+import { MemoryError, forget, readMemory, remember } from "./memory.js";
 
 /**
  * Talking to Garry: GET /api/garry/queue (what you said, newest last, and
@@ -14,9 +17,13 @@ export async function queueRoutes(
   req: IncomingMessage,
   res: ServerResponse,
   path: string,
-  ctx: { queue: GarryQueue; threads: ThreadManager; json: (res: ServerResponse, code: number, body: unknown) => void; readBody: (req: IncomingMessage) => Promise<unknown> },
+  ctx: { queue: GarryQueue; threads: ThreadManager; teams: Teams; registry: string; json: (res: ServerResponse, code: number, body: unknown) => void; readBody: (req: IncomingMessage) => Promise<unknown> },
 ): Promise<boolean> {
   const { queue, threads, json } = ctx;
+  const fail = (e: unknown) => {
+    if (e instanceof CommandError || e instanceof MemoryError) return (json(res, e.status, { error: e.message }), true);
+    return (json(res, 400, { error: String((e as Error).message ?? e) }), true);
+  };
   const repos = () => threads.store.projectsOf(activeGarryProject().id);
   const mine = () => {
     const ids = new Set(repos().map((r) => r.id));
@@ -34,6 +41,35 @@ export async function queueRoutes(
       } catch (e) {
         return (json(res, 400, { error: String((e as Error).message ?? e) }), true);
       }
+    }
+  }
+  // commands after a slash: the list (for the field's suggestions), and running one
+  if (path === "/api/garry/commands" && req.method === "GET") return (json(res, 200, { commands: commandList() }), true);
+  if (path === "/api/garry/commands" && req.method === "POST") {
+    const body = (await ctx.readBody(req)) as { text?: unknown };
+    try {
+      return (json(res, 200, runCommand(String(body.text ?? ""), { registry: ctx.registry, repos: repos(), threads, teams: ctx.teams, queue })), true);
+    } catch (e) {
+      return fail(e);
+    }
+  }
+  // Garry's memory of the active project: read, add, forget one
+  if (path === "/api/garry/memory") {
+    if (req.method === "GET") return (json(res, 200, { entries: readMemory(ctx.registry) }), true);
+    if (req.method === "POST") {
+      try {
+        return (json(res, 200, remember(ctx.registry, String(((await ctx.readBody(req)) as { text?: unknown }).text ?? ""))), true);
+      } catch (e) {
+        return fail(e);
+      }
+    }
+  }
+  const mem = /^\/api\/garry\/memory\/([a-f0-9]{10})$/.exec(path);
+  if (mem && req.method === "DELETE") {
+    try {
+      return (json(res, 200, forget(ctx.registry, mem[1])), true);
+    } catch (e) {
+      return fail(e);
     }
   }
   const one = /^\/api\/garry\/queue\/([a-z0-9]{4,16})$/.exec(path);

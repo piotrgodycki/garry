@@ -14,6 +14,7 @@ import Dashboard from "./page";
 import Registry from "./registry/page";
 import Stacks from "./stacks/page";
 import LayersPage from "./layers/page";
+import Memory from "./memory/page";
 import ArchitecturePage from "./architecture/page";
 import Skills from "./skills/page";
 import Routing from "./routing/page";
@@ -44,6 +45,7 @@ const router = createBrowserRouter([
       { path: "/registry", element: <Registry /> },
       { path: "/stacks", element: <Stacks /> },
       { path: "/layers", element: <LayersPage /> },
+      { path: "/memory", element: <Memory /> },
       { path: "/architecture", element: <ArchitecturePage /> },
       { path: "/skills", element: <Skills /> },
       { path: "/routing", element: <Routing /> },

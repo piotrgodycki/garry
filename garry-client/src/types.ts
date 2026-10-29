@@ -604,3 +604,18 @@ export interface ThreadDiff {
   /** changes not committed yet; the diff also shows committed ones */
   uncommitted: boolean;
 }
+
+/** A command that can follow a slash in Garry's field. */
+export interface GarryCommand {
+  name: string;
+  /** what goes after it; empty when nothing does */
+  args: string;
+  help: string;
+}
+
+/** One thing Garry and every agent in a project keep in mind. */
+export interface MemoryEntry {
+  id: string;
+  text: string;
+  createdAt: string;
+}

@@ -29,6 +29,7 @@ export const GROUPS: { label: string; links: { href: string; label: string; icon
     label: "Garry",
     links: [
       { href: "/skills", label: "Skills", icon: Icon.skills },
+      { href: "/memory", label: "Memory", icon: Icon.memory },
       { href: "/routing", label: "Model routing", icon: Icon.routing },
       { href: "/settings", label: "Settings", icon: Icon.settings, also: ["/pair"] },
     ],

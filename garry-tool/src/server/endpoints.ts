@@ -15,6 +15,8 @@ export const ENDPOINTS = [
         "DELETE /api/threads/:id (this machine only: removes the worktree and branch)",
         "GET /api/threads/:id/files?path=, GET /api/threads/:id/file?path=, POST /api/threads/:id/file {path, content, sha?} (this machine only)",
         "GET /api/terminals, POST /api/terminals {root: registry|project:<id>|thread:<id>, cols?, rows?}, GET /api/terminals/:id/stream (SSE), POST /api/terminals/:id/input {data}, POST /api/terminals/:id/resize {cols, rows}, DELETE /api/terminals/:id (this machine only; GARRY_TERMINAL=off turns it off)",
+        "GET /api/garry/commands (what can follow a slash), POST /api/garry/commands {text: \"/remember ...\"} (runs one at once: remember, forget, memory, new, pair, stop, help)",
+        "GET /api/garry/memory, POST /api/garry/memory {text}, DELETE /api/garry/memory/:id (what Garry and every agent in the project keep in mind)",
         "GET /api/features",
         "POST /api/features {title, goal?, services?, contractChanges?}",
         "DELETE /api/features/:id (this machine only)",
