@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryMessage, GarryQueue, LiveView, Pair, Chain, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent, WizardAnswers } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryMessage, GarryQueue, LiveView, Pair, Chain, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, Layer, Layers, LayerScope, AgentContext, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent, WizardAnswers } from "./types";
 import { GarryError, parseStream, type ClientOptions, type FetchLike } from "./connect";
 
 /** A typed client for one Garry server. */
@@ -59,6 +59,13 @@ export class GarryClient {
   /** Removes a service (this computer only); refused while another service consumes it. */
   removeService = (name: string) => this.request<{ ok: true }>(`/api/registry/services/${encodeURIComponent(name)}`, { method: "DELETE" });
   skills = () => this.request<{ skills: SkillSummary[] }>("/api/skills").then((r) => r.skills);
+  /** Gives a local skill to every project's agents, or only where a layer turns it on. */
+  setSkillEverywhere = (name: string, on: boolean) => this.post<{ ok: true }>(`/api/skills/${encodeURIComponent(name)}/everywhere`, { on });
+  /** The layers of the active project, with its repositories and services to set them for. */
+  layers = () => this.request<{ layers: Layers; repos: { id: string; name: string }[]; services: { name: string; repo: string; inRepo: string | null; stackRef: string | null }[] }>("/api/layers");
+  saveLayer = (scope: LayerScope, layer: Layer) => this.post<{ layers: Layers; layer: Layer }>("/api/layers", { scope, layer });
+  /** What an agent in one repository gets, all layers added up. */
+  agentContext = (repoId: string) => this.request<AgentContext>(`/api/layers/agent?repo=${encodeURIComponent(repoId)}`);
   models = () => this.request<{ models: Model[] }>("/api/models").then((r) => r.models);
   routing = () => this.request<Routing>("/api/routing");
   setStageModel = (stage: string, model: string) => this.post<Routing>("/api/routing", { stage, model });

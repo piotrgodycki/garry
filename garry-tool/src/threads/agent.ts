@@ -17,6 +17,10 @@ export interface TurnOptions {
   permissionMode?: string;
   allowedTools?: string[];
   model?: string;
+  /** what the layers give this agent (stacks, architecture, skills, notes), after Garry's own rules */
+  context?: string;
+  /** folders the agent may read outside the worktree: the skills it was given */
+  addDirs?: string[];
 }
 
 /** The tools an agent may use without asking: read, edit, and read-only git. */
@@ -101,8 +105,9 @@ export function runTurn(opts: TurnOptions, onEvent: (e: ThreadEvent) => void): R
     "--disallowedTools",
     "Bash(git push:*),Bash(gh pr:*),Bash(git remote:*)",
     "--append-system-prompt",
-    SYSTEM,
+    opts.context ? `${SYSTEM}\n\n${opts.context}` : SYSTEM,
   ];
+  if (opts.addDirs?.length) args.push("--add-dir", ...opts.addDirs);
   if (opts.sessionId) args.push("--resume", opts.sessionId);
   if (opts.model) args.push("--model", opts.model);
 

@@ -19,6 +19,7 @@ import { featureRoutes } from "./features-routes.js";
 import { registryRoutes } from "./registry-routes.js";
 import { skillRoutes } from "./skills-routes.js";
 import { projectRoutes } from "./projects-routes.js";
+import { layerRoutes, wireAgentContext } from "./layers-routes.js";
 import { terminalRoutes } from "./terminal-routes.js";
 import { ENDPOINTS } from "./endpoints.js";
 
@@ -44,6 +45,7 @@ export interface ServerConfig {
 /** Builds the Garry HTTP server (REST plus SSE) over the supervisor. */
 export function createGarryServer(cfg: ServerConfig, devices = new DeviceStore()): Server {
   cfg.threads ??= new ThreadManager();
+  wireAgentContext(cfg, cfg.threads);
   const queue = (cfg.queue ??= new GarryQueue(cfg.threads));
   const teams = (cfg.teams ??= new Teams(cfg.threads));
   const terminals = (cfg.terminals ??= new TerminalManager());
@@ -151,7 +153,7 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   // The rest, each group in a module of its own: GitHub and Garry projects, the
   // registry (files, services, boards, stacks, routing), skills, features
   const ctx: RouteCtx = { cfg, local, url };
-  for (const group of [projectRoutes, registryRoutes, skillRoutes, featureRoutes]) if ((await group(req, res, path, ctx)) !== false) return;
+  for (const group of [projectRoutes, registryRoutes, layerRoutes, skillRoutes, featureRoutes]) if ((await group(req, res, path, ctx)) !== false) return;
 
   // Garry at a glance (the Mac menu bar, the iPhone app): working, needs you, ready; the active project's work
   if (req.method === "GET" && path === "/api/status") {

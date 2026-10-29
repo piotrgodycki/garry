@@ -8,6 +8,13 @@ const args = process.argv.slice(2);
 const prompt = args[args.indexOf("-p") + 1] ?? "";
 const resume = args.includes("--resume") ? args[args.indexOf("--resume") + 1] : null;
 const out = (o) => process.stdout.write(JSON.stringify(o) + "\n");
+// GARRY_FAKE_ARGS: a file the test reads to see what the agent was given (system prompt, extra folders)
+if (process.env.GARRY_FAKE_ARGS) {
+  const at = args.indexOf("--add-dir");
+  const dirs = [];
+  for (let i = at + 1; at >= 0 && i < args.length && !args[i].startsWith("--"); i++) dirs.push(args[i]);
+  appendFileSync(process.env.GARRY_FAKE_ARGS, JSON.stringify({ system: args[args.indexOf("--append-system-prompt") + 1], dirs }) + "\n");
+}
 
 if (prompt.includes("SLOW")) await new Promise((r) => setTimeout(r, 30000));
 out({ type: "system", subtype: "init", session_id: resume ?? "fake-session-1" });

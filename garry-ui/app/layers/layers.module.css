@@ -1,0 +1,258 @@
+/* Layers: where on the left, the layer in the middle, what an agent gets on the right */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(280px, 380px);
+  gap: var(--space-lg);
+  align-items: start;
+}
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.help {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.none {
+  padding: 4px 10px 8px;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
+/* the layers to pick from */
+.tree {
+  padding: 10px;
+}
+.treeGroup {
+  display: grid;
+  gap: 4px;
+}
+.treeHead {
+  padding: 10px 10px 2px;
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.where {
+  display: grid;
+  gap: 2px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text-default);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.where:hover {
+  background: var(--surface-2);
+}
+.where[aria-checked="true"] {
+  border-color: var(--state-work);
+  background: color-mix(in srgb, var(--state-work) 7%, var(--surface));
+}
+.where b {
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.where span {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+/* one layer */
+.editor {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
+  min-width: 0;
+}
+.editorHead {
+  display: grid;
+  gap: 4px;
+}
+.level {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.label {
+  padding: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text-default);
+}
+.skills {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.skill {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+}
+.skill input {
+  margin-top: 3px;
+  width: 17px;
+  height: 17px;
+}
+.skillText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.skillText b {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.skillText span {
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.from {
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: var(--surface);
+  font-size: 14px;
+  cursor: pointer;
+}
+.chip:has(input:checked) {
+  border-color: var(--state-work);
+  background: color-mix(in srgb, var(--state-work) 8%, var(--surface));
+}
+.more > :not(summary) {
+  margin-top: 8px;
+}
+.more > summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.notes {
+  min-height: 110px;
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+/* what an agent gets */
+.gets {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  min-width: 0;
+}
+.inline {
+  display: grid;
+  gap: 6px;
+}
+.getsBody {
+  display: grid;
+  gap: 14px;
+}
+.getsBody h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.got {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+.got li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+}
+.got b {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.prompt summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.prompt pre {
+  margin: 8px 0 0;
+  max-height: 360px;
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1280px) {
+  .layout {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  }
+  .gets {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .skill {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .from {
+    grid-column: 2;
+  }
+}

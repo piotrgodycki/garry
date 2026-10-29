@@ -16,6 +16,10 @@ export interface SkillEntry {
   hasDoc: boolean;
   /** security audit summary; null for a planned skill with nothing to audit yet */
   audit: { verdict: Verdict; counts: Record<Severity, number> } | null;
+  /** given to every agent in every project; pre-installed skills only reach agents a layer turns them on for */
+  everywhere: boolean;
+  /** the folder holding SKILL.md, when there is one */
+  dir?: string;
 }
 
 /** The skills that ship with Garry (the pre-installed ones). */
@@ -33,6 +37,8 @@ export function loadBuiltinSkills(skillsRoot: string): SkillEntry[] {
     source: "builtin" as const,
     hasDoc: Boolean(s.path && existsSync(join(skillsRoot, s.path, "SKILL.md"))),
     audit: s.path && existsSync(join(skillsRoot, s.path, "SKILL.md")) ? summary(auditFiles(readSkillFolder(join(skillsRoot, s.path)))) : null,
+    everywhere: false,
+    ...(s.path ? { dir: join(skillsRoot, s.path) } : {}),
   }));
 }
 
@@ -62,6 +68,8 @@ export function loadSkills(skillsRoot: string, localDir = localSkillsDir()): Ski
       source: "local" as const,
       hasDoc: true,
       audit: summary(s.audit),
+      everywhere: s.everywhere,
+      dir: join(localDir, s.name),
     }));
   return [...builtin, ...local];
 }

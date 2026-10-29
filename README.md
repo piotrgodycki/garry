@@ -79,7 +79,7 @@ Edge Delivery Services, Document Authoring, AEM Assets, App Builder, I/O Events)
 
 The dashboard's menu follows the work: **Work** (Dashboard, Live, Build, Pull
 requests) is the idea, the agents building it and what it ships as; **Project**
-(Services, Architecture, Stacks, Files) is what it happens in; **Garry**
+(Services, Architecture, Stacks, Layers, Files) is what it happens in; **Garry**
 (Skills, Model routing, Settings) is how Garry works. Every page uses the whole
 width of the screen and works on a phone, where the rail becomes a menu in a
 drawer.
@@ -99,7 +99,7 @@ drawer.
   </tr>
   <tr>
     <td><b>Settings</b>: projects (export and import) and the GitHub connection.<br><img src="docs/screenshots/settings.png" alt="Settings" /></td>
-    <td></td>
+    <td><b>Layers</b>: skills, stacks and notes for the project, a repository or a service, and what an agent ends up with.<br><img src="docs/screenshots/layers.png" alt="Layers" /></td>
   </tr>
 </table>
 
@@ -150,6 +150,14 @@ routing, the architecture board, and the repositories agents work on) lives in
 a Garry project. Switch projects at the top of the sidebar; export one to a
 single `.garry.json` file and import it on another computer (Settings,
 Projects, or `garry project export` / `import`). See [docs/cli-more.md](./docs/cli-more.md#garry-project).
+
+## Layers: what agents are given
+
+What an agent knows about your project comes in layers: **project > repository
+> service**. Skills, stacks and the team's notes are set once for the project,
+changed per repository and added to per service. An agent gets the sum of the
+layers, along with the architecture boards. Skills can be installed for one
+project, repository or service. See [docs/layers.md](./docs/layers.md).
 
 ## Build with agents (the IDE)
 
@@ -267,23 +275,7 @@ computer over your Wi-Fi (or Tailscale), after pairing once with a QR code.
 3. In the app, scan Garry's pairing QR code. The phone gets its own key, kept in
    the iOS keychain; `garry devices revoke <id>` cuts it off.
 
-**Face ID on iOS:** the app opens locked and locks again a minute after it goes to
-the background; the key to your computer sits in the keychain behind Face ID, so
-even an unlocked phone does not give it away; new work, commits and pull requests
-ask for Face ID first; the app switcher shows a cover instead of your code.
-Settings, Require Face ID turns it off. Expo Go cannot use Face ID (it falls back
-to the passcode); a development build (`npx expo run:ios` on a Mac with Xcode, or
-`eas build --profile development`) has the real thing.
-
-**Notifications on the iPhone:** Settings, Notifications. When a piece of work
-needs you (the agent ended with a question, or stopped) or is ready for review,
-the phone gets a notification, also with Garry closed; tapping it opens the
-work. The home screen shows the same at a glance. Garry on your computer sends
-them through Expo's push service. For a company: `GARRY_PUSH=off` turns them off
-for everyone, `GARRY_PUSH_URL` sends to a push relay of your own, and
-`GARRY_PUSH_DETAIL=minimal` leaves project and work names out of them. Needs a
-build of the app with an EAS project id (`eas init`); Expo Go and the simulator
-cannot receive them.
+Face ID, notifications on the iPhone and App Store builds: [docs/mobile.md](./docs/mobile.md).
 
 <table>
   <tr>
@@ -291,14 +283,6 @@ cannot receive them.
     <td width="50%"><img src="docs/screenshots/iphone-dark.png" alt="The iPhone app at night" /></td>
   </tr>
 </table>
-
-TestFlight and App Store builds come from Expo's build service:
-`eas build --platform ios --profile production`, then `eas submit --platform ios`
-([`eas.json`](./garry-mobile/eas.json)). That needs an Expo account and an Apple
-Developer account (99 USD a year, the same one that signs the Mac app). Until then
-Expo Go runs the app. CI checks the app on every push: the
-client against a real server, a typecheck, a full bundle, and its web build in
-a phone-sized browser paired with a real server (`test:mobile`).
 
 ## Guides
 

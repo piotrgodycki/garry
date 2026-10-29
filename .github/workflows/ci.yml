@@ -42,6 +42,7 @@ jobs:
           pnpm -C garry-tool test:frame
           pnpm -C garry-tool test:live-ui
           pnpm -C garry-tool test:teams-ui
+          pnpm -C garry-tool test:layers-ui
           pnpm -C garry-tool test:crew
           pnpm -C garry-mobile export:web
           pnpm -C garry-tool test:mobile
@@ -62,6 +63,7 @@ jobs:
           pnpm -C garry-tool test:services
           pnpm -C garry-tool test:features
           pnpm -C garry-tool test:stacks
+          pnpm -C garry-tool test:layers
           pnpm -C garry-tool test:qa
           pnpm -C garry-tool test:routing
           pnpm -C garry-tool test:architecture

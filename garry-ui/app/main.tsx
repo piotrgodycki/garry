@@ -13,6 +13,7 @@ import Shell from "./layout";
 import Dashboard from "./page";
 import Registry from "./registry/page";
 import Stacks from "./stacks/page";
+import LayersPage from "./layers/page";
 import ArchitecturePage from "./architecture/page";
 import Skills from "./skills/page";
 import Routing from "./routing/page";
@@ -42,6 +43,7 @@ const router = createBrowserRouter([
       { path: "/agent", element: <AgentRedirect /> },
       { path: "/registry", element: <Registry /> },
       { path: "/stacks", element: <Stacks /> },
+      { path: "/layers", element: <LayersPage /> },
       { path: "/architecture", element: <ArchitecturePage /> },
       { path: "/skills", element: <Skills /> },
       { path: "/routing", element: <Routing /> },
