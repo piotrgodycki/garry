@@ -115,7 +115,7 @@ export default function ProjectsPanel() {
           {removing === p.id && (
             <div className={styles.confirm} role="alertdialog" aria-label={`remove ${p.name}`}>
               <p className={styles.note}>
-                <strong>Remove {p.name}?</strong> Its services and contracts, features, stacks, routing and architecture boards are deleted. Its {p.repos?.length ?? 0} repositor{p.repos?.length === 1 ? "y leaves" : "ies leave"} Build and stay on disk.
+                <strong>Remove {p.name}?</strong> Its services and contracts, features, stacks, routing and architecture boards are deleted. {p.repos?.length ? `Its ${p.repos.length} repositor${p.repos.length === 1 ? "y leaves Build and stays" : "ies leave Build and stay"} on disk.` : "It has no repositories in Build."}
                 {p.id === data.active && ` Garry switches to ${(data.projects.find((x) => x.id !== p.id && x.id === "default") ?? data.projects.find((x) => x.id !== p.id))?.name}.`} Export it first to keep a copy.
               </p>
               <span className={styles.rowActions}>

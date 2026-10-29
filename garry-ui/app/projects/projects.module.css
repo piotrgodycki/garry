@@ -132,6 +132,7 @@
 /* asked in place before a project is removed */
 .confirm {
   grid-column: 1 / -1;
+  min-width: 0;
   display: grid;
   gap: 10px;
   padding: 12px;
@@ -140,6 +141,25 @@
 }
 .confirm .rowActions {
   justify-content: flex-start;
+}
+.confirm .note {
+  overflow-wrap: anywhere;
+}
+/* a long project name wraps in its button instead of pushing the page wide */
+.confirm :global(.btn) {
+  white-space: normal;
+  text-align: left;
+  max-width: 100%;
+}
+/* on a phone the actions go under the name, which keeps the whole row */
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .row > .rowActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
 }
 .rowActions {
   display: flex;

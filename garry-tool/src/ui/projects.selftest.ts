@@ -56,7 +56,7 @@ try {
   const blogRow = page.getByRole("group", { name: "project Blog" });
   await blogRow.getByRole("button", { name: "Remove", exact: true }).click();
   const ask = page.getByRole("alertdialog", { name: "remove Blog" });
-  expect("Remove asks first, saying what goes and what stays", (await ask.isVisible()) && /deleted[\s\S]*stay on disk/.test(await ask.innerText()), await ask.innerText().catch(() => ""));
+  expect("Remove asks first, saying what goes and what stays", (await ask.isVisible()) && /deleted[\s\S]*no repositories in Build/.test(await ask.innerText()), await ask.innerText().catch(() => ""));
   await ask.getByRole("button", { name: "Cancel" }).click();
   expect("Cancel keeps it", !(await ask.isVisible()) && ids().includes(blog.id));
 
@@ -73,6 +73,18 @@ try {
   await Promise.all([page.waitForEvent("load"), askShop.getByRole("button", { name: "Remove Shop" }).click()]);
   await page.getByRole("button", { name: "Remove", exact: true }).first().waitFor();
   expect("the default takes over and the page shows it", listGarryProjects().active === "default" && !ids().includes(shop.id) && (await page.getByRole("button", { name: /Project\s*Default/ }).count()) === 1);
+
+  // on a phone the question fits the screen, a long name included
+  await page.setViewportSize({ width: 390, height: 844 });
+  const long = createGarryProject({ name: "A project with a rather long name for a phone" });
+  await page.reload();
+  await page.getByRole("group", { name: `project ${long.name}` }).getByRole("button", { name: "Remove", exact: true }).click();
+  const wide = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  const nameShown = await page.getByRole("group", { name: "project Default" }).locator("span", { hasText: /^Default/ }).last().evaluate((e) => e.scrollWidth <= e.clientWidth);
+  expect("on a phone the question fits the screen and names stay whole", wide <= 0 && nameShown, `${wide}px too wide, name whole: ${nameShown}`);
+  await page.getByRole("alertdialog", { name: `remove ${long.name}` }).getByRole("button", { name: `Remove ${long.name}` }).click();
+  await page.getByText(`Removed ${long.name}`).waitFor({ timeout: 5000 }).catch(() => undefined);
+  expect("and removes it", !ids().includes(long.id));
 
   // the last one stays
   const last = page.getByRole("button", { name: "Remove", exact: true });
