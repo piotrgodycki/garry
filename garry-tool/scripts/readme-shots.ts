@@ -30,6 +30,7 @@ const { DeviceStore } = await import("../src/server/auth.js");
 const { ThreadManager } = await import("../src/threads/manager.js");
 const { ThreadStore } = await import("../src/threads/store.js");
 const { saveArchitecture } = await import("../src/registry/architecture.js");
+const { saveLayer } = await import("../src/registry/layers.js");
 const { ARCHITECTURE_TEMPLATES } = await import("../src/registry/schema/templates.js");
 const { launchChromium } = await import("../src/shots/browser.js");
 
@@ -72,6 +73,8 @@ await until(() => threads.store.events(busy.id).some((e) => e.type === "tool"));
 const registry = join(home, "registry");
 cpSync(fileURLToPath(new URL("../testdata/registry/frontend", import.meta.url)), registry, { recursive: true });
 saveArchitecture(registry, ARCHITECTURE_TEMPLATES.find((t) => t.id === "aws-serverless")!.architecture);
+saveLayer(registry, { level: "project" }, { notes: "Write in British English. Run the tests before you finish." });
+saveLayer(registry, { level: "repo", name: "Shop" }, { notes: "Shop ships every Friday: keep changes small." });
 
 const devices = new DeviceStore(join(home, "devices.json"));
 const server = createGarryServer({ registry, skills: fileURLToPath(new URL("../skills", import.meta.url)), routing: join(home, "none.json"), threads, ui }, devices);
@@ -99,6 +102,7 @@ try {
   await shoot("pipeline", "/build?view=pipeline&feature=FEAT-123", "[data-crew]");
   await shoot("architecture", "/architecture", ".react-flow__node");
   await shoot("stacks", "/stacks", "h1");
+  await shoot("layers", "/layers", '[role="radiogroup"]');
   await shoot("routing", "/routing", "h1");
   await shoot("settings", "/settings", "h1");
   // the board alone, in both themes

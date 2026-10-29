@@ -55,6 +55,9 @@ export class ThreadManager {
   private listeners = new Map<string, Set<Listener>>();
   private everyone = new Set<(threadId: string, e: ThreadEvent) => void>();
 
+  /** what the layers give an agent in a repository; set by the server */
+  context: ((projectId: string) => { prompt: string; dirs: string[] } | null) | null = null;
+
   constructor(readonly store = new ThreadStore()) {}
 
   subscribe(threadId: string, fn: Listener): () => void {
@@ -130,7 +133,13 @@ export class ThreadManager {
     if (!text.trim()) throw new Error("the message is empty");
     this.emit(t.id, { type: "user", text, at: now() });
     this.setStatus(t, "running");
-    const turn = runTurn({ cwd: t.worktree, prompt: text, sessionId: t.sessionId }, (e) => this.emit(t.id, e));
+    let ctx: { prompt: string; dirs: string[] } | null = null;
+    try {
+      ctx = this.context?.(t.projectId) ?? null;
+    } catch {
+      // a broken layer or registry never stops an agent from working
+    }
+    const turn = runTurn({ cwd: t.worktree, prompt: text, sessionId: t.sessionId, context: ctx?.prompt, addDirs: ctx?.dirs }, (e) => this.emit(t.id, e));
     this.running.set(t.id, turn);
     void turn.done.then(({ ok, sessionId }) => {
       this.running.delete(t.id);

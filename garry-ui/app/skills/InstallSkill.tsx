@@ -4,6 +4,7 @@ import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { AuditFindings, type AuditReport } from "./AuditView";
 import Select from "../Select";
+import { client } from "../lib/client";
 
 const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"];
 
@@ -50,6 +51,20 @@ export default function InstallSkill({
   const [drag, setDrag] = useState(false);
   const [ack, setAck] = useState(false);
   const [proposed, setProposed] = useState<{ url: string; number: number; branch: string } | null>(null);
+  // who gets it: every project, or one layer of this one (the project, a repository, a service)
+  const [who, setWho] = useState("everywhere");
+  const [places, setPlaces] = useState<{ value: string; label: string; hint?: string }[]>([]);
+  useEffect(() => {
+    client.layers().then(
+      (d) =>
+        setPlaces([
+          ...d.repos.map((r) => ({ value: `repo:${r.name}`, label: `Repository ${r.name}`, hint: "agents in it" })),
+          ...d.services.map((s) => ({ value: `service:${s.name}`, label: `Service ${s.name}`, hint: s.inRepo ? `in ${s.inRepo}` : undefined })),
+        ]),
+      () => undefined,
+    );
+  }, []);
+  const scope = who === "everywhere" ? undefined : who === "project" ? { level: "project" } : { level: who.slice(0, who.indexOf(":")), name: who.slice(who.indexOf(":") + 1) };
 
   const doPropose = async () => {
     setBusy(true);
@@ -84,7 +99,7 @@ export default function InstallSkill({
       const r = await fetch(`${apiBase}/api/skills/install`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...source, stage: stage || undefined, replace, dryRun, acknowledge: ack }),
+        body: JSON.stringify({ ...source, stage: stage || undefined, replace, dryRun, acknowledge: ack, scope }),
       });
       const d = await r.json();
       if (!r.ok) {
@@ -190,6 +205,19 @@ export default function InstallSkill({
               spellCheck={false}
             />
             <span className={styles.hint}>Copies SKILL.md and the files next to it (no symlinks, up to 50 files, 2 MB).</span>
+          </label>
+        )}
+
+        {policy !== "ci-only" && (
+          <label className={styles.field}>
+            <span>Who gets it</span>
+            <Select
+              ariaLabel="who gets the skill"
+              value={who}
+              onChange={setWho}
+              options={[{ value: "everywhere", label: "Agents in every project" }, { value: "project", label: "This project only" }, ...places]}
+            />
+            <span className={styles.hint}>You can change it later in Layers.</span>
           </label>
         )}
 

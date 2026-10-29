@@ -40,6 +40,8 @@ export interface LocalSkill extends ParsedSkill {
   stage: Stage;
   installedAt: string;
   from: string;
+  /** given to agents in every project; false when it was installed for one project, repository or service */
+  everywhere: boolean;
   /** audited again on every load, so a file changed on disk after install is caught */
   audit: AuditReport;
 }
@@ -85,7 +87,7 @@ export function listLocalSkills(dir = localSkillsDir()): LocalSkill[] {
       const stage = side.stage ?? parsed.stage;
       if (!stage) continue;
       const audit = auditFiles(readSkillFolder(join(dir, name)));
-      out.push({ ...parsed, name, stage, installedAt: side.installedAt ?? "", from: side.from ?? "", audit });
+      out.push({ ...parsed, name, stage, installedAt: side.installedAt ?? "", from: side.from ?? "", everywhere: side.everywhere !== false, audit });
     } catch {
       // an unreadable skill is left out of the pipeline
     }
@@ -93,7 +95,7 @@ export function listLocalSkills(dir = localSkillsDir()): LocalSkill[] {
   return out.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function readSidecar(folder: string): { stage?: Stage; installedAt?: string; from?: string } {
+function readSidecar(folder: string): { stage?: Stage; installedAt?: string; from?: string; everywhere?: boolean } {
   const f = join(folder, "garry.json");
   if (!existsSync(f)) return {};
   try {
@@ -102,6 +104,7 @@ function readSidecar(folder: string): { stage?: Stage; installedAt?: string; fro
       stage: isStage(raw.stage) ? raw.stage : undefined,
       installedAt: typeof raw.installedAt === "string" ? raw.installedAt : undefined,
       from: typeof raw.from === "string" ? raw.from : undefined,
+      everywhere: typeof raw.everywhere === "boolean" ? raw.everywhere : undefined,
     };
   } catch {
     return {};
@@ -121,6 +124,8 @@ export interface InstallRequest {
   dryRun?: boolean;
   /** the human reviewed the audit warnings (medium findings) and accepts them */
   acknowledge?: boolean;
+  /** false installs it for one layer only (the route turns it on there); default true, every project */
+  everywhere?: boolean;
 }
 
 export interface InstallResult {
@@ -216,6 +221,7 @@ export function installSkill(req: InstallRequest, reserved: Set<string>, dir = l
         stage: skill.stage,
         installedAt: new Date().toISOString(),
         from: source,
+        everywhere: req.everywhere !== false,
         audit: { version: audit.version, verdict: audit.verdict, counts: audit.counts, hash: audit.hash, acknowledged: audit.verdict === "warn" },
       },
       null,
@@ -246,6 +252,14 @@ function collectFiles(folder: string): { rel: string; abs: string }[] {
   };
   walk(folder);
   return out;
+}
+
+/** Gives a local skill to agents in every project, or only where a layer turns it on. */
+export function setEverywhere(name: string, on: boolean, dir = localSkillsDir()): void {
+  if (!NAME.test(name) || !existsSync(join(dir, name, "SKILL.md"))) throw new SkillError(`"${name}" is not installed locally`, 404);
+  const f = join(dir, name, "garry.json");
+  const raw = existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as Record<string, unknown>) : {};
+  writeFileSync(f, JSON.stringify({ ...raw, everywhere: on }, null, 2) + "\n");
 }
 
 /** Removes a local skill. Only names in the safe charset, only inside the local folder. */

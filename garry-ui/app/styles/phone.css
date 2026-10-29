@@ -78,8 +78,10 @@
     visibility: visible;
     transition: transform 0.25s var(--ease), visibility 0s;
   }
+  /* the drawer scrolls as a whole: the menu keeps its height, the foot comes after it */
   .sidebarMenu .nav {
     overflow: visible;
+    flex-shrink: 0;
   }
   .scrim {
     display: block;

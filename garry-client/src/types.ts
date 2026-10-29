@@ -89,6 +89,41 @@ export interface SkillSummary {
   source: "builtin" | "local";
   hasDoc: boolean;
   audit: { verdict: "pass" | "warn" | "fail"; counts: Record<string, number> } | null;
+  /** given to agents in every project; otherwise only where a layer turns it on */
+  everywhere?: boolean;
+}
+
+/** What one layer gives agents: skills turned on (or off again), stacks, the team's notes. */
+export interface Layer {
+  skills: string[];
+  skillsOff: string[];
+  stacks: string[];
+  notes: string;
+}
+
+/** The project's layer, then each repository's and each service's. */
+export interface Layers {
+  project: Layer;
+  repos: Record<string, Layer>;
+  services: Record<string, Layer>;
+}
+
+export type LayerScope = { level: "project" } | { level: "repo" | "service"; name: string };
+
+/** Where a piece of what an agent gets comes from: "everywhere", "project", "repo:<name>" or "service:<name>". */
+export type LayerFrom = string;
+
+/** Everything an agent in one repository is given. */
+export interface AgentContext {
+  repo: string;
+  services: string[];
+  skills: { name: string; from: LayerFrom }[];
+  stacks: { name: string; from: LayerFrom }[];
+  notes: { from: LayerFrom; text: string }[];
+  boards: string[];
+  missing: string[];
+  prompt: string;
+  dirs: string[];
 }
 
 export type ServiceKind = "mfe-remote" | "mfe-shell" | "spa" | "ssr" | "isr" | "ssg" | "mobile" | "backend" | "bff" | "worker" | "function";

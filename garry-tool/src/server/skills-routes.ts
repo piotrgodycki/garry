@@ -2,7 +2,8 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
-import { SkillError, installSkill, listLocalSkills, localSkillsDir, readLocalSkillMd, removeSkill, skillsPolicy, type InstallRequest } from "../skills/local.js";
+import { LayerError, addSkillTo, parseScope } from "../registry/layers.js";
+import { SkillError, setEverywhere, installSkill, listLocalSkills, localSkillsDir, readLocalSkillMd, removeSkill, skillsPolicy, type InstallRequest } from "../skills/local.js";
 import { AUDIT_RULES, auditFiles, readSkillFolder } from "../skills/audit.js";
 import { proposeSkill, skillsRepo } from "../skills/propose.js";
 import { githubToken } from "../github/env.js";
@@ -13,12 +14,28 @@ export async function skillRoutes(req: IncomingMessage, res: ServerResponse, pat
   const { cfg } = ctx;
   // Skills: install a local skill (upload or folder), remove one, read its instructions
   if (req.method === "POST" && path === "/api/skills/install") {
-    const body = (await readBody(req)) as InstallRequest;
+    const body = (await readBody(req)) as InstallRequest & { scope?: unknown };
     try {
+      // a skill for one project, repository or service: installed here, turned on only in that layer
+      const scope = body.scope === undefined ? null : parseScope(body.scope);
       const reserved = new Set(loadBuiltinSkills(cfg.skills).map((sk) => sk.name));
-      return json(res, 200, installSkill(body, reserved));
+      const result = installSkill({ ...body, everywhere: !scope }, reserved);
+      if (scope && result.installed) addSkillTo(cfg.registry, scope, result.skill.name);
+      return json(res, 200, result);
     } catch (e) {
       if (e instanceof SkillError) return json(res, e.status, { error: e.message, audit: e.audit });
+      if (e instanceof LayerError) return json(res, e.status, { error: e.message });
+      throw e;
+    }
+  }
+  // give a local skill to every project's agents, or only where a layer turns it on
+  const everywhere = /^\/api\/skills\/([^/]+)\/everywhere$/.exec(path);
+  if (req.method === "POST" && everywhere) {
+    try {
+      setEverywhere(decodeURIComponent(everywhere[1]), ((await readBody(req)) as { on?: unknown }).on === true);
+      return json(res, 200, { ok: true });
+    } catch (e) {
+      if (e instanceof SkillError) return json(res, e.status, { error: e.message });
       throw e;
     }
   }

@@ -215,7 +215,8 @@ export default function Select({
             })}
             {!options.length && <li className="gselectGroup">Nothing to choose from</li>}
           </ul>,
-          document.body,
+          // inside a modal dialog the list must be in it too, or the dialog's top layer covers it
+          button.current?.closest("dialog[open]") ?? document.body,
         )}
     </>
   );

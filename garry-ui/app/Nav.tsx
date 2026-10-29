@@ -22,6 +22,7 @@ export const GROUPS: { label: string; links: { href: string; label: string; icon
       { href: "/registry", label: "Services", icon: Icon.registry },
       { href: "/architecture", label: "Architecture", icon: Icon.puzzle },
       { href: "/stacks", label: "Stacks", icon: Icon.stack },
+      { href: "/layers", label: "Layers", icon: Icon.layers },
     ],
   },
   {

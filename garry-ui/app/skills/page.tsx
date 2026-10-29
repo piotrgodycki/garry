@@ -3,6 +3,7 @@ import styles from "../panel.module.css";
 import s2 from "./skills.module.css";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
+import Link from "../lib/router";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
 import InstallSkill, { type ProposeInfo } from "./InstallSkill";
 import { AuditBadge, AuditFindings, type AuditReport } from "./AuditView";
@@ -14,6 +15,8 @@ interface Skill {
   source: "builtin" | "local";
   hasDoc: boolean;
   audit: AuditReport | null;
+  /** given to agents in every project; otherwise only where a layer turns it on */
+  everywhere?: boolean;
 }
 
 type Filter = "all" | "builtin" | "local";
@@ -65,6 +68,13 @@ export default function Skills() {
     const d = await r.json();
     if (!r.ok) return flash(d.error ?? "could not remove the skill");
     flash(`Removed ${name}`);
+    load();
+  };
+
+  const setEverywhere = async (name: string, on: boolean) => {
+    const r = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/everywhere`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ on }) });
+    if (!r.ok) return flash(((await r.json()) as { error?: string }).error ?? "could not change who gets the skill");
+    flash(on ? `${name} now goes to agents in every project` : `${name} now goes only where a layer turns it on`);
     load();
   };
 
@@ -186,6 +196,19 @@ export default function Skills() {
                       </button>
                     )}
                   </div>
+                  {s.hasDoc && (
+                    <div className={s2.foot}>
+                      <span className={s2.planned}>
+                        {s.source === "builtin" ? "Used by the feature pipeline. " : s.everywhere ? "Agents in every project get it. " : "Agents get it where a layer turns it on. "}
+                        <Link href="/layers">Layers</Link>
+                      </span>
+                      {s.source === "local" && (
+                        <button className={s2.link} onClick={() => void setEverywhere(s.name, !s.everywhere)}>
+                          {s.everywhere ? "Only where turned on" : "Give to every project"}
+                        </button>
+                      )}
+                    </div>
+                  )}
                   {s.audit?.verdict === "fail" && (
                     <span className={s2.planned}>Left out of every plan until it passes the audit.</span>
                   )}
