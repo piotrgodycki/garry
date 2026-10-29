@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Link, Redirect, Stack, useFocusEffect, useRouter } from "expo-router";
-import Svg, { Circle, Path, Text as SvgText } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 import { GarryError, type Feature, type LiveAsk, type LiveLane, type LiveView } from "garry-client";
 import { useConnection } from "../lib/connection";
-import { STAGES, usePalette, type State } from "../lib/theme";
+import { STAGES, tint, usePalette, type State } from "../lib/theme";
 import { Body, Button, Card, Chip, CrewFace, Label, Loading, Notice, Pill, Stages, Title } from "../lib/ui";
 
 const WORD: Record<string, string> = { work: "Working", wait: "Needs you", fail: "Failed", done: "Ready" };
@@ -233,28 +233,20 @@ function Agent({ lane }: { lane: LiveLane }) {
   );
 }
 
-/** Garry resting on his mound, the same picture as the dashboard's. */
+/** Sprouts in the soil under a quiet sun: all caught up, the same picture as the dashboard's. */
 function CaughtUp() {
   const p = usePalette();
-  const d = "M70 100C88 86 104 112 122 98S154 86 172 96";
   return (
-    <View accessible accessibilityRole="image" accessibilityLabel="Garry rests on a mound of soil beside a sprout" style={{ alignItems: "center" }}>
-      <Svg width={200} height={84} viewBox="20 56 200 84">
+    <View accessible accessibilityRole="image" accessibilityLabel="Sprouts growing in the soil under a quiet sun" style={{ alignItems: "center" }}>
+      <Svg width={200} height={104} viewBox="20 28 200 104">
+        <Circle cx={178} cy={46} r={15} fill={tint(p.wait, p.surface, 0.22)} stroke={tint(p.wait, p.surface, 0.55)} strokeWidth={1.5} />
+        <Path d="M171 46.5l5 5 9-10" stroke={p.done} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" fill="none" />
         <Path d="M0 108Q60 88 120 100T240 96V140H0Z" fill={p.soil2} />
         <Path d="M0 118Q80 106 150 116T240 112V140H0Z" fill={p.soil} />
-        <Path d="M44 104V84" stroke={p.leaf} strokeWidth={3} strokeLinecap="round" />
-        <Path d="M44 90c-8 0-12-5-12-12 8 0 12 5 12 12zM44 86c0-7 4-12 12-12 0 7-4 12-12 12z" fill={p.leaf} />
-        <Path d={d} stroke={p.worm} strokeWidth={13} strokeLinecap="round" fill="none" />
-        <Path d={d} stroke={p.ring} strokeWidth={13} strokeDasharray="1.4 8.4" strokeDashoffset={-4} fill="none" />
-        <Path d={d} stroke={p.clay} strokeWidth={13} strokeDasharray="0 74 12 400" fill="none" />
-        <Path d="M168 93q2.4 2 4.8 0" stroke={p.ink} strokeWidth={1.6} strokeLinecap="round" fill="none" />
-        <Circle cx={176} cy={98.5} r={1.6} fill={p.clay} opacity={0.45} />
-        <SvgText x={182} y={80} fill={p.muted} fontSize={11} fontWeight="600">
-          z
-        </SvgText>
-        <SvgText x={190} y={70} fill={p.muted} fontSize={9} fontWeight="600">
-          z
-        </SvgText>
+        <Path d="M70 104V80M118 102V72M160 104V90" stroke={p.leaf} strokeWidth={3} strokeLinecap="round" />
+        <Path d="M70 88c-9 0-14-6-14-14 9 0 14 6 14 14zM70 84c0-8 5-14 14-14 0 8-5 14-14 14z" fill={p.leaf} />
+        <Path d="M118 84c-11 0-17-7-17-17 11 0 17 7 17 17zM118 78c0-10 6-17 17-17 0 10-6 17-17 17zM118 94c-8 0-13-5-13-12 8 0 13 5 13 12z" fill={p.leaf} />
+        <Path d="M160 94c-6 0-9-4-9-9 6 0 9 4 9 9zM160 92c0-5 3-9 9-9 0 5-3 9-9 9z" fill={p.leaf} />
       </Svg>
     </View>
   );

@@ -8,7 +8,7 @@
 }
 .segmented button {
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   text-transform: capitalize;
   height: 28px;
@@ -42,7 +42,7 @@
 }
 .repo {
   font-family: var(--font-family-mono);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   max-width: 280px;
   overflow: hidden;
@@ -62,7 +62,7 @@
   justify-content: space-between;
   gap: var(--space-md);
   flex-wrap: wrap;
-  font-size: 13px;
+  font-size: 14px;
 }
 .pager {
   display: flex;

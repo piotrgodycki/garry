@@ -12,6 +12,7 @@ export const GROUPS: { label: string; links: { href: string; label: string; icon
       { href: "/", label: "Dashboard", icon: Icon.dashboard },
       { href: "/live", label: "Live", icon: Icon.live },
       { href: "/build", label: "Build", icon: Icon.code, also: ["/agent", "/pipeline", "/service"] },
+      { href: "/files", label: "Files", icon: Icon.folder },
       { href: "/github", label: "Pull requests", icon: Icon.prs },
     ],
   },
@@ -21,7 +22,6 @@ export const GROUPS: { label: string; links: { href: string; label: string; icon
       { href: "/registry", label: "Services", icon: Icon.registry },
       { href: "/architecture", label: "Architecture", icon: Icon.puzzle },
       { href: "/stacks", label: "Stacks", icon: Icon.stack },
-      { href: "/files", label: "Files", icon: Icon.folder },
     ],
   },
   {

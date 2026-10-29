@@ -1,13 +1,13 @@
-import { useId } from "react";
+import type { ReactNode } from "react";
 import GarryMark from "./GarryMark";
 
 /**
- * Garry's crew: one earthworm per role, each with its tool, so on the
- * timeline and in what needs you it is plain who speaks. The analyst wears
- * glasses (spec and plan), the developer headphones (code and tests), the
- * reviewer holds a lens (reviews). The tile behind the face is the state's
- * colour; a failure crosses the eyes, a queued one sleeps. Garry himself is
- * the mark on a clay tile. Drawn from the theme's tokens, so both themes work.
+ * Garry's crew: one icon per role, so on the timeline and in what needs you
+ * it is plain who works. The analyst writes the spec and plan (a page with
+ * its lines), the developer the code (brackets), the reviewer checks it (a
+ * lens with a tick). The tile is the state's colour; a failure carries a red
+ * mark, a queued one is faded. Garry himself is his mark on a clay tile.
+ * Drawn from the theme's tokens, so both themes work.
  */
 export type CrewRole = "garry" | "analyst" | "dev" | "reviewer";
 export type CrewState = "plan" | "work" | "wait" | "done" | "fail" | "idle";
@@ -21,64 +21,52 @@ export function roleOf(agent: string | null | undefined): CrewRole {
   return "dev";
 }
 
+/** Each role's tool, on the 24px grid with the 1.7 stroke of the rest of the icons. */
+const TOOL: Record<Exclude<CrewRole, "garry">, { name: string; draw: ReactNode }> = {
+  analyst: { name: "spec", draw: <path d="M6.5 3.5h7.5l4 4v13h-11.5zM14 3.5v4h4M9.5 11.5h5M9.5 14.5h5M9.5 17.5h3" /> },
+  dev: { name: "code", draw: <path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5M13.5 5.5l-3 13" /> },
+  reviewer: { name: "review", draw: <path d="M10.5 4a6.5 6.5 0 110 13 6.5 6.5 0 010-13zM15.3 15.3L20 20M7.8 10.6l1.9 1.9 3.5-3.6" /> },
+};
+
 export default function CrewFace({ role, state, size = 30, title }: { role: CrewRole; state: CrewState; size?: number; title?: string }) {
-  const clip = useId();
-  const tile = role === "garry" ? "var(--garry-clay)" : `var(--state-${state})`;
-  const ink = "var(--garry-ink)";
-  const ring = "var(--garry-ring)";
-  const eyes =
-    state === "fail" ? (
-      <path d="M14.4 20.4l3 3M17.4 20.4l-3 3M22.6 20.4l3 3M25.6 20.4l-3 3" stroke={ink} strokeWidth="1.6" strokeLinecap="round" fill="none" />
-    ) : state === "idle" ? (
-      <path d="M14.2 22.2q1.8 1.4 3.6 0M22.2 22.2q1.8 1.4 3.6 0" stroke={ink} strokeWidth="1.6" strokeLinecap="round" fill="none" />
-    ) : (
-      <>
-        <circle cx="16" cy="22" r="1.6" fill={ink} />
-        <circle cx="24" cy="22" r="1.6" fill={ink} />
-      </>
-    );
-  const tool =
-    role === "analyst" ? (
-      <g data-tool="glasses" stroke={ink} strokeWidth="1.8" fill="none">
-        <circle cx="16" cy="21.8" r="3.6" />
-        <circle cx="24" cy="21.8" r="3.6" />
-        <path d="M19.6 21.4h.8" />
-      </g>
-    ) : role === "dev" ? (
-      <g data-tool="headphones">
-        <path d="M8.6 23a11.4 12 0 0 1 22.8 0" stroke={ink} strokeWidth="2.2" fill="none" strokeLinecap="round" />
-        <rect x="6.4" y="21" width="4.4" height="7.4" rx="2.2" fill={ink} />
-        <rect x="29.2" y="21" width="4.4" height="7.4" rx="2.2" fill={ink} />
-      </g>
-    ) : role === "reviewer" ? (
-      <g data-tool="lens" stroke={ink} fill="none" strokeLinecap="round">
-        <circle cx="28.6" cy="28.4" r="4.6" strokeWidth="2" />
-        <path d="M31.9 31.7l3.4 3.4" strokeWidth="2.4" />
-      </g>
-    ) : null;
-  const tileFill = `color-mix(in srgb, ${tile} 24%, var(--surface-2))`;
-  if (role === "garry")
-    return (
-      <span role={title ? "img" : undefined} aria-label={title} aria-hidden={title ? undefined : true} data-crew={role} data-state={state} style={{ flex: "none", display: "grid", placeItems: "center", width: size, height: size, borderRadius: size * 0.275, background: tileFill }}>
-        <GarryMark size={Math.round(size * 0.75)} busy={state === "work"} />
-      </span>
-    );
+  const tone = role === "garry" ? "var(--garry-clay)" : `var(--state-${state})`;
+  const a11y = { role: title ? "img" : undefined, "aria-label": title, "aria-hidden": title ? undefined : true };
   return (
-    <svg width={size} height={size} viewBox="0 0 40 40" role={title ? "img" : undefined} aria-label={title} aria-hidden={title ? undefined : true} data-crew={role} data-state={state} style={{ flex: "none", display: "block" }}>
-      <defs>
-        <clipPath id={clip}>
-          <rect width="40" height="40" rx="11" />
-        </clipPath>
-      </defs>
-      <rect width="40" height="40" rx="11" fill={tileFill} />
-      <g clipPath={`url(#${clip})`}>
-        <ellipse cx="20" cy="24" rx="11" ry="12" fill="var(--garry-worm)" />
-        <path d="M9.6 28.5Q20 33.5 30.4 28.5M11.4 32.6Q20 37 28.6 32.6" stroke={ring} strokeWidth="1.6" fill="none" />
-        <circle cx="13.6" cy="26" r="1.7" fill="var(--garry-clay)" opacity="0.45" />
-        <circle cx="26.4" cy="26" r="1.7" fill="var(--garry-clay)" opacity="0.45" />
-        {eyes}
-        {tool}
-      </g>
-    </svg>
+    <span
+      {...a11y}
+      data-crew={role}
+      data-state={state}
+      data-tool={role === "garry" ? "mark" : TOOL[role].name}
+      style={{
+        position: "relative",
+        flex: "none",
+        display: "grid",
+        placeItems: "center",
+        width: size,
+        height: size,
+        borderRadius: size * 0.28,
+        color: tone,
+        background: `color-mix(in srgb, ${tone} 16%, var(--surface))`,
+        border: `1px solid color-mix(in srgb, ${tone} 34%, var(--border))`,
+        opacity: state === "idle" ? 0.6 : 1,
+        boxSizing: "border-box",
+      }}
+    >
+      {role === "garry" ? (
+        <GarryMark size={Math.round(size * 0.72)} busy={state === "work"} />
+      ) : (
+        <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          {TOOL[role].draw}
+        </svg>
+      )}
+      {state === "fail" && (
+        <span
+          data-badge="fail"
+          style={{ position: "absolute", top: -3, right: -3, width: 11, height: 11, borderRadius: "50%", background: "var(--state-fail)", border: "2px solid var(--surface)", color: "#fff", font: "700 7px/7px var(--font-family-sans)", textAlign: "center" }}
+        >
+          !
+        </span>
+      )}
+    </span>
   );
 }

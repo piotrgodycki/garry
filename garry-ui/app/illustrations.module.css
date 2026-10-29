@@ -1,4 +1,4 @@
-/* Garry's world for empty states: soil, sprouts, the crew at work. */
+/* Garry's world for empty states: soil, sprouts, the repositories. */
 .state {
   display: grid;
   justify-items: center;
@@ -12,14 +12,14 @@
   margin-bottom: 4px;
 }
 .title {
-  font-size: 14.5px;
+  font-size: 15.5px;
   font-weight: 600;
 }
 .text {
   max-width: 44ch;
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
 }
 .action {
@@ -48,36 +48,17 @@
   stroke-linecap: round;
   fill: none;
 }
-.worm {
-  stroke: var(--garry-worm);
+.sun {
+  fill: color-mix(in srgb, var(--state-wait) 22%, var(--surface));
+  stroke: color-mix(in srgb, var(--state-wait) 55%, transparent);
+  stroke-width: 1.5;
+}
+.tick {
+  stroke: var(--state-done);
+  stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
   fill: none;
-}
-.ring {
-  stroke: var(--garry-ring);
-  fill: none;
-}
-.clay {
-  stroke: var(--garry-clay);
-  fill: none;
-}
-.eye {
-  fill: var(--garry-ink);
-}
-.ink {
-  stroke: var(--garry-ink);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  fill: none;
-}
-.cheek {
-  fill: var(--garry-clay);
-  opacity: 0.45;
-}
-.zz {
-  fill: var(--color-text-muted);
-  font: 600 10px var(--font-family-mono);
 }
 .cable {
   stroke: var(--color-text-muted);
@@ -108,24 +89,4 @@
 .tagText {
   fill: var(--color-text-muted);
   font: 600 10px var(--font-family-mono);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .zz {
-    animation: drift 3.2s ease-in-out infinite;
-  }
-  .zz + .zz {
-    animation-delay: 0.8s;
-  }
-}
-@keyframes drift {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: translateY(0);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(-3px);
-  }
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type TextStyle, type ViewStyle } from "react-native";
-import Svg, { Circle, ClipPath, Defs, Ellipse, G, Path, Rect } from "react-native-svg";
+import Svg, { Path } from "react-native-svg";
 import { monoFamily, tint, usePalette, type State } from "./theme";
 
 // Small building blocks in Garry's calm style: soft corners, quiet borders,
@@ -104,60 +104,30 @@ export function roleOf(agent: string | null | undefined): CrewRole {
 }
 
 /**
- * One of Garry's crew, the same faces as the dashboard's (garry-ui/app/Crew.tsx):
- * the analyst's glasses, the developer's headphones, the reviewer's lens, on a
- * tile in the state's colour; crossed eyes when it failed, asleep when queued.
+ * One of Garry's crew, the same as the dashboard's (garry-ui/app/Crew.tsx): the
+ * role's icon (the analyst's spec, the developer's code, the reviewer's lens)
+ * on a tile in the state's colour; a failure carries a red mark, a queued one
+ * is faded.
  */
+const TOOL: Record<CrewRole, string> = {
+  analyst: "M6.5 3.5h7.5l4 4v13h-11.5zM14 3.5v4h4M9.5 11.5h5M9.5 14.5h5M9.5 17.5h3",
+  dev: "M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5M13.5 5.5l-3 13",
+  reviewer: "M10.5 4a6.5 6.5 0 110 13 6.5 6.5 0 010-13zM15.3 15.3L20 20M7.8 10.6l1.9 1.9 3.5-3.6",
+};
+
 export function CrewFace({ role = "dev", state, size = 34 }: { role?: CrewRole; state: State; size?: number }) {
   const p = usePalette();
-  const eyes =
-    state === "fail" ? (
-      <Path d="M14.4 20.4l3 3M17.4 20.4l-3 3M22.6 20.4l3 3M25.6 20.4l-3 3" stroke={p.ink} strokeWidth={1.6} strokeLinecap="round" fill="none" />
-    ) : state === "idle" ? (
-      <Path d="M14.2 22.2q1.8 1.4 3.6 0M22.2 22.2q1.8 1.4 3.6 0" stroke={p.ink} strokeWidth={1.6} strokeLinecap="round" fill="none" />
-    ) : (
-      <>
-        <Circle cx={16} cy={22} r={1.6} fill={p.ink} />
-        <Circle cx={24} cy={22} r={1.6} fill={p.ink} />
-      </>
-    );
   return (
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID={`crew-${role}-${state}`}>
-      <Svg width={size} height={size} viewBox="0 0 40 40">
-        <Defs>
-          <ClipPath id="tile">
-            <Rect width={40} height={40} rx={11} />
-          </ClipPath>
-        </Defs>
-        <Rect width={40} height={40} rx={11} fill={tint(p[state], p.surface2, 0.24)} />
-        <G clipPath="url(#tile)">
-          <Ellipse cx={20} cy={24} rx={11} ry={12} fill={p.worm} />
-          <Path d="M9.6 28.5Q20 33.5 30.4 28.5M11.4 32.6Q20 37 28.6 32.6" stroke={p.ring} strokeWidth={1.6} fill="none" />
-          <Circle cx={13.6} cy={26} r={1.7} fill={p.clay} opacity={0.45} />
-          <Circle cx={26.4} cy={26} r={1.7} fill={p.clay} opacity={0.45} />
-          {eyes}
-          {role === "analyst" && (
-            <G stroke={p.ink} strokeWidth={1.8} fill="none">
-              <Circle cx={16} cy={21.8} r={3.6} />
-              <Circle cx={24} cy={21.8} r={3.6} />
-              <Path d="M19.6 21.4h.8" />
-            </G>
-          )}
-          {role === "dev" && (
-            <G>
-              <Path d="M8.6 23a11.4 12 0 0 1 22.8 0" stroke={p.ink} strokeWidth={2.2} fill="none" strokeLinecap="round" />
-              <Rect x={6.4} y={21} width={4.4} height={7.4} rx={2.2} fill={p.ink} />
-              <Rect x={29.2} y={21} width={4.4} height={7.4} rx={2.2} fill={p.ink} />
-            </G>
-          )}
-          {role === "reviewer" && (
-            <G stroke={p.ink} fill="none" strokeLinecap="round">
-              <Circle cx={28.6} cy={28.4} r={4.6} strokeWidth={2} />
-              <Path d="M31.9 31.7l3.4 3.4" strokeWidth={2.4} />
-            </G>
-          )}
-        </G>
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      testID={`crew-${role}-${state}`}
+      style={{ width: size, height: size, borderRadius: size * 0.28, borderWidth: 1, alignItems: "center", justifyContent: "center", backgroundColor: tint(p[state], p.surface, 0.16), borderColor: tint(p[state], p.line, 0.34), opacity: state === "idle" ? 0.6 : 1 }}
+    >
+      <Svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24">
+        <Path d={TOOL[role]} stroke={p[state]} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </Svg>
+      {state === "fail" && <View style={{ position: "absolute", top: -3, right: -3, width: 11, height: 11, borderRadius: 6, backgroundColor: p.fail, borderWidth: 2, borderColor: p.surface }} />}
     </View>
   );
 }

@@ -26,7 +26,7 @@
   background: transparent;
   color: var(--color-text-muted);
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13.5px;
   cursor: pointer;
 }
 .stepDot span {
@@ -36,7 +36,7 @@
   height: 18px;
   border-radius: 50%;
   border: 1px solid currentColor;
-  font-size: 11px;
+  font-size: 12px;
 }
 .stepDone {
   color: var(--color-text-default);
@@ -53,7 +53,7 @@
 .sub {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 .choices {
   display: grid;
@@ -94,7 +94,7 @@
   height: 18px;
   margin-top: 1px;
   border: 1px solid var(--border-strong);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent);
 }
@@ -109,14 +109,14 @@
   font-weight: 650;
 }
 .choiceHint {
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--color-text-muted);
 }
 .services {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 .review {
   display: grid;

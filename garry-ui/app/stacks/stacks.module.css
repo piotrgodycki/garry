@@ -26,7 +26,7 @@
 .desc,
 .used {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
 }
 .chips {
   display: flex;
@@ -39,7 +39,7 @@
   padding: 0;
   display: grid;
   gap: 6px;
-  font-size: 12.5px;
+  font-size: 13.5px;
 }
 
 .composer {
@@ -78,7 +78,7 @@
   gap: 6px;
   padding: 4px 4px 4px 10px;
   border: 1px solid var(--accent);
-  font-size: 13px;
+  font-size: 14px;
 }
 .pickBad {
   border-color: var(--accent);
@@ -92,7 +92,7 @@
   color: inherit;
   font: inherit;
   font-family: var(--font-family-mono);
-  font-size: 12px;
+  font-size: 13px;
 }
 .remove {
   width: 22px;
@@ -118,7 +118,7 @@
   align-content: start;
 }
 .catLabel {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 .tech,
@@ -130,7 +130,7 @@
 .tech {
   cursor: pointer;
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13.5px;
   background: transparent;
   color: inherit;
 }
@@ -155,6 +155,6 @@
 }
 .side {
   margin-left: 6px;
-  font-size: 10px;
+  font-size: 11px;
   opacity: 0.65;
 }

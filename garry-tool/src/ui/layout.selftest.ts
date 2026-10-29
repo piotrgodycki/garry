@@ -222,7 +222,16 @@ try {
           const r = e.getBoundingClientRect();
           return r.height > 0 && r.width > 0 && getComputedStyle(e).visibility !== "hidden";
         });
-        const lowest = Math.max(0, ...shown.map((e) => e.getBoundingClientRect().bottom));
+        // a control scrolled away inside its own panel (the blocks of the board) is not under the line
+        const bottom = (e: Element) => {
+          let b = e.getBoundingClientRect().bottom;
+          for (let p = e.parentElement; p && p !== document.body; p = p.parentElement) {
+            const o = getComputedStyle(p);
+            if (o.overflowY !== "visible" || o.overflowX !== "visible") b = Math.min(b, p.getBoundingClientRect().bottom);
+          }
+          return b;
+        };
+        const lowest = Math.max(0, ...shown.map(bottom));
         window.scrollTo(0, 0);
         return lowest - top;
       });

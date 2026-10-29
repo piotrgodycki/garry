@@ -3,7 +3,7 @@
  * (the same React Native code) in a phone-sized browser, paired with a real
  * Garry server like a phone is: what needs you comes first in the agent's own
  * words and is answered right there (the agent then works on the answer); a
- * stopped agent can be told to fix it; once nothing waits, Garry rests; the
+ * stopped agent can be told to fix it; once nothing waits, you are caught up; the
  * agents show with their crew faces in their state; the features follow. Both
  * themes use the shared palette, and the old signal red is gone.
  * Needs the app's web export (pnpm -C garry-mobile export:web) and Chromium.
@@ -139,10 +139,10 @@ try {
     await until(() => threads.store.events(broke).filter((e) => e.type === "user").length === 2, 5000);
     expect("Let it fix sends the stopped agent back to work", /fix it/.test((threads.store.events(broke).filter((e) => e.type === "user")[1] as { text: string } | undefined)?.text ?? ""));
     await until(() => !threads.isRunning(broke));
-    // nothing waits now: Garry rests
-    const rest = page.getByRole("img", { name: "Garry rests on a mound of soil beside a sprout" });
+    // nothing waits now: caught up
+    const rest = page.getByRole("img", { name: "Sprouts growing in the soil under a quiet sun" });
     await rest.waitFor({ timeout: 10_000 }).catch(() => undefined);
-    expect("with nothing waiting, Garry rests and you are caught up", (await rest.count()) === 1 && (await page.getByText("You are all caught up", { exact: false }).count()) === 1);
+    expect("with nothing waiting, you are caught up", (await rest.count()) === 1 && (await page.getByText("You are all caught up", { exact: false }).count()) === 1);
     if (shots) await page.screenshot({ path: join(shots, "mobile-caught-up.png"), fullPage: true });
     const wide = await page.evaluate(() => document.documentElement.scrollWidth);
     expect("nothing is wider than the phone", wide <= 390, String(wide));

@@ -39,7 +39,7 @@
 }
 .meta {
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-family: var(--font-family-mono);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -74,7 +74,7 @@
 }
 .ev {
   padding: 8px 18px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -86,7 +86,7 @@
 }
 .evTool {
   font-family: var(--font-family-mono);
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--color-text-muted);
 }
 .evTool b {
@@ -97,7 +97,7 @@
   color: var(--danger);
 }
 .evEnd {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
 }
 .composer {
@@ -117,7 +117,7 @@
   gap: 12px;
   padding: 4px 18px;
   font-family: var(--font-family-mono);
-  font-size: 12.5px;
+  font-size: 13.5px;
 }
 .add {
   color: #1a7f37;
@@ -131,7 +131,7 @@
   max-height: 520px;
   overflow: auto;
   font-family: var(--font-family-mono);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.55;
   border-top: 1px solid var(--border-strong);
 }
@@ -172,7 +172,7 @@
 .filesNote {
   margin: 0;
   padding: 12px 18px;
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--color-text-muted);
 }
 
@@ -206,7 +206,7 @@
   grid-template-columns: max-content minmax(0, 1fr);
   gap: 6px 14px;
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
 }
 .pushFacts dt {
   color: var(--color-text-muted);
@@ -240,7 +240,7 @@
 }
 .segmented button {
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   padding: 7px 14px;
   background: transparent;
   color: inherit;
@@ -258,7 +258,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 /* which repository the work happens in, and its push settings behind the gear */
@@ -269,7 +269,7 @@
 }
 .repoName {
   font-family: var(--font-family-mono);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   padding: 4px 10px;
   border: 1px solid var(--border);
@@ -307,7 +307,7 @@
   background: transparent;
   color: var(--color-text-muted);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }

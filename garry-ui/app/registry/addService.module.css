@@ -36,7 +36,7 @@
   font-weight: 650;
 }
 .kindHint {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 .fields {
@@ -63,7 +63,7 @@
 .useChip {
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
 }
 .useOn {
   background: var(--accent);
@@ -78,7 +78,7 @@
 }
 .note {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 @media (max-width: 640px) {
