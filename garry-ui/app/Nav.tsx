@@ -10,6 +10,7 @@ export const GROUPS: { label: string; links: { href: string; label: string; icon
     label: "Work",
     links: [
       { href: "/", label: "Dashboard", icon: Icon.dashboard },
+      { href: "/live", label: "Live", icon: Icon.live },
       { href: "/build", label: "Build", icon: Icon.code, also: ["/agent", "/pipeline", "/service"] },
       { href: "/github", label: "Pull requests", icon: Icon.prs },
     ],

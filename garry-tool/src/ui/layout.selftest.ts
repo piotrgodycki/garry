@@ -74,6 +74,7 @@ const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
 const PAGES: [string, string][] = [
   ["dashboard", "/"],
+  ["live", "/live"],
   ["build", "/build"],
   ["pipeline", "/build?view=pipeline&feature=FEAT-123"],
   ["work", `/build/${ready.id}`],

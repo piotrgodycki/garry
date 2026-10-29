@@ -10,7 +10,7 @@ import { Icon } from "./icons";
 /**
  * The rail on a wide screen: Garry (crawling while agents work), every page as
  * an icon with its name on hover and focus, the work that needs you as a badge
- * on Build, the projects as squares to switch between, and at the foot talking
+ * on Live, the projects as squares to switch between, and at the foot talking
  * to Garry, the theme and whether the server is up.
  */
 export default function Rail() {
@@ -39,7 +39,7 @@ export default function Rail() {
             {gi > 0 && <span className="railSep" aria-hidden="true" />}
             {g.links.map((l) => {
               const on = matches(l, path);
-              const badge = l.href === "/build" && needsYou > 0 ? needsYou : 0;
+              const badge = l.href === "/live" && needsYou > 0 ? needsYou : 0;
               return (
                 <Link key={l.href} href={l.href} className={`railItem${on ? " on" : ""}`} aria-current={on ? "page" : undefined} aria-label={badge ? `${l.label}, ${badge} need you` : l.label} data-tip={l.label}>
                   {l.icon}

@@ -67,6 +67,9 @@ export function threadState(t: Thread, events: ThreadEvent[], running: boolean):
   }
   // shipped or committed: nothing waits on you here
   if (t.pr || t.commit) return null;
+  // a turn that never ended while nothing runs it: the agent was cut off
+  const lastUser = events.map((e) => e.type).lastIndexOf("user");
+  if (lastUser > events.map((e) => e.type).lastIndexOf("turn_end")) return { ...base, state: "needs-you", detail: "Stopped before finishing: look at what happened", at: t.updatedAt };
   const turn = lastTurn(events);
   if (!turn) return null;
   if (!turn.ok || t.status === "error") return { ...base, state: "needs-you", detail: "Stopped before finishing: look at what happened", at: turn.at };

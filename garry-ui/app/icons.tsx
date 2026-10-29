@@ -36,6 +36,9 @@ export const Icon = {
   monitor: svg(<><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></>),
   idea: svg(<><path d="M12 20v-7.5" /><path d="M12 13.5C8 13.5 6 11 6 7.5c4 0 6 2.5 6 6zM12 11.5c0-3.5 2-6 6-6 0 3.5-2 6-6 6z" /><path d="M6.5 20h11" /></>),
   bolt: svg(<path d="M13 2.5L4.5 13.5H12l-1 8 8.5-11H12l1-8z" />),
+  // Live: a pulse, things happening now
+  live: svg(<path d="M3 12h4l2.5-6 5 12 2.5-6h4" />),
+  coin: svg(<><ellipse cx="12" cy="7" rx="7" ry="3" /><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5" /></>),
   check: svg(<path d="M5 12.5l4.5 4.5L19 7.5" />),
   settings: svg(<><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></>),
   service: svg(<><path d="M12 2.8l8 4.6v9.2l-8 4.6-8-4.6V7.4z" /><path d="M4 7.4l8 4.6 8-4.6M12 12v9.2" /></>),

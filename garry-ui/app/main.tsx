@@ -21,6 +21,7 @@ import Activity from "./pipeline/[id]/page";
 import ServicePage from "./service/[name]/page";
 import Pair from "./pair/page";
 import Build from "./build/page";
+import Live from "./live/page";
 import ThreadView from "./build/thread";
 import Settings from "./settings/page";
 import Files from "./files/page";
@@ -47,6 +48,7 @@ const router = createBrowserRouter([
       { path: "/github", element: <Prs /> },
       { path: "/pipeline/:id", element: <Activity /> },
       { path: "/service/:name", element: <ServicePage /> },
+      { path: "/live", element: <Live /> },
       { path: "/build", element: <Build /> },
       { path: "/build/:id", element: <ThreadView /> },
       { path: "/files", element: <Files /> },
