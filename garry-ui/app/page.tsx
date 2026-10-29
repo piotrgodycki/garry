@@ -5,6 +5,7 @@ import { apiBase } from "./lib/api";
 import { Icon } from "./icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "./ui";
 import NewFeature from "./NewFeature";
+import CrawlingGarry from "./CrawlingGarry";
 
 interface Feature {
   id: string;
@@ -96,7 +97,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <main className="page">
+    <main className={`page ${styles.home}`}>
       <PageHeader
         title="Dashboard"
         lede="Drop an idea and talk it through with Garry. The agents build, review, test and ship it on their own. You watch."
@@ -256,6 +257,9 @@ export default function Dashboard() {
           )}
         </section>
       </div>
+
+      {/* Garry crawling along the foot of the page; faster while agents work */}
+      <CrawlingGarry busy={running.length > 0} />
     </main>
   );
 }

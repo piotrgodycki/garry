@@ -193,3 +193,19 @@
   gap: 6px;
   justify-content: flex-end;
 }
+
+/* the dashboard fills the window, so Garry's soil sits at its foot even when there is little on it */
+.home {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.home > * {
+  flex: none;
+}
+@media (max-width: 900px) {
+  .home {
+    min-height: calc(100dvh - 57px);
+  }
+}
