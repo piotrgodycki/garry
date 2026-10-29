@@ -113,8 +113,14 @@ try {
   await box.waitFor({ state: "detached" });
   expect("created with the changed name, public as asked", made.length === 1 && made[0].name === "shop-web" && made[0].private === false, JSON.stringify(made));
   expect("and added as origin", git(shopPath, ["config", "--get", "remote.origin.url"]).trim() === "https://github.com/octo/shop-web.git");
-  await page.getByText("Created https://github.com/octo/shop-web").waitFor();
-  expect("the work's log says so", true);
+  const logged = await page
+    .getByText("Created https://github.com/octo/shop-web")
+    .waitFor({ timeout: 15_000 })
+    .then(() => true)
+    .catch(() => false);
+  // when it is not there, say what the server logged and what the page shows, so a failure elsewhere can be read
+  const why = logged ? "" : `server log: ${JSON.stringify(store.events(t.id).map((e) => `${e.type}${"action" in e ? `:${e.action}:${e.detail}` : ""}`))}; page errors: ${errors.join("; ")}; page: ${(await page.locator("main").innerText().catch(() => "")).slice(0, 1500)}`;
+  expect("the work's log says so", logged, why);
 
   // a repository's settings in Build offer the same on their own
   await page.goto(`${base}/build`);
