@@ -274,10 +274,6 @@ select {
   display: grid;
   gap: var(--space-lg);
 }
-.menuButton,
-.talkTop {
-  display: none;
-}
 /* the menu scrolls on a short screen; the foot (talk, server, theme) stays in view */
 .sidebarMenu {
   flex: 1;
@@ -563,21 +559,206 @@ select {
 .gauge.run svg, .gauge.run.lit b { color: var(--run); }
 .gauge.ok svg, .gauge.ok.lit b { color: var(--ok); }
 
-.cmdline {
-  position: sticky;
-  bottom: 0;
-  z-index: 30;
-  height: 48px;
-  flex: none;
+/* ---- talking to Garry: one field floating at the foot of every page ------- */
+:root {
+  /* the room the field takes at the foot, so nothing of a page stays under it */
+  --bar-room: 92px;
+}
+.content {
+  padding-bottom: var(--bar-room);
+}
+.garryBar {
+  position: fixed;
+  z-index: 40;
+  bottom: 16px;
+  /* centred on the page, beside the rail */
+  left: calc(64px + (100vw - 64px) / 2);
+  transform: translateX(-50%);
+  width: min(760px, calc(100vw - 64px - 32px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.garryField {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 clamp(var(--space-md), 3vw, 48px);
-  border-top: 1px solid var(--border);
+  gap: 8px;
+  height: 56px;
+  padding: 0 8px 0 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
   background: var(--surface);
+  box-shadow: var(--shadow-lg);
 }
-.cmdline:focus-within {
-  box-shadow: inset 0 2px 0 var(--state-work);
+.garryField:focus-within {
+  border-color: color-mix(in srgb, var(--state-work) 55%, var(--border-strong));
+  box-shadow: var(--shadow-lg), 0 0 0 3px color-mix(in srgb, var(--state-work) 18%, transparent);
+}
+.garryField[data-listening] {
+  border-color: var(--garry-clay);
+}
+.garryRepo {
+  max-width: 140px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+}
+.garryMic,
+.garrySend {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.garryMic svg,
+.garrySend svg {
+  width: 19px;
+  height: 19px;
+}
+.garryMic[aria-pressed="true"] {
+  color: #fff;
+  background: var(--garry-clay);
+  border-color: var(--garry-clay);
+  animation: listening 1.4s ease-in-out infinite;
+}
+.garrySend {
+  color: var(--color-brand-primary);
+}
+.garrySend:not(:disabled) {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+  color: var(--surface);
+}
+.garrySend:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+@keyframes listening {
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--garry-clay) 22%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .garryMic[aria-pressed="true"] {
+    animation: none;
+  }
+}
+.garryError {
+  margin: 0;
+  justify-self: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--state-fail) 12%, var(--surface));
+  color: var(--state-fail);
+  font-size: 14px;
+}
+/* what you told Garry: answered, running, waiting */
+.garryQueue {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+  max-height: min(320px, 45vh);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-md);
+}
+.garryQueue li {
+  --k: var(--state-idle);
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 9px;
+}
+.garryQueue li[data-status="running"] {
+  --k: var(--state-work);
+  background: color-mix(in srgb, var(--state-work) 7%, transparent);
+}
+.garryQueue li[data-status="done"] {
+  --k: var(--state-done);
+}
+.garryQueue li[data-status="failed"] {
+  --k: var(--state-fail);
+}
+.qDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--k);
+}
+li[data-status="running"] .qDot {
+  animation: listening 1.4s ease-in-out infinite;
+}
+.qText {
+  display: grid;
+  min-width: 0;
+}
+.qText b,
+.qReply {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qText b {
+  font-size: 14px;
+  font-weight: 600;
+}
+.qReply {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.qAct {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.qAct:hover {
+  background: var(--surface-3);
+  color: var(--color-text-default);
+}
+.qAct svg {
+  width: 14px;
+  height: 14px;
+}
+.qMore {
+  display: flex !important;
+  justify-content: center;
+  padding: 2px !important;
+}
+.qMore button {
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
 }
 .cmdPrompt {
   display: grid;
@@ -598,7 +779,7 @@ select {
   font-size: 14.5px;
   outline: none;
 }
-/* the line's blue top edge is the focus cue (.cmdline:focus-within) */
+/* the field's own border is the focus cue (.garryField:focus-within) */
 .cmdInput:focus,
 .cmdInput:focus-visible {
   outline: none;
@@ -607,19 +788,11 @@ select {
 .cmdInput::placeholder {
   color: var(--color-text-muted);
 }
-.cmdKeys {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
 .cmdList {
   position: absolute;
-  left: clamp(var(--space-md), 3vw, 48px);
+  left: 0;
+  right: 0;
   bottom: calc(100% + 8px);
-  width: min(600px, calc(100% - 32px));
   max-height: min(360px, 60vh);
   overflow-y: auto;
   margin: 0;
@@ -659,12 +832,6 @@ select {
 .cmdHint {
   font-size: 13px;
   color: var(--color-text-muted);
-}
-/* the voice dock sits beside the page on a wide screen instead of over it */
-@media (min-width: 1280px) {
-  html[data-dock="open"] .shell {
-    margin-right: 424px;
-  }
 }
 
 .brand {
@@ -750,53 +917,6 @@ select {
   display: grid;
   gap: 10px;
 }
-.talkButton {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  font: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--color-brand-primary);
-  color: var(--on-brand);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: color 0.15s;
-}
-/* signal red sweeps in from the left on hover */
-.talkButton::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--garry-clay);
-  transform: translateX(-101%);
-  transition: transform 0.28s var(--ease);
-}
-.talkButton > * {
-  position: relative;
-}
-.talkButton:hover {
-  color: #ffffff;
-}
-.talkButton:hover::before {
-  transform: translateX(0);
-}
-.talkButton svg {
-  width: 17px;
-  height: 17px;
-  flex: none;
-}
-.talkButton .kbd {
-  margin-left: auto;
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
-}
 .footRow {
   display: flex;
   align-items: center;
@@ -851,9 +971,13 @@ select {
     grid-template-rows: auto minmax(0, 1fr);
   }
   .rail,
-  .topbar,
-  .cmdline {
+  .topbar {
     display: none;
+  }
+  .garryBar {
+    left: 50%;
+    width: calc(100vw - 24px);
+    bottom: 12px;
   }
   .frame {
     min-height: 0;
@@ -897,21 +1021,6 @@ select {
   .brandText {
     display: none;
   }
-  .talkTop {
-    display: flex;
-    flex: none;
-    margin-left: auto;
-  }
-  .talkTop .talkButton {
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    justify-content: center;
-  }
-  .talkTop .talkButton .talkLabel,
-  .talkTop .talkButton .kbd {
-    display: none;
-  }
   .sidebarMenu {
     position: fixed;
     z-index: 60;
@@ -935,10 +1044,6 @@ select {
   }
   .sidebarMenu .nav {
     overflow: visible;
-  }
-  /* talk is already in the top bar */
-  .sidebarMenu .talkButton {
-    display: none;
   }
   .scrim {
     display: block;
@@ -1592,17 +1697,6 @@ h1 {
   background: var(--surface-2);
   border-color: var(--border);
   color: var(--color-text-default);
-}
-/* talking to Garry: his clay, the one place it is a control */
-.talkButton {
-  background: color-mix(in srgb, var(--garry-clay) 12%, var(--surface));
-  border-color: color-mix(in srgb, var(--garry-clay) 40%, transparent);
-  color: var(--garry-clay);
-}
-.talkButton .kbd {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--garry-clay) 35%, transparent);
-  color: inherit;
 }
 
 /* ---- code colours (the Files editor; CodeMirror's tok-* classes) ---------- */

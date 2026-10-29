@@ -382,6 +382,25 @@ export interface LiveView {
   spentToday: number;
 }
 
+// ---- Talking to Garry: messages in line, one at a time ----
+export interface GarryMessage {
+  id: string;
+  text: string;
+  projectId: string;
+  status: "queued" | "running" | "done" | "failed" | "cancelled";
+  threadId?: string;
+  reply?: string;
+  error?: string;
+  createdAt: string;
+  startedAt?: string;
+  endedAt?: string;
+}
+export interface GarryQueue {
+  items: GarryMessage[];
+  /** where a message can go: the project's repositories */
+  repos: { id: string; name: string }[];
+}
+
 // ---- Garry projects ----
 export interface PendingRepo {
   name: string;

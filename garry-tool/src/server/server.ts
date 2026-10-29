@@ -21,6 +21,8 @@ import { STACK_TEMPLATES } from "../registry/schema/stack-templates.js";
 import { TerminalError, TerminalManager, terminalEnabled } from "../terminal/terminal.js";
 import { cloneRepo, forgetToken, githubStatus, listRepos, pollDeviceFlow, saveToken, startDeviceFlow } from "../github/connect.js";
 import { threadRoutes } from "../threads/routes.js";
+import { GarryQueue } from "../garry/queue.js";
+import { queueRoutes } from "../garry/routes.js";
 import { readdirSync } from "node:fs";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
 import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
@@ -68,6 +70,8 @@ export interface ServerConfig {
   hosts?: string[];
   /** projects and agent threads; one is created when not given */
   threads?: ThreadManager;
+  /** what you tell Garry, in order (garry/queue.ts); one is created when not given */
+  queue?: GarryQueue;
   /** shells opened from the Files tab; one is created when not given */
   terminals?: TerminalManager;
 }
@@ -260,11 +264,12 @@ function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
 /** Builds the Garry HTTP server (REST plus SSE) over the supervisor. */
 export function createGarryServer(cfg: ServerConfig, devices = new DeviceStore()): Server {
   cfg.threads ??= new ThreadManager();
+  const queue = (cfg.queue ??= new GarryQueue(cfg.threads));
   const terminals = (cfg.terminals ??= new TerminalManager());
   const server = createServer((req, res) => {
     void handle(req, res, cfg, devices).catch((e) => json(res, 500, { error: String((e as Error).message ?? e) }));
   });
-  server.on("close", () => terminals.closeAll());
+  server.on("close", () => (terminals.closeAll(), queue.close()));
   return server;
 }
 
@@ -354,6 +359,9 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     const sseHeaders = { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive", ...CORS };
     if (await threadRoutes(req, res, path, { threads: cfg.threads!, local, json, readBody, sseHeaders })) return;
   }
+
+  // Talking to Garry: messages in line, one at a time (garry/routes.ts)
+  if (path.startsWith("/api/garry/queue") && (await queueRoutes(req, res, path, { queue: cfg.queue!, threads: cfg.threads!, json, readBody }))) return;
 
   // GitHub: connect, list repositories, import one as a project. All on this machine only.
   if (path.startsWith("/api/github") || path === "/api/projects/import") {

@@ -4,14 +4,12 @@ import Link from "./lib/router";
 import Nav from "./Nav";
 import ProjectSwitcher from "./projects/ProjectSwitcher";
 import ThemeToggle from "./ThemeToggle";
-import VoiceDock from "./VoiceDock";
-import TalkButton from "./TalkButton";
 import ServerStatus from "./ServerStatus";
 import GarryMark from "./GarryMark";
 import { Icon } from "./icons";
 import Rail from "./Rail";
 import TopBar from "./TopBar";
-import CommandLine from "./CommandLine";
+import GarryBar from "./GarryBar";
 
 /**
  * The app frame. On a wide screen: the rail (pages, projects, talk), the top
@@ -47,14 +45,10 @@ export default function Shell() {
               </span>
             </Link>
             <ProjectSwitcher />
-            <span className="talkTop">
-              <TalkButton />
-            </span>
           </div>
           <div className="sidebarMenu" id="garry-menu">
             <Nav />
             <div className="sidebarFoot">
-              <TalkButton />
               <div className="footRow">
                 <ServerStatus />
                 <ThemeToggle />
@@ -69,10 +63,9 @@ export default function Shell() {
           <div className="content">
             <Outlet />
           </div>
-          <CommandLine />
         </div>
       </div>
-      <VoiceDock />
+      <GarryBar />
     </>
   );
 }

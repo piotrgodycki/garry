@@ -198,15 +198,15 @@
 .home {
   display: flex;
   flex-direction: column;
-  /* the window less the top bar and the command line */
-  min-height: calc(100vh - 100px);
-  min-height: calc(100dvh - 100px);
+  /* the window less the top bar and the room for Garry's field at the foot */
+  min-height: calc(100vh - 52px - var(--bar-room));
+  min-height: calc(100dvh - 52px - var(--bar-room));
 }
 .home > * {
   flex: none;
 }
 @media (max-width: 900px) {
   .home {
-    min-height: calc(100dvh - 57px);
+    min-height: calc(100dvh - 57px - var(--bar-room));
   }
 }
