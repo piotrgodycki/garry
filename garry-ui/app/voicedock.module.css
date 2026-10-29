@@ -10,7 +10,7 @@
   flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   opacity: 0;
@@ -40,7 +40,7 @@
 .mark {
   width: 32px;
   height: 32px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
 }
 .titleText {
   display: grid;
@@ -148,7 +148,7 @@
 .turn {
   max-width: 85%;
   padding: 9px 13px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   line-height: 1.45;
   animation: rise 0.25s var(--ease) both;
@@ -176,7 +176,7 @@
   margin: 0 12px 12px;
   padding: 6px;
   border: 1px solid var(--border-strong);
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: var(--surface);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -189,7 +189,7 @@
   width: 36px;
   height: 36px;
   flex: none;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
   border: none;
@@ -213,7 +213,7 @@
   cursor: not-allowed;
 }
 .micOn {
-  background: var(--color-brand-secondary);
+  background: var(--garry-clay);
   color: #ffffff;
   animation: pulse 1.3s ease-in-out infinite;
 }

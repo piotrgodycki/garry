@@ -8,7 +8,7 @@
 .bar {
   width: 3px;
   height: 100%;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: currentColor;
   transform: scaleY(0.25);
   animation: waveIdle 1.8s ease-in-out infinite;

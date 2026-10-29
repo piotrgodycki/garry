@@ -68,6 +68,7 @@
     "test:layout": "tsx src/ui/layout.selftest.ts",
     "test:projects-ui": "tsx src/ui/projects.selftest.ts",
     "test:crawl": "tsx src/ui/crawl.selftest.ts",
+    "test:style": "tsx src/ui/style.selftest.ts",
     "brand": "node scripts/brand.mjs"
   },
   "dependencies": {
