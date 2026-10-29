@@ -198,8 +198,9 @@
 .home {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
+  /* the window less the top bar and the command line */
+  min-height: calc(100vh - 100px);
+  min-height: calc(100dvh - 100px);
 }
 .home > * {
   flex: none;

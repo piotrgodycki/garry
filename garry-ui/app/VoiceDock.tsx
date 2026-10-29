@@ -10,7 +10,7 @@ interface Turn {
   text: string;
 }
 
-/** A docked voice panel beside the app. Toggle with Cmd/Ctrl+K, or the Garry hub,
+/** A docked voice panel beside the app. Toggle with Cmd/Ctrl+J, or the Garry hub,
  *  or the window event "garry:voice". Web Speech API when available, text fallback. */
 export default function VoiceDock() {
   const [open, setOpen] = useState(false);
@@ -34,7 +34,7 @@ export default function VoiceDock() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
         e.preventDefault();
         setOpen((o) => !o);
       } else if (e.key === "Escape") {

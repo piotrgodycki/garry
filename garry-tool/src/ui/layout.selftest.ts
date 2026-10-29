@@ -140,9 +140,12 @@ const problems = (page: Page) =>
       for (const c of clips(el)) box = { left: Math.max(box.left, c.left), top: Math.max(box.top, c.top), right: Math.min(box.right, c.right), bottom: Math.min(box.bottom, c.bottom) };
       return box.right - box.left > 1 && box.bottom - box.top > 1 ? box : null;
     };
-    /** a drawer, a dock or a scrim lies over the page on purpose */
+    /** a drawer, a dock, a scrim, or a bar pinned to an edge (the top bar, the command line) lies over the page on purpose */
     const layer = (el: Element) => {
-      for (let p: Element | null = el; p && p !== document.body; p = p.parentElement) if (getComputedStyle(p).position === "fixed") return p;
+      for (let p: Element | null = el; p && p !== document.body; p = p.parentElement) {
+        const pos = getComputedStyle(p).position;
+        if (pos === "fixed" || pos === "sticky") return p;
+      }
       return null;
     };
 
@@ -208,6 +211,21 @@ try {
       if (shots) await page.screenshot({ path: join(shots, `${label}-${size.name}.png`), fullPage: true });
       const crashed = (await page.getByText("Unexpected Application Error").count()) > 0 || (await page.locator(".content > *").count()) === 0;
       const found = crashed ? [`the page did not render: ${(await page.locator("body").innerText()).slice(0, 160)}`] : await problems(page);
+      // the command line is pinned to the foot: scrolled to the bottom, nothing of the page stays under it
+      const under = await page.evaluate(() => {
+        const bar = document.querySelector(".cmdline");
+        if (!bar || getComputedStyle(bar).display === "none") return 0;
+        window.scrollTo(0, document.documentElement.scrollHeight);
+        const top = bar.getBoundingClientRect().top;
+        const shown = [...document.querySelectorAll(".content a[href], .content button, .content input, .content textarea")].filter((e) => {
+          const r = e.getBoundingClientRect();
+          return r.height > 0 && r.width > 0 && getComputedStyle(e).visibility !== "hidden";
+        });
+        const lowest = Math.max(0, ...shown.map((e) => e.getBoundingClientRect().bottom));
+        window.scrollTo(0, 0);
+        return lowest - top;
+      });
+      if (under > 1) found.push(`scrolled to the bottom, the page's last control is ${Math.round(under)}px under the command line`);
       expect(`${label} at ${size.name} (${size.width}x${size.height}) lays out cleanly`, found.length === 0, `\n    ${found.join("\n    ")}`);
     }
 

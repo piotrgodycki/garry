@@ -69,6 +69,7 @@
     "test:projects-ui": "tsx src/ui/projects.selftest.ts",
     "test:crawl": "tsx src/ui/crawl.selftest.ts",
     "test:style": "tsx src/ui/style.selftest.ts",
+    "test:frame": "tsx src/ui/frame.selftest.ts",
     "brand": "node scripts/brand.mjs"
   },
   "dependencies": {

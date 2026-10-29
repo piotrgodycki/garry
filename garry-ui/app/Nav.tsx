@@ -36,7 +36,10 @@ export const GROUPS: { label: string; links: { href: string; label: string; icon
 /** The menu group a page belongs to, for its eyebrow: the same words as the menu. */
 export const groupOf = (path: string) => GROUPS.find((g) => g.links.some((l) => matches(l, path)))?.label;
 
-const matches = (l: { href: string; also?: string[] }, path: string) =>
+/** The menu entry a page belongs to: its name for the top bar. */
+export const pageOf = (path: string) => GROUPS.flatMap((g) => g.links).find((l) => matches(l, path));
+
+export const matches = (l: { href: string; also?: string[] }, path: string) =>
   l.href === "/" ? path === "/" : [l.href, ...(l.also ?? [])].some((h) => path === h || path.startsWith(`${h}/`));
 
 export default function Nav() {

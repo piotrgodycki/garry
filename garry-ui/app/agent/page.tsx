@@ -327,7 +327,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
 
       {/* the status of the whole run, in one line */}
       <div className={`card ${styles.runBar}`}>
-        <button className={`${styles.runCore} ${busy ? styles.busy : ""}`} onClick={() => window.dispatchEvent(new Event("garry:voice"))} title="talk to Garry (Cmd/Ctrl+K)" aria-label="talk to Garry">
+        <button className={`${styles.runCore} ${busy ? styles.busy : ""}`} onClick={() => window.dispatchEvent(new Event("garry:voice"))} title="talk to Garry (Cmd/Ctrl+J)" aria-label="talk to Garry">
           <GarryMark size={34} busy={busy} />
         </button>
         <span className={`badge ${statusTone}`}>
