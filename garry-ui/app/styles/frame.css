@@ -243,3 +243,12 @@
 .gauge.warn svg, .gauge.warn.lit b { color: var(--warn); }
 .gauge.run svg, .gauge.run.lit b { color: var(--run); }
 .gauge.ok svg, .gauge.ok.lit b { color: var(--ok); }
+
+/* a project's mark from GitHub fills its tile, keeping the tile's corners */
+.projectAvatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}

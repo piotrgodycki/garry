@@ -6,6 +6,7 @@
  * removed. Needs the built dashboard and Chromium, like test:dropdown.
  * Run with: pnpm -C garry-tool test:projects-ui (CI runs it too).
  */
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -37,7 +38,15 @@ const expect = (name: string, ok: boolean, detail = "") => {
 const shop = createGarryProject({ name: "Shop" });
 const blog = createGarryProject({ name: "Blog" });
 useGarryProject(shop.id);
-const server = createGarryServer({ registry: shop.path, skills: join(home, "none"), routing: join(home, "none.json"), threads: new ThreadManager(new ThreadStore(process.env.GARRY_HOME!)), ui }, new DeviceStore(join(home, "devices.json")));
+const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
+// Shop's repositories live on GitHub under octo (two) and someone else (one): its mark is octo's avatar
+for (const [dir, owner] of [["docs", "someone"], ["web", "octo"], ["api", "octo"]]) {
+  const path = join(home, dir);
+  execFileSync("git", ["init", "-q", path]);
+  execFileSync("git", ["-C", path, "remote", "add", "origin", `https://github.com/${owner}/${dir}.git`]);
+  threads.store.addProject(path, dir, shop.id);
+}
+const server = createGarryServer({ registry: shop.path, skills: join(home, "none"), routing: join(home, "none.json"), threads, ui }, new DeviceStore(join(home, "devices.json")));
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const ids = () => listGarryProjects().projects.map((p) => p.id).join(",");
@@ -47,7 +56,25 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(String(e)));
+  // GitHub's avatars, served here: a one-pixel picture
+  const pixel = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+  let avatars: string[] = [];
+  await page.route("https://github.com/**", (route) => (avatars.push(route.request().url()), route.fulfill({ status: 200, contentType: "image/png", body: pixel })));
   await page.goto(`${base}/settings`);
+  const rail = page.getByRole("group", { name: "projects" });
+  await rail.getByRole("button", { name: "project Shop" }).locator("img").waitFor();
+  expect("a project's mark is the avatar of the GitHub owner most of its repositories live under", (await rail.getByRole("button", { name: "project Shop" }).locator("img").getAttribute("src")) === "https://github.com/octo.png?size=96" && avatars.includes("https://github.com/octo.png?size=96"));
+  expect("a project with nothing on GitHub keeps its letter", (await rail.getByRole("button", { name: "project Blog" }).locator("img").count()) === 0 && (await rail.getByRole("button", { name: "project Blog" }).innerText()).trim() === "B");
+  expect("the switcher and the projects list show it too", (await page.locator('img.projectAvatar[src="https://github.com/octo.png?size=96"]').count()) >= 2);
+  // offline: the picture cannot load, so the letter comes back
+  await page.unroute("https://github.com/**");
+  await page.route("https://github.com/**", (route) => route.abort());
+  avatars = [];
+  await page.reload();
+  await rail.getByRole("button", { name: "project Shop" }).waitFor();
+  await page.waitForFunction(() => !document.querySelector('[aria-label="project Shop"] img'), null, { timeout: 5000 }).catch(() => undefined);
+  expect("when the picture cannot load, the letter is shown", (await rail.getByRole("button", { name: "project Shop" }).innerText()).trim() === "S");
+  await page.unroute("https://github.com/**");
   const removeButtons = page.getByRole("button", { name: "Remove", exact: true });
   await removeButtons.first().waitFor();
   expect("every project has Remove, the default and the active one too", (await removeButtons.count()) === 3 && (await removeButtons.evaluateAll((b) => b.every((x) => !(x as HTMLButtonElement).disabled))));

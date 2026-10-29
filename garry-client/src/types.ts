@@ -480,6 +480,9 @@ export interface GarryProject {
   /** repositories an imported project names that are not cloned here yet */
   pendingRepos?: PendingRepo[];
   repos?: { id: string; name: string }[];
+  /** the GitHub owner most of its repositories live under, and that owner's avatar */
+  owner?: string;
+  avatar?: string;
 }
 export interface GarryProjects {
   active: string;
