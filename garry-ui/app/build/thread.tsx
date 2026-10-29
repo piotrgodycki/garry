@@ -71,19 +71,26 @@ export default function ThreadView() {
 
   useEffect(() => {
     const ctl = new AbortController();
-    setEvents([]);
     void refresh();
-    void client
-      .threadEvents(
-        id,
-        (e) => {
-          setEvents((list) => [...list, e]);
-          // the diff and the status change when a turn ends or work is committed
-          if (e.type === "status" || e.type === "git") void refresh();
-        },
-        ctl.signal,
-      )
-      .catch(() => undefined);
+    // the log so far, then live; a stream that drops (a sleeping laptop, a restart) is opened again
+    const follow = async () => {
+      while (!ctl.signal.aborted) {
+        setEvents([]);
+        await client
+          .threadEvents(
+            id,
+            (e) => {
+              setEvents((list) => [...list, e]);
+              // the diff and the status change when a turn ends or work is committed
+              if (e.type === "status" || e.type === "git") void refresh();
+            },
+            ctl.signal,
+          )
+          .catch(() => undefined);
+        if (!ctl.signal.aborted) await new Promise((r) => setTimeout(r, 1500));
+      }
+    };
+    void follow();
     return () => ctl.abort();
   }, [id, refresh]);
 

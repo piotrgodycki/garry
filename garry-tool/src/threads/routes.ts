@@ -138,7 +138,8 @@ export async function threadRoutes(
       for (const e of store.events(id)) send(e);
       const off = threads.subscribe(id, send);
       const ping = setInterval(() => res.write(": ping\n\n"), 20000);
-      req.on("close", () => {
+      // the response closes when the viewer goes; the request may close as soon as it was read
+      res.on("close", () => {
         off();
         clearInterval(ping);
       });
