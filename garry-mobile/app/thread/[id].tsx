@@ -86,13 +86,13 @@ export default function ThreadScreen() {
       <Stack.Screen options={{ title: thread.title }} />
       <ScrollView ref={scroll} contentContainerStyle={s.page} onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}>
         {events.map((e, i) => {
-          if (e.type === "user") return <View key={i} style={[s.user, { borderLeftColor: p.text, backgroundColor: p.faint }]}><Body style={{ fontWeight: "700" }}>{e.text}</Body></View>;
+          if (e.type === "user") return <View key={i} style={[s.user, { borderLeftColor: p.plan, backgroundColor: p.surface3 }]}><Body style={{ fontWeight: "700" }}>{e.text}</Body></View>;
           if (e.type === "text") return <Body key={i}>{e.text}</Body>;
           if (e.type === "tool") return <Text key={i} style={[mono, s.tool, { color: p.muted }]}><Text style={{ color: p.text, fontWeight: "700" }}>{e.name}</Text> {e.summary}</Text>;
-          if (e.type === "tool_result" && !e.ok) return <Text key={i} style={[mono, s.tool, { color: p.accent }]}>{e.preview}</Text>;
+          if (e.type === "tool_result" && !e.ok) return <Text key={i} style={[mono, s.tool, { color: p.fail }]}>{e.preview}</Text>;
           if (e.type === "turn_end") return <Label key={i}>{e.ok ? "Turn done" : "Turn stopped"}</Label>;
           if (e.type === "git") return <Label key={i}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : "Pull request opened"}</Label>;
-          if (e.type === "error") return <Body key={i} style={{ color: p.accent }}>{e.message}</Body>;
+          if (e.type === "error") return <Body key={i} style={{ color: p.fail }}>{e.message}</Body>;
           return null;
         })}
         {running && <Label live>Working</Label>}
@@ -113,7 +113,7 @@ export default function ThreadScreen() {
             </View>
           )}
         </Card>
-        {error ? <Body style={{ color: p.accent }}>{error}</Body> : null}
+        {error ? <Body style={{ color: p.fail }}>{error}</Body> : null}
       </ScrollView>
 
       <View style={[s.composer, { borderTopColor: p.line, backgroundColor: p.bg }]}>
@@ -124,7 +124,7 @@ export default function ThreadScreen() {
           placeholder={running ? "The agent is working…" : "Ask for a change…"}
           placeholderTextColor={p.muted}
           multiline
-          style={[s.input, { color: p.text, borderColor: p.line, backgroundColor: p.surface }]}
+          style={[s.input, { color: p.text, borderColor: p.lineStrong, backgroundColor: p.surface }]}
         />
         {running ? (
           <Button kind="danger" onPress={() => void act(() => client.stopThread(id))}>Stop</Button>
@@ -141,5 +141,5 @@ const s = StyleSheet.create({
   user: { borderLeftWidth: 3, padding: 10 },
   tool: { fontSize: 12.5 },
   composer: { borderTopWidth: 1, padding: 12, gap: 8 },
-  input: { borderWidth: 1, padding: 10, fontSize: 15, maxHeight: 120 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 10, fontSize: 15, maxHeight: 120 },
 });

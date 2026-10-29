@@ -37,14 +37,14 @@ export default function Layout() {
           screenOptions={{
             headerStyle: { backgroundColor: p.bg },
             headerTintColor: p.text,
-            headerTitleStyle: { fontWeight: "800" },
+            headerTitleStyle: { fontWeight: "600" },
             headerShadowVisible: false,
             contentStyle: { backgroundColor: p.bg },
           }}
         >
           <Stack.Screen name="index" options={{ title: "Garry" }} />
           <Stack.Screen name="connect" options={{ title: "Connect", presentation: "modal" }} />
-          <Stack.Screen name="feature/[id]" options={{ title: "Live agents" }} />
+          <Stack.Screen name="feature/[id]" options={{ title: "Feature" }} />
           <Stack.Screen name="settings" options={{ title: "Settings" }} />
           <Stack.Screen name="new" options={{ title: "New work", presentation: "modal" }} />
           <Stack.Screen name="feature/new" options={{ title: "New feature", presentation: "modal" }} />

@@ -62,12 +62,12 @@ export default function Connect() {
         autoCapitalize="none"
         autoCorrect={false}
         keyboardType="url"
-        style={[s.input, { color: p.text, borderColor: p.line, backgroundColor: p.surface }]}
+        style={[s.input, { color: p.text, borderColor: p.lineStrong, backgroundColor: p.surface }]}
       />
       <Button disabled={!link.trim() || busy} onPress={() => void submit(link)}>
         {busy ? "Pairing…" : "Pair"}
       </Button>
-      {error ? <Body style={{ color: p.accent }}>{error}</Body> : null}
+      {error ? <Body style={{ color: p.fail }}>{error}</Body> : null}
       <Body muted>Pairing gives this phone its own key. You can revoke it any time with garry devices revoke on your computer.</Body>
     </ScrollView>
   );
@@ -77,5 +77,5 @@ const s = StyleSheet.create({
   page: { padding: 16, gap: 14 },
   camera: { width: "100%", aspectRatio: 1 },
   cameraOff: { padding: 16, gap: 12, aspectRatio: 1.6, justifyContent: "center" },
-  input: { borderWidth: 1, padding: 12, fontSize: 14, fontFamily: monoFamily },
+  input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 14, fontFamily: monoFamily },
 });

@@ -57,6 +57,26 @@ for (const [theme, t] of [["light", light], ["dark", dark]] as const) {
   }
 }
 
+// the iPhone app's palette (garry-mobile/lib/theme.ts) reads the same way
+const theme = readFileSync(fileURLToPath(new URL("../../../garry-mobile/lib/theme.ts", import.meta.url)), "utf8");
+const palette = (name: string) => {
+  const at = theme.indexOf(`const ${name}`);
+  const body = theme.slice(theme.indexOf("{", at) + 1, theme.indexOf("};", at));
+  return Object.fromEntries([...body.matchAll(/(\w+):\s*"(#[0-9a-f]{6})"/gi)].map((m) => [m[1], m[2]]));
+};
+for (const name of ["light", "dark"]) {
+  const t = palette(name);
+  for (const surface of ["bg", "surface", "surface2"])
+    for (const ink of ["text", "muted", "work", "wait", "done", "fail", "plan"]) {
+      if (!t[ink] || !t[surface]) throw new Error(`the phone's ${name} palette has no ${ink} or ${surface}`);
+      const c = contrast(t[ink], t[surface]);
+      expect(`phone ${name}: ${ink} on ${surface} reads (${c.toFixed(2)}:1)`, c >= 4.5);
+    }
+  const c = contrast(t.onPrimary, t.primary);
+  expect(`phone ${name}: the primary button's words read (${c.toFixed(2)}:1)`, c >= 4.5);
+}
+expect("the phone has no old signal red", !/#ff2200|#ff3a1a/i.test(theme));
+
 // the brutalist style stays gone
 const files = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => {

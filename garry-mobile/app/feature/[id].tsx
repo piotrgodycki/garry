@@ -4,7 +4,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import type { LogEntry, Plan, PullRequest } from "garry-client";
 import { useConnection } from "../../lib/connection";
 import { mono, usePalette } from "../../lib/theme";
-import { Body, Button, Card, Chip, Label, Loading, Notice, Title } from "../../lib/ui";
+import { Body, Button, Card, Chip, CrewFace, Label, Loading, Notice, Pill, Title, roleOf } from "../../lib/ui";
 
 /** One feature live: the delegation order, what each agent is doing now, the pull requests. */
 export default function FeatureScreen() {
@@ -83,13 +83,16 @@ export default function FeatureScreen() {
         {now ? <Body>{now}</Body> : null}
         {log.slice(0, 40).map((e, i) => (
           <View key={`${e.index}-${e.skill}-${i}`} style={[s.logRow, { borderTopColor: p.faint }]}>
-            <Text style={[s.logWho, { color: p.text }]}>{e.who}</Text>
-            <Text style={[s.logText, { color: p.muted }]}>
-              {e.action} <Text style={mono}>({e.skill})</Text>
-            </Text>
+            <CrewFace role={roleOf(e.agent)} state={running && i === 0 ? "work" : "done"} size={28} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[s.logWho, { color: p.text }]}>{e.who}</Text>
+              <Text style={[s.logText, { color: p.muted }]}>
+                {e.action} <Text style={mono}>({e.skill})</Text>
+              </Text>
+            </View>
           </View>
         ))}
-        {error ? <Body style={{ color: p.accent }}>{error}</Body> : null}
+        {error ? <Body style={{ color: p.fail }}>{error}</Body> : null}
       </Card>
 
       <Card>
@@ -101,7 +104,7 @@ export default function FeatureScreen() {
             <View key={pr.service} style={[s.pr, { borderTopColor: p.faint }]}>
               <View style={s.between}>
                 <Text style={[s.logWho, { color: p.text }]}>{pr.service}</Text>
-                <Chip strong={pr.state === "open"}>{pr.state}</Chip>
+                <Pill state={pr.state === "merged" ? "done" : pr.state === "open" ? "work" : "idle"}>{pr.state}</Pill>
               </View>
               <Body muted>
                 {pr.branch} · checks {pr.checks}
@@ -120,8 +123,8 @@ const s = StyleSheet.create({
   between: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   order: { flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" },
   orderItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  logRow: { borderTopWidth: 1, paddingTop: 8, gap: 2 },
-  logWho: { fontSize: 14, fontWeight: "700" },
+  logRow: { borderTopWidth: 1, paddingTop: 8, flexDirection: "row", gap: 10, alignItems: "flex-start" },
+  logWho: { fontSize: 14, fontWeight: "600" },
   logText: { fontSize: 14, lineHeight: 19 },
   pr: { borderTopWidth: 1, paddingTop: 10, gap: 6 },
 });

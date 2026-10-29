@@ -73,6 +73,7 @@
     "test:frame": "tsx src/ui/frame.selftest.ts",
     "test:live-ui": "tsx src/ui/live.selftest.ts",
     "test:crew": "tsx src/ui/crew.selftest.ts",
+    "test:mobile": "tsx src/ui/mobile.selftest.ts",
     "brand": "node scripts/brand.mjs"
   },
   "dependencies": {
