@@ -43,9 +43,11 @@ glance (need you, working, ready), and a **command line** at the foot: press
 **Cmd/Ctrl+K** and type a page's name to go there, or a sentence to start an
 agent on it in Build or to talk it through with Garry (**Cmd/Ctrl+J** opens
 the voice dock). Paper by day, graphite by night; colour only ever means a
-state. Garry's crew has a face per role (the analyst's glasses, the
-developer's headphones, the reviewer's lens), and empty pages show Garry's
-world instead of a blank: soil, sprouts, Garry resting when you are caught up.
+state. Every page title has its icon, Garry's crew has an icon per role (the
+analyst's spec, the developer's code, the reviewer's lens) on a tile in its
+state's colour, and empty pages show a picture instead of a blank: sprouts in
+the soil when you are caught up, the repository box waiting for a cable. Inputs
+and text are sized for long working sessions.
 
 **The feature pipeline** (in Build) shows a feature's orchestration from left
 to right, each stage with the agent and model doing it for Garry and for
@@ -54,7 +56,9 @@ every service.
 ![Feature pipeline](docs/screenshots/pipeline.png)
 
 **Architecture**: services and the platforms they run on, joined like puzzle
-pieces, on a board for the whole project and one for each repository. A wizard
+pieces, on a board for the whole project and one for each repository. The
+board takes the whole screen, with its own controls along the top (which
+board, the wizard, ready-made architectures, reset). A wizard
 builds a board from a few plain questions (who uses it, where it runs, what data
 it keeps, what else it needs) and opens again with your answers to change them;
 the board stays editable by hand. Logos, relations in words, proxies marked,
@@ -221,8 +225,8 @@ and Other Computers, then Pair a Device, shows the pairing QR code.
 
 `garry-mobile` is Garry on your phone, in the same look as the dashboard. Its
 home screen starts with what needs you, in the agent's own words, answered
-right there (or **Let it fix** for an agent that stopped; Garry rests on his
-mound when nothing waits), then the agents at work with their faces and
+right there (or **Let it fix** for an agent that stopped; sprouts in the
+soil when nothing waits), then the agents at work with their icons and
 states, then the features and the stage each is at. A feature shows its work
 log and its pull requests; a piece of work shows the conversation, its
 changes, commit and pull request. New feature creates one (what it is,

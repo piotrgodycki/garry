@@ -1,9 +1,66 @@
+/* the whole screen between the top bar and the command line */
+.studio {
+  box-sizing: border-box;
+  height: calc(100dvh - 100px);
+  min-height: 520px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .layout {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr) 280px;
-  gap: 14px;
-  height: calc(100vh - 220px);
-  min-height: 560px;
+  gap: 12px;
+}
+/* the board's own controls, along the top of the canvas */
+.toolbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.toolbar > * {
+  pointer-events: auto;
+}
+.toolbar :global(.gselect) {
+  min-width: 200px;
+}
+.toolbar :global(.btn[aria-pressed="true"]) {
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+/* the wizard and the ready-made architectures, over the canvas */
+.overlay {
+  position: absolute;
+  inset: 58px 10px 10px;
+  z-index: 5;
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: var(--shadow-md);
+}
+.overlayTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
 }
 .palette,
 .issues {
@@ -18,7 +75,7 @@
   gap: 4px;
 }
 .groupLabel {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   margin-top: 4px;
 }
@@ -40,7 +97,7 @@
   background: var(--surface);
   color: inherit;
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13.5px;
   cursor: grab;
 }
 .paletteItem:hover {
@@ -48,7 +105,7 @@
 }
 .hint {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--color-text-muted);
 }
 .canvas {
@@ -82,14 +139,14 @@
 }
 .saved {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  font-size: 12px;
+  bottom: 12px;
+  left: 56px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 .issue {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13.5px;
   line-height: 1.45;
 }
 
@@ -174,7 +231,7 @@
   font-size: 8px;
 }
 .monogram {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -185,13 +242,13 @@
 }
 .blockName {
   font-weight: 650;
-  font-size: 14px;
+  font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .blockProvider {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -204,7 +261,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   color: #fff;
   background: #d97706;
@@ -223,7 +280,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 0 14px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .provideLabel {
   color: var(--color-text-muted);
@@ -253,12 +310,16 @@
   right: -7px !important;
 }
 @media (max-width: 1100px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
+  .studio {
     height: auto;
   }
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .canvas {
-    height: 520px;
+    height: 75dvh;
+    min-height: 480px;
+    order: -1;
   }
 }
 .suggestion {
@@ -270,24 +331,23 @@
 }
 .suggestionTitle {
   font-weight: 650;
-  font-size: 13px;
+  font-size: 14px;
 }
 .suggestionWhy {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 .goal {
   min-height: 70px;
   resize: vertical;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 /* ready-made architectures */
 .templates {
   display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
 }
 .templatesHead {
   display: flex;
@@ -314,11 +374,11 @@
   font-weight: 700;
 }
 .templateSummary {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
 }
 .templateFor {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 
@@ -338,7 +398,7 @@
   border-radius: 999px;
   background: var(--surface);
   color: var(--color-text-muted);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 550;
   white-space: nowrap;
   pointer-events: all;

@@ -78,6 +78,7 @@ try {
   // the rail: every page, the one you are on marked
   const names = await nav.getByRole("link").evaluateAll((ls) => ls.map((l) => l.getAttribute("data-tip")));
   expect("the rail has every page", ["Dashboard", "Live", "Build", "Pull requests", "Services", "Architecture", "Stacks", "Files", "Skills", "Model routing", "Settings"].every((n) => names.includes(n)), names.join(", "));
+  expect("Files sits with the work, right after Build", names.indexOf("Files") === names.indexOf("Build") + 1, names.join(", "));
   const current = await nav.locator('[aria-current="page"]').evaluateAll((ls) => ls.map((l) => l.getAttribute("data-tip")));
   expect("the page you are on is marked, and only it", current.length === 1 && current[0] === "Stacks", current.join(", "));
 

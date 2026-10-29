@@ -25,7 +25,7 @@
   background: none;
   outline: none;
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--color-text-default);
   padding: 10px 0;
 }
@@ -77,13 +77,13 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 .laneCount {
   min-width: 24px;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-muted);
   background: var(--surface);
@@ -94,7 +94,7 @@
 }
 .laneHint {
   margin: -4px 4px 2px;
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--color-text-muted);
 }
 .laneEmpty {
@@ -110,7 +110,7 @@
   animation: rise 0.3s var(--ease) both;
 }
 .ideaText {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
 }
 .cardFoot {
@@ -139,13 +139,13 @@
 }
 .id {
   font-family: var(--font-family-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-muted);
 }
 .title {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: -0.01em;
   color: var(--color-text-default);
 }
@@ -183,7 +183,7 @@
   to { opacity: 0.45; }
 }
 .progressLabel {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 

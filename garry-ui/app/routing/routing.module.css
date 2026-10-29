@@ -29,7 +29,7 @@
   font-weight: 650;
 }
 .profileDesc {
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--color-text-muted);
 }
 .add {
@@ -52,7 +52,7 @@
   gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 12px;
-  font-size: 13px;
+  font-size: 14px;
 }
 .agentSelect {
   padding: 4px 30px 4px 8px;
@@ -62,5 +62,5 @@
   color: inherit;
   font: inherit;
   font-family: var(--font-family-mono);
-  font-size: 12.5px;
+  font-size: 13.5px;
 }

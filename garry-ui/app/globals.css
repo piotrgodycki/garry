@@ -154,7 +154,7 @@ body {
   font-family: var(--font-family-sans);
   color: var(--color-text-default);
   background: var(--bg);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   font-feature-settings: "cv11", "ss01";
@@ -183,7 +183,7 @@ h1 {
   margin: 0;
 }
 h2 {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: -0.01em;
   margin: 0;
@@ -525,7 +525,7 @@ select {
 }
 .crumbPage {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
   white-space: nowrap;
 }
 .gauges {
@@ -541,7 +541,7 @@ select {
   padding: 6px 10px;
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
-  font-size: 12.5px;
+  font-size: 13.5px;
   white-space: nowrap;
 }
 .gauge:hover {
@@ -595,7 +595,7 @@ select {
   background: none;
   color: var(--color-text-default);
   font: inherit;
-  font-size: 13.5px;
+  font-size: 14.5px;
   outline: none;
 }
 /* the line's blue top edge is the focus cue (.cmdline:focus-within) */
@@ -611,7 +611,7 @@ select {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -638,7 +638,7 @@ select {
   padding: 8px 10px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 .cmdList li.on {
   background: var(--surface-3);
@@ -657,7 +657,7 @@ select {
   white-space: nowrap;
 }
 .cmdHint {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 /* the voice dock sits beside the page on a wide screen instead of over it */
@@ -694,7 +694,7 @@ select {
   color: var(--color-text-default);
 }
 .brandSub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
 }
 
@@ -707,7 +707,7 @@ select {
   gap: 2px;
 }
 .navLabel {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted);
   padding: 0 10px 4px;
@@ -719,7 +719,7 @@ select {
   gap: 10px;
   padding: 7px 10px;
   border-radius: var(--radius-sm);
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 500;
   color: var(--color-text-muted);
   transition: background 0.15s, color 0.15s;
@@ -756,7 +756,7 @@ select {
   gap: 10px;
   width: 100%;
   font: inherit;
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 600;
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -808,7 +808,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   min-width: 0;
   white-space: nowrap;
@@ -971,16 +971,59 @@ select {
   gap: var(--space-md);
   flex-wrap: wrap;
 }
+.pageHeadMain {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1 1 360px;
+  min-width: 0;
+}
 .pageHeadText {
   display: grid;
   gap: 6px;
   min-width: 0;
 }
+/* the page's icon on a soft tile: blue for the work, violet for the project, clay for Garry */
+.pageIcon {
+  --k: var(--state-work);
+  flex: none;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  color: var(--k);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--k) 18%, var(--surface)), color-mix(in srgb, var(--k) 8%, var(--surface)));
+  border: 1px solid color-mix(in srgb, var(--k) 30%, var(--border));
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--k) 12%, transparent);
+}
+.pageIcon[data-group="project"] {
+  --k: var(--state-plan);
+}
+.pageIcon[data-group="garry"] {
+  --k: var(--garry-clay);
+}
+.pageIcon svg {
+  width: 26px;
+  height: 26px;
+}
+@media (max-width: 640px) {
+  .pageIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+  .pageIcon svg {
+    width: 21px;
+    height: 21px;
+  }
+}
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-muted);
 }
@@ -994,7 +1037,7 @@ select {
   margin: 0;
   overflow-wrap: anywhere;
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: 15px;
   max-width: 68ch;
 }
 .pageActions {
@@ -1021,7 +1064,7 @@ select {
   max-width: 100%;
 }
 .sectionHead .count {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 
@@ -1066,7 +1109,7 @@ select {
   gap: 4px;
 }
 .statLabel {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-text-muted);
   display: flex;
@@ -1088,11 +1131,11 @@ select {
   justify-content: center;
   gap: 7px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1;
-  height: 36px;
-  padding: 0 14px;
+  height: 40px;
+  padding: 0 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-strong);
   background: var(--surface);
@@ -1141,21 +1184,21 @@ select {
   color: #ffffff;
 }
 .btnSm {
-  height: 30px;
+  height: 34px;
   padding: 0 10px;
-  font-size: 12.5px;
+  font-size: 13.5px;
 }
 .iconBtn {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   padding: 0;
 }
 
 .input,
 .select {
   font: inherit;
-  font-size: 13.5px;
-  height: 36px;
+  font-size: 14.5px;
+  height: 40px;
   padding: 0 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
@@ -1207,7 +1250,7 @@ select {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-family-sans);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1;
   padding: 3px 6px;
@@ -1261,7 +1304,7 @@ select {
   }
   .table.cards td[data-label]::before {
     content: attr(data-label);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--color-text-muted);
   }
@@ -1275,7 +1318,7 @@ select {
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 .table th,
 .table td {
@@ -1285,7 +1328,7 @@ select {
   vertical-align: middle;
 }
 .table thead th {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-muted);
   background: var(--surface-2);
@@ -1313,7 +1356,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
   padding: 4px 8px;
@@ -1344,7 +1387,7 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1;
   padding: 4px 8px;
@@ -1356,7 +1399,7 @@ select {
 }
 .chip.mono {
   font-family: var(--font-family-mono);
-  font-size: 11.5px;
+  font-size: 12.5px;
 }
 .chip.model {
   background: var(--accent-soft);
@@ -1400,7 +1443,7 @@ select {
   border-radius: var(--radius-lg);
   border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border));
   background: color-mix(in srgb, var(--warn) 8%, var(--tint-base));
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 .notice svg {
   width: 18px;
@@ -1423,7 +1466,7 @@ select {
   padding: 28px 16px;
   text-align: center;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 .empty svg {
   width: 22px;
@@ -1440,7 +1483,7 @@ select {
   color: var(--color-text-muted);
 }
 .hint {
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
@@ -1478,13 +1521,13 @@ h1 {
   letter-spacing: -0.035em;
 }
 .brandSub {
-  font-size: 11.5px;
+  font-size: 12.5px;
 }
 .eyebrow,
 .navLabel,
 .statLabel,
 .table thead th {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
 }
@@ -1668,7 +1711,7 @@ h1 {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
-  font-size: 13.5px;
+  font-size: 14.5px;
   animation: rise 0.12s ease-out;
 }
 .gselectUp {
@@ -1677,7 +1720,7 @@ h1 {
 }
 .gselectGroup {
   padding: 8px 10px 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted);
 }
@@ -1711,7 +1754,7 @@ h1 {
   white-space: nowrap;
 }
 .gselectHint {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   color: var(--color-text-muted);
 }

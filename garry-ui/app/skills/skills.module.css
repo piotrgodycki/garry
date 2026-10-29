@@ -7,7 +7,7 @@
 }
 .segmented button {
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   height: 30px;
   padding: 0 12px;
@@ -31,14 +31,14 @@
   margin-left: auto;
   border-color: var(--border-strong) !important;
   color: var(--color-text-default) !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
 }
 .mine {
   margin-left: auto;
   background: var(--accent) !important;
   border-color: var(--accent) !important;
   color: #ffffff !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
 }
 .local {
   border-left: 4px solid var(--accent);
@@ -52,7 +52,7 @@
 }
 .link {
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   padding: 0;
   border: none;
@@ -66,7 +66,7 @@
   color: var(--accent);
 }
 .planned {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   font-style: italic;
 }
@@ -78,7 +78,7 @@
   background: var(--surface-2);
   border: 1px solid var(--border);
   font-family: var(--font-family-mono);
-  font-size: 11.5px;
+  font-size: 12.5px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -90,7 +90,7 @@
   padding-bottom: 24px;
 }
 .where {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 .toast {
@@ -101,7 +101,7 @@
   border: 1px solid var(--border);
   background: var(--surface);
   font-weight: 600;
-  font-size: 13.5px;
+  font-size: 14.5px;
   animation: rise 0.25s var(--ease) both;
 }
 .toast svg {
@@ -144,7 +144,7 @@
 }
 .help {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-muted);
 }
 .tabs {
@@ -153,7 +153,7 @@
 }
 .tabs button {
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   padding: 10px 14px;
   border: none;
@@ -175,7 +175,7 @@
   padding: 28px 16px;
   border: 2px dashed var(--border-strong);
   text-align: center;
-  font-size: 13.5px;
+  font-size: 14.5px;
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -197,7 +197,7 @@
 .field {
   display: grid;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-text-muted);
 }
@@ -209,7 +209,7 @@
   color: var(--color-text-default);
 }
 .hint {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
@@ -222,7 +222,7 @@
   padding: 10px 12px;
   border-left: 4px solid var(--accent);
   background: var(--surface-3);
-  font-size: 13px;
+  font-size: 14px;
 }
 .error svg {
   width: 16px;
@@ -235,7 +235,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 13px;
+  font-size: 14px;
 }
 .preview {
   display: grid;
@@ -245,7 +245,7 @@
 }
 .preview p {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 .previewHead {
   display: flex;
@@ -266,7 +266,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 .audit svg {
@@ -284,7 +284,7 @@
   color: var(--accent);
 }
 .auditNone {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   font-style: italic;
 }
@@ -309,7 +309,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 .reportHead svg {
   width: 16px;
@@ -321,12 +321,12 @@
 }
 .reportMeta {
   margin-left: auto;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 .reportNote {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: var(--color-text-muted);
 }
 .findings {
@@ -345,7 +345,7 @@
   align-items: start;
 }
 .sev {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   text-align: center;
   padding: 3px 0;
@@ -370,20 +370,20 @@
 }
 .findingTitle {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
 }
 .findingTitle code {
   font-weight: 400;
-  font-size: 11px;
+  font-size: 12px;
 }
 .findingWhy {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
 }
 .excerpt {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 12px;
   white-space: pre-wrap;
   word-break: break-all;
   background: var(--surface-2);
@@ -394,7 +394,7 @@
   margin: 0;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 .proposed {
@@ -414,7 +414,7 @@
 .proposed div {
   display: grid;
   gap: 2px;
-  font-size: 13px;
+  font-size: 14px;
 }
 .proposed a {
   font-weight: 700;

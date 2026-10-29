@@ -6,7 +6,7 @@
 }
 .featureId {
   font-family: var(--font-family-mono);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--accent);
   background: var(--accent-soft);
@@ -235,14 +235,14 @@
 }
 .corePct {
   margin-top: -6px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
 .coreHint {
   position: absolute;
   bottom: -26px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-muted);
   opacity: 0;
   transition: opacity 0.2s;
@@ -311,14 +311,14 @@
 .svc {
   flex: 1;
   min-width: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .stageLabel {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -353,7 +353,7 @@
   position: relative;
   display: flex;
   gap: 16px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   padding-top: 8px;
 }
@@ -385,7 +385,7 @@
   font-variant-numeric: tabular-nums;
 }
 .progressTotal {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-text-muted);
 }
@@ -408,7 +408,7 @@
   gap: 8px;
   flex-wrap: wrap;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 .bar {
   height: 6px;
@@ -446,7 +446,7 @@
   gap: 12px;
   align-items: center;
   padding: 9px 20px;
-  font-size: 13px;
+  font-size: 14px;
   animation: rise 0.3s var(--ease) both;
 }
 .logRowLive {
@@ -470,17 +470,17 @@
 .logWho {
   color: var(--color-text-muted);
   font-family: var(--font-family-mono);
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .logAction {
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 .logSkill {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -515,7 +515,7 @@
     font-variant-numeric: tabular-nums;
   }
   .mHubSub {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--color-text-muted);
   }
   .mList {
@@ -547,10 +547,10 @@
   }
   .mName {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 15px;
   }
   .mAction {
-    font-size: 12.5px;
+    font-size: 13.5px;
     color: var(--color-text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -615,7 +615,7 @@
   gap: 6px;
   color: var(--color-text-muted);
   font-weight: 500;
-  font-size: 13px;
+  font-size: 14px;
 }
 .runProgress {
   display: flex;
@@ -627,7 +627,7 @@
   flex: 1;
 }
 .runProgress .progressNum {
-  font-size: 15px;
+  font-size: 16px;
 }
 .runWave {
   width: 120px;
@@ -661,7 +661,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   text-transform: capitalize;
   color: var(--color-text-muted);
@@ -673,7 +673,7 @@
   height: 20px;
   border-radius: 50%;
   border: 1.5px solid var(--border-strong);
-  font-size: 10.5px;
+  font-size: 11.5px;
 }
 .flowStep svg {
   width: 12px;
@@ -726,7 +726,7 @@
 }
 .laneName {
   font-weight: 650;
-  font-size: 13px;
+  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -764,7 +764,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
-  font-size: 11.5px;
+  font-size: 12.5px;
   min-width: 0;
 }
 .flowTaskText {

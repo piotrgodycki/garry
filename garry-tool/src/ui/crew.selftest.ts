@@ -1,8 +1,8 @@
 /**
  * Regression test for Garry's crew and illustrations, in a real browser
  * against a real Garry server: the pipeline shows each task's agent as its
- * crew face (the analyst's glasses, the developer's headphones, the
- * reviewer's lens), Live shows each lane's state on its face (crossed eyes
+ * crew icon (the analyst's spec, the developer's code, the reviewer's
+ * lens), Live shows each lane's state on its icon (a red mark
  * when it failed), and the empty states tell their story with a picture that
  * says what it shows: connect a repository, nothing in progress, all caught up.
  * Needs the built dashboard and Chromium, like test:dropdown.
@@ -62,15 +62,15 @@ try {
 
   // the empty states, each with its picture
   await page.goto(`${base}/build`);
-  const connect = page.getByRole("img", { name: "Garry plugs a cable into a box holding a repository" });
+  const connect = page.getByRole("img", { name: "A cable plugging into a box holding a repository" });
   await connect.waitFor({ timeout: 8000 }).catch(() => undefined);
   expect("Build with no repository shows Garry plugging one in", (await connect.count()) === 1 && (await page.getByText("Connect your first repository").count()) === 1);
   if (shots) await page.screenshot({ path: join(shots, "crew-build.png") });
   expect("and nothing in progress, with the sprout", (await page.getByRole("img", { name: /sprout with a feature tag/ }).count()) === 1 && (await page.getByText("Nothing in progress").count()) === 1);
   await page.goto(`${base}/live`);
-  const rest = page.getByRole("img", { name: "Garry rests on a mound of soil beside a sprout" });
+  const rest = page.getByRole("img", { name: "Sprouts growing in the soil under a quiet sun" });
   await rest.waitFor({ timeout: 8000 }).catch(() => undefined);
-  expect("Live with nothing waiting: all caught up, Garry resting", (await rest.count()) === 1 && (await page.getByText("You're all caught up").count()) === 1);
+  expect("Live with nothing waiting: all caught up, the sprouts", (await rest.count()) === 1 && (await page.getByText("You're all caught up").count()) === 1);
   if (shots) await page.screenshot({ path: join(shots, "crew-live.png") });
   expect("Live with no agents: the sprout, and the way to start one", (await page.getByRole("img", { name: /sprout with a feature tag/ }).count()) === 1 && (await page.getByRole("link", { name: "Start work in Build" }).count()) === 1);
   // the pictures are drawn from the theme: soil and Garry's colours, not fixed ones
@@ -85,10 +85,10 @@ try {
   await page.goto(`${base}/build?view=pipeline&feature=FEAT-123`);
   await page.locator("[data-crew]").first().waitFor({ timeout: 10_000 }).catch(() => undefined);
   if (shots) await page.screenshot({ path: join(shots, "crew-pipeline.png") });
-  const crew = await page.locator("svg[data-crew]").evaluateAll((s) => s.map((x) => `${x.getAttribute("data-crew")}:${x.querySelector("[data-tool]")?.getAttribute("data-tool") ?? "-"}`));
+  const crew = await page.locator("[data-crew]").evaluateAll((s) => s.map((x) => `${x.getAttribute("data-crew")}:${x.getAttribute("data-tool") ?? "-"}`));
   const has = (c: string) => crew.includes(c);
-  expect("the analyst wears glasses, the developer headphones, the reviewer holds a lens", has("analyst:glasses") && has("dev:headphones") && has("reviewer:lens"), [...new Set(crew)].join(", "));
-  const titles = await page.locator("[title]").evaluateAll((els) => els.filter((e) => e.querySelector("svg[data-crew]")).map((e) => `${e.getAttribute("title")}=${e.querySelector("svg[data-crew]")!.getAttribute("data-crew")}`));
+  expect("the analyst shows a spec, the developer code, the reviewer a lens", has("analyst:spec") && has("dev:code") && has("reviewer:review"), [...new Set(crew)].join(", "));
+  const titles = await page.locator("[title]").evaluateAll((els) => els.filter((e) => e.querySelector("[data-crew]")).map((e) => `${e.getAttribute("title")}=${e.querySelector("[data-crew]")!.getAttribute("data-crew")}`));
   const mismatched = titles.filter((t) => {
     const [title, role] = t.split("=");
     const agent = title.split(" · ")[1] ?? "";
@@ -108,11 +108,11 @@ try {
   await page.goto(`${base}/live`);
   const lanes = page.getByRole("listbox", { name: "agents" });
   await lanes.getByRole("option").first().waitFor();
-  const faces = await lanes.getByRole("option").evaluateAll((os) => os.map((o) => `${o.getAttribute("aria-label")}=${o.querySelector("svg[data-crew]")?.getAttribute("data-state")}`));
+  const faces = await lanes.getByRole("option").evaluateAll((os) => os.map((o) => `${o.getAttribute("aria-label")}=${o.querySelector("[data-crew]")?.getAttribute("data-state")}`));
   expect("a lane's face carries its state", faces.includes("FAIL Fix the search, Failed=fail") && faces.includes("Write the notes, Ready=done"), faces.join(" | "));
-  const crossed = await lanes.getByRole("option", { name: /Fix the search/ }).locator("svg[data-crew] path").evaluateAll((ps) => ps.some((p) => (p.getAttribute("d") ?? "").startsWith("M14.4 20.4l3 3")));
-  expect("a failed agent's eyes are crossed", crossed);
-  expect("now something needs you, so the resting picture goes", (await page.getByRole("img", { name: "Garry rests on a mound of soil beside a sprout" }).count()) === 0);
+  const marked = await lanes.getByRole("option").evaluateAll((os) => os.map((o) => `${o.getAttribute("aria-label")}=${o.querySelector('[data-crew] [data-badge="fail"]') ? "marked" : "-"}`));
+  expect("a failed agent carries the red mark, and only it", marked.includes("FAIL Fix the search, Failed=marked") && marked.filter((m) => m.endsWith("=marked")).length === 1, marked.join(" | "));
+  expect("now something needs you, so the caught-up picture goes", (await page.getByRole("img", { name: "Sprouts growing in the soil under a quiet sun" }).count()) === 0);
   expect("no errors in the page", errors.length === 0, errors.join("; "));
 } finally {
   await browser.close();

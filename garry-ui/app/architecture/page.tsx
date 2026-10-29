@@ -25,7 +25,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import type { ArchBlock, ArchIssue, ArchSuggestion, ArchTemplate, Architecture, ArchitectureState } from "garry-client";
 import { client } from "../lib/client";
-import { PageHeader, ServerNotice, Skeleton } from "../ui";
+import { ServerNotice, Skeleton } from "../ui";
 import styles from "./architecture.module.css";
 import { isDark, logoOf } from "./logos";
 import { relationOf } from "./relations";
@@ -154,7 +154,12 @@ const fromFlow = (nodes: BlockNode[], edges: Edge[]): Architecture => ({
   edges: edges.map((e) => ({ from: e.source, to: e.target, capability: String(e.sourceHandle) })),
 });
 
-function Board({ state, boardId }: { state: ArchitectureState; boardId: string }) {
+/**
+ * The board, the whole screen: the blocks on the left, the canvas with its
+ * own controls along the top (the bar), what Garry sees on the right. The
+ * wizard and the ready-made architectures open over the canvas (overlay).
+ */
+function Board({ state, boardId, bar, overlay }: { state: ArchitectureState; boardId: string; bar: ReactNode; overlay: ReactNode }) {
   const blocks = useMemo(() => new Map([...state.services, ...state.components].map((b) => [b.id, b])), [state]);
   const initial = useMemo(() => toFlow(state.architecture, blocks, state.capabilities), [state, blocks]);
   const [nodes, setNodes, onNodesChange] = useNodesState<BlockNode>(initial.nodes);
@@ -341,11 +346,14 @@ function Board({ state, boardId }: { state: ArchitectureState; boardId: string }
           deleteKeyCode={["Backspace", "Delete"]}
         >
           <Background gap={20} />
-          <Controls showInteractive={false} />
-          <MiniMap pannable zoomable />
+          {/* under the wizard or the ready-made ones, the board's own controls step aside */}
+          {!overlay && <Controls showInteractive={false} />}
+          {!overlay && <MiniMap pannable zoomable />}
         </ReactFlow>
         </FocusContext.Provider>
-        {nodes.length === 0 && <p className={styles.empty}>Drag blocks here from the left, then join a need (right side) to a block that provides it (left side).</p>}
+        {nodes.length === 0 && !overlay && <p className={styles.empty}>Drag blocks here from the left, then join a need (right side) to a block that provides it (left side).</p>}
+        <div className={styles.toolbar}>{bar}</div>
+        {overlay && <div className={styles.overlay}>{overlay}</div>}
         <span className={styles.saved}>{saved === "saving" ? "Saving…" : saved === "saved" ? `Saved to ${boardId ? `architecture/${boardId}.json` : "architecture.json"}` : saved === "error" ? "Not saved" : ""}</span>
       </div>
 
@@ -444,65 +452,63 @@ export default function ArchitecturePage() {
   const empty = state ? state.architecture.nodes.length === 0 : false;
   // an empty board starts with the wizard; the ready-made ones are the other way in
   const showWizard = state ? wizardOpen || (empty && !showTemplates) : false;
-  return (
-    <main className="page">
-      <PageHeader
-        title="Architecture"
-        lede="Your services and the platforms they run on: one board for the whole project and one for each repository. Build one step by step with the wizard, or by hand; every block shows what it provides (left) and what it needs (right), only fitting pieces join, and Garry says what is missing or will not work."
+  const bar = state && (
+    <>
+      <Select
+        ariaLabel="board"
+        value={boardId}
+        onChange={(id) => setParams(id ? { board: id } : {})}
+        options={state.boards.map((b) => ({ value: b.id, label: b.name, hint: b.blocks ? `${b.blocks} blocks` : "empty", group: b.id ? "Repositories" : undefined }))}
       />
+      <button className="btn btnSm" aria-pressed={showWizard} onClick={() => (setShowTemplates(false), setWizardOpen(!showWizard || empty ? true : false))}>
+        {state.architecture.wizard ? "Change the answers" : "Wizard"}
+      </button>
+      {state.templates.length > 0 && (
+        <button className="btn btnSm" aria-pressed={showTemplates} onClick={() => (setWizardOpen(false), setShowTemplates(!showTemplates))}>
+          Ready-made
+        </button>
+      )}
+      {!empty && (
+        <button className="btn btnSm btnGhost" onClick={() => void reset()}>
+          Reset
+        </button>
+      )}
+      {error && <span className="badge danger">{error}</span>}
+    </>
+  );
+  const overlay = !state ? null : showTemplates ? (
+    <section className={styles.templates} aria-label="ready-made architectures">
+      <div className={styles.templatesHead}>
+        <h2 className={styles.overlayTitle}>Start from a ready-made architecture</h2>
+        <button className="btn btnSm btnGhost" onClick={() => setShowTemplates(false)}>
+          Close
+        </button>
+      </div>
+      <div className={styles.templateGrid}>
+        {state.templates.map((t) => (
+          <div key={t.id} className={`card ${styles.template}`}>
+            <span className={styles.templateName}>{t.name}</span>
+            <span className={styles.templateSummary}>{t.summary}</span>
+            <span className={styles.templateFor}>Good for: {t.goodFor}</span>
+            <button className="btn btnSm" onClick={() => void applyTemplate(t)}>
+              Use this
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  ) : showWizard ? (
+    <Wizard key={`${boardId}:${version}`} state={state} boardName={boardName} onBuilt={replaced} onClose={empty ? undefined : () => setWizardOpen(false)} />
+  ) : null;
+  return (
+    <main className={styles.studio}>
+      {/* the board is the page: its name is for screen readers and the top bar */}
+      <h1 className={styles.hidden}>Architecture</h1>
       {offline && <ServerNotice />}
       {!state && !offline && <Skeleton rows={2} height={200} />}
       {state && (
-        <div className={styles.boardBar}>
-          <span className="eyebrow">Board</span>
-          <Select
-            ariaLabel="board"
-            value={boardId}
-            onChange={(id) => setParams(id ? { board: id } : {})}
-            options={state.boards.map((b) => ({ value: b.id, label: b.name, hint: b.blocks ? `${b.blocks} blocks` : "empty", group: b.id ? "Repositories" : undefined }))}
-          />
-          <span className={styles.boardBarFill} />
-          {!showWizard && (
-            <button className="btn btnSm" onClick={() => setWizardOpen(true)}>
-              {state.architecture.wizard ? "Change the answers" : "Build with the wizard"}
-            </button>
-          )}
-          {!empty && (
-            <button className="btn btnSm btnGhost" onClick={() => void reset()}>
-              Reset board
-            </button>
-          )}
-        </div>
-      )}
-      {error && <span className="badge danger">{error}</span>}
-      {state && showWizard && <Wizard key={`${boardId}:${version}`} state={state} boardName={boardName} onBuilt={replaced} onClose={empty ? undefined : () => setWizardOpen(false)} />}
-      {state && state.templates.length > 0 && (
-        <section className={styles.templates} aria-label="ready-made architectures">
-          <div className={styles.templatesHead}>
-            <span className="eyebrow">Or start from a ready-made architecture</span>
-            <button className="btn btnSm btnGhost" aria-expanded={showTemplates} onClick={() => setShowTemplates(!showTemplates)}>
-              {showTemplates ? "Hide" : "Show"}
-            </button>
-          </div>
-          {showTemplates && (
-            <div className={styles.templateGrid}>
-              {state.templates.map((t) => (
-                <div key={t.id} className={`card ${styles.template}`}>
-                  <span className={styles.templateName}>{t.name}</span>
-                  <span className={styles.templateSummary}>{t.summary}</span>
-                  <span className={styles.templateFor}>Good for: {t.goodFor}</span>
-                  <button className="btn btnSm" onClick={() => void applyTemplate(t)}>
-                    Use this
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-      {state && !showWizard && (
         <ReactFlowProvider key={`${boardId}:${version}`}>
-          <Board state={state} boardId={boardId} />
+          <Board state={state} boardId={boardId} bar={bar} overlay={overlay} />
         </ReactFlowProvider>
       )}
     </main>

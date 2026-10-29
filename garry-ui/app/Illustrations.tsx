@@ -2,54 +2,41 @@ import type { ReactNode } from "react";
 import styles from "./illustrations.module.css";
 
 /**
- * The empty and first states tell one story: the soil, sprouts, Garry at
- * work. Drawn from the theme's tokens (soil, leaf, Garry's colours), so they
+ * The empty and first states tell one story: the soil, things growing in it,
+ * the repositories the work lives in. Drawn from the theme's tokens (soil, leaf, Garry's colours), so they
  * hold in both themes; each says what it shows for a screen reader.
  */
 type Art = "caughtUp" | "connectRepo" | "plantFeature";
 
-const worm = (d: string, width = 13, clitellum?: string) => (
-  <>
-    <path d={d} className={styles.worm} strokeWidth={width} />
-    <path d={d} className={styles.ring} strokeWidth={width} strokeDasharray="1.4 8.4" strokeDashoffset="-4" />
-    {clitellum && <path d={d} className={styles.clay} strokeWidth={width} strokeDasharray={clitellum} />}
-  </>
-);
-
 const ART: Record<Art, { label: string; draw: ReactNode }> = {
   caughtUp: {
-    label: "Garry rests on a mound of soil beside a sprout",
+    label: "Sprouts growing in the soil under a quiet sun",
     draw: (
       <>
+        <circle cx="178" cy="46" r="15" className={styles.sun} />
+        <path d="M171 46.5l5 5 9-10" className={styles.tick} />
         <path d="M0 108Q60 88 120 100T240 96V140H0Z" className={styles.soil2} />
         <path d="M0 118Q80 106 150 116T240 112V140H0Z" className={styles.soil} />
         <circle cx="34" cy="126" r="3" className={styles.pebble} />
         <circle cx="196" cy="128" r="2.4" className={styles.pebble} />
         <circle cx="210" cy="122" r="1.6" className={styles.pebble} />
-        <path d="M44 104V84" className={styles.stem} />
-        <path d="M44 90c-8 0-12-5-12-12 8 0 12 5 12 12zM44 86c0-7 4-12 12-12 0 7-4 12-12 12z" className={styles.leaf} />
-        {worm("M70 100C88 86 104 112 122 98S154 86 172 96", 13, "0 74 12 400")}
-        <path d="M168 93q2.4 2 4.8 0" className={styles.ink} />
-        <circle cx="176" cy="98.5" r="1.6" className={styles.cheek} />
-        <text x="182" y="80" className={styles.zz} fontSize="11">
-          z
-        </text>
-        <text x="190" y="70" className={styles.zz} fontSize="9">
-          z
-        </text>
+        <path d="M70 104V80" className={styles.stem} />
+        <path d="M70 88c-9 0-14-6-14-14 9 0 14 6 14 14zM70 84c0-8 5-14 14-14 0 8-5 14-14 14z" className={styles.leaf} />
+        <path d="M118 102V72" className={styles.stem} />
+        <path d="M118 84c-11 0-17-7-17-17 11 0 17 7 17 17zM118 78c0-10 6-17 17-17 0 10-6 17-17 17zM118 94c-8 0-13-5-13-12 8 0 13 5 13 12z" className={styles.leaf} />
+        <path d="M160 104V90" className={styles.stem} />
+        <path d="M160 94c-6 0-9-4-9-9 6 0 9 4 9 9zM160 92c0-5 3-9 9-9 0 5-3 9-9 9z" className={styles.leaf} />
       </>
     ),
   },
   connectRepo: {
-    label: "Garry plugs a cable into a box holding a repository",
+    label: "A cable plugging into a box holding a repository",
     draw: (
       <>
         <path d="M0 116Q90 104 240 114V140H0Z" className={styles.soil} />
-        {worm("M58 122C58 98 80 94 82 72")}
-        <circle cx="78.5" cy="70" r="1.6" className={styles.eye} />
-        <circle cx="86" cy="71" r="1.6" className={styles.eye} />
-        <path d="M79 76q3.4 2.4 6.6 0" className={styles.ink} />
-        <path d="M92 80C118 92 126 54 158 62" className={styles.cable} />
+        <path d="M44 108V92" className={styles.stem} />
+        <path d="M44 98c-7 0-11-5-11-11 7 0 11 5 11 11zM44 95c0-6 4-11 11-11 0 6-4 11-11 11z" className={styles.leaf} />
+        <path d="M30 70C70 70 92 92 118 80S140 62 150 62" className={styles.cable} />
         <rect x="150" y="57" width="10" height="10" rx="2" className={styles.plug} />
         <rect x="160" y="36" width="58" height="48" rx="9" className={styles.box} />
         <circle cx="176" cy="50" r="3.4" className={styles.git} />
@@ -60,15 +47,13 @@ const ART: Record<Art, { label: string; draw: ReactNode }> = {
     ),
   },
   plantFeature: {
-    label: "Garry peeks out of the soil beside a sprout with a feature tag",
+    label: "A sprout with a feature tag, ready to grow",
     draw: (
       <>
         <path d="M0 112Q70 96 130 108T240 104V140H0Z" className={styles.soil2} />
         <path d="M0 120Q100 110 240 118V140H0Z" className={styles.soil} />
         <ellipse cx="96" cy="114" rx="14" ry="4" className={styles.pebble} />
-        {worm("M96 114C96 96 108 92 112 78")}
-        <circle cx="108.5" cy="76" r="1.6" className={styles.eye} />
-        <circle cx="116" cy="77.5" r="1.6" className={styles.eye} />
+        <circle cx="70" cy="122" r="2.4" className={styles.pebble} />
         <path d="M156 108V64" className={styles.stem} />
         <path d="M156 80c-12 0-18-7-18-18 12 0 18 7 18 18zM156 72c0-11 6-18 18-18 0 11-6 18-18 18zM156 94c-9 0-14-5-14-13 9 0 14 5 14 13z" className={styles.leaf} />
         <path d="M168 104v-26" className={styles.cable} />

@@ -17,7 +17,7 @@
 }
 .sideLabel {
   width: 100%;
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--color-text-muted);
 }
@@ -49,7 +49,7 @@
 .eventName {
   justify-self: start;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   background: var(--color-brand-primary);
   color: var(--on-brand);
   border: none;
@@ -60,7 +60,7 @@
   display: grid;
   gap: 3px;
   font-family: var(--font-family-mono);
-  font-size: 12px;
+  font-size: 13px;
 }
 .field {
   display: flex;
