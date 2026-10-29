@@ -8,6 +8,7 @@ import { gitAuthArgs } from "../github/connect.js";
 import { pushRefusal } from "./settings.js";
 import { QA_LABEL, assessQa, parseDiff, qaMarkdown } from "../review/qa.js";
 import { oversizedStaged, sizeMessage } from "../hooks/filesize.js";
+import { createRepo, proposeRepo } from "../github/create-repo.js";
 
 /** A commit refused because a file is too large for an agent to read whole; the message says how to split it. */
 export class FileSizeError extends Error {
@@ -37,7 +38,17 @@ export interface PushPreview {
   draft: boolean;
   /** why the push would be refused, if it would */
   refused: string | null;
+  /** with no GitHub remote: the repository Garry would create, named as in Garry, once the person says yes */
+  create: { owner: string; name: string } | null;
 }
+
+const currentBranch = (path: string) => {
+  try {
+    return git(path, ["symbolic-ref", "--short", "HEAD"]).trim();
+  } catch {
+    return "";
+  }
+};
 
 const slug = (s: string) =>
   s
@@ -184,14 +195,17 @@ export class ThreadManager {
   async pushPreview(threadId: string): Promise<PushPreview> {
     const t = this.mustGet(threadId);
     const settings = this.store.settings(t.projectId);
-    const slug = remoteSlug(this.store.project(t.projectId)!.path);
+    const project = this.store.project(t.projectId)!;
+    const slug = remoteSlug(project.path);
     const token = githubToken();
-    const base = settings.baseBranch || (slug && token ? await new GitHub(token).defaultBranch(slug.owner, slug.name).catch(() => "") : "") || "the default branch";
+    const create = slug ? null : await proposeRepo(project, token);
+    const base = settings.baseBranch || (slug && token ? await new GitHub(token).defaultBranch(slug.owner, slug.name).catch(() => "") : "") || (create ? currentBranch(project.path) : "") || "the default branch";
     const commits = git(t.worktree, ["log", "--format=%h%x09%s", `${t.baseSha}..HEAD`])
       .split("\n")
       .filter(Boolean)
       .map((l) => ({ sha: l.split("\t")[0], subject: l.split("\t").slice(1).join("\t") }));
-    return { branch: t.branch, remote: slug ? `${slug.owner}/${slug.name}` : null, base, commits, mode: settings.push, draft: settings.draftPr, refused: pushRefusal(settings, t.branch, base) };
+    const noHome = !slug && !create ? (token ? "this repository has an origin that is not on GitHub" : "this repository is not on GitHub: connect GitHub (Settings) and Garry offers to create it") : null;
+    return { branch: t.branch, remote: slug ? `${slug.owner}/${slug.name}` : null, base, commits, mode: settings.push, draft: settings.draftPr, refused: pushRefusal(settings, t.branch, base) ?? noHome, create };
   }
 
   /**
@@ -200,22 +214,29 @@ export class ThreadManager {
    * the person saw the preview), and never to a protected branch or the base.
    * Never forced: a push GitHub would have to overwrite fails.
    */
-  async openPr(threadId: string, title?: string, body?: string, confirmed = false): Promise<Thread> {
+  async openPr(threadId: string, title?: string, body?: string, confirmed = false, create?: { owner?: string; name?: string; private?: boolean }): Promise<Thread> {
     const t = this.mustGet(threadId);
     const project = this.store.project(t.projectId)!;
     const settings = this.store.settings(t.projectId);
     if (settings.push === "never") throw new PushError(pushRefusal(settings, t.branch, "")!, 403);
-    const slug = remoteSlug(project.path);
-    if (!slug) throw new Error("the project has no GitHub origin remote");
+    let slug = remoteSlug(project.path);
+    // no home on GitHub yet: only with the person's yes (create) is one made, named as in Garry
+    if (!slug && !create) throw new Error("the project has no GitHub origin remote");
     const token = githubToken();
     if (!token) throw new Error("connect GitHub first (Settings, GitHub) or set GARRY_GITHUB_TOKEN in .env.local");
     if (this.running.has(threadId)) throw new Error("wait for the agent to finish");
     if (git(t.worktree, ["status", "--porcelain"]).trim()) throw new Error("commit the changes first");
     const gh = new GitHub(token);
-    const base = settings.baseBranch || (await gh.defaultBranch(slug.owner, slug.name));
+    const base = settings.baseBranch || (slug ? await gh.defaultBranch(slug.owner, slug.name) : currentBranch(project.path));
     const refused = pushRefusal(settings, t.branch, base);
     if (refused) throw new PushError(refused, 403);
-    if (settings.push === "ask" && !confirmed) throw new PushError(`this project asks before pushing: confirm pushing ${t.branch} to ${slug.owner}/${slug.name}`, 428);
+    const where = slug ? `${slug.owner}/${slug.name}` : "a new GitHub repository";
+    if (settings.push === "ask" && !confirmed) throw new PushError(`this project asks before pushing: confirm pushing ${t.branch} to ${where}`, 428);
+    if (!slug) {
+      const made = await createRepo(project, token, create);
+      this.emit(t.id, { type: "git", action: "repo", detail: made.url, at: now() });
+      slug = { owner: made.owner, name: made.name };
+    }
     // the token authenticates this one push; it is never written into the repository.
     // An explicit refspec: only this branch, to the branch of the same name.
     git(t.worktree, [...gitAuthArgs(token), "push", "--set-upstream", "origin", `refs/heads/${t.branch}:refs/heads/${t.branch}`]);

@@ -42,6 +42,17 @@ export class GitHub {
     return (await res.json()) as T;
   }
 
+  /** Who the token belongs to. */
+  async login(): Promise<string> {
+    return (await this.api<{ login: string }>("GET", "/user")).login;
+  }
+
+  /** A new repository: the token's own (org null) or an organization's. */
+  async createRepo(org: string | null, name: string, priv: boolean, description: string): Promise<{ owner: string; name: string; url: string }> {
+    const r = await this.api<{ name: string; html_url: string; owner: { login: string } }>("POST", org ? `/orgs/${org}/repos` : "/user/repos", { name, private: priv, description, auto_init: false });
+    return { owner: r.owner.login, name: r.name, url: r.html_url };
+  }
+
   /** The default branch of a repo, used as the base for pull requests. */
   async defaultBranch(owner: string, name: string): Promise<string> {
     const repo = await this.api<{ default_branch: string }>("GET", `/repos/${owner}/${name}`);

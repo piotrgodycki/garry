@@ -6,6 +6,7 @@ export const ENDPOINTS = [
         "GET /api/projects, POST /api/projects {path, name?} (this machine only)",
         "GET /api/github, POST /api/github/token {token}, POST /api/github/device, POST /api/github/device/poll {deviceCode}, DELETE /api/github (this machine only)",
         "GET /api/github/repos?q=, POST /api/projects/import {repo: owner/name} (this machine only: clones into ~/.garry/repos)",
+        "GET /api/projects/:id/github-repo (its GitHub home, or what Garry would create), POST /api/projects/:id/github-repo {owner?, name?, private?} (this machine only: creates it, adds origin, pushes)",
         "GET /api/projects/:id/files?path=, GET /api/projects/:id/file?path=, POST /api/projects/:id/file {path, content, sha?} (this machine only)",
         "GET /api/registry/files?path=, GET /api/registry/file?path=, POST /api/registry/file {path, content, sha?} (this machine only)",
         "GET /api/threads?project=, POST /api/threads {projectId, prompt, title?}",

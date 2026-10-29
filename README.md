@@ -177,7 +177,9 @@ done). Adding a repository and the feature pipeline are buttons in the header.
   a checklist of what to check). Garry asks before every push, showing the
   branch, the remote and the commits; each project can change that (ask, allow,
   never), its base branch, branch prefix and protected branches (Push and branch
-  settings), and agents themselves can never push;
+  settings), and agents themselves can never push. A repository not on GitHub
+  yet gets one named as it is in Garry (private, yours or an organization's),
+  created only when you say yes, before the pull request or from its settings;
 - **Files** (its own tab) works like a code editor: an explorer of the registry,
   each repo and each piece of work in progress, files open in tabs, Cmd/Ctrl+S
   saves, and a terminal along the bottom (Ctrl+`) opens a shell in that folder.

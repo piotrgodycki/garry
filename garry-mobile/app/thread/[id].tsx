@@ -91,7 +91,7 @@ export default function ThreadScreen() {
           if (e.type === "tool") return <Text key={i} style={[mono, s.tool, { color: p.muted }]}><Text style={{ color: p.text, fontWeight: "700" }}>{e.name}</Text> {e.summary}</Text>;
           if (e.type === "tool_result" && !e.ok) return <Text key={i} style={[mono, s.tool, { color: p.fail }]}>{e.preview}</Text>;
           if (e.type === "turn_end") return <Label key={i}>{e.ok ? "Turn done" : "Turn stopped"}</Label>;
-          if (e.type === "git") return <Label key={i}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : "Pull request opened"}</Label>;
+          if (e.type === "git") return <Label key={i}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : e.action === "repo" ? "Repository created on GitHub" : "Pull request opened"}</Label>;
           if (e.type === "error") return <Body key={i} style={{ color: p.fail }}>{e.message}</Body>;
           return null;
         })}

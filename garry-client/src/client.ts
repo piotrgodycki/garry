@@ -140,7 +140,12 @@ export class GarryClient {
   threadDiff = (id: string) => this.request<ThreadDiff>(`/api/threads/${id}/diff`);
   commitThread = (id: string, message: string) => this.post<Thread>(`/api/threads/${id}/commit`, { message });
   /** Pushes and opens the PR. When the project asks before pushing, confirmed must be true (show pushPreview first), else 428. */
-  openPullRequest = (id: string, title?: string, body?: string, confirmed = false) => this.post<Thread>(`/api/threads/${id}/pr`, { title, body, confirmed });
+  /** A repository's home on GitHub: where it is, or what Garry would create (named as in Garry). */
+  githubRepo = (projectId: string) => this.request<{ remote: string | null; create: { owner: string; name: string } | null }>(`/api/projects/${projectId}/github-repo`);
+  /** Creates the repository on GitHub, adds it as origin and pushes the current branch (this computer only). */
+  createGithubRepo = (projectId: string, opts: { owner?: string; name?: string; private?: boolean } = {}) => this.post<{ owner: string; name: string; url: string; pushed: string | null }>(`/api/projects/${projectId}/github-repo`, opts);
+  /** create: the GitHub repository to make first, named as in Garry, when the project has none (your yes to it) */
+  openPullRequest = (id: string, title?: string, body?: string, confirmed = false, create?: { owner?: string; name?: string; private?: boolean }) => this.post<Thread>(`/api/threads/${id}/pr`, { title, body, confirmed, create });
   /** What a push would do: branch, remote, base, commits, and whether the project allows it. */
   pushPreview = (id: string) => this.request<PushPreview>(`/api/threads/${id}/push`);
   projectSettings = (projectId: string) => this.request<ProjectSettings>(`/api/projects/${projectId}/settings`);

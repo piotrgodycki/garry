@@ -25,7 +25,7 @@ function EventRow({ e }: { e: ThreadEvent }) {
     case "turn_end":
       return <div className={`${styles.ev} ${styles.evEnd}`}>{e.ok ? "Turn done" : "Turn stopped"}{e.costUsd ? ` · $${e.costUsd.toFixed(3)}` : ""}</div>;
     case "git":
-      return <div className={`${styles.ev} ${styles.evEnd}`}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : `Pull request ${e.detail}`}</div>;
+      return <div className={`${styles.ev} ${styles.evEnd}`}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : e.action === "repo" ? `Created ${e.detail}` : `Pull request ${e.detail}`}</div>;
     case "error":
       return <div className={`${styles.ev} ${styles.evBad}`}>{e.message}</div>;
     default:
@@ -59,6 +59,8 @@ export default function ThreadView() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [push, setPush] = useState<PushPreview | null>(null);
+  // a repository not on GitHub yet: the name to create it under, and whether it is private
+  const [newRepo, setNewRepo] = useState({ name: "", private: true });
   const bottom = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async () => {
@@ -194,7 +196,11 @@ export default function ThreadView() {
                       void act(async () => {
                         const p = await client.pushPreview(id);
                         // the project allows pushing without asking: go ahead
-                        if (p.mode !== "allow" || p.refused) return setPush(p);
+                        // asks first, refused, or not on GitHub yet (creating it needs your yes)
+                        if (p.mode !== "allow" || p.refused || p.create) {
+                          setNewRepo({ name: p.create?.name ?? "", private: true });
+                          return setPush(p);
+                        }
                         if (await confirmAction("open a pull request")) await client.openPullRequest(id);
                       })
                     }
@@ -206,6 +212,8 @@ export default function ThreadView() {
                   <div className={styles.pushBox} role="dialog" aria-label="Confirm the push">
                     {push.refused ? (
                       <span className="badge danger">{push.refused}</span>
+                    ) : push.create ? (
+                      <span className="eyebrow">Not on GitHub yet: Garry creates it first</span>
                     ) : (
                       <span className="eyebrow">This project asks before pushing</span>
                     )}
@@ -213,7 +221,21 @@ export default function ThreadView() {
                       <dt>Branch</dt>
                       <dd>{push.branch}</dd>
                       <dt>To</dt>
-                      <dd>{push.remote ?? "no GitHub remote"}</dd>
+                      <dd>
+                        {push.remote ??
+                          (push.create ? (
+                            <span className={styles.githubFields}>
+                              <span>{push.create.owner} /</span>
+                              <input className="input" aria-label="new GitHub repository name" value={newRepo.name} onChange={(e) => setNewRepo({ ...newRepo, name: e.target.value })} spellCheck={false} />
+                              <label className={styles.githubCheck}>
+                                <input type="checkbox" checked={newRepo.private} onChange={(e) => setNewRepo({ ...newRepo, private: e.target.checked })} />
+                                Private
+                              </label>
+                            </span>
+                          ) : (
+                            "no GitHub remote"
+                          ))}
+                      </dd>
                       <dt>Pull request into</dt>
                       <dd>
                         {push.base}
@@ -232,15 +254,18 @@ export default function ThreadView() {
                       {!push.refused && (
                         <button
                           className="btn btnPrimary"
-                          disabled={busy}
+                          disabled={busy || (Boolean(push.create) && !newRepo.name.trim())}
                           onClick={() =>
-                            void act(async () => {
-                              await client.openPullRequest(id, undefined, undefined, true);
-                              setPush(null);
-                            }, `push ${push.branch} to ${push.remote}`)
+                            void act(
+                              async () => {
+                                await client.openPullRequest(id, undefined, undefined, true, push.create ? { owner: push.create.owner, name: newRepo.name.trim(), private: newRepo.private } : undefined);
+                                setPush(null);
+                              },
+                              push.create ? `create ${push.create.owner}/${newRepo.name.trim()} on GitHub and push ${push.branch}` : `push ${push.branch} to ${push.remote}`,
+                            )
                           }
                         >
-                          Push and open pull request
+                          {push.create ? "Create the repository, push and open pull request" : "Push and open pull request"}
                         </button>
                       )}
                       <button className="btn" onClick={() => setPush(null)}>

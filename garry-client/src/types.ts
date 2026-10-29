@@ -548,6 +548,8 @@ export interface PushPreview {
   draft: boolean;
   /** why the push would be refused, if it would */
   refused: string | null;
+  /** with no GitHub remote: the repository Garry would create, named as in Garry, once you say yes */
+  create: { owner: string; name: string } | null;
 }
 
 export interface Project {
@@ -583,7 +585,7 @@ export type ThreadEvent =
   | { type: "tool_result"; id: string; ok: boolean; preview: string; at: string }
   | { type: "turn_end"; ok: boolean; costUsd?: number; at: string }
   | { type: "status"; status: ThreadStatus; at: string }
-  | { type: "git"; action: "commit" | "pr"; detail: string; at: string }
+  | { type: "git"; action: "commit" | "pr" | "repo"; detail: string; at: string }
   | { type: "error"; message: string; at: string };
 
 export interface FileChange {
