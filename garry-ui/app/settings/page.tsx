@@ -2,6 +2,7 @@ import { PageHeader } from "../ui";
 import GithubConnect from "./GithubConnect";
 import ProjectsPanel from "../projects/ProjectsPanel";
 import styles from "./settings.module.css";
+import { Icon } from "../icons";
 
 /** Garry's own settings: projects and the GitHub connection. Per project push and branch settings live on the Build page. */
 export default function Settings() {
@@ -10,12 +11,18 @@ export default function Settings() {
       <PageHeader title="Settings" lede="Your projects and how Garry connects to the outside world. Changed on the computer running Garry." />
       <section id="projects" className={`card ${styles.section}`} aria-labelledby="projects-title">
         <h2 id="projects-title" className={styles.title}>
+          <span className={styles.titleIcon} aria-hidden="true">
+            {Icon.stack}
+          </span>
           Projects
         </h2>
         <ProjectsPanel />
       </section>
       <section className={`card ${styles.section}`} style={{ marginTop: 16 }} aria-labelledby="github">
         <h2 id="github" className={styles.title}>
+          <span className={`${styles.titleIcon} ${styles.github}`} aria-hidden="true" data-logo="github">
+            {Icon.github}
+          </span>
           GitHub
         </h2>
         <GithubConnect />

@@ -68,18 +68,24 @@ try {
   if (shots) await page.screenshot({ path: join(shots, "crew-build.png") });
   expect("and nothing in progress, with the sprout", (await page.getByRole("img", { name: /sprout with a feature tag/ }).count()) === 1 && (await page.getByText("Nothing in progress").count()) === 1);
   await page.goto(`${base}/live`);
-  const rest = page.getByRole("img", { name: "Sprouts growing in the soil under a quiet sun" });
-  await rest.waitFor({ timeout: 8000 }).catch(() => undefined);
-  expect("Live with nothing waiting: all caught up, the sprouts", (await rest.count()) === 1 && (await page.getByText("You're all caught up").count()) === 1);
+  await page.getByText("Nothing needs you").waitFor({ timeout: 8000 }).catch(() => undefined);
+  expect("Live with nothing waiting: one quiet line, no empty column", (await page.getByText("Nothing needs you").count()) === 1 && (await page.getByRole("region", { name: /Needs you/ }).count()) === 0);
   if (shots) await page.screenshot({ path: join(shots, "crew-live.png") });
   expect("Live with no agents: the sprout, and the way to start one", (await page.getByRole("img", { name: /sprout with a feature tag/ }).count()) === 1 && (await page.getByRole("link", { name: "Start work in Build" }).count()) === 1);
   // the pictures are drawn from the theme: soil and Garry's colours, not fixed ones
+  const rest = page.getByRole("img", { name: /sprout with a feature tag/ });
   const fills = await rest.evaluate((svg) => [...svg.querySelectorAll("path, circle")].map((e) => getComputedStyle(e).fill + getComputedStyle(e).stroke));
   await page.emulateMedia({ colorScheme: "dark" });
   const darkFills = await rest.evaluate((svg) => [...svg.querySelectorAll("path, circle")].map((e) => getComputedStyle(e).fill + getComputedStyle(e).stroke));
-  // the first two shapes are the soil, then three pebbles and the sprout: each its own colour per theme
-  expect("the soil, pebbles and sprout follow the theme", [0, 1, 2, 5, 6].every((i) => fills[i] !== darkFills[i]) && !fills.some((f) => f.startsWith("rgb(0, 0, 0)rgb(0, 0, 0)")), JSON.stringify([fills.slice(0, 7), darkFills.slice(0, 7)]));
+  // the soil (two shapes), a pebble, the stem and the leaves: each its own colour per theme
+  expect("the soil, pebbles and sprout follow the theme", [0, 1, 2, 4, 5].every((i) => fills[i] !== darkFills[i]) && !fills.some((f) => f.startsWith("rgb(0, 0, 0)rgb(0, 0, 0)")), JSON.stringify([fills.slice(0, 7), darkFills.slice(0, 7)]));
   await page.emulateMedia({ colorScheme: "light" });
+
+  // Settings: the GitHub card carries GitHub's logo
+  await page.goto(`${base}/settings`);
+  const gh = page.getByRole("heading", { name: "GitHub", level: 2 });
+  await gh.waitFor();
+  expect("Settings shows GitHub's logo by its card's title", (await gh.locator('[data-logo="github"] svg path').count()) === 1);
 
   // the pipeline: each task's agent is its crew face
   await page.goto(`${base}/build?view=pipeline&feature=FEAT-123`);
@@ -112,7 +118,7 @@ try {
   expect("a lane's face carries its state", faces.includes("FAIL Fix the search, Failed=fail") && faces.includes("Write the notes, Ready=done"), faces.join(" | "));
   const marked = await lanes.getByRole("option").evaluateAll((os) => os.map((o) => `${o.getAttribute("aria-label")}=${o.querySelector('[data-crew] [data-badge="fail"]') ? "marked" : "-"}`));
   expect("a failed agent carries the red mark, and only it", marked.includes("FAIL Fix the search, Failed=marked") && marked.filter((m) => m.endsWith("=marked")).length === 1, marked.join(" | "));
-  expect("now something needs you, so the caught-up picture goes", (await page.getByRole("img", { name: "Sprouts growing in the soil under a quiet sun" }).count()) === 0);
+  expect("now something needs you, so its column is back and the quiet line goes", (await page.getByRole("region", { name: /Needs you/ }).count()) === 1 && (await page.getByText("Nothing needs you").count()) === 0);
   expect("no errors in the page", errors.length === 0, errors.join("; "));
 } finally {
   await browser.close();

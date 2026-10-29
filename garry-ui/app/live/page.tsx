@@ -120,24 +120,20 @@ export default function Live() {
       {error && !view && <ServerNotice />}
       {!view && !error && <Skeleton rows={4} />}
       {view && (
-        <div className={styles.grid}>
-          <section className={styles.needs} aria-labelledby="needs-you">
-            <h2 id="needs-you" className={styles.colHead}>
-              {Icon.inbox}
-              Needs you
-              <span className={styles.count}>{view.needsYou.length}</span>
-            </h2>
-            {view.needsYou.map((a) => (
-              <Ask key={`${a.threadId}:${a.at}`} ask={a} now={now} onDone={load} />
-            ))}
-            {view.needsYou.length === 0 && (
-              <div className={styles.quiet}>
-                <Illustrated art="caughtUp" title="You're all caught up">
-                  Agents keep working. When one asks something or stops, it shows up here.
-                </Illustrated>
-              </div>
-            )}
-          </section>
+        <div className={view.needsYou.length ? styles.grid : styles.single}>
+          {/* what needs you takes a column only while something does */}
+          {view.needsYou.length > 0 && (
+            <section className={styles.needs} aria-labelledby="needs-you">
+              <h2 id="needs-you" className={styles.colHead}>
+                {Icon.inbox}
+                Needs you
+                <span className={styles.count}>{view.needsYou.length}</span>
+              </h2>
+              {view.needsYou.map((a) => (
+                <Ask key={`${a.threadId}:${a.at}`} ask={a} now={now} onDone={load} />
+              ))}
+            </section>
+          )}
 
           <section className={styles.board} aria-labelledby="agents">
             <div className={styles.boardHead}>
@@ -145,6 +141,12 @@ export default function Live() {
                 Agents
               </h2>
               <span className={styles.sub}>{working ? `${working} working` : "none working"}</span>
+              {view.needsYou.length === 0 && (
+                <span className={styles.caughtUp}>
+                  {Icon.check}
+                  Nothing needs you
+                </span>
+              )}
               <div className={styles.legend} aria-hidden="true">
                 {(["work", "wait", "done", "fail"] as const).map((s) => (
                   <span key={s} data-state={s}>
