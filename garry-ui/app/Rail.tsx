@@ -53,7 +53,7 @@ export default function Rail() {
       <RailProjects />
       </div>
       <div className="railFoot">
-        <button type="button" className="railTalk" aria-label="talk to Garry" data-tip="Talk to Garry  ⌘J" onClick={() => window.dispatchEvent(new Event("garry:voice"))}>
+        <button type="button" className="railTalk" aria-label="talk to Garry" data-tip="Dictate to Garry  ⌘J" onClick={() => window.dispatchEvent(new Event("garry:voice"))}>
           {Icon.mic}
         </button>
         <ThemeCycle />

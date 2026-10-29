@@ -277,7 +277,7 @@ Alternative (lighter): Vite plus a React SPA plus a separate `garry-tool/server`
 
 | Panel | Content |
 |---|---|
-| Dashboard | a report, not a control panel. The human drops raw ideas and watches. Three lanes: Ideas (captured, not yet features), Agents at work (features the agents build, review, test and ship on their own, with a live SDLC track) and Shipped. An idea becomes a feature only after a conversation with Garry in the voice dock; nothing is advanced by a run button or drag |
+| Dashboard | a report, not a control panel. The human drops raw ideas and watches. Three lanes: Ideas (captured, not yet features), Agents at work (features the agents build, review, test and ship on their own, with a live SDLC track) and Shipped. An idea becomes a feature only after a conversation with Garry in his field at the foot of every page (messages wait in line and run one at a time); nothing is advanced by a run button or drag |
 | Pipeline | the dependency graph of a feature, a live stream of subagents (SSE), logs per skill |
 | Registry | a view of catalog, contracts and features (live state) |
 | Skills | the list of skills shipped with Garry, enable or disable, a view of `SKILL.md` |

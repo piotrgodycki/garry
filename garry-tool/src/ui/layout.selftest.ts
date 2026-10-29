@@ -212,9 +212,9 @@ try {
       if (shots) await page.screenshot({ path: join(shots, `${label}-${size.name}.png`), fullPage: true });
       const crashed = (await page.getByText("Unexpected Application Error").count()) > 0 || (await page.locator(".content > *").count()) === 0;
       const found = crashed ? [`the page did not render: ${(await page.locator("body").innerText()).slice(0, 160)}`] : await problems(page);
-      // the command line is pinned to the foot: scrolled to the bottom, nothing of the page stays under it
+      // Garry's field floats at the foot: scrolled to the bottom, nothing of the page stays under it
       const under = await page.evaluate(() => {
-        const bar = document.querySelector(".cmdline");
+        const bar = document.querySelector(".garryField");
         if (!bar || getComputedStyle(bar).display === "none") return 0;
         window.scrollTo(0, document.documentElement.scrollHeight);
         const top = bar.getBoundingClientRect().top;
@@ -235,7 +235,7 @@ try {
         window.scrollTo(0, 0);
         return lowest - top;
       });
-      if (under > 1) found.push(`scrolled to the bottom, the page's last control is ${Math.round(under)}px under the command line`);
+      if (under > 1) found.push(`scrolled to the bottom, the page's last control is ${Math.round(under)}px under Garry's field`);
       expect(`${label} at ${size.name} (${size.width}x${size.height}) lays out cleanly`, found.length === 0, `\n    ${found.join("\n    ")}`);
     }
 
@@ -270,22 +270,21 @@ try {
     await page.close();
   }
 
-  // the voice dock beside the page on a wide screen
-  const page = await newPage({ width: 1440, height: 900 });
-  await page.goto(`${base}/`);
-  await page.locator("h1").first().waitFor();
-  await page.getByRole("button", { name: "talk to Garry" }).first().click();
-  await page.waitForTimeout(500);
-  const dock = await page.locator('[aria-label="Talk to Garry"]:not(button)').boundingBox();
-  const content = await page.locator(".content").boundingBox();
-  expect("on a wide screen the voice dock sits beside the page, not over it", Boolean(dock && content && content.x + content.width <= dock.x + 1), `${JSON.stringify(content)} ${JSON.stringify(dock)}`);
-  const withDock = await problems(page);
-  expect("the page with the dock open lays out cleanly", withDock.length === 0, `\n    ${withDock.join("\n    ")}`);
-  await page.close();
+  // what you told Garry, showing above the field, lies over the page cleanly
+  for (const text of ["BUSY tidy the cart", "then rename the buttons"]) await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
+  for (const size of [ALL_SIZES[0], ALL_SIZES[ALL_SIZES.length - 1]]) {
+    const page = await newPage({ width: size.width, height: size.height });
+    await page.goto(`${base}/`);
+    await page.getByRole("list", { name: "what you told Garry" }).getByText("then rename the buttons").waitFor({ timeout: 8000 }).catch(() => undefined);
+    const shown = (await page.getByRole("list", { name: "what you told Garry" }).count()) === 1;
+    const found = await problems(page);
+    expect(`at ${size.name} Garry's line of messages shows and the page lays out cleanly`, shown && found.length === 0, `\n    ${found.join("\n    ")}`);
+    await page.close();
+  }
 } finally {
   await browser.close();
+  for (const t of threads.store.threads()) threads.stop(t.id);
   server.close();
-  threads.stop(busy.id);
 }
 
 if (failed) {

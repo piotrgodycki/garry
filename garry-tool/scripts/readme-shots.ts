@@ -90,6 +90,8 @@ try {
     await page.screenshot({ path: join(out, `${name}.png`) });
     console.log(`ok   ${name}.png`);
   };
+  // something said to Garry: one runs, one waits
+  for (const text of ["BUSY tidy up the cart service", "then rename the checkout buttons to match the design"]) await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
   await shoot("live", "/live", '[role="option"]');
   await shoot("dashboard", "/", "canvas[data-garry-crawl]");
   await shoot("build", "/build", "textarea");

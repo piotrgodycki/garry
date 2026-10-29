@@ -60,6 +60,7 @@
     "test:project": "tsx src/project/project.selftest.ts",
     "test:status": "tsx src/status/status.selftest.ts",
     "test:live": "tsx src/status/live.selftest.ts",
+    "test:queue": "tsx src/garry/queue.selftest.ts",
     "test:push-notify": "tsx src/status/push.selftest.ts",
     "test:terminal": "tsx src/terminal/terminal.selftest.ts",
     "test:dropdown": "tsx src/ui/dropdown.selftest.ts",

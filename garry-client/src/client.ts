@@ -1,4 +1,4 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, LiveView, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent, WizardAnswers } from "./types";
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryMessage, GarryQueue, LiveView, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent, WizardAnswers } from "./types";
 
 /** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
@@ -174,6 +174,12 @@ export class GarryClient {
   pollGithubDevice = (deviceCode: string) => this.post<{ status: "pending" | "slow_down" | "done" | "expired" | "denied"; login?: string }>("/api/github/device/poll", { deviceCode });
   disconnectGithub = () => this.request<{ ok: true }>("/api/github", { method: "DELETE" });
   githubRepos = (query = "") => this.request<{ repos: GithubRepo[] }>(`/api/github/repos?q=${encodeURIComponent(query)}`).then((r) => r.repos);
+  /** What you told Garry, in line (one at a time), and where a message can go. */
+  garryQueue = () => this.request<GarryQueue>("/api/garry/queue");
+  /** Puts a message in line for Garry; it starts when the work before it is done. */
+  tellGarry = (text: string, projectId?: string) => this.post<GarryMessage>("/api/garry/queue", { text, projectId });
+  /** Drops a message that has not started. */
+  dropMessage = (id: string) => this.request<{ cancelled: boolean }>(`/api/garry/queue/${id}`, { method: "DELETE" });
   /** Live: every agent of the active project as a lane; finished ones from the last `hours`. */
   live = (hours = 24) => this.request<LiveView>(`/api/live?hours=${hours}`);
   threads = (projectId?: string) => this.request<{ threads: Thread[] }>(`/api/threads${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`).then((r) => r.threads);

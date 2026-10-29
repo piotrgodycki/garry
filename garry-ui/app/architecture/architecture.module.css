@@ -1,7 +1,7 @@
-/* the whole screen between the top bar and the command line */
+/* the whole screen between the top bar and Garry's field at the foot */
 .studio {
   box-sizing: border-box;
-  height: calc(100dvh - 100px);
+  height: calc(100dvh - 52px - var(--bar-room));
   min-height: 520px;
   padding: 12px;
   display: flex;

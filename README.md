@@ -39,10 +39,14 @@ what it has cost.
 Every page sits in the same frame: a narrow **rail** with every page as an
 icon (Live carries a badge with what needs you, your projects are squares to
 switch between), a **top bar** with the project, the page and Garry at a
-glance (need you, working, ready), and a **command line** at the foot: press
-**Cmd/Ctrl+K** and type a page's name to go there, or a sentence to start an
-agent on it in Build or to talk it through with Garry (**Cmd/Ctrl+J** opens
-the voice dock). Paper by day, graphite by night; colour only ever means a
+glance (need you, working, ready), and **Garry's field** floating at the foot
+of every page. Type, or dictate (the microphone, or **Cmd/Ctrl+J**), and Enter
+puts the message in line: Garry works on one message at a time, in one
+conversation per repository so it remembers, and sending more never
+interrupts the work in progress. What runs, what waits (with its place in
+line, and a cross to drop it) and what Garry answered sit just above the
+field. **Cmd/Ctrl+K** focuses it; a page's name goes to that page, and the
+arrows pick separate work in Build instead. Paper by day, graphite by night; colour only ever means a
 state. Every page title has its icon, Garry's crew has an icon per role (the
 analyst's spec, the developer's code, the reviewer's lens) on a tile in its
 state's colour, and empty pages show a picture instead of a blank: sprouts in
