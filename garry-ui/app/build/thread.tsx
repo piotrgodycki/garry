@@ -100,7 +100,10 @@ export default function ThreadView() {
     return () => ctl.abort();
   }, [id, refresh]);
 
-  useEffect(() => bottom.current?.scrollIntoView({ block: "end" }), [events.length]);
+  // braces: newer browsers return a promise from scrollIntoView, and React would call it as the cleanup
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ block: "end" });
+  }, [events.length]);
 
   const act = async (fn: () => Promise<unknown>, confirm?: string) => {
     if (confirm && !(await confirmAction(confirm))) return;

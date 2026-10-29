@@ -96,6 +96,18 @@ for (const f of files(app)) {
 }
 expect("no uppercase labels, thick ink borders, hard offset shadows or the old signal red in the dashboard's CSS", true);
 
+// an effect written as a bare expression returns its value, and React calls that value as the
+// cleanup: a promise (newer browsers return one from scrollIntoView) breaks the page. Braces or void only.
+const sources = (dir: string): string[] =>
+  readdirSync(dir).flatMap((n) => {
+    const p = join(dir, n);
+    return statSync(p).isDirectory() ? sources(p) : /\.tsx?$/.test(n) ? [p] : [];
+  });
+const bare = sources(app).flatMap((f) =>
+  [...readFileSync(f, "utf8").matchAll(/use(?:Layout)?Effect\(\s*\(\)\s*=>(?!\s*(?:\{|void\s))/g)].map((m) => `${f.slice(app.length + 1)} at ${m.index}`),
+);
+expect("every effect has braces (or void): nothing it returns by accident becomes its cleanup", bare.length === 0, bare.join(", "));
+
 if (failed) {
   console.error(`${failed} style check(s) failed`);
   process.exit(1);

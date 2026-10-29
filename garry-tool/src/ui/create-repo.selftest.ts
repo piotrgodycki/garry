@@ -95,6 +95,8 @@ const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const browser = await launchChromium();
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  // newer browsers return a promise from the scroll methods; behave like them here too
+  await page.addInitScript("{ const s = Element.prototype.scrollIntoView; Element.prototype.scrollIntoView = function (...a) { s.apply(this, a); return Promise.resolve(); }; }");
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   const consoleErrors: string[] = [];

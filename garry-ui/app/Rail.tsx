@@ -27,7 +27,9 @@ export default function Rail() {
     setTip({ text: el.dataset.tip ?? "", y: r.top + r.height / 2 });
   };
   const hide = () => setTip(null);
-  useEffect(() => setTip(null), [path]);
+  useEffect(() => {
+    setTip(null);
+  }, [path]);
   return (
     <aside className="rail" aria-label="Garry" onMouseOver={show} onFocus={show} onMouseLeave={hide} onBlur={hide}>
       <Link href="/" className="railLogo" aria-label="Garry home">

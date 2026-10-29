@@ -103,7 +103,9 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
         setPlanError(e.message);
       });
   }, [selected]);
-  useEffect(() => loadPlan(), [loadPlan]);
+  useEffect(() => {
+    loadPlan();
+  }, [loadPlan]);
 
   useEffect(() => {
     if (!plan) return;

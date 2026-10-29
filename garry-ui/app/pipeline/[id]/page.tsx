@@ -49,7 +49,9 @@ export default function Activity() {
     });
   }, [id]);
 
-  useEffect(() => loadPlan(), [loadPlan]);
+  useEffect(() => {
+    loadPlan();
+  }, [loadPlan]);
 
   // Live delegation stream. Restarts when runKey changes (after a model switch).
   useEffect(() => {
