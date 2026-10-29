@@ -43,6 +43,47 @@ const build = (t: Spec): ArchitectureTemplate => ({
 
 export const ARCHITECTURE_TEMPLATES: ArchitectureTemplate[] = [
   {
+    id: "aem-edge-delivery",
+    name: "AEM with Edge Delivery",
+    summary: "Pages from Edge Delivery Services with content authored in AEM Sites, assets in AEM Assets, APIs on App Builder.",
+    goodFor: "enterprise marketing sites and commerce storefronts on Adobe",
+    columns: [
+      [["browser", "browser", "Visitors"]],
+      [["site", "aem-eds", "Website"]],
+      [
+        ["aem", "aem-sites", "Authoring"],
+        ["api", "adobe-app-builder", "API actions"],
+      ],
+      [
+        ["assets", "aem-assets"],
+        ["events", "adobe-io-events"],
+      ],
+    ],
+    links: [
+      ["browser", "site", "web"],
+      ["site", "aem", "content"],
+      ["browser", "api", "http"],
+      ["api", "aem", "content"],
+      ["api", "assets", "blob"],
+      ["api", "events", "events"],
+    ],
+  },
+  {
+    id: "eds-documents",
+    name: "Edge Delivery from documents",
+    summary: "A fast site written as documents (Document Authoring, SharePoint or Google Drive) and served by Edge Delivery Services.",
+    goodFor: "content sites that authors run on their own, top Core Web Vitals",
+    columns: [
+      [["browser", "browser", "Visitors"]],
+      [["site", "aem-eds", "Website"]],
+      [["docs", "aem-da", "Pages as documents"]],
+    ],
+    links: [
+      ["browser", "site", "web"],
+      ["site", "docs", "content"],
+    ],
+  },
+  {
     id: "vercel-nextjs",
     name: "Next.js on Vercel",
     summary: "The app on Vercel with a serverless Postgres, sign in, a headless CMS and email.",

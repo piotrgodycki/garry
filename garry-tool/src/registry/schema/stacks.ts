@@ -57,7 +57,7 @@ export interface Tech {
 
 const UI = ["react", "preact", "vue", "svelte", "solid", "angular"];
 const EDGE = ["workers", "vercel", "cloudflare", "netlify", "deno"];
-const CDNS = ["cf-cdn", "cloudfront", "fastly", "akamai", "bunny", "vercel", "cloudflare", "netlify"];
+const CDNS = ["cf-cdn", "cloudfront", "fastly", "akamai", "bunny", "vercel", "cloudflare", "netlify", "eds"];
 const SQL = ["postgres", "mysql", "mariadb", "sqlite", "d1", "neon", "supabase"];
 
 export const CATALOG: Tech[] = [
@@ -204,7 +204,7 @@ export const CATALOG: Tech[] = [
   { id: "contentful", name: "Contentful", category: "cms" },
   { id: "hygraph", name: "Hygraph", category: "cms", note: "headless, GraphQL first" },
   { id: "aem", name: "Adobe Experience Manager", category: "cms", requires: [["java"]], note: "AEM as a Cloud Service or on premise; Java (Sling, OSGi) components" },
-  { id: "eds", name: "Adobe Edge Delivery Services", category: "cms", note: "document based authoring, served from Adobe's edge; plain JS and CSS blocks" },
+  { id: "eds", name: "Adobe Edge Delivery Services", category: "hosting", note: "pages served from Adobe's edge, its CDN included; content from AEM or documents (Document Authoring, SharePoint, Google Drive); plain JS and CSS blocks" },
   // hosting
   { id: "vercel", name: "Vercel", category: "hosting" },
   { id: "cloudflare", name: "Cloudflare Pages", category: "hosting" },

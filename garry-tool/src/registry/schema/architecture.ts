@@ -43,7 +43,7 @@ export interface Component {
   note?: string;
 }
 
-export const PROVIDERS = ["Clients", "AWS", "Cloudflare", "Vercel", "Netlify", "Supabase", "Self-hosted", "SaaS"];
+export const PROVIDERS = ["Clients", "AWS", "Cloudflare", "Vercel", "Netlify", "Supabase", "Adobe", "Self-hosted", "SaaS"];
 
 export const COMPONENTS: Component[] = [
   // clients
@@ -81,6 +81,13 @@ export const COMPONENTS: Component[] = [
   { id: "netlify", name: "Netlify", provider: "Netlify", group: "compute", provides: ["web", "http", "compute"] },
   // Supabase
   { id: "supabase", name: "Supabase", provider: "Supabase", group: "data", provides: ["sql", "auth", "blob"] },
+  // Adobe Experience Manager
+  { id: "aem-sites", name: "AEM Sites", provider: "Adobe", group: "content", provides: ["content", "web", "http"], note: "AEM as a Cloud Service: authors edit in the Universal Editor, Publish serves pages and headless content (GraphQL), Adobe's CDN in front" },
+  { id: "aem-eds", name: "Edge Delivery Services", provider: "Adobe", group: "edge", provides: ["web", "cdn"], needs: ["content"], note: "pages built from AEM or documents and served from the edge; your own CDN can sit in front" },
+  { id: "aem-da", name: "Document Authoring", provider: "Adobe", group: "content", provides: ["content"], note: "pages written as documents (da.live, or SharePoint and Google Drive) for Edge Delivery" },
+  { id: "aem-assets", name: "AEM Assets", provider: "Adobe", group: "storage", provides: ["blob"], note: "images and video with renditions and Dynamic Media" },
+  { id: "adobe-app-builder", name: "App Builder", provider: "Adobe", group: "compute", provides: ["compute", "http"], note: "serverless actions on Adobe I/O Runtime, for APIs and integrations" },
+  { id: "adobe-io-events", name: "I/O Events", provider: "Adobe", group: "messaging", provides: ["events"], note: "events from AEM and Adobe apps to your code" },
   // self-hosted, anywhere
   { id: "postgres", name: "PostgreSQL", provider: "Self-hosted", group: "data", provides: ["sql"] },
   { id: "mysql", name: "MySQL / MariaDB", provider: "Self-hosted", group: "data", provides: ["sql"] },

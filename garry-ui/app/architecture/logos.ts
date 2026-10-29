@@ -86,6 +86,13 @@ const LOGOS: Record<string, Logo> = {
   auth0: icon(siAuth0),
   contentful: icon(siContentful),
   hygraph: mono("HY", "#5B21B6"),
+  // Adobe's marks are not for redistribution: monograms in its red
+  "aem-sites": mono("AEM", "#EB1000"),
+  "aem-eds": mono("EDS", "#EB1000"),
+  "aem-da": mono("DA", "#EB1000"),
+  "aem-assets": mono("AS", "#EB1000"),
+  "adobe-app-builder": mono("AB", "#EB1000"),
+  "adobe-io-events": mono("IO", "#EB1000"),
   sanity: icon(siSanity),
   algolia: icon(siAlgolia),
   resend: icon(siResend),

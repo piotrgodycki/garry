@@ -20,6 +20,7 @@ const PICK: Record<Platform, { app: string; sql: string; document: string } & Re
   cloudflare: { app: "cf-workers", sql: "cf-d1", document: "mongodb", auth: "clerk", cms: "sanity", files: "cf-r2", queue: "cf-queues", cache: "cf-kv", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
   aws: { app: "aws-lambda", sql: "aws-aurora", document: "aws-dynamodb", auth: "aws-cognito", cms: "sanity", files: "aws-s3", queue: "aws-sqs", cache: "aws-elasticache", search: "algolia", email: "aws-ses", cdn: "aws-cloudfront", events: "aws-sns" },
   supabase: { app: "vercel-app", sql: "supabase", document: "mongodb", auth: "supabase", cms: "sanity", files: "supabase", queue: "upstash", cache: "upstash", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
+  adobe: { app: "adobe-app-builder", sql: "neon", document: "mongodb", auth: "auth0", cms: "aem-sites", files: "aem-assets", queue: "upstash", cache: "upstash", search: "algolia", email: "resend", cdn: "aem-eds", events: "adobe-io-events" },
   "self-hosted": { app: "vps", sql: "postgres", document: "mongodb", auth: "keycloak", cms: "strapi", files: "cf-r2", queue: "rabbitmq", cache: "redis", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
   kubernetes: { app: "kubernetes", sql: "postgres", document: "mongodb", auth: "keycloak", cms: "strapi", files: "cf-r2", queue: "rabbitmq", cache: "redis", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
 };
@@ -74,6 +75,17 @@ export function buildFromWizard(input: unknown, services: { name: string; kind?:
     api = place(1, "api", "aws-api-gateway", LABEL.api);
     link(api, compute, "compute");
     if (web) link("browser", api, "http");
+  } else if (answers.platform === "adobe") {
+    // pages from Edge Delivery (its CDN included) with content from AEM; code on App Builder
+    compute = place(2, "app", pick.app, "API actions");
+    api = compute;
+    if (web) {
+      const site = place(1, "site", "aem-eds", "Website");
+      const cms = place(4, "cms", pick.cms);
+      link("browser", site, "web");
+      link(site, cms, "content");
+      link("browser", api, "http");
+    }
   } else {
     compute = place(2, "app", pick.app, LABEL.app);
     api = compute;
