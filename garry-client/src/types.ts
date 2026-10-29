@@ -471,6 +471,8 @@ export interface ProjectSettings {
   /** branches Garry never pushes to; * matches anything */
   protectedBranches: string[];
   draftPr: boolean;
+  /** a commit with a file over this many tokens (bytes / 4) is refused; 0 turns it off */
+  maxFileTokens: number;
 }
 
 export interface PushPreview {

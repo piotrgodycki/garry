@@ -12,6 +12,7 @@
     "scaffold": "tsx garry-tool/src/cli.ts scaffold",
     "typecheck": "pnpm -r typecheck",
     "dashcheck": "node scripts/check-no-emdash.mjs",
+    "prepare": "git config core.hooksPath .githooks || true",
     "desktop": "pnpm -C garry-desktop start",
     "mobile": "pnpm -C garry-mobile start"
   },

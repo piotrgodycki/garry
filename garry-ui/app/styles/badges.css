@@ -1,0 +1,247 @@
+/* badges, chips, dots, feedback, and the calm character (one part of globals.css, which imports them in this order) */
+/* ---- badges, chips, dots -------------------------------------------------- */
+.badge svg {
+  width: 13px;
+  height: 13px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+.badge.run {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.badge.ok {
+  background: color-mix(in srgb, var(--ok) 12%, var(--tint-base));
+  color: var(--ok);
+}
+.badge.warn {
+  background: color-mix(in srgb, var(--warn) 14%, var(--tint-base));
+  color: var(--warn);
+}
+.badge.danger {
+  background: color-mix(in srgb, var(--danger) 12%, var(--tint-base));
+  color: var(--danger);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--color-text-default);
+  white-space: nowrap;
+}
+.chip.mono {
+  font-family: var(--font-family-mono);
+  font-size: 12.5px;
+}
+.chip.model {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  vertical-align: middle;
+  background: var(--wait);
+}
+.dot.ok {
+  background: var(--ok);
+}
+.dot.run {
+  background: var(--run);
+  animation: pulse 1.4s infinite;
+}
+.dot.warn {
+  background: var(--warn);
+}
+.dot.danger {
+  background: var(--danger);
+}
+.dot.wait {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--wait);
+}
+
+/* ---- feedback ------------------------------------------------------------- */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--warn) 35%, var(--border));
+  background: color-mix(in srgb, var(--warn) 8%, var(--tint-base));
+  font-size: 14.5px;
+}
+.notice svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--warn);
+  margin-top: 1px;
+}
+.notice strong {
+  display: block;
+  font-weight: 600;
+}
+.notice span {
+  color: var(--color-text-muted);
+}
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.empty svg {
+  width: 22px;
+  height: 22px;
+  opacity: 0.7;
+}
+.skeleton {
+  border-radius: var(--radius-lg);
+  background: var(--surface-3) linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 70%, transparent), transparent) no-repeat;
+  background-size: 200px 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+.muted {
+  color: var(--color-text-muted);
+}
+.hint {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hint svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+/* tier colored dot for a model (opus, sonnet, haiku, fable) */
+.tier {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--tier-sonnet);
+}
+.tier.opus { background: var(--tier-opus); }
+.tier.sonnet { background: var(--tier-sonnet); }
+.tier.haiku { background: var(--tier-haiku); }
+.tier.fable { background: var(--tier-fable); }
+
+/* ---- calm character -------------------------------------------------------- */
+/* Sentence case everywhere, quiet borders, soft shadows, one neutral primary. */
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+/* the wordmark: lowercase, like the logo */
+.brandName {
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+.brandSub {
+  font-size: 12.5px;
+}
+.eyebrow,
+.navLabel,
+.statLabel,
+.table thead th {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.statValue {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+.brand:hover {
+  background: none;
+}
+.nav a {
+  border-radius: var(--radius-sm);
+}
+.nav a.active {
+  background: var(--surface-3);
+  color: var(--color-text-default);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--color-text-default);
+}
+.cardLink:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+}
+.btnPrimary {
+  background: var(--color-brand-primary);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-xs);
+}
+.btnPrimary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-brand-primary) 84%, var(--bg));
+}
+.table thead th {
+  background: var(--surface-2);
+  color: var(--color-text-muted);
+}
+.badge {
+  border-radius: var(--radius-sm);
+  text-transform: none;
+  border: 1px solid transparent;
+}
+.badge.run {
+  border-color: color-mix(in srgb, var(--run) 30%, transparent);
+}
+.badge.ok {
+  border-color: color-mix(in srgb, var(--ok) 30%, transparent);
+}
+.badge.warn {
+  border-color: color-mix(in srgb, var(--warn) 32%, transparent);
+}
+.badge.danger {
+  border-color: color-mix(in srgb, var(--danger) 32%, transparent);
+}
+.chip.model {
+  background: var(--surface-2);
+  border-color: var(--border);
+  color: var(--color-text-default);
+}

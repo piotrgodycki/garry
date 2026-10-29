@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { PushError, type ThreadManager } from "./manager.js";
+import { PushError, FileSizeError, type ThreadManager } from "./manager.js";
 import { fileRoute } from "./files.js";
 import { activeGarryProject } from "../project/store.js";
 import { threadState } from "../status/status.js";
@@ -139,7 +139,7 @@ export async function threadRoutes(
       return (json(res, 200, { ok: true }), true);
     }
   } catch (e) {
-    return (fail(e, e instanceof PushError ? e.status : /still working|wait for the agent/.test(String(e)) ? 409 : 400), true);
+    return (fail(e, e instanceof PushError || e instanceof FileSizeError ? e.status : /still working|wait for the agent/.test(String(e)) ? 409 : 400), true);
   }
   return (json(res, 405, { error: "method not allowed" }), true);
 }

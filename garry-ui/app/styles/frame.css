@@ -1,0 +1,264 @@
+/* the frame on a wide screen: the rail, the top bar (one part of globals.css, which imports them in this order) */
+/* ---- the frame on a wide screen: rail, top bar, page, command line -------- */
+.frame {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+@media (min-width: 901px) {
+  .sidebar {
+    display: none;
+  }
+}
+.rail {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 8px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.railLogo {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 12px;
+}
+.railLogo:hover {
+  background: var(--surface-3);
+}
+.railMiddle {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.railNav,
+.railGroup,
+.railProjects,
+.railFoot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.railFoot {
+  flex: none;
+  gap: 6px;
+}
+.railSep {
+  width: 24px;
+  height: 1px;
+  margin: 6px 0;
+  background: var(--border);
+}
+.railItem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.railItem svg {
+  width: 20px;
+  height: 20px;
+}
+.railItem:hover,
+.railItem:focus-visible {
+  background: var(--surface-3);
+  color: var(--color-text-default);
+  text-decoration: none;
+}
+.railItem.on {
+  background: var(--surface-3);
+  color: var(--color-text-default);
+}
+.railItem.on::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-text-default);
+}
+.railBadge {
+  position: absolute;
+  top: 3px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--state-wait);
+  color: var(--on-brand);
+  font: 700 10px/16px var(--font-family-sans);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.railProjects {
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+.railProject {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--color-text-muted);
+  font: 600 13px/1 var(--font-family-sans);
+  cursor: pointer;
+}
+.railProject:hover {
+  color: var(--color-text-default);
+  text-decoration: none;
+}
+.railProject.on {
+  color: var(--color-text-default);
+  border-color: var(--color-text-default);
+}
+.railProject.add {
+  border-style: dashed;
+  background: none;
+  font-weight: 400;
+  font-size: 17px;
+}
+.railLive {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--state-work);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.railTalk {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--garry-clay) 40%, transparent);
+  background: color-mix(in srgb, var(--garry-clay) 12%, var(--surface));
+  color: var(--garry-clay);
+  cursor: pointer;
+}
+.railTalk svg {
+  width: 19px;
+  height: 19px;
+}
+.railTalk:hover {
+  background: var(--garry-clay);
+  color: #ffffff;
+}
+.railServer {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 22px;
+  border-radius: 6px;
+}
+.railFloat {
+  position: fixed;
+  left: 72px;
+  z-index: 120;
+  transform: translateY(-50%);
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: var(--color-text-default);
+  color: var(--bg);
+  font: 500 12px/1 var(--font-family-sans);
+  white-space: pre;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: 52px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 clamp(var(--space-md), 3vw, 48px);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(10px);
+}
+.crumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.crumbSep {
+  color: var(--color-text-muted);
+}
+.crumbPage {
+  font-weight: 600;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.gauges {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.gauge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+.gauge:hover {
+  background: var(--surface-3);
+  text-decoration: none;
+  color: var(--color-text-default);
+}
+.gauge svg {
+  width: 16px;
+  height: 16px;
+}
+.gauge b {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-default);
+  font-variant-numeric: tabular-nums;
+}
+.gauge.warn svg, .gauge.warn.lit b { color: var(--warn); }
+.gauge.run svg, .gauge.run.lit b { color: var(--run); }
+.gauge.ok svg, .gauge.ok.lit b { color: var(--ok); }

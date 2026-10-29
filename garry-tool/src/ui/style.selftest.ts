@@ -16,7 +16,8 @@ const expect = (name: string, ok: boolean, detail = "") => {
   if (!ok) failed++;
 };
 
-const css = readFileSync(join(app, "globals.css"), "utf8");
+// the tokens live in the first part of globals.css
+const css = readFileSync(join(app, "styles", "theme.css"), "utf8");
 const tokens = readFileSync(join(app, "tokens.css"), "utf8");
 /** the custom properties of the first block that starts with this selector */
 const block = (source: string, selector: string) => {

@@ -1,0 +1,143 @@
+/* the tokens: colours by state, Garry's own, the soil; paper by day, graphite by night (one part of globals.css, which imports them in this order) */
+@import "../tokens.css";
+
+/*
+ * Garry design system: a calm graphite control room.
+ *
+ * Brand, text, space, radius and fonts come from tokens.css, which is generated
+ * from design-tokens.json (white label: override the tokens to rebrand). This
+ * file maps them onto semantic roles and defines the shared primitives every
+ * page uses: page header, card, button, input, table, badge, status dot.
+ *
+ * Colour means state, the same everywhere:
+ *   work (blue)      an agent is working on it
+ *   wait (amber)     it needs you: a question, a push to allow, a decision
+ *   done (green)     ready to review, passing, shipped
+ *   fail (red)       failed, stopped, errors. Never for normal activity.
+ *   plan (violet)    spec, plan, design
+ *   idle (gray)      queued, not started
+ * The primary button is neutral (ink on light, paper on dark); Garry's clay is
+ * for the brand and for talking to Garry.
+ */
+:root {
+  color-scheme: light;
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-2: #fafbfc;
+  --surface-3: #eef0f3;
+  --border: #e4e6ea;
+  --border-strong: #cfd3da;
+  --tint-base: #ffffff;
+  --on-brand: #ffffff;
+
+  --state-work: #2361c7;
+  --state-wait: #8f5508;
+  --state-done: #187841;
+  --state-fail: #c7372e;
+  --state-plan: #6a56d4;
+  --state-idle: #7a818c;
+
+  --accent: var(--state-work);
+  --accent-2: var(--color-brand-secondary);
+  --accent-soft: color-mix(in srgb, var(--state-work) 10%, transparent);
+  --accent-line: color-mix(in srgb, var(--state-work) 45%, transparent);
+  --brand-gradient: var(--color-brand-primary);
+
+  --run: var(--state-work);
+  --ok: var(--state-done);
+  --warn: var(--state-wait);
+  --danger: var(--state-fail);
+  --wait: var(--state-idle);
+
+  --tier-opus: #6a56d4;
+  --tier-sonnet: #2d6fdb;
+  --tier-haiku: #0f8f80;
+  --tier-fable: #c2417a;
+
+  --shadow-xs: 0 1px 2px rgba(20, 24, 32, 0.05);
+  --shadow-sm: 0 1px 3px rgba(20, 24, 32, 0.07);
+  --shadow-md: 0 6px 20px -6px rgba(20, 24, 32, 0.16);
+  --shadow-lg: 0 24px 60px -12px rgba(20, 24, 32, 0.28);
+  --ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--state-work);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --sidebar-w: 248px;
+
+  /* Garry the earthworm, and the soil he crawls in */
+  --garry-worm: #ee9b86;
+  --garry-ring: #c47562;
+  --garry-clay: #d9573a;
+  --garry-ink: #2a1d19;
+  --soil: #e8ddd2;
+  --soil-2: #d9c9ba;
+  --pebble: #c4b4a5;
+  --leaf: #3f9b52;
+}
+
+/* Dark: graphite, not black; the states a little lighter to keep their contrast. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111214;
+  --surface: #17181b;
+  --surface-2: #1b1d21;
+  --surface-3: #23262b;
+  --border: #26292f;
+  --border-strong: #363a42;
+  --tint-base: #17181b;
+  --on-brand: #111214;
+  --color-brand-primary: #ecedef;
+  --color-text-default: #ecedef;
+  --color-text-muted: #9ba1ab;
+  --state-work: #5b9df5;
+  --state-wait: #e9a23b;
+  --state-done: #4cb782;
+  --state-fail: #e5574f;
+  --state-plan: #9d8cf2;
+  --state-idle: #7c838e;
+  --tier-opus: #9d8cf2;
+  --tier-sonnet: #5b9df5;
+  --tier-haiku: #3cc4b2;
+  --tier-fable: #ef7aa8;
+  --shadow-xs: none;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 28px 70px -14px rgba(0, 0, 0, 0.7);
+  --soil: #2a2420;
+  --soil-2: #352d27;
+  --pebble: #4a413a;
+  --leaf: #63b072;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111214;
+    --surface: #17181b;
+    --surface-2: #1b1d21;
+    --surface-3: #23262b;
+    --border: #26292f;
+    --border-strong: #363a42;
+    --tint-base: #17181b;
+    --on-brand: #111214;
+    --color-brand-primary: #ecedef;
+    --color-text-default: #ecedef;
+    --color-text-muted: #9ba1ab;
+    --state-work: #5b9df5;
+    --state-wait: #e9a23b;
+    --state-done: #4cb782;
+    --state-fail: #e5574f;
+    --state-plan: #9d8cf2;
+    --state-idle: #7c838e;
+    --tier-opus: #9d8cf2;
+    --tier-sonnet: #5b9df5;
+    --tier-haiku: #3cc4b2;
+    --tier-fable: #ef7aa8;
+    --shadow-xs: none;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 28px 70px -14px rgba(0, 0, 0, 0.7);
+    --soil: #2a2420;
+    --soil-2: #352d27;
+    --pebble: #4a413a;
+    --leaf: #63b072;
+  }
+}

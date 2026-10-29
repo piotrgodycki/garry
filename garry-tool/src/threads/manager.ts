@@ -7,6 +7,12 @@ import { githubToken } from "../github/env.js";
 import { gitAuthArgs } from "../github/connect.js";
 import { pushRefusal } from "./settings.js";
 import { QA_LABEL, assessQa, parseDiff, qaMarkdown } from "../review/qa.js";
+import { oversizedStaged, sizeMessage } from "../hooks/filesize.js";
+
+/** A commit refused because a file is too large for an agent to read whole; the message says how to split it. */
+export class FileSizeError extends Error {
+  readonly status = 422;
+}
 
 type Listener = (e: ThreadEvent) => void;
 
@@ -141,7 +147,11 @@ export class ThreadManager {
     const t = this.mustGet(threadId);
     if (this.running.has(threadId)) throw new Error("wait for the agent to finish");
     if (!git(t.worktree, ["status", "--porcelain"]).trim()) throw new Error("nothing to commit");
-    t.commit = commitAll(t.worktree, message.trim() || t.title);
+    const max = this.store.settings(t.projectId).maxFileTokens;
+    t.commit = commitAll(t.worktree, message.trim() || t.title, () => {
+      const over = max ? oversizedStaged(t.worktree, max) : [];
+      if (over.length) throw new FileSizeError(sizeMessage(over, max));
+    });
     this.store.save(t);
     this.emit(t.id, { type: "git", action: "commit", detail: t.commit, at: now() });
     return t;

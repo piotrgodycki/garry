@@ -19,6 +19,8 @@ export interface ProjectSettings {
   protectedBranches: string[];
   /** open pull requests as drafts */
   draftPr: boolean;
+  /** a commit with a file over this many tokens (bytes / 4) is refused, so agents can read files whole; 0 turns it off */
+  maxFileTokens: number;
 }
 
 export const DEFAULT_SETTINGS: ProjectSettings = {
@@ -27,6 +29,7 @@ export const DEFAULT_SETTINGS: ProjectSettings = {
   branchPrefix: "garry/",
   protectedBranches: ["main", "master", "develop", "release/*"],
   draftPr: false,
+  maxFileTokens: 5000,
 };
 
 export class SettingsError extends Error {
@@ -67,6 +70,11 @@ export function applySettings(current: ProjectSettings, input: unknown): Project
     next.protectedBranches = clean;
   }
   if (i.draftPr !== undefined) next.draftPr = i.draftPr === true || i.draftPr === "true";
+  if (i.maxFileTokens !== undefined) {
+    const n = Number(i.maxFileTokens);
+    if (!Number.isInteger(n) || (n !== 0 && (n < 500 || n > 100_000))) throw new SettingsError("maxFileTokens: 0 (off) or 500 to 100000");
+    next.maxFileTokens = n;
+  }
   if (isProtected(`${next.branchPrefix}work`, next.protectedBranches)) throw new SettingsError("branchPrefix: Garry's branches would be protected and could never be pushed");
   return next;
 }

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Garry's own repository: refuse staged files over 5,000 tokens (bytes / 4).
+# Switched on by `pnpm install` (core.hooksPath = .githooks); see garry-tool/src/hooks/filesize.ts.
+exec node --import tsx garry-tool/src/cli.ts hooks check
