@@ -9,6 +9,7 @@ import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
 import { Empty, PageHeader } from "../ui";
 import Select from "../Select";
+import CrewFace, { roleOf } from "../Crew";
 
 interface Task {
   stage: string;
@@ -341,6 +342,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
             <>
               <span className={styles.em}>{task.stage}</span> {task.scope === "service" ? <>on {task.service}</> : <>by Garry</>}
               <span className={styles.runWho}>
+                <CrewFace role={roleOf(task.agent)} state="work" size={22} />
                 {task.agent} <ModelChip id={task.model} label={models[task.model] ?? task.model} />
               </span>
             </>
@@ -409,7 +411,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
                         const ts = taskState(i);
                         return (
                           <div key={i} className={`${styles.flowTask} ${styles[`st_${ts}`]}`} title={`${t.stage} · ${t.agent} · ${models[t.model] ?? t.model}`}>
-                            <span className={`dot ${ts === "active" ? "run" : ts === "done" ? "ok" : "wait"}`} />
+                            <CrewFace role={roleOf(t.agent)} state={ts === "active" ? "work" : ts === "done" ? "done" : "idle"} size={22} />
                             <span className={styles.flowTaskText}>
                               <span className={styles.flowAgent}>{ts === "active" && !isGarry ? (lastAction(lane) ?? t.agent) : t.agent}</span>
                               <ModelChip id={t.model} label={models[t.model] ?? t.model} />
