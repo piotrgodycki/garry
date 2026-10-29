@@ -1,0 +1,129 @@
+/* the menu on a narrow screen and in the drawer: Garry's name, the pages, server and theme (one part of globals.css) */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  color: inherit;
+}
+.brand:hover {
+  text-decoration: none;
+  background: var(--surface-3);
+}
+.brandMark {
+  flex: none;
+  margin: -3px;
+}
+.brandText {
+  display: grid;
+  line-height: 1.15;
+}
+.brandName {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--color-text-default);
+}
+.brandSub {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.nav {
+  display: grid;
+  gap: var(--space-md);
+}
+.navGroup {
+  display: grid;
+  gap: 2px;
+}
+.navLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 0 10px 4px;
+  letter-spacing: 0.02em;
+}
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+.nav a:hover {
+  background: var(--surface-3);
+  color: var(--color-text-default);
+  text-decoration: none;
+}
+.nav a.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.navIcon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.navIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebarFoot {
+  margin-top: auto;
+  display: grid;
+  gap: 10px;
+}
+.footRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px;
+}
+.serverStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  min-width: 0;
+  white-space: nowrap;
+}
+.themeToggle {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+}
+.themeToggle button {
+  width: 28px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.themeToggle button svg {
+  width: 14px;
+  height: 14px;
+}
+.themeToggle button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--color-text-default);
+  box-shadow: var(--shadow-xs);
+}

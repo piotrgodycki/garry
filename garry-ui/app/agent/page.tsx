@@ -10,6 +10,7 @@ import { Icon } from "../icons";
 import { Empty, PageHeader } from "../ui";
 import Select from "../Select";
 import CrewFace, { roleOf } from "../Crew";
+import WorkLog, { type TaskLogEntry } from "./WorkLog";
 
 interface Task {
   stage: string;
@@ -53,7 +54,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
   const [done, setDone] = useState(0);
   const [finished, setFinished] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [taskLog, setTaskLog] = useState<{ index: number; stage: string; who: string; agent: string; model: string }[]>([]);
+  const [taskLog, setTaskLog] = useState<TaskLogEntry[]>([]);
   const [stopped, setStopped] = useState(false);
   const [offline, setOffline] = useState(false);
   const [noFeatures, setNoFeatures] = useState(false);
@@ -439,39 +440,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
           />
         )}
 
-        <div className={`card ${styles.logPanel}`}>
-          <div className="cardHead">
-            <h2>Work log</h2>
-            <span className="badge">{taskLog.length} / {total}</span>
-          </div>
-          <div className={styles.logBody} ref={logRef}>
-            {taskLog.length === 0 ? (
-              <Empty icon={Icon.inbox}>The high level work log appears as the agents work.</Empty>
-            ) : (
-              <ol className={styles.timeline}>
-                {taskLog.map((l) => {
-                  const detail = logs.filter((x) => x.index === l.index).length;
-                  const live = current === l.index;
-                  return (
-                    <li key={l.index} className={`${styles.logRow} ${live ? styles.logRowLive : ""}`}>
-                      <span className={`dot ${live ? "run" : "ok"}`} />
-                      <div className={styles.logMain}>
-                        <div className={styles.logLine}>
-                          <span className={styles.logStage}>{l.stage}</span>
-                          <span className={styles.logWho}>{l.who}</span>
-                        </div>
-                        <div className={styles.logAction}>
-                          {l.agent} · {models[l.model] ?? l.model}
-                        </div>
-                      </div>
-                      <span className={styles.logSkill}>{detail} {detail === 1 ? "step" : "steps"}</span>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </div>
-        </div>
+        <WorkLog taskLog={taskLog} logs={logs} current={current} total={total} models={models} logRef={logRef} />
       </div>
     </Wrap>
   );

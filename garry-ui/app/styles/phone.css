@@ -1,0 +1,91 @@
+/* tablet and phone: the menu in a drawer (one part of globals.css, which imports them in this order) */
+/* Tablet and phone: the sidebar folds into a top bar (menu, Garry, the
+   project, talk) and the menu slides in from the left as a drawer. */
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .rail,
+  .topbar {
+    display: none;
+  }
+  .garryBar {
+    left: 50%;
+    width: calc(100vw - 24px);
+    bottom: 12px;
+  }
+  .frame {
+    min-height: 0;
+  }
+  .sidebar {
+    z-index: 60;
+    height: var(--topbar-h);
+    flex-direction: row;
+    align-items: center;
+    padding: 0 12px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebarTop {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+  }
+  .menuButton {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--color-text-default);
+    cursor: pointer;
+  }
+  .menuButton svg {
+    width: 20px;
+    height: 20px;
+  }
+  .brand {
+    flex: none;
+    padding: 4px;
+  }
+  .brandText {
+    display: none;
+  }
+  .sidebarMenu {
+    position: fixed;
+    z-index: 60;
+    top: var(--topbar-h);
+    left: 0;
+    bottom: 0;
+    width: min(320px, 88vw);
+    padding: var(--space-md) 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s var(--ease), visibility 0s linear 0.25s;
+  }
+  .menuOpen .sidebarMenu {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s var(--ease), visibility 0s;
+  }
+  .sidebarMenu .nav {
+    overflow: visible;
+  }
+  .scrim {
+    display: block;
+    position: fixed;
+    z-index: 55;
+    inset: var(--topbar-h) 0 0 0;
+    background: rgba(0, 0, 0, 0.4);
+  }
+}

@@ -114,7 +114,7 @@ Every skill passes a security audit before an agent may use it (prompt injection
 hidden text, remote code, destructive commands, secret exfiltration, persistence,
 safety bypasses, obfuscation, supply chain). A skill that fails cannot be
 installed, and an installed one that starts failing is left out of every plan. See
-[the audit in cli.md](./cli.md#security-audit).
+[the audit in cli.md](./cli-more.md#security-audit).
 Local skills live in `~/.garry/skills/<name>/` (or `GARRY_SKILLS_HOME`), never in
 the repository. A local skill cannot take the name of a pre-installed one.
 
@@ -158,7 +158,7 @@ head, captures every view in `garry.screenshots.json` in headless Chromium
 (desktop and mobile, light and dark) and keeps one comment on the pull request
 with before, after and a pixel diff of each changed view. It updates on every
 push while the pull request is in review. Details in the
-[README](../README.md#screenshots-on-pull-requests) and in the
+[the CI guide](./ci.md#screenshots-on-pull-requests) and in the
 `review-screenshots` skill.
 
 ## What is built and what is planned

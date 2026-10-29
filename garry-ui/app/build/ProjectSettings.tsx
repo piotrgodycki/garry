@@ -84,6 +84,20 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
         <input type="checkbox" disabled={readOnly} checked={draft.draftPr} onChange={(e) => set({ draftPr: e.target.checked })} />
         Open pull requests as drafts
       </label>
+      <label className={styles.field}>
+        <span className="eyebrow">Largest file an agent may commit</span>
+        <input
+          className="input"
+          type="number"
+          min={0}
+          step={500}
+          disabled={readOnly}
+          aria-label="largest file in tokens"
+          value={draft.maxFileTokens ?? 5000}
+          onChange={(e) => set({ maxFileTokens: Number(e.target.value) })}
+        />
+        <span className={styles.meta}>In tokens (bytes / 4). A commit with a bigger file is refused with how to split it, so agents can read every file whole. 0 turns it off.</span>
+      </label>
       <div className={styles.row}>
         {!readOnly && (
           <button className="btn btnPrimary" disabled={!changed || busy} onClick={() => void save()}>

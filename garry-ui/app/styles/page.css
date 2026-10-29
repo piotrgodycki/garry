@@ -1,0 +1,175 @@
+/* page layout, headers, surfaces and tiles (one part of globals.css, which imports them in this order) */
+/* ---- page layout ---------------------------------------------------------- */
+.page {
+  width: 100%;
+  padding: var(--space-xl) clamp(var(--space-md), 3vw, 48px) 56px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-lg);
+  align-content: start;
+  animation: rise 0.4s var(--ease) both;
+}
+@media (max-width: 640px) {
+  .page {
+    padding: var(--space-lg) var(--space-md) 48px;
+  }
+}
+.pageHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+.pageHeadMain {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex: 1 1 360px;
+  min-width: 0;
+}
+.pageHeadText {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+/* the page's icon on a soft tile: blue for the work, violet for the project, clay for Garry */
+.pageIcon {
+  --k: var(--state-work);
+  flex: none;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  color: var(--k);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--k) 18%, var(--surface)), color-mix(in srgb, var(--k) 8%, var(--surface)));
+  border: 1px solid color-mix(in srgb, var(--k) 30%, var(--border));
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--k) 12%, transparent);
+}
+.pageIcon[data-group="project"] {
+  --k: var(--state-plan);
+}
+.pageIcon[data-group="garry"] {
+  --k: var(--garry-clay);
+}
+.pageIcon svg {
+  width: 26px;
+  height: 26px;
+}
+@media (max-width: 640px) {
+  .pageIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+  .pageIcon svg {
+    width: 21px;
+    height: 21px;
+  }
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.eyebrow a {
+  color: var(--color-text-muted);
+}
+.eyebrow a:hover {
+  color: var(--color-text-default);
+}
+.lede {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  max-width: 68ch;
+}
+.pageActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+.section {
+  display: grid;
+  gap: 12px;
+}
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px var(--space-sm);
+}
+/* the heading keeps its line; a caption beside it moves under it when there is no room */
+.sectionHead > h2,
+.sectionHead > h3 {
+  flex: none;
+  max-width: 100%;
+}
+.sectionHead .count {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ---- surfaces ------------------------------------------------------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+.cardPad {
+  padding: 20px;
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.cardLink {
+  color: inherit;
+  transition: border-color 0.15s, box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.cardLink:hover {
+  text-decoration: none;
+  border-color: var(--accent-line);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* KPI tiles */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+  gap: 12px;
+}
+.stat {
+  padding: 16px 18px;
+  display: grid;
+  gap: 4px;
+}
+.statLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.statValue {
+  font-size: 26px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}

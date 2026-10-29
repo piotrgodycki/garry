@@ -16,6 +16,7 @@ import { runQa } from "./commands/qa.js";
 import { runRouting } from "./commands/routing.js";
 import { runArchitecture } from "./commands/architecture.js";
 import { runGithub } from "./commands/github.js";
+import { runHooks } from "./commands/hooks.js";
 import { loadEnv } from "./github/env.js";
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -41,6 +42,7 @@ Commands:
   skills     list the skills, install or remove local ones
   shots      screenshots for code review: capture, compare, comment on the PR
   qa         does a change need a person to try it (label and checklist on the PR)
+  hooks      keep files small for agents: the pre-commit check (check, install)
 
 Run "garry <command> --help" for command options.
 `;
@@ -105,6 +107,9 @@ async function main(): Promise<void> {
       break;
     case "shots":
       await runShots(rest);
+      break;
+    case "hooks":
+      runHooks(rest);
       break;
     case undefined:
     case "--help":

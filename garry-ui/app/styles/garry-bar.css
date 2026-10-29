@@ -1,0 +1,275 @@
+/* Garry's field at the foot of every page, and what you told him (one part of globals.css, which imports them in this order) */
+/* ---- talking to Garry: one field floating at the foot of every page ------- */
+:root {
+  /* the room the field takes at the foot, so nothing of a page stays under it */
+  --bar-room: 92px;
+}
+.content {
+  padding-bottom: var(--bar-room);
+}
+.garryBar {
+  position: fixed;
+  z-index: 40;
+  bottom: 16px;
+  /* centred on the page, beside the rail */
+  left: calc(64px + (100vw - 64px) / 2);
+  transform: translateX(-50%);
+  width: min(760px, calc(100vw - 64px - 32px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.garryField {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0 8px 0 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+.garryField:focus-within {
+  border-color: color-mix(in srgb, var(--state-work) 55%, var(--border-strong));
+  box-shadow: var(--shadow-lg), 0 0 0 3px color-mix(in srgb, var(--state-work) 18%, transparent);
+}
+.garryField[data-listening] {
+  border-color: var(--garry-clay);
+}
+.garryRepo {
+  max-width: 140px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+}
+.garryMic,
+.garrySend {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.garryMic svg,
+.garrySend svg {
+  width: 19px;
+  height: 19px;
+}
+.garryMic[aria-pressed="true"] {
+  color: #fff;
+  background: var(--garry-clay);
+  border-color: var(--garry-clay);
+  animation: listening 1.4s ease-in-out infinite;
+}
+.garrySend {
+  color: var(--color-brand-primary);
+}
+.garrySend:not(:disabled) {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+  color: var(--surface);
+}
+.garrySend:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+@keyframes listening {
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--garry-clay) 22%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .garryMic[aria-pressed="true"] {
+    animation: none;
+  }
+}
+.garryError {
+  margin: 0;
+  justify-self: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--state-fail) 12%, var(--surface));
+  color: var(--state-fail);
+  font-size: 14px;
+}
+/* what you told Garry: answered, running, waiting */
+.garryQueue {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+  max-height: min(320px, 45vh);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-md);
+}
+.garryQueue li {
+  --k: var(--state-idle);
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 9px;
+}
+.garryQueue li[data-status="running"] {
+  --k: var(--state-work);
+  background: color-mix(in srgb, var(--state-work) 7%, transparent);
+}
+.garryQueue li[data-status="done"] {
+  --k: var(--state-done);
+}
+.garryQueue li[data-status="failed"] {
+  --k: var(--state-fail);
+}
+.qDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--k);
+}
+li[data-status="running"] .qDot {
+  animation: listening 1.4s ease-in-out infinite;
+}
+.qText {
+  display: grid;
+  min-width: 0;
+}
+.qText b,
+.qReply {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.qText b {
+  font-size: 14px;
+  font-weight: 600;
+}
+.qReply {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.qAct {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.qAct:hover {
+  background: var(--surface-3);
+  color: var(--color-text-default);
+}
+.qAct svg {
+  width: 14px;
+  height: 14px;
+}
+.qMore {
+  display: flex !important;
+  justify-content: center;
+  padding: 2px !important;
+}
+.qMore button {
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cmdPrompt {
+  display: grid;
+  color: var(--color-text-muted);
+}
+.cmdPrompt svg {
+  width: 18px;
+  height: 18px;
+}
+.cmdInput {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: none;
+  color: var(--color-text-default);
+  font: inherit;
+  font-size: 14.5px;
+  outline: none;
+}
+/* the field's own border is the focus cue (.garryField:focus-within) */
+.cmdInput:focus,
+.cmdInput:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.cmdInput::placeholder {
+  color: var(--color-text-muted);
+}
+.cmdList {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  max-height: min(360px, 60vh);
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+.cmdList li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 14.5px;
+}
+.cmdList li.on {
+  background: var(--surface-3);
+}
+.cmdIcon {
+  display: grid;
+  color: var(--color-text-muted);
+}
+.cmdIcon svg {
+  width: 17px;
+  height: 17px;
+}
+.cmdLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cmdHint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}

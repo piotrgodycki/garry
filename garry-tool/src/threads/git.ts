@@ -63,9 +63,18 @@ export function diff(worktree: string, base: string): Diff {
   return { files, patch, uncommitted };
 }
 
-/** Commits everything in the worktree; the author is the user's git identity, or Garry's. */
-export function commitAll(worktree: string, message: string): string {
+/**
+ * Commits everything in the worktree; the author is the user's git identity,
+ * or Garry's. check may refuse what is staged (it is unstaged again).
+ */
+export function commitAll(worktree: string, message: string, check?: () => void): string {
   git(worktree, ["add", "--all"]);
+  try {
+    check?.();
+  } catch (e) {
+    git(worktree, ["reset", "-q"]);
+    throw e;
+  }
   const identity = (key: string) => {
     try {
       return git(worktree, ["config", key]).trim();
