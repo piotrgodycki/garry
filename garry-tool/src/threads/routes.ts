@@ -1,5 +1,13 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { PushError, FileSizeError, type ThreadManager } from "./manager.js";
+import { CreateRepoError, createRepo, proposeRepo } from "../github/create-repo.js";
+import { githubToken } from "../github/env.js";
+import { remoteSlug } from "./git.js";
+
+const remoteOf = (path: string) => {
+  const s = remoteSlug(path);
+  return s ? `${s.owner}/${s.name}` : null;
+};
 import { fileRoute } from "./files.js";
 import { activeGarryProject } from "../project/store.js";
 import { threadState } from "../status/status.js";
@@ -58,6 +66,26 @@ export async function threadRoutes(
     return (json(res, 405, { error: "method not allowed" }), true);
   }
 
+  // a repository with no home on GitHub: what Garry would create (GET), and creating it on a person's yes (POST, this computer)
+  const home = /^\/api\/projects\/([a-z0-9]{4,16})\/github-repo$/.exec(path);
+  if (home) {
+    const p = store.project(home[1]);
+    if (!p) return (json(res, 404, { error: "no such project" }), true);
+    if (m === "GET") return (json(res, 200, { remote: remoteOf(p.path), create: await proposeRepo(p, githubToken()) }), true);
+    if (m === "POST") {
+      if (!local) return (json(res, 403, { error: "repositories are created on GitHub from the computer running Garry" }), true);
+      if (store.settings(p.id).push === "never") return (json(res, 403, { error: "this project never pushes (its settings)" }), true);
+      const body = (await readBody(req)) as { owner?: unknown; name?: unknown; private?: unknown };
+      try {
+        const made = await createRepo(p, githubToken(), { owner: typeof body.owner === "string" ? body.owner : undefined, name: typeof body.name === "string" ? body.name : undefined, private: body.private !== false });
+        return (json(res, 200, made), true);
+      } catch (e) {
+        return (fail(e, e instanceof CreateRepoError ? e.status : 400), true);
+      }
+    }
+    return (json(res, 405, { error: "method not allowed" }), true);
+  }
+
   // a project's own checkout: browse and edit by hand, this computer only
   const proj = /^\/api\/projects\/([a-z0-9]{4,16})(\/files|\/file)$/.exec(path);
   if (proj) {
@@ -110,7 +138,8 @@ export async function threadRoutes(
       for (const e of store.events(id)) send(e);
       const off = threads.subscribe(id, send);
       const ping = setInterval(() => res.write(": ping\n\n"), 20000);
-      req.on("close", () => {
+      // the response closes when the viewer goes; the request may close as soon as it was read
+      res.on("close", () => {
         off();
         clearInterval(ping);
       });
@@ -130,8 +159,9 @@ export async function threadRoutes(
     }
     if (m === "GET" && action === "/push") return (json(res, 200, await threads.pushPreview(id)), true);
     if (m === "POST" && action === "/pr") {
-      const body = (await readBody(req)) as { title?: string; body?: string; confirmed?: boolean };
-      return (json(res, 200, await threads.openPr(id, body.title, body.body, body.confirmed === true)), true);
+      const body = (await readBody(req)) as { title?: string; body?: string; confirmed?: boolean; create?: { owner?: string; name?: string; private?: boolean } };
+      const create = body.create && typeof body.create === "object" ? { owner: body.create.owner === undefined ? undefined : String(body.create.owner), name: body.create.name === undefined ? undefined : String(body.create.name), private: body.create.private !== false } : undefined;
+      return (json(res, 200, await threads.openPr(id, body.title, body.body, body.confirmed === true, create)), true);
     }
     if (m === "DELETE" && action === "") {
       if (!local) return (json(res, 403, { error: "a thread's work is discarded on the computer running Garry" }), true);
@@ -139,7 +169,7 @@ export async function threadRoutes(
       return (json(res, 200, { ok: true }), true);
     }
   } catch (e) {
-    return (fail(e, e instanceof PushError || e instanceof FileSizeError ? e.status : /still working|wait for the agent/.test(String(e)) ? 409 : 400), true);
+    return (fail(e, e instanceof PushError || e instanceof FileSizeError || e instanceof CreateRepoError ? e.status : /still working|wait for the agent/.test(String(e)) ? 409 : 400), true);
   }
   return (json(res, 405, { error: "method not allowed" }), true);
 }

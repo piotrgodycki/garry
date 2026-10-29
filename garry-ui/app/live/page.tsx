@@ -427,7 +427,7 @@ function Agent({ lane, now, onChange }: { lane: LiveLane; now: number; onChange:
               )}
               {e.type === "git" && (
                 <>
-                  <b>{e.action === "pr" ? "Pull request" : "Commit"}</b>
+                  <b>{e.action === "pr" ? "Pull request" : e.action === "repo" ? "New repository" : "Commit"}</b>
                   <span>{e.detail}</span>
                 </>
               )}

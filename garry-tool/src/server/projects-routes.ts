@@ -3,6 +3,7 @@ import { cloneRepo, forgetToken, githubStatus, listRepos, pollDeviceFlow, saveTo
 import { githubToken } from "../github/env.js";
 import { GarryProjectError, createGarryProject, garryProject, listGarryProjects, removeGarryProject, updateGarryProject, useGarryProject, activeGarryProject } from "../project/store.js";
 import { exportGarryProject, importGarryProject, originOf } from "../project/bundle.js";
+import { avatarUrl, projectOwner } from "../project/avatar.js";
 import { json, readBody, type RouteCtx } from "./http.js";
 
 /**
@@ -47,7 +48,14 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
       return {
         active,
         registry: cfg.registry,
-        projects: projects.map((p) => ({ ...p, repos: store ? store.projectsOf(p.id).map((r) => ({ id: r.id, name: r.name })) : [] })),
+        projects: projects.map((p) => {
+          const repos = store ? store.projectsOf(p.id) : [];
+          const owner = projectOwner(
+            repos.map((r) => r.path),
+            (p.pendingRepos ?? []).map((r) => r.remote),
+          );
+          return { ...p, repos: repos.map((r) => ({ id: r.id, name: r.name })), ...(owner ? { owner, avatar: avatarUrl(owner) } : {}) };
+        }),
       };
     };
     if (req.method === "GET" && path === "/api/garry-projects") return json(res, 200, list());

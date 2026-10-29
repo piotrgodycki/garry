@@ -52,7 +52,7 @@ export type ThreadEvent =
   | { type: "tool_result"; id: string; ok: boolean; preview: string; at: string }
   | { type: "turn_end"; ok: boolean; costUsd?: number; at: string }
   | { type: "status"; status: ThreadStatus; at: string }
-  | { type: "git"; action: "commit" | "pr"; detail: string; at: string }
+  | { type: "git"; action: "commit" | "pr" | "repo"; detail: string; at: string }
   | { type: "error"; message: string; at: string };
 
 const id = () => randomBytes(6).toString("base64url").replace(/[-_]/g, "x").toLowerCase();

@@ -104,6 +104,27 @@
   color: var(--state-fail);
   font-size: 14px;
 }
+/* Garry's answer to a command: a line above the field, kept to its lines */
+.garrySaid {
+  margin: 0;
+  justify-self: center;
+  max-width: 100%;
+  max-height: 40vh;
+  overflow: auto;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.08));
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.cmdArgs {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
 /* what you told Garry: answered, running, waiting */
 .garryQueue {
   margin: 0;

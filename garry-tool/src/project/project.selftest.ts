@@ -28,6 +28,7 @@ const { ThreadStore } = await import("../threads/store.js");
 const { createGarryServer } = await import("../server/server.js");
 const { DeviceStore } = await import("../server/auth.js");
 const { reachableAddresses } = await import("../server/pairing.js");
+const { projectOwner } = await import("./avatar.js");
 
 let failed = 0;
 const expect = (name: string, ok: boolean, detail = "") => {
@@ -161,6 +162,13 @@ const last = await del(listGarryProjects().projects[0].id);
 const lastError = ((await last.json()) as { error: string }).error;
 expect("the last project stays, and Garry says why", last.status === 400 && lastError.includes("make another one first") && listGarryProjects().projects.length === 1, `${last.status} ${lastError}`);
 server.close();
+
+// a project's mark: the GitHub owner most of its repositories live under
+expect("repositories still to clone count by their remote; others are not GitHub", projectOwner([], ["https://github.com/solo/x", "https://gitlab.example/other/y", "https://gitlab.example/other/z", "https://github.com/acme/web.git", "git@github.com:acme/api.git"]) === "acme");
+expect("no repository on GitHub: no owner", projectOwner([], ["https://gitlab.example/a/b"]) === null);
+process.env.GARRY_GITHUB_AVATARS = "off";
+expect("a company can keep names off github.com requests", projectOwner([], ["https://github.com/acme/web.git"]) === null);
+delete process.env.GARRY_GITHUB_AVATARS;
 
 if (failed) {
   console.error(`${failed} project check(s) failed`);

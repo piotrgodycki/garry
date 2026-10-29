@@ -46,7 +46,9 @@ conversation per repository so it remembers, and sending more never
 interrupts the work in progress. What runs, what waits (with its place in
 line, and a cross to drop it) and what Garry answered sit just above the
 field. **Cmd/Ctrl+K** focuses it; a page's name goes to that page, and the
-arrows pick separate work in Build instead. Paper by day, graphite by night; colour only ever means a
+arrows pick separate work in Build instead. A slash starts a command:
+`/remember` (Garry and every agent in the project keep it in mind; see
+**Memory**), `/forget`, `/memory`, `/new`, `/pair`, `/stop`, `/help`. Paper by day, graphite by night; colour only ever means a
 state. Every page title has its icon, Garry's crew has an icon per role (the
 analyst's spec, the developer's code, the reviewer's lens) on a tile in its
 state's colour, and empty pages show a picture instead of a blank: sprouts in
@@ -177,7 +179,9 @@ done). Adding a repository and the feature pipeline are buttons in the header.
   a checklist of what to check). Garry asks before every push, showing the
   branch, the remote and the commits; each project can change that (ask, allow,
   never), its base branch, branch prefix and protected branches (Push and branch
-  settings), and agents themselves can never push;
+  settings), and agents themselves can never push. A repository not on GitHub
+  yet gets one named as it is in Garry (private, yours or an organization's),
+  created only when you say yes, before the pull request or from its settings;
 - **Files** (its own tab) works like a code editor: an explorer of the registry,
   each repo and each piece of work in progress, files open in tabs, Cmd/Ctrl+S
   saves, and a terminal along the bottom (Ctrl+`) opens a shell in that folder.

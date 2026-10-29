@@ -21,6 +21,7 @@ export const Icon = {
   puzzle: svg(<path d="M10 3h4v2.5a1.5 1.5 0 003 0V3h4v7h-2.5a1.5 1.5 0 000 3H21v8h-7v-2.5a1.5 1.5 0 00-3 0V21H3v-8h2.5a1.5 1.5 0 000-3H3V3z" />),
   stack: svg(<><path d="M12 3l9 4.5-9 4.5-9-4.5z" /><path d="M3 12l9 4.5 9-4.5M3 16.5L12 21l9-4.5" /></>),
   layers: svg(<><rect x="3" y="3" width="18" height="18" rx="3" /><rect x="6.5" y="8" width="11" height="10" rx="2" /><rect x="9.5" y="12.5" width="5" height="3.5" rx="1" /></>),
+  memory: svg(<><path d="M7 3.5h10a1.5 1.5 0 011.5 1.5v15.5L12 16.5l-6.5 4V5A1.5 1.5 0 017 3.5z" /><path d="M9.5 8.5h5M9.5 11.5h3" /></>),
   code: svg(<><path d="M4 7h8M4 12h12M4 17h5" /><circle cx="15" cy="7" r="1.7" fill="currentColor" stroke="none" /><circle cx="19" cy="12" r="1.7" fill="currentColor" stroke="none" /><circle cx="12" cy="17" r="1.7" fill="currentColor" stroke="none" /></>),
   folder: svg(<path d="M3.5 7.5a2 2 0 012-2h4l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2h-13a2 2 0 01-2-2z" />),
   terminal: svg(<><rect x="3" y="4.5" width="18" height="15" rx="2" /><path d="M7 9.5l3 2.5-3 2.5M12.5 15h4.5" /></>),

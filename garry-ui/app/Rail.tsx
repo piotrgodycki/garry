@@ -6,6 +6,7 @@ import { useGarryStatus } from "./lib/status";
 import { GROUPS, matches } from "./Nav";
 import GarryMark from "./GarryMark";
 import { Icon } from "./icons";
+import ProjectMark from "./projects/ProjectMark";
 
 /**
  * The rail on a wide screen: Garry (crawling while agents work), every page as
@@ -26,7 +27,9 @@ export default function Rail() {
     setTip({ text: el.dataset.tip ?? "", y: r.top + r.height / 2 });
   };
   const hide = () => setTip(null);
-  useEffect(() => setTip(null), [path]);
+  useEffect(() => {
+    setTip(null);
+  }, [path]);
   return (
     <aside className="rail" aria-label="Garry" onMouseOver={show} onFocus={show} onMouseLeave={hide} onBlur={hide}>
       <Link href="/" className="railLogo" aria-label="Garry home">
@@ -82,7 +85,7 @@ function RailProjects() {
     <div className="railProjects" role="group" aria-label="projects">
       {data.projects.slice(0, 6).map((p) => (
         <button key={p.id} type="button" className={`railProject${p.id === data.active ? " on" : ""}`} aria-pressed={p.id === data.active} aria-label={`project ${p.name}`} data-tip={p.name} onClick={() => void pick(p.id)}>
-          {p.name.slice(0, 1).toUpperCase()}
+          <ProjectMark project={p} />
           {p.id === data.active && (status?.counts.working ?? 0) > 0 && <span className="railLive" aria-hidden="true" />}
         </button>
       ))}

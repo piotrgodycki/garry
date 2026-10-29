@@ -5,6 +5,7 @@ import Link from "./lib/router";
 import { client } from "./lib/client";
 import { GROUPS } from "./Nav";
 import { Icon } from "./icons";
+import { useSlashCommands } from "./useSlashCommands";
 
 type Option = { id: string; label: ReactNode; hint: string; icon: ReactNode; run: () => void };
 
@@ -113,8 +114,11 @@ export default function GarryBar() {
   const like = pages.filter((l) => q && l !== exact && l.label.toLowerCase().includes(q.toLowerCase())).map(go);
   const tell: Option = { id: "tell", label: <>Tell Garry: <b>{q}</b></>, hint: "in line, one at a time", icon: Icon.agent, run: () => void send(q) };
   const build: Option = { id: "build", label: <>Start separate work: <b>{q}</b></>, hint: "its own agent in Build", icon: Icon.code, run: () => (navigate(`/build?task=${encodeURIComponent(q)}`), done()) };
-  // a page's exact name goes there; anything else is for Garry
-  const options: Option[] = !q ? pages.map(go) : exact ? [go(exact), tell, build, ...like] : [tell, build, ...like];
+  const cmd = useSlashCommands(text, { setText: (t) => (setText(t), setAt(0), setOpen(true)), done, focus: () => input.current?.focus(), after: () => void load() });
+  // a slash starts a command; a page's exact name goes there; anything else is for Garry
+  const options: Option[] = cmd.slash ? cmd.options : !q ? pages.map(go) : exact ? [go(exact), tell, build, ...like] : [tell, build, ...like];
+  // Enter with nothing picked: a command runs (the server says when there is no such one), a message goes in line
+  const fallback = cmd.slash ? { run: cmd.run } : tell;
   const pick = Math.min(at, options.length - 1);
 
   const items = queue?.items ?? [];
@@ -200,6 +204,16 @@ export default function GarryBar() {
           )}
         </ol>
       )}
+      {cmd.said && !open && (
+        <p className="garrySaid" role="status">
+          {cmd.said}
+        </p>
+      )}
+      {cmd.error && (
+        <p className="garryError" role="alert">
+          {cmd.error}
+        </p>
+      )}
       {error && (
         <p className="garryError" role="alert">
           {error}
@@ -216,10 +230,11 @@ export default function GarryBar() {
           aria-label="tell Garry"
           aria-expanded={open}
           aria-controls="garry-commands"
-          placeholder={listening ? "Listening… Enter sends" : "Tell Garry what to do, or type a page's name"}
+          placeholder={listening ? "Listening… Enter sends" : "Tell Garry what to do, type a page's name, or / for commands"}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
+            cmd.clear();
             setAt(0);
             setOpen(true);
           }}
@@ -228,7 +243,7 @@ export default function GarryBar() {
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") (e.preventDefault(), setOpen(true), setAt((pick + 1) % options.length));
             else if (e.key === "ArrowUp") (e.preventDefault(), setAt((pick - 1 + options.length) % options.length));
-            else if (e.key === "Enter" && q) (e.preventDefault(), (open ? options[pick] : tell).run());
+            else if (e.key === "Enter" && q) (e.preventDefault(), (open && options[pick] ? options[pick] : fallback).run());
             else if (e.key === "Escape") (done(), input.current?.blur());
           }}
         />
@@ -246,7 +261,7 @@ export default function GarryBar() {
             {Icon.mic}
           </button>
         )}
-        <button type="button" className="garrySend" aria-label="send to Garry" disabled={!q} onClick={() => void send(q)}>
+        <button type="button" className="garrySend" aria-label="send to Garry" disabled={!q} onClick={() => (cmd.slash ? cmd.run() : void send(q))}>
           {Icon.send}
         </button>
       </div>

@@ -480,6 +480,9 @@ export interface GarryProject {
   /** repositories an imported project names that are not cloned here yet */
   pendingRepos?: PendingRepo[];
   repos?: { id: string; name: string }[];
+  /** the GitHub owner most of its repositories live under, and that owner's avatar */
+  owner?: string;
+  avatar?: string;
 }
 export interface GarryProjects {
   active: string;
@@ -548,6 +551,8 @@ export interface PushPreview {
   draft: boolean;
   /** why the push would be refused, if it would */
   refused: string | null;
+  /** with no GitHub remote: the repository Garry would create, named as in Garry, once you say yes */
+  create: { owner: string; name: string } | null;
 }
 
 export interface Project {
@@ -583,7 +588,7 @@ export type ThreadEvent =
   | { type: "tool_result"; id: string; ok: boolean; preview: string; at: string }
   | { type: "turn_end"; ok: boolean; costUsd?: number; at: string }
   | { type: "status"; status: ThreadStatus; at: string }
-  | { type: "git"; action: "commit" | "pr"; detail: string; at: string }
+  | { type: "git"; action: "commit" | "pr" | "repo"; detail: string; at: string }
   | { type: "error"; message: string; at: string };
 
 export interface FileChange {
@@ -598,4 +603,19 @@ export interface ThreadDiff {
   patch: string;
   /** changes not committed yet; the diff also shows committed ones */
   uncommitted: boolean;
+}
+
+/** A command that can follow a slash in Garry's field. */
+export interface GarryCommand {
+  name: string;
+  /** what goes after it; empty when nothing does */
+  args: string;
+  help: string;
+}
+
+/** One thing Garry and every agent in a project keep in mind. */
+export interface MemoryEntry {
+  id: string;
+  text: string;
+  createdAt: string;
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { GarryError, type ProjectSettings } from "garry-client";
 import { client } from "../lib/client";
 import styles from "./build.module.css";
+import GithubHome from "./GithubHome";
 
 const MODES: { id: ProjectSettings["push"]; label: string; hint: string }[] = [
   { id: "ask", label: "Ask first", hint: "Garry shows the branch, the remote and the commits and waits for your yes." },
@@ -53,6 +54,7 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
 
   return (
     <div className={styles.settings}>
+      <GithubHome projectId={projectId} />
       <fieldset className={styles.field} disabled={readOnly}>
         <legend className="fieldLabel">Pushing</legend>
         <div className={styles.segmented} role="radiogroup" aria-label="Pushing">

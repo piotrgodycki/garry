@@ -55,7 +55,9 @@ export default function Skills() {
       })
       .catch((e: unknown) => setError(String(e)));
   }, []);
-  useEffect(() => load(), [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const flash = (msg: string) => {
     setNotice(msg);

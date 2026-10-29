@@ -84,6 +84,7 @@ const PAGES: [string, string][] = [
   ["architecture", "/architecture"],
   ["stacks", "/stacks"],
   ["layers", "/layers"],
+  ["memory", "/memory"],
   ["files", "/files"],
   ["skills", "/skills"],
   ["routing", "/routing"],

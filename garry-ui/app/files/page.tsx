@@ -191,7 +191,9 @@ export default function FilesPage() {
     );
   }, []);
   const shownIds = shown.map((t) => t.id).join();
-  useEffect(() => setTermActive((cur) => (cur && shownIds.split(",").includes(cur) ? cur : (shownIds.split(",")[0] || null))), [shownIds]);
+  useEffect(() => {
+    setTermActive((cur) => (cur && shownIds.split(",").includes(cur) ? cur : (shownIds.split(",")[0] || null)));
+  }, [shownIds]);
 
   const newTerminal = async () => {
     setTermOn(true);

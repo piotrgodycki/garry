@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { GarryError, type GarryProjects } from "garry-client";
 import { client } from "../lib/client";
 import styles from "./projects.module.css";
+import ProjectMark from "./ProjectMark";
 
 /**
  * Settings, Projects: make one, switch, export one to a .garry.json file,
@@ -77,7 +78,7 @@ export default function ProjectsPanel() {
       {data.projects.map((p) => (
         <div key={p.id} className={styles.row} role="group" aria-label={`project ${p.name}`}>
           <span className={styles.avatar} aria-hidden="true">
-            {p.name.slice(0, 1).toUpperCase()}
+            <ProjectMark project={p} />
           </span>
           <span className={styles.currentText}>
             <span className={styles.currentName}>

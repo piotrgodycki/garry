@@ -265,3 +265,44 @@
     padding: 6px 8px;
   }
 }
+
+/* a repository's home on GitHub, or creating one */
+.githubHome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 0;
+  font-size: 14px;
+}
+.githubHome svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.githubCreate {
+  display: grid;
+  gap: 10px;
+}
+.githubFields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.githubFields label {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.githubFields > span {
+  padding-bottom: 10px;
+  color: var(--color-text-muted);
+}
+.githubCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}

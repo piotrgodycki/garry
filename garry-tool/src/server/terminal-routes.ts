@@ -43,7 +43,8 @@ export async function terminalRoutes(req: IncomingMessage, res: ServerResponse, 
           res.end();
         }
       });
-      req.on("close", off);
+      // the response closes when the viewer goes; the request may close as soon as it was read
+      res.on("close", off);
       return;
     }
     if (action === "/input" && m === "POST") {

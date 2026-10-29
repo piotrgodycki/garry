@@ -25,7 +25,7 @@ function EventRow({ e }: { e: ThreadEvent }) {
     case "turn_end":
       return <div className={`${styles.ev} ${styles.evEnd}`}>{e.ok ? "Turn done" : "Turn stopped"}{e.costUsd ? ` · $${e.costUsd.toFixed(3)}` : ""}</div>;
     case "git":
-      return <div className={`${styles.ev} ${styles.evEnd}`}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : `Pull request ${e.detail}`}</div>;
+      return <div className={`${styles.ev} ${styles.evEnd}`}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : e.action === "repo" ? `Created ${e.detail}` : `Pull request ${e.detail}`}</div>;
     case "error":
       return <div className={`${styles.ev} ${styles.evBad}`}>{e.message}</div>;
     default:
@@ -59,33 +59,51 @@ export default function ThreadView() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [push, setPush] = useState<PushPreview | null>(null);
+  // a repository not on GitHub yet: the name to create it under, and whether it is private
+  const [newRepo, setNewRepo] = useState({ name: "", private: true });
   const bottom = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async () => {
-    const [{ thread }, d] = await Promise.all([client.thread(id), client.threadDiff(id).catch(() => null)]);
+    const [{ thread, events: log }, d] = await Promise.all([client.thread(id), client.threadDiff(id).catch(() => null)]);
     setThread(thread);
     setDiff(d);
+    // the log as the server has it: catches up whatever the live stream has not brought yet
+    setEvents((list) => (log.length > list.length ? log : list));
   }, [id]);
 
   useEffect(() => {
     const ctl = new AbortController();
-    setEvents([]);
     void refresh();
-    void client
-      .threadEvents(
-        id,
-        (e) => {
-          setEvents((list) => [...list, e]);
-          // the diff and the status change when a turn ends or work is committed
-          if (e.type === "status" || e.type === "git") void refresh();
-        },
-        ctl.signal,
-      )
-      .catch(() => undefined);
+    setEvents([]);
+    // the log so far, then live; a stream that drops (a sleeping laptop, a restart) is opened again.
+    // The stream sends the whole log from the start, so the k-th event it brings is kept only when
+    // the list does not have it yet (a refresh may have brought it first).
+    const follow = async () => {
+      while (!ctl.signal.aborted) {
+        let k = 0;
+        await client
+          .threadEvents(
+            id,
+            (e) => {
+              const at = k++;
+              setEvents((list) => (list.length > at ? list : [...list, e]));
+              // the diff and the status change when a turn ends or work is committed
+              if (e.type === "status" || e.type === "git") void refresh();
+            },
+            ctl.signal,
+          )
+          .catch(() => undefined);
+        if (!ctl.signal.aborted) await new Promise((r) => setTimeout(r, 1500));
+      }
+    };
+    void follow();
     return () => ctl.abort();
   }, [id, refresh]);
 
-  useEffect(() => bottom.current?.scrollIntoView({ block: "end" }), [events.length]);
+  // braces: newer browsers return a promise from scrollIntoView, and React would call it as the cleanup
+  useEffect(() => {
+    bottom.current?.scrollIntoView({ block: "end" });
+  }, [events.length]);
 
   const act = async (fn: () => Promise<unknown>, confirm?: string) => {
     if (confirm && !(await confirmAction(confirm))) return;
@@ -194,7 +212,11 @@ export default function ThreadView() {
                       void act(async () => {
                         const p = await client.pushPreview(id);
                         // the project allows pushing without asking: go ahead
-                        if (p.mode !== "allow" || p.refused) return setPush(p);
+                        // asks first, refused, or not on GitHub yet (creating it needs your yes)
+                        if (p.mode !== "allow" || p.refused || p.create) {
+                          setNewRepo({ name: p.create?.name ?? "", private: true });
+                          return setPush(p);
+                        }
                         if (await confirmAction("open a pull request")) await client.openPullRequest(id);
                       })
                     }
@@ -206,6 +228,8 @@ export default function ThreadView() {
                   <div className={styles.pushBox} role="dialog" aria-label="Confirm the push">
                     {push.refused ? (
                       <span className="badge danger">{push.refused}</span>
+                    ) : push.create ? (
+                      <span className="eyebrow">Not on GitHub yet: Garry creates it first</span>
                     ) : (
                       <span className="eyebrow">This project asks before pushing</span>
                     )}
@@ -213,7 +237,21 @@ export default function ThreadView() {
                       <dt>Branch</dt>
                       <dd>{push.branch}</dd>
                       <dt>To</dt>
-                      <dd>{push.remote ?? "no GitHub remote"}</dd>
+                      <dd>
+                        {push.remote ??
+                          (push.create ? (
+                            <span className={styles.githubFields}>
+                              <span>{push.create.owner} /</span>
+                              <input className="input" aria-label="new GitHub repository name" value={newRepo.name} onChange={(e) => setNewRepo({ ...newRepo, name: e.target.value })} spellCheck={false} />
+                              <label className={styles.githubCheck}>
+                                <input type="checkbox" checked={newRepo.private} onChange={(e) => setNewRepo({ ...newRepo, private: e.target.checked })} />
+                                Private
+                              </label>
+                            </span>
+                          ) : (
+                            "no GitHub remote"
+                          ))}
+                      </dd>
                       <dt>Pull request into</dt>
                       <dd>
                         {push.base}
@@ -232,15 +270,18 @@ export default function ThreadView() {
                       {!push.refused && (
                         <button
                           className="btn btnPrimary"
-                          disabled={busy}
+                          disabled={busy || (Boolean(push.create) && !newRepo.name.trim())}
                           onClick={() =>
-                            void act(async () => {
-                              await client.openPullRequest(id, undefined, undefined, true);
-                              setPush(null);
-                            }, `push ${push.branch} to ${push.remote}`)
+                            void act(
+                              async () => {
+                                await client.openPullRequest(id, undefined, undefined, true, push.create ? { owner: push.create.owner, name: newRepo.name.trim(), private: newRepo.private } : undefined);
+                                setPush(null);
+                              },
+                              push.create ? `create ${push.create.owner}/${newRepo.name.trim()} on GitHub and push ${push.branch}` : `push ${push.branch} to ${push.remote}`,
+                            )
                           }
                         >
-                          Push and open pull request
+                          {push.create ? "Create the repository, push and open pull request" : "Push and open pull request"}
                         </button>
                       )}
                       <button className="btn" onClick={() => setPush(null)}>

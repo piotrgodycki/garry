@@ -21,7 +21,9 @@ export default function Shell() {
   const [menu, setMenu] = useState(false);
   const { pathname, search } = useLocation();
   // a link in the drawer was followed: put the drawer away
-  useEffect(() => setMenu(false), [pathname, search]);
+  useEffect(() => {
+    setMenu(false);
+  }, [pathname, search]);
   useEffect(() => {
     if (!menu) return;
     const esc = (e: KeyboardEvent) => e.key === "Escape" && setMenu(false);

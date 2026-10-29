@@ -4,6 +4,7 @@ import { client } from "../lib/client";
 import Link from "../lib/router";
 import { Icon } from "../icons";
 import styles from "./projects.module.css";
+import ProjectMark from "./ProjectMark";
 
 /**
  * The project in use, at the top of the sidebar: everything below it (the
@@ -58,7 +59,7 @@ export default function ProjectSwitcher() {
         }}
       >
         <span className={styles.avatar} aria-hidden="true">
-          {(active?.name ?? "?").slice(0, 1).toUpperCase()}
+          <ProjectMark project={active ?? { name: "?" }} />
         </span>
         <span className={styles.currentText}>
           <span className={styles.currentLabel}>Project</span>
@@ -71,7 +72,7 @@ export default function ProjectSwitcher() {
           {data.projects.map((p) => (
             <button key={p.id} role="option" aria-selected={p.id === data.active} className={`${styles.option} ${p.id === data.active ? styles.optionOn : ""}`} onClick={() => void pick(p.id)}>
               <span className={styles.avatar} aria-hidden="true">
-                {p.name.slice(0, 1).toUpperCase()}
+                <ProjectMark project={p} />
               </span>
               <span className={styles.currentText}>
                 <span className={styles.currentName}>{p.name}</span>

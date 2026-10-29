@@ -1,0 +1,59 @@
+/* Memory: add one thing, then the list, oldest first */
+.add {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  margin-bottom: var(--space-lg);
+}
+.addRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.addRow input {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.list li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.no {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.text {
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.when {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .list li {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+  }
+  .when {
+    display: none;
+  }
+}
