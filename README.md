@@ -433,6 +433,9 @@ The pipeline is kept cheap on purpose:
   this in CI.
 - Contract first: nothing touches code until the contract in the registry is updated
   and validated.
+- One Garry: the worm's shape lives in `garry-ui/app/GarryMark.tsx`; the logo, the
+  favicon and the Mac and iPhone app icons are drawn from it by
+  `pnpm -C garry-tool brand`, and CI fails if a committed one differs.
 
 ## License
 

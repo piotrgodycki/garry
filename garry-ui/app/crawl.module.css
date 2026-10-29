@@ -1,0 +1,22 @@
+/* the soil strip at the foot of the dashboard, edge to edge of the page */
+.strip {
+  margin-inline: calc(-1 * clamp(var(--space-md), 3vw, 48px));
+  margin-bottom: -56px;
+  /* at the foot of the page: the space above it grows when the page is short */
+  margin-top: auto;
+  padding-top: var(--space-lg);
+  box-sizing: content-box;
+  height: 92px;
+  overflow: hidden;
+}
+.canvas {
+  display: block;
+  width: 100%;
+  height: 92px;
+}
+@media (max-width: 640px) {
+  .strip {
+    margin-inline: calc(-1 * var(--space-md));
+    margin-bottom: -48px;
+  }
+}

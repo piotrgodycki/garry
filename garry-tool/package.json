@@ -66,7 +66,9 @@
     "test:wizard": "tsx src/architecture/wizard.selftest.ts",
     "test:build-ui": "tsx src/ui/build.selftest.ts",
     "test:layout": "tsx src/ui/layout.selftest.ts",
-    "test:projects-ui": "tsx src/ui/projects.selftest.ts"
+    "test:projects-ui": "tsx src/ui/projects.selftest.ts",
+    "test:crawl": "tsx src/ui/crawl.selftest.ts",
+    "brand": "node scripts/brand.mjs"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

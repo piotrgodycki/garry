@@ -56,6 +56,16 @@
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --sidebar-w: 248px;
+
+  /* Garry the earthworm, and the soil he crawls in */
+  --garry-worm: #ee9b86;
+  --garry-ring: #c47562;
+  --garry-clay: #d9573a;
+  --garry-ink: #2a1d19;
+  --soil: #e8ddd2;
+  --soil-2: #d9c9ba;
+  --pebble: #c4b4a5;
+  --leaf: #3f9b52;
 }
 
 /* Dark: inverted brutalism. Brand flips to paper, signal red stays the accent. */
@@ -80,6 +90,10 @@
   --tier-haiku: #2dd4bf;
   --tier-fable: #f472b6;
   --shadow-sm: none;
+  --soil: #2a2420;
+  --soil-2: #352d27;
+  --pebble: #4a413a;
+  --leaf: #63b072;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -103,6 +117,10 @@
     --tier-haiku: #2dd4bf;
     --tier-fable: #f472b6;
     --shadow-sm: none;
+    --soil: #2a2420;
+    --soil-2: #352d27;
+    --pebble: #4a413a;
+    --leaf: #63b072;
   }
 }
 
@@ -1069,13 +1087,12 @@ h1 {
   font-weight: 800;
   letter-spacing: -0.03em;
 }
+/* the wordmark: lowercase, like the logo */
 .brandName {
-  font-size: 20px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.03em;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
 }
-.brandSub,
 .eyebrow,
 .navLabel,
 .statLabel,
@@ -1101,7 +1118,7 @@ h1 {
   font-weight: 700;
 }
 .brandSub {
-  font-size: 9.5px;
+  font-size: 11.5px;
 }
 .statValue {
   font-size: 30px;

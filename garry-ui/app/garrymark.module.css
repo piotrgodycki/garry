@@ -2,7 +2,7 @@
   --crawl: 1.4s;
   display: block;
   overflow: visible;
-  color: var(--color-text-default);
+  color: var(--garry-worm);
 }
 .busy,
 :global(a:hover) .mark {
@@ -12,7 +12,7 @@
 /* rings: one dash per segment, the dash period is 8.5 units */
 .rings {
   fill: none;
-  stroke: var(--surface);
+  stroke: var(--garry-ring);
   stroke-width: 22;
   stroke-dasharray: 1.1 7.4;
   animation: crawl var(--crawl) linear infinite;
@@ -22,10 +22,10 @@
   to { stroke-dashoffset: -8.5; }
 }
 
-/* the clitellum: smooth, no rings, signal red. It throbs while the agents work. */
+/* the clitellum: smooth, no rings, clay. It throbs while the agents work. */
 .clitellum {
   fill: none;
-  stroke: var(--color-brand-secondary);
+  stroke: var(--garry-clay);
   stroke-width: 22;
 }
 .busy .clitellum {
