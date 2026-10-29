@@ -4,8 +4,9 @@ import { client } from "../lib/client";
 import styles from "./projects.module.css";
 
 /**
- * Settings, Projects: make one, switch, export one to a .garry.json file and
- * import one. On this computer only; a paired phone sees the list.
+ * Settings, Projects: make one, switch, export one to a .garry.json file,
+ * import one, remove one (any, as long as one is left; a removed active one
+ * hands over to another). On this computer only; a paired phone sees the list.
  */
 export default function ProjectsPanel() {
   const [data, setData] = useState<GarryProjects | null>(null);
@@ -13,6 +14,7 @@ export default function ProjectsPanel() {
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [readOnly, setReadOnly] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null);
 
   const load = () => client.garryProjects().then(setData, (e) => setNote({ ok: false, text: String((e as Error).message ?? e) }));
@@ -57,14 +59,23 @@ export default function ProjectsPanel() {
       },
     ).finally(() => file.current && (file.current.value = ""));
 
+  const remove = (id: string, name: string, wasActive: boolean) =>
+    run(`rm:${id}`, async () => {
+      await client.removeGarryProject(id);
+      setRemoving(null);
+      // everything on screen belonged to the project that is gone
+      if (wasActive) window.location.reload();
+    }, `Removed ${name}`);
+
   if (!data) return <p className={styles.note}>Loading projects…</p>;
+  const only = data.projects.length === 1;
   return (
     <div className={styles.list}>
       <p className={styles.note}>
         A project holds everything one product is made of: its services and contracts, features, stacks, routing, the architecture board, and the repositories agents work on with their push settings. Export one to a single .garry.json file (no tokens, no code; repositories as remotes) and import it on another computer.
       </p>
       {data.projects.map((p) => (
-        <div key={p.id} className={styles.row}>
+        <div key={p.id} className={styles.row} role="group" aria-label={`project ${p.name}`}>
           <span className={styles.avatar} aria-hidden="true">
             {p.name.slice(0, 1).toUpperCase()}
           </span>
@@ -89,16 +100,34 @@ export default function ProjectsPanel() {
                 {busy === `export:${p.id}` ? "Exporting…" : "Export"}
               </button>
             )}
-            {!readOnly && p.id !== "default" && p.id !== data.active && (
+            {!readOnly && (
               <button
                 className="btn btnSm btnGhost"
-                disabled={!!busy}
-                onClick={() => window.confirm(`Remove ${p.name}? Its registry folder is deleted; cloned repositories stay on disk.`) && void run(`rm:${p.id}`, () => client.removeGarryProject(p.id))}
+                disabled={!!busy || only}
+                title={only ? "the last project stays: make another one first" : undefined}
+                aria-expanded={removing === p.id}
+                onClick={() => setRemoving(removing === p.id ? null : p.id)}
               >
                 Remove
               </button>
             )}
           </span>
+          {removing === p.id && (
+            <div className={styles.confirm} role="alertdialog" aria-label={`remove ${p.name}`}>
+              <p className={styles.note}>
+                <strong>Remove {p.name}?</strong> Its services and contracts, features, stacks, routing and architecture boards are deleted. {p.repos?.length ? `Its ${p.repos.length} repositor${p.repos.length === 1 ? "y leaves Build and stays" : "ies leave Build and stay"} on disk.` : "It has no repositories in Build."}
+                {p.id === data.active && ` Garry switches to ${(data.projects.find((x) => x.id !== p.id && x.id === "default") ?? data.projects.find((x) => x.id !== p.id))?.name}.`} Export it first to keep a copy.
+              </p>
+              <span className={styles.rowActions}>
+                <button className="btn btnSm btnDanger" disabled={!!busy} onClick={() => void remove(p.id, p.name, p.id === data.active)}>
+                  {busy === `rm:${p.id}` ? "Removing…" : `Remove ${p.name}`}
+                </button>
+                <button className="btn btnSm btnGhost" disabled={!!busy} onClick={() => setRemoving(null)}>
+                  Cancel
+                </button>
+              </span>
+            </div>
+          )}
         </div>
       ))}
       {readOnly ? (

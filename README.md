@@ -41,7 +41,8 @@ it keeps, what else it needs) and opens again with your answers to change them;
 the board stays editable by hand. Logos, relations in words, proxies marked,
 ready-made architectures to start from, a reset per board after you confirm, and
 Garry saying what is missing. Platforms include AWS, Cloudflare, Vercel,
-Supabase, Kubernetes, your own servers and Adobe Experience Manager (AEM Sites,
+Supabase, Kubernetes, your own servers (with a reverse proxy), Akamai and Fastly,
+and Adobe Experience Manager (AEM Author, AEM Publish, Dispatcher, Adobe CDN,
 Edge Delivery Services, Document Authoring, AEM Assets, App Builder, I/O Events).
 
 <picture>

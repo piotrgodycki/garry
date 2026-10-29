@@ -2,8 +2,9 @@
  * Regression test for Garry projects: the default one (the registry Garry
  * always used), creating and switching (the registry follows), repositories
  * per project, export to one file (registry files only, no credentials) and
- * import (never writing outside the new project's registry), and the
- * server's endpoints. Run with: pnpm -C garry-tool test:project (CI runs it too).
+ * import (never writing outside the new project's registry), removing (any
+ * one, the default and the active too, never the last nor one with agents at
+ * work; repositories stay on disk), and the server's endpoints. Run with: pnpm -C garry-tool test:project (CI runs it too).
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -14,6 +15,7 @@ import type { AddressInfo } from "node:net";
 const home = mkdtempSync(join(tmpdir(), "garry-proj-"));
 process.env.GARRY_HOME = join(home, ".garry");
 process.env.GARRY_NO_GH = "1";
+process.env.GARRY_CLAUDE_BIN = new URL("../threads/testdata/fake-claude.mjs", import.meta.url).pathname;
 delete process.env.GARRY_GITHUB_TOKEN;
 const cwd = mkdtempSync(join(tmpdir(), "garry-cwd-"));
 process.chdir(cwd);
@@ -49,8 +51,7 @@ expect("a new project has its own registry", existsSync(join(shop.path, "catalog
 expect("a name is required", status(() => createGarryProject({ name: "  " })) === 400);
 useGarryProject(shop.id);
 expect("switching moves the registry", activeGarryProject().id === shop.id && defaultRegistry() === shop.path);
-expect("the default project cannot be removed", status(() => removeGarryProject("default")) === 400);
-expect("nor the active one", status(() => removeGarryProject(shop.id)) === 400);
+expect("removing a project that is not there is a 404", status(() => removeGarryProject("nope")) === 404);
 
 // export: registry files only, remotes without credentials
 mkdirSync(join(shop.path, "stacks"), { recursive: true });
@@ -76,6 +77,9 @@ expect("nothing escaped", !existsSync(join(process.env.GARRY_HOME!, "garry-proje
 // repositories belong to a project
 const repo = join(home, "web");
 execFileSync("git", ["init", "-q", repo]);
+writeFileSync(join(repo, "README.md"), "# web\n");
+execFileSync("git", ["-C", repo, "add", "-A"]);
+execFileSync("git", ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"]);
 const store = new ThreadStore(process.env.GARRY_HOME!);
 const webRepo = store.addProject(repo, "web", shop.id);
 const at = new Date().toISOString();
@@ -120,7 +124,42 @@ if (remote) {
     await fetch(`http://${remote}:${port}/api/garry-projects/import`, { method: "POST", headers: phone, body: JSON.stringify(bundle) }),
   ];
   expect("but cannot make, switch, export or import", tries.every((r) => r.status === 403) && cfg.registry === shop.path, tries.map((r) => r.status).join());
+  expect("a phone cannot remove a project", (await fetch(`http://${remote}:${port}/api/garry-projects/${imported.id}`, { method: "DELETE", headers: phone })).status === 403 && listGarryProjects().projects.some((p) => p.id === imported.id));
 } else console.log("skip phone checks: no network address to pair from");
+
+// removing: an agent at work in it keeps it
+const del = (id: string) => fetch(`${base}/api/garry-projects/${id}`, { method: "DELETE" });
+const working = cfg.threads.create(webRepo.id, "BUSY change the shop");
+const until = async (f: () => boolean) => {
+  for (let i = 0; i < 200 && !f(); i++) await new Promise((r) => setTimeout(r, 50));
+  return f();
+};
+await until(() => store.events(working.id).some((e) => e.type === "tool"));
+const refusedBusy = await del(shop.id);
+expect("a project with an agent at work is not removed", refusedBusy.status === 409 && ((await refusedBusy.json()) as { error: string }).error.includes("stop it first") && existsSync(shop.path));
+cfg.threads.stop(working.id);
+await until(() => !cfg.threads.isRunning(working.id));
+
+// the active one goes: the default takes over, its repositories leave Build and stay on disk
+expect("the active project is shop", listGarryProjects().active === shop.id);
+const gone = await del(shop.id);
+const after = (await gone.json()) as { active: string; projects: { id: string }[] };
+expect("removing the active project makes the default active", gone.status === 200 && after.active === "default" && cfg.registry === defaultRegistry() && !after.projects.some((p) => p.id === shop.id));
+expect("its registry folder is gone", !existsSync(shop.path));
+expect("its repositories leave Build but stay on disk", store.projectsOf(shop.id).length === 0 && existsSync(join(repo, ".git")) && ((await fetch(`${base}/api/projects`).then((r) => r.json())) as { projects: unknown[] }).projects.length === 0);
+
+// the default one goes too while another is left
+const otherDefaultFile = join(defaultRegistry(), "catalog", "old.yaml");
+writeFileSync(otherDefaultFile, "name: old\n");
+const noDefault = await del("default");
+const left = (await noDefault.json()) as { active: string; projects: { id: string }[] };
+expect("the default project can be removed while another is left", noDefault.status === 200 && !left.projects.some((p) => p.id === "default") && left.active === left.projects[0]?.id && !existsSync(otherDefaultFile));
+expect("and stays removed: Garry does not bring it back", !listGarryProjects().projects.some((p) => p.id === "default") && activeGarryProject().id === left.active);
+// down to one: that one stays
+for (const p of left.projects.slice(1)) await del(p.id);
+const last = await del(listGarryProjects().projects[0].id);
+const lastError = ((await last.json()) as { error: string }).error;
+expect("the last project stays, and Garry says why", last.status === 400 && lastError.includes("make another one first") && listGarryProjects().projects.length === 1, `${last.status} ${lastError}`);
 server.close();
 
 if (failed) {

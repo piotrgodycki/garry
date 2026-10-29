@@ -11,7 +11,8 @@ import type { ProjectSettings } from "../threads/settings.js";
  * agents work on in it, each with its push settings. The list lives in
  * ~/.garry/garry-projects.json; each project's registry in
  * ~/.garry/garry-projects/<id>/, except "default", which is the registry Garry
- * always used (~/.garry/registry).
+ * always used (~/.garry/registry). Any project can be removed, the default and
+ * the active one too, as long as one is left.
  */
 
 export interface PendingRepo {
@@ -53,7 +54,7 @@ const ensureRegistry = (path: string) => {
 function read(): Index {
   try {
     const j = JSON.parse(readFileSync(listFile(), "utf8")) as Index;
-    if (Array.isArray(j.projects) && j.projects.some((p) => p.id === "default")) return j;
+    if (Array.isArray(j.projects) && j.projects.length > 0) return j.projects.some((p) => p.id === j.active) ? j : { ...j, active: j.projects[0].id };
   } catch {
     /* first run */
   }
@@ -76,7 +77,7 @@ export function listGarryProjects(): Index {
 
 export function activeGarryProject(): GarryProject {
   const index = read();
-  const p = index.projects.find((x) => x.id === index.active) ?? index.projects.find((x) => x.id === "default")!;
+  const p = index.projects.find((x) => x.id === index.active) ?? index.projects[0];
   ensureRegistry(p.path);
   return p;
 }
@@ -130,15 +131,22 @@ export function updateGarryProject(id: string, patch: { name?: unknown; descript
   return p;
 }
 
-/** Removes a project and its registry folder (never the default one, nor the active one). */
-export function removeGarryProject(id: string): void {
+/**
+ * Removes a project and its registry folder (services, contracts, features,
+ * stacks, routing, the architecture boards). The last project stays; removing
+ * the active one makes another active, the default first. Returns the project
+ * active afterwards. The repositories are not touched here.
+ */
+export function removeGarryProject(id: string): GarryProject {
   const index = read();
-  if (id === "default") throw new GarryProjectError("the default project stays", 400);
-  if (id === index.active) throw new GarryProjectError("switch to another project before removing this one", 400);
   const p = index.projects.find((x) => x.id === id);
   if (!p) throw new GarryProjectError(`no project ${id}`, 404);
-  // only folders Garry made for it
-  const own = resolve(join(garryHome(), "garry-projects", id));
-  if (resolve(p.path) === own && existsSync(own)) rmSync(own, { recursive: true, force: true });
-  write({ ...index, projects: index.projects.filter((x) => x.id !== id) });
+  const rest = index.projects.filter((x) => x.id !== id);
+  if (!rest.length) throw new GarryProjectError("the last project stays: make another one first", 400);
+  const active = index.active === id ? (rest.find((x) => x.id === "default") ?? rest[0]).id : index.active;
+  // only folders Garry made: its own one, or the registry it always used
+  const folder = resolve(p.path);
+  if ((folder === resolve(join(garryHome(), "garry-projects", id)) || (id === "default" && folder === resolve(legacyRegistry()))) && existsSync(folder)) rmSync(folder, { recursive: true, force: true });
+  write({ active, projects: rest });
+  return rest.find((x) => x.id === active)!;
 }

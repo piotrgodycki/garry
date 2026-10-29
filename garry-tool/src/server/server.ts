@@ -446,7 +446,13 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
         }
         if (req.method === "POST" && !action) return json(res, 200, updateGarryProject(id, (await readBody(req)) as { name?: unknown; description?: unknown }));
         if (req.method === "DELETE" && !action) {
-          removeGarryProject(id);
+          const store = cfg.threads?.store;
+          // agents at work in it are stopped first, by the human
+          const busy = store ? store.projectsOf(id).flatMap((r) => store.threads(r.id)).filter((t) => cfg.threads!.isRunning(t.id)) : [];
+          if (busy.length) return json(res, 409, { error: `${busy.length} agent${busy.length === 1 ? " is" : "s are"} at work in this project: stop ${busy.length === 1 ? "it" : "them"} first` });
+          const now = removeGarryProject(id);
+          store?.forgetProjectsOf(id);
+          cfg.registry = now.path;
           return json(res, 200, list());
         }
       }

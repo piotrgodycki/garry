@@ -439,7 +439,14 @@ garry project new "Shop v2"
 garry project use shop-v2
 garry project export --out shop.garry.json   # the active project, or name one
 garry project import shop.garry.json         # a new project from the file
+garry project remove shop-v2                 # its registry folder goes; repositories stay on disk
 ```
+
+Any project can be removed, the default and the active one too, as long as one
+is left: removing the active one makes another active (the default first). Its
+repositories leave Build and stay on disk; a project with agents at work is
+kept until they are stopped. In the dashboard, Remove asks first and says what
+goes and what stays.
 
 The `.garry.json` file holds the registry files and the repositories as
 remotes to clone, never tokens, never code; credentials in a remote URL are

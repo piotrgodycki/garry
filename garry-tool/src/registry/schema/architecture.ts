@@ -82,7 +82,11 @@ export const COMPONENTS: Component[] = [
   // Supabase
   { id: "supabase", name: "Supabase", provider: "Supabase", group: "data", provides: ["sql", "auth", "blob"] },
   // Adobe Experience Manager
-  { id: "aem-sites", name: "AEM Sites", provider: "Adobe", group: "content", provides: ["content", "web", "http"], note: "AEM as a Cloud Service: authors edit in the Universal Editor, Publish serves pages and headless content (GraphQL), Adobe's CDN in front" },
+  { id: "aem-sites", name: "AEM Sites", provider: "Adobe", group: "content", provides: ["content", "web", "http"], note: "AEM as a Cloud Service in one block (Author, Publish, Dispatcher and Adobe's CDN); split it into those for detail" },
+  { id: "aem-author", name: "AEM Author", provider: "Adobe", group: "content", provides: ["content"], note: "where authors edit, review and publish, in the Universal Editor or the page editor; content goes to Publish or Edge Delivery" },
+  { id: "aem-publish", name: "AEM Publish", provider: "Adobe", group: "content", provides: ["web", "http", "content"], needs: ["content"], note: "serves the published pages and headless content (GraphQL, Content Fragments); takes what Author publishes" },
+  { id: "aem-dispatcher", name: "Dispatcher", provider: "Adobe", group: "edge", provides: ["web", "cache"], needs: ["web"], note: "Apache HTTP Server with the Dispatcher module in front of Publish: caches pages, filters requests, rewrites URLs" },
+  { id: "adobe-cdn", name: "Adobe CDN", provider: "Adobe", group: "edge", provides: ["cdn", "web"], needs: ["web"], note: "Fastly based, included with AEM as a Cloud Service; your own CDN (Akamai, Cloudflare, CloudFront) can sit in front" },
   { id: "aem-eds", name: "Edge Delivery Services", provider: "Adobe", group: "edge", provides: ["web", "cdn"], needs: ["content"], note: "pages built from AEM or documents and served from the edge; your own CDN can sit in front" },
   { id: "aem-da", name: "Document Authoring", provider: "Adobe", group: "content", provides: ["content"], note: "pages written as documents (da.live, or SharePoint and Google Drive) for Edge Delivery" },
   { id: "aem-assets", name: "AEM Assets", provider: "Adobe", group: "storage", provides: ["blob"], note: "images and video with renditions and Dynamic Media" },
@@ -98,9 +102,12 @@ export const COMPONENTS: Component[] = [
   { id: "keycloak", name: "Keycloak", provider: "Self-hosted", group: "identity", provides: ["auth"] },
   { id: "wordpress", name: "WordPress", provider: "Self-hosted", group: "content", provides: ["content", "web"], needs: ["sql"], note: "PHP and MySQL hosting" },
   { id: "strapi", name: "Strapi", provider: "Self-hosted", group: "content", provides: ["content", "http"], needs: ["sql"] },
+  { id: "reverse-proxy", name: "Reverse proxy", provider: "Self-hosted", group: "edge", provides: ["web", "http"], needs: ["web"], note: "nginx, Apache, HAProxy or Traefik: routes requests, ends TLS, adds headers in front of your apps" },
   { id: "vps", name: "VPS / Docker", provider: "Self-hosted", group: "compute", provides: ["compute", "http", "web"] },
   { id: "kubernetes", name: "Kubernetes", provider: "Self-hosted", group: "compute", provides: ["compute", "http", "web"] },
   // SaaS
+  { id: "akamai", name: "Akamai", provider: "SaaS", group: "edge", provides: ["cdn", "web"], needs: ["web"], note: "CDN and WAF, often in front of AEM as your own CDN" },
+  { id: "fastly", name: "Fastly", provider: "SaaS", group: "edge", provides: ["cdn", "web"], needs: ["web"] },
   { id: "upstash", name: "Upstash Redis", provider: "SaaS", group: "data", provides: ["cache", "kv", "queue"] },
   { id: "neon", name: "Neon Postgres", provider: "SaaS", group: "data", provides: ["sql"] },
   { id: "clerk", name: "Clerk", provider: "SaaS", group: "identity", provides: ["auth"] },

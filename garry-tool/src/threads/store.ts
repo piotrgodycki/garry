@@ -83,6 +83,14 @@ export class ThreadStore {
     return this.projects().filter((p) => (p.garryProject ?? "default") === garryProject);
   }
 
+  /** Lets go of the repositories of a removed Garry project (they stay on disk); returns how many. */
+  forgetProjectsOf(garryProject: string): number {
+    const list = this.projects();
+    const keep = list.filter((p) => (p.garryProject ?? "default") !== garryProject);
+    if (keep.length !== list.length) this.write(join(this.root, "projects.json"), { projects: keep });
+    return list.length - keep.length;
+  }
+
   /** Registers a git repository (once; the same path returns the same project) in a Garry project. */
   addProject(path: string, name?: string, garryProject?: string): Project {
     const abs = resolve(path);
