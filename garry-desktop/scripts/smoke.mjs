@@ -12,7 +12,8 @@ const home = mkdtempSync(join(tmpdir(), "garry-desktop-"));
 const app = await electron.launch({ executablePath: exe, args: ["--no-sandbox"], env: { ...process.env, HOME: home, GARRY_HOME: join(home, ".garry") } });
 try {
   const win = await app.firstWindow();
-  await win.locator(".serverStatus", { hasText: "Server online" }).waitFor({ timeout: 20000 });
+  // the server dot in the rail on a wide window, the status line in the narrow one's menu
+  await win.locator('.railServer[aria-label="Server online"], .serverStatus:has-text("Server online")').locator("visible=true").first().waitFor({ timeout: 20000 });
   const url = win.url();
   if (!/^http:\/\/127\.0\.0\.1:\d+\/$/.test(url)) throw new Error(`unexpected page ${url}`);
   // a fresh app starts empty: the server answers, with no sample features
