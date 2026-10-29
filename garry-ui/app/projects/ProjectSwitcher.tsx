@@ -48,6 +48,7 @@ export default function ProjectSwitcher() {
     <div className={styles.switcher} ref={box}>
       <button
         className={styles.current}
+        aria-label={`project: ${active?.name ?? data.active}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => {

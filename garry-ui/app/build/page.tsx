@@ -24,7 +24,8 @@ export default function Build() {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [projectId, setProjectId] = useState("");
-  const [prompt, setPrompt] = useState("");
+  // the command line can hand over a task to start from
+  const [prompt, setPrompt] = useState(() => params.get("task") ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);

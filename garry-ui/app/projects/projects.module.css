@@ -214,3 +214,32 @@
   }
 }
 
+
+/* in the top bar on a wide screen: compact, beside the page's name */
+:global(.topbar) .switcher {
+  margin: 0;
+}
+:global(.topbar) .current {
+  width: auto;
+  padding: 4px 8px 4px 5px;
+  gap: 8px;
+  border-radius: 8px;
+}
+:global(.topbar) .currentLabel {
+  display: none;
+}
+:global(.topbar) .currentName {
+  max-width: 220px;
+  font-size: 13px;
+}
+:global(.topbar) .avatar {
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+:global(.topbar) .menu {
+  left: 0;
+  right: auto;
+  width: 300px;
+}

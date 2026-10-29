@@ -9,11 +9,15 @@ import TalkButton from "./TalkButton";
 import ServerStatus from "./ServerStatus";
 import GarryMark from "./GarryMark";
 import { Icon } from "./icons";
+import Rail from "./Rail";
+import TopBar from "./TopBar";
+import CommandLine from "./CommandLine";
 
 /**
- * The app frame: the sidebar, the current page, and the voice dock. On a wide
- * screen the sidebar stays put; on a tablet or phone it folds into a top bar
- * (menu, project, talk) and the menu slides in as a drawer.
+ * The app frame. On a wide screen: the rail (pages, projects, talk), the top
+ * bar (the page, Garry at a glance), the page, and the command line at its
+ * foot. On a tablet or phone: a top bar (menu, Garry, the project, talk) and
+ * the menu as a drawer. The voice dock opens beside either.
  */
 export default function Shell() {
   const [menu, setMenu] = useState(false);
@@ -59,8 +63,13 @@ export default function Shell() {
           </div>
         </aside>
         {menu && <div className="scrim" aria-hidden="true" onClick={() => setMenu(false)} />}
-        <div className="content">
-          <Outlet />
+        <Rail />
+        <div className="frame">
+          <TopBar />
+          <div className="content">
+            <Outlet />
+          </div>
+          <CommandLine />
         </div>
       </div>
       <VoiceDock />

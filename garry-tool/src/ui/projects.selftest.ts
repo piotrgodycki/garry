@@ -72,7 +72,7 @@ try {
   expect("removing the active project says which one takes over", (await askShop.innerText()).includes("Garry switches to Default"), await askShop.innerText());
   await Promise.all([page.waitForEvent("load"), askShop.getByRole("button", { name: "Remove Shop" }).click()]);
   await page.getByRole("button", { name: "Remove", exact: true }).first().waitFor();
-  expect("the default takes over and the page shows it", listGarryProjects().active === "default" && !ids().includes(shop.id) && (await page.getByRole("button", { name: /Project\s*Default/ }).count()) === 1);
+  expect("the default takes over and the page shows it", listGarryProjects().active === "default" && !ids().includes(shop.id) && (await page.getByRole("button", { name: "project: Default", exact: true }).count()) === 1);
 
   // on a phone the question fits the screen, a long name included
   await page.setViewportSize({ width: 390, height: 844 });

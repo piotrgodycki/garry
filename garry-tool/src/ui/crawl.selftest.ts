@@ -131,7 +131,10 @@ try {
   await tall.locator("canvas[data-garry-crawl]").waitFor();
   await tall.waitForTimeout(300);
   const foot = (await tall.locator("canvas[data-garry-crawl]").boundingBox())!;
-  expect("on a short page the soil sits at the foot of the window", Math.abs(foot.y + foot.height - 1600) <= 2, `ends at ${foot.y + foot.height} of 1600`);
+  // the foot of the window, or the top of the command line pinned there
+  const line = await tall.locator(".cmdline").boundingBox();
+  const bottom = line ? line.y : 1600;
+  expect("on a short page the soil sits at the foot of the window", Math.abs(foot.y + foot.height - bottom) <= 2, `ends at ${foot.y + foot.height}, the foot is at ${bottom}`);
   await tall.close();
 
   // reduced motion: drawn, still
