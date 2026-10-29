@@ -4,8 +4,10 @@ import Link from "../lib/router";
 import { useNavigate } from "react-router";
 import { client } from "../lib/client";
 import { Icon } from "../icons";
-import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
+import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./live.module.css";
+import CrewFace, { type CrewState } from "../Crew";
+import Illustrated from "../Illustrations";
 
 /** The words for a state, the same everywhere on this screen. */
 const WORD: Record<LiveState, string> = { work: "Working", wait: "Needs you", fail: "Failed", done: "Ready" };
@@ -22,6 +24,8 @@ const ago = (iso: string, now: number) => {
   return m < 1 ? "just now" : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`;
 };
 const money = (n: number) => `$${n.toFixed(2)}`;
+/** The crew face for a lane's state; a shipped lane rests. */
+const face = (s: string): CrewState => (s === "work" || s === "wait" || s === "fail" || s === "done" ? s : "idle");
 
 /** The window a zoom shows: up to a little after now, so the now line has room. */
 function windowOf(zoom: Zoom, now: number): { start: number; end: number; step: number } {
@@ -126,7 +130,13 @@ export default function Live() {
             {view.needsYou.map((a) => (
               <Ask key={`${a.threadId}:${a.at}`} ask={a} now={now} onDone={load} />
             ))}
-            {view.needsYou.length === 0 && <p className={styles.quiet}>Nothing needs you. When an agent asks something or stops, it shows up here.</p>}
+            {view.needsYou.length === 0 && (
+              <div className={styles.quiet}>
+                <Illustrated art="caughtUp" title="You're all caught up">
+                  Agents keep working. When one asks something or stops, it shows up here.
+                </Illustrated>
+              </div>
+            )}
           </section>
 
           <section className={styles.board} aria-labelledby="agents">
@@ -153,9 +163,11 @@ export default function Live() {
             </div>
 
             {lanes.length === 0 ? (
-              <Empty icon={Icon.agent}>
-                No agent has worked in this time. Tell Garry what to build with <kbd className="kbd">⌘K</kbd>, or start one in <Link href="/build">Build</Link>.
-              </Empty>
+              <div className={styles.timeline}>
+                <Illustrated art="plantFeature" title="No agent at work in this time" action={<Link className="btn btnPrimary" href="/build">Start work in Build</Link>}>
+                  Tell Garry what to build with <kbd className="kbd">⌘K</kbd>, or start an agent in Build. Its lane shows up here as it works.
+                </Illustrated>
+              </div>
             ) : (
               <Timeline
                 lanes={lanes}
@@ -235,9 +247,7 @@ function Timeline({
             onDoubleClick={() => onOpen(l.threadId)}
           >
             <div className={styles.who}>
-              <span className={styles.face} data-state={l.state ?? "shipped"} aria-hidden="true">
-                {Icon.agent}
-              </span>
+              <CrewFace role="dev" state={face(l.state ?? "shipped")} />
               <div className={styles.name}>
                 <b>{l.title}</b>
                 <span>
@@ -300,9 +310,7 @@ function Ask({ ask, now, onDone }: { ask: LiveAsk; now: number; onDone: () => vo
   return (
     <article className={styles.ask} data-kind={ask.kind} aria-label={`${ask.title}: ${question ? "asks a question" : "stopped before finishing"}`}>
       <div className={styles.askTop}>
-        <span className={styles.face} data-state={question ? "wait" : "fail"} aria-hidden="true">
-          {Icon.agent}
-        </span>
+        <CrewFace role="dev" state={face(question ? "wait" : "fail")} />
         <div className={styles.askWho}>
           <span>
             <b>{ask.title}</b> · {ask.project}
@@ -368,9 +376,7 @@ function Agent({ lane, now, onChange }: { lane: LiveLane; now: number; onChange:
   return (
     <section className={styles.agent} aria-label={`agent: ${lane.title}`}>
       <div className={styles.agentHead}>
-        <span className={styles.face} data-state={lane.state ?? "shipped"} aria-hidden="true">
-          {Icon.agent}
-        </span>
+        <CrewFace role="dev" state={face(lane.state ?? "shipped")} />
         <div className={styles.name}>
           <b>{lane.title}</b>
           <span>{lane.doing ?? `${lane.project} · ${lane.state ? WORD[lane.state] : "Shipped"}`}</span>

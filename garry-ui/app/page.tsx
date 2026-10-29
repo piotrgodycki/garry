@@ -6,6 +6,7 @@ import { Icon } from "./icons";
 import { Empty, PageHeader, ServerNotice, Skeleton } from "./ui";
 import NewFeature from "./NewFeature";
 import CrawlingGarry from "./CrawlingGarry";
+import Illustrated from "./Illustrations";
 
 interface Feature {
   id: string;
@@ -192,7 +193,7 @@ export default function Dashboard() {
             <Skeleton rows={1} height={150} />
           ) : running.length === 0 ? (
             <div className={styles.laneEmpty}>
-              <Empty icon={Icon.agent}>Nothing in flight.</Empty>
+              <Illustrated art="caughtUp" title="Nothing in flight">Start a feature and the crew picks it up.</Illustrated>
             </div>
           ) : (
             running.map((f) => {

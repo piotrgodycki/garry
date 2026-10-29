@@ -4,7 +4,7 @@ import type { GarryProject, Project, Thread } from "garry-client";
 import Link from "../lib/router";
 import { client } from "../lib/client";
 import { confirmAction } from "../lib/desktop";
-import { Empty, PageHeader, ServerNotice, Skeleton } from "../ui";
+import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import { Icon } from "../icons";
 import styles from "./build.module.css";
 import GithubImport from "./GithubImport";
@@ -12,6 +12,7 @@ import ProjectSettingsPanel from "./ProjectSettings";
 import Select from "../Select";
 import AgentsNow from "./AgentsNow";
 import AgentView from "../agent/page";
+import Illustrated from "../Illustrations";
 
 const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.attention === "needs-you" ? "danger" : t.pr ? "ok" : "");
 const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.attention === "needs-you" ? (t.status === "error" ? "Stopped" : "Needs you") : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
@@ -108,7 +109,9 @@ export default function Build() {
         {projects === null ? (
           <Skeleton />
         ) : projects.length === 0 ? (
-          <Empty>No repositories in this project yet. Import one from GitHub below, run garry serve inside a git repository, or garry repos add &lt;path&gt;.</Empty>
+          <Illustrated art="connectRepo" title="Connect your first repository">
+            Import one from GitHub below, run <code>garry serve</code> inside a git repository, or <code>garry repos add &lt;path&gt;</code>. Then Garry's crew can work in it.
+          </Illustrated>
         ) : (
           <>
             <div className={styles.repoBar}>
@@ -186,7 +189,9 @@ export default function Build() {
         Work
       </h2>
       {threads.length === 0 ? (
-        <Empty>Nothing in progress.</Empty>
+        <Illustrated art="plantFeature" title="Nothing in progress">
+          Describe a change above and an agent starts on it in its own branch.
+        </Illustrated>
       ) : (
         <div className={styles.list}>
           {threads.map((t) => (

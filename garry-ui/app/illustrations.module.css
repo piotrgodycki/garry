@@ -1,0 +1,131 @@
+/* Garry's world for empty states: soil, sprouts, the crew at work. */
+.state {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+}
+.art {
+  width: min(240px, 100%);
+  height: auto;
+  margin-bottom: 4px;
+}
+.title {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.text {
+  max-width: 44ch;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.action {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.soil {
+  fill: var(--soil);
+}
+.soil2 {
+  fill: var(--soil-2);
+}
+.pebble {
+  fill: var(--pebble);
+}
+.leaf {
+  fill: var(--leaf);
+}
+.stem {
+  stroke: var(--leaf);
+  stroke-width: 3;
+  stroke-linecap: round;
+  fill: none;
+}
+.worm {
+  stroke: var(--garry-worm);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.ring {
+  stroke: var(--garry-ring);
+  fill: none;
+}
+.clay {
+  stroke: var(--garry-clay);
+  fill: none;
+}
+.eye {
+  fill: var(--garry-ink);
+}
+.ink {
+  stroke: var(--garry-ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  fill: none;
+}
+.cheek {
+  fill: var(--garry-clay);
+  opacity: 0.45;
+}
+.zz {
+  fill: var(--color-text-muted);
+  font: 600 10px var(--font-family-mono);
+}
+.cable {
+  stroke: var(--color-text-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 4 5;
+  fill: none;
+}
+.plug {
+  fill: var(--color-text-muted);
+}
+.box {
+  fill: var(--surface-3);
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+.git {
+  stroke: var(--state-work);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  fill: none;
+}
+.tag {
+  fill: var(--surface);
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+.tagText {
+  fill: var(--color-text-muted);
+  font: 600 10px var(--font-family-mono);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .zz {
+    animation: drift 3.2s ease-in-out infinite;
+  }
+  .zz + .zz {
+    animation-delay: 0.8s;
+  }
+}
+@keyframes drift {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}

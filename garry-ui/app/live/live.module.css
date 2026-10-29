@@ -75,7 +75,7 @@
 }
 .quiet {
   margin: 0;
-  padding: var(--space-md);
+  padding: 0;
   border: 1px dashed var(--border);
   border-radius: var(--radius-md);
   color: var(--color-text-muted);
@@ -295,21 +295,6 @@
   gap: 10px;
   padding: 0 10px;
   min-width: 0;
-}
-.face {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  color: var(--k);
-  background: color-mix(in srgb, var(--k) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--k) 40%, transparent);
-}
-.face svg {
-  width: 18px;
-  height: 18px;
 }
 .name {
   display: grid;

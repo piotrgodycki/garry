@@ -41,6 +41,7 @@ jobs:
           pnpm -C garry-tool test:style
           pnpm -C garry-tool test:frame
           pnpm -C garry-tool test:live-ui
+          pnpm -C garry-tool test:crew
           node garry-tool/scripts/brand.mjs --check
       - name: Validate registry (mfe and backend test registries)
         run: |
