@@ -52,6 +52,7 @@ function setFeatureStatus(registry: string, id: string, status: string): boolean
 import { githubToken } from "../github/env.js";
 import { GarryProjectError, createGarryProject, garryProject, listGarryProjects, removeGarryProject, updateGarryProject, useGarryProject, activeGarryProject } from "../project/store.js";
 import { exportGarryProject, importGarryProject, originOf } from "../project/bundle.js";
+import { liveView } from "../status/live.js";
 import { garryStatus } from "../status/status.js";
 import { pushEnabled } from "../status/push.js";
 import { GitHub, parseSlug } from "../github/client.js";
@@ -387,6 +388,17 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     const repos = new Set(store.projectsOf(activeGarryProject().id).map((r) => r.id));
     const ids = new Set(store.threads().filter((t) => repos.has(t.projectId)).map((t) => t.id));
     return json(res, 200, garryStatus(cfg.threads, ids));
+  }
+
+  // Live: every agent of the active project as a lane on a timeline (status/live.ts);
+  // ?hours= how far back a finished lane still shows, a day by default
+  if (req.method === "GET" && path === "/api/live") {
+    if (!cfg.threads) return json(res, 200, { now: new Date().toISOString(), lanes: [], needsYou: [], spentToday: 0 });
+    const store = cfg.threads.store;
+    const repos = new Set(store.projectsOf(activeGarryProject().id).map((r) => r.id));
+    const ids = new Set(store.threads().filter((t) => repos.has(t.projectId)).map((t) => t.id));
+    const hours = Math.min(Math.max(Number(new URL(req.url ?? "/", "http://x").searchParams.get("hours")) || 24, 1), 24 * 14);
+    return json(res, 200, liveView(cfg.threads, ids, new Date(Date.now() - hours * 3600_000)));
   }
 
   // Garry projects: everything one product is made of (the registry and its repositories), switched,

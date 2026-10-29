@@ -343,6 +343,45 @@ export interface GarryStatus {
   items: GarryStatusItem[];
 }
 
+// ---- Live: every agent as a lane on a timeline ----
+export type LiveState = "work" | "wait" | "fail" | "done";
+export interface LiveSegment {
+  state: LiveState;
+  from: string;
+  /** null while it still goes on */
+  to: string | null;
+  label: string;
+}
+export interface LiveLane {
+  threadId: string;
+  title: string;
+  projectId: string;
+  project: string;
+  /** null once shipped (committed or a pull request) */
+  state: LiveState | null;
+  segments: LiveSegment[];
+  costUsd: number;
+  turns: number;
+  tools: number;
+  doing: string | null;
+  startedAt: string;
+  updatedAt: string;
+}
+export interface LiveAsk {
+  threadId: string;
+  title: string;
+  project: string;
+  kind: "question" | "stopped";
+  text: string;
+  at: string;
+}
+export interface LiveView {
+  now: string;
+  lanes: LiveLane[];
+  needsYou: LiveAsk[];
+  spentToday: number;
+}
+
 // ---- Garry projects ----
 export interface PendingRepo {
   name: string;

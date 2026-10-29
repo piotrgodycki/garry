@@ -59,6 +59,7 @@
     "test:push": "tsx src/threads/settings.selftest.ts",
     "test:project": "tsx src/project/project.selftest.ts",
     "test:status": "tsx src/status/status.selftest.ts",
+    "test:live": "tsx src/status/live.selftest.ts",
     "test:push-notify": "tsx src/status/push.selftest.ts",
     "test:terminal": "tsx src/terminal/terminal.selftest.ts",
     "test:dropdown": "tsx src/ui/dropdown.selftest.ts",
@@ -70,6 +71,7 @@
     "test:crawl": "tsx src/ui/crawl.selftest.ts",
     "test:style": "tsx src/ui/style.selftest.ts",
     "test:frame": "tsx src/ui/frame.selftest.ts",
+    "test:live-ui": "tsx src/ui/live.selftest.ts",
     "brand": "node scripts/brand.mjs"
   },
   "dependencies": {

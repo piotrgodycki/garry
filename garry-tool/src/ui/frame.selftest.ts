@@ -2,7 +2,7 @@
  * Regression test for the frame on a wide screen, in a real browser against a
  * real Garry server whose agents are a stand-in for Claude Code: the rail has
  * every page with its name beside it on hover, the one you are on marked, and
- * the work that needs you as a badge on Build; the top bar's counts are
+ * the work that needs you as a badge on Live; the top bar's counts are
  * /api/status; ⌘K focuses the command line, a page's name goes there, a
  * sentence starts work in Build with it written in, and "talk it through"
  * opens the dock with it. On a phone the old top bar stays and the frame goes.
@@ -77,14 +77,14 @@ try {
 
   // the rail: every page, the one you are on marked
   const names = await nav.getByRole("link").evaluateAll((ls) => ls.map((l) => l.getAttribute("data-tip")));
-  expect("the rail has every page", ["Dashboard", "Build", "Pull requests", "Services", "Architecture", "Stacks", "Files", "Skills", "Model routing", "Settings"].every((n) => names.includes(n)), names.join(", "));
+  expect("the rail has every page", ["Dashboard", "Live", "Build", "Pull requests", "Services", "Architecture", "Stacks", "Files", "Skills", "Model routing", "Settings"].every((n) => names.includes(n)), names.join(", "));
   const current = await nav.locator('[aria-current="page"]').evaluateAll((ls) => ls.map((l) => l.getAttribute("data-tip")));
   expect("the page you are on is marked, and only it", current.length === 1 && current[0] === "Stacks", current.join(", "));
 
-  // the badge on Build is what needs you
-  const buildLink = nav.getByRole("link", { name: "Build, 2 need you" });
-  await buildLink.waitFor({ timeout: 8000 }).catch(() => undefined);
-  expect("Build carries a badge with the work that needs you", (await buildLink.count()) === 1 && (await buildLink.locator(".railBadge").innerText()) === "2", String(await nav.getByRole("link").nth(1).getAttribute("aria-label").catch(() => "")));
+  // the badge on Live is what needs you
+  const liveLink = nav.getByRole("link", { name: "Live, 2 need you" });
+  await liveLink.waitFor({ timeout: 8000 }).catch(() => undefined);
+  expect("Live carries a badge with the work that needs you", (await liveLink.count()) === 1 && (await liveLink.locator(".railBadge").innerText()) === "2", String(await nav.getByRole("link").nth(1).getAttribute("aria-label").catch(() => "")));
 
   // the name beside the rail on hover, at the icon's height, not clipped
   const archi = nav.getByRole("link", { name: "Architecture" });
@@ -104,8 +104,8 @@ try {
   const labels = await gauges.getByRole("link").evaluateAll((ls) => ls.map((l) => l.getAttribute("aria-label")));
   expect("the top bar counts match /api/status", labels.join("|") === `${status.counts.needsYou} need you|${status.counts.working} working|${status.counts.done} ready`, labels.join("|"));
   await gauges.getByRole("link", { name: "2 need you" }).click();
-  await page.waitForURL("**/build");
-  expect("a count opens Build", new URL(page.url()).pathname === "/build");
+  await page.waitForURL("**/live");
+  expect("a count opens Live", new URL(page.url()).pathname === "/live");
 
   // ⌘K, then a page's name
   await page.goto(`${base}/`);
