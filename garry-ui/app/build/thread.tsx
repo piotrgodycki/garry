@@ -64,23 +64,29 @@ export default function ThreadView() {
   const bottom = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async () => {
-    const [{ thread }, d] = await Promise.all([client.thread(id), client.threadDiff(id).catch(() => null)]);
+    const [{ thread, events: log }, d] = await Promise.all([client.thread(id), client.threadDiff(id).catch(() => null)]);
     setThread(thread);
     setDiff(d);
+    // the log as the server has it: catches up whatever the live stream has not brought yet
+    setEvents((list) => (log.length > list.length ? log : list));
   }, [id]);
 
   useEffect(() => {
     const ctl = new AbortController();
     void refresh();
-    // the log so far, then live; a stream that drops (a sleeping laptop, a restart) is opened again
+    setEvents([]);
+    // the log so far, then live; a stream that drops (a sleeping laptop, a restart) is opened again.
+    // The stream sends the whole log from the start, so the k-th event it brings is kept only when
+    // the list does not have it yet (a refresh may have brought it first).
     const follow = async () => {
       while (!ctl.signal.aborted) {
-        setEvents([]);
+        let k = 0;
         await client
           .threadEvents(
             id,
             (e) => {
-              setEvents((list) => [...list, e]);
+              const at = k++;
+              setEvents((list) => (list.length > at ? list : [...list, e]));
               // the diff and the status change when a turn ends or work is committed
               if (e.type === "status" || e.type === "git") void refresh();
             },
