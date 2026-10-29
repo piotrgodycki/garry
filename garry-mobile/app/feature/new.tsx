@@ -46,7 +46,7 @@ export default function CreateFeature() {
     }
   };
 
-  const input = [s.input, { color: p.text, borderColor: p.line, backgroundColor: p.surface }];
+  const input = [s.input, { color: p.text, borderColor: p.lineStrong, backgroundColor: p.surface }];
   return (
     <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
       <Title style={{ fontSize: 22 }}>New feature</Title>
@@ -85,7 +85,7 @@ export default function CreateFeature() {
       <Button disabled={!title.trim() || busy} onPress={() => void create()}>
         {busy ? "Creating…" : "Create feature"}
       </Button>
-      {error ? <Body style={{ color: p.accent }}>{error}</Body> : null}
+      {error ? <Body style={{ color: p.fail }}>{error}</Body> : null}
       <Body muted>It starts at the spec stage. Follow the agents on it from the feature list.</Body>
     </ScrollView>
   );
@@ -94,6 +94,6 @@ export default function CreateFeature() {
 const s = StyleSheet.create({
   page: { padding: 16, gap: 12 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  input: { borderWidth: 1, padding: 12, fontSize: 16 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16 },
   goal: { minHeight: 120 },
 });

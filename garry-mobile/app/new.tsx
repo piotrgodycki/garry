@@ -63,12 +63,12 @@ export default function NewWork() {
         placeholderTextColor={p.muted}
         multiline
         textAlignVertical="top"
-        style={[s.input, { color: p.text, borderColor: p.line, backgroundColor: p.surface }]}
+        style={[s.input, { color: p.text, borderColor: p.lineStrong, backgroundColor: p.surface }]}
       />
       <Button disabled={!prompt.trim() || !projectId || busy} onPress={() => void start()}>
         {busy ? "Starting…" : "Start"}
       </Button>
-      {error ? <Body style={{ color: p.accent }}>{error}</Body> : null}
+      {error ? <Body style={{ color: p.fail }}>{error}</Body> : null}
       <Body muted>An agent on your computer works on it in its own branch. Follow it here, then commit and open the pull request.</Body>
     </ScrollView>
   );
@@ -77,5 +77,5 @@ export default function NewWork() {
 const s = StyleSheet.create({
   page: { padding: 16, gap: 14 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  input: { borderWidth: 1, padding: 12, fontSize: 16, minHeight: 140 },
+  input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16, minHeight: 140 },
 });
