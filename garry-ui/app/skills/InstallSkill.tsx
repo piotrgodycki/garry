@@ -184,7 +184,7 @@ export default function InstallSkill({
             <span>Folder (or its SKILL.md) on the machine running garry-server</span>
             <input
               className="input"
-              placeholder="~/skills/a11y-audit"
+              placeholder="e.g. ~/skills/a11y-audit"
               value={path}
               onChange={(e) => setPath(e.target.value)}
               spellCheck={false}

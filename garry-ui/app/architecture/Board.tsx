@@ -149,7 +149,7 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
   return (
     <div className={styles.layout}>
       <aside className={`card ${styles.palette}`}>
-        <input className="input" placeholder="Search blocks or what they provide" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input className="input" placeholder="Search blocks, e.g. postgres or queue" aria-label="search blocks" value={query} onChange={(e) => setQuery(e.target.value)} />
         {groups.map((g) => (
           <div key={g.label} className={styles.group}>
             <span className={styles.groupLabel}>{g.label}</span>
@@ -232,7 +232,7 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
         <span className="eyebrow">Ask Garry</span>
         <textarea
           className={`input ${styles.goal}`}
-          placeholder="What is it for? e.g. a shop for 10k users a day, on Cloudflare, cheap to run"
+          placeholder="What is it for? e.g. A shop for 10,000 visitors a day, on Cloudflare, cheap to run" aria-label="what the architecture is for"
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
         />

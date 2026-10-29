@@ -32,6 +32,8 @@ export default function GarryBar() {
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [history, setHistory] = useState(false);
+  // what you told Garry stays one short line until you open it
+  const [shown, setShown] = useState(false);
   const rec = useRef<Recognition | null>(null);
   const before = useRef("");
 
@@ -134,8 +136,26 @@ export default function GarryBar() {
           ))}
         </ul>
       )}
-      {!open && (live.length > 0 || past.length > 0) && (
+      {!open && !shown && (live.length > 0 || past.length > 0) && (
+        <button type="button" className="garrySummary" aria-expanded={false} aria-label="show what you told Garry" onClick={() => setShown(true)}>
+          <span className="qDot" data-status={live.some((m) => m.status === "running") ? "running" : past[past.length - 1]?.status} aria-hidden="true" />
+          <span className="qText">
+            <b>{live.find((m) => m.status === "running")?.text ?? past[past.length - 1]?.text}</b>
+            <span className="qReply">
+              {live.some((m) => m.status === "running") ? "Garry is on it" : "Garry's answer is ready"}
+              {live.filter((m) => m.status === "queued").length > 0 && ` · ${live.filter((m) => m.status === "queued").length} waiting`}
+            </span>
+          </span>
+          {Icon.chevron}
+        </button>
+      )}
+      {!open && shown && (live.length > 0 || past.length > 0) && (
         <ol className="garryQueue" aria-label="what you told Garry">
+          <li className="qMore">
+            <button type="button" onClick={() => setShown(false)}>
+              Hide
+            </button>
+          </li>
           {past.map((m) => (
             <li key={m.id} data-status={m.status}>
               <span className="qDot" aria-hidden="true" />
@@ -196,7 +216,7 @@ export default function GarryBar() {
           aria-label="tell Garry"
           aria-expanded={open}
           aria-controls="garry-commands"
-          placeholder={listening ? "Listening… Enter sends" : "Tell Garry what to do, or a page to go to"}
+          placeholder={listening ? "Listening… Enter sends" : "Tell Garry what to do, or type a page's name"}
           value={text}
           onChange={(e) => {
             setText(e.target.value);

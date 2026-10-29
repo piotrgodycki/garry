@@ -122,7 +122,7 @@ export default function Dashboard() {
         <span className={styles.intakeIcon} aria-hidden="true">{Icon.idea}</span>
         <input
           className={styles.intakeInput}
-          placeholder="An idea, a feature, a rough thought. Drop it here."
+          placeholder="Drop an idea, e.g. Let shoppers save items for later"
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
           aria-label="new idea"

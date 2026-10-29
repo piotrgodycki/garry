@@ -91,7 +91,7 @@ export default function GithubConnect({ onChange }: { onChange?: (s: GithubStatu
         type="password"
         autoComplete="off"
         aria-label="GitHub token"
-        placeholder="github_pat_… or ghp_…"
+        placeholder="Paste a token: github_pat_… or ghp_…"
         value={token}
         onChange={(e) => setToken(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && token.trim() && !busy && void save()}

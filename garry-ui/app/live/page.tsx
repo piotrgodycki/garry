@@ -328,7 +328,7 @@ function Ask({ ask, now, onDone }: { ask: LiveAsk; now: number; onDone: () => vo
       )}
       {question ? (
         <form className={styles.answer} onSubmit={submit}>
-          <input className="input" aria-label={`answer ${ask.title}`} placeholder="Your answer" value={text} onChange={(e) => setText(e.target.value)} disabled={busy} />
+          <input className="input" aria-label={`answer ${ask.title}`} placeholder="Type your answer" value={text} onChange={(e) => setText(e.target.value)} disabled={busy} />
           <button className="btn btnPrimary" type="submit" disabled={busy || !text.trim()}>
             Send
           </button>

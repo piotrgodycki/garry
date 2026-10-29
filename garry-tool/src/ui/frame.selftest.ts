@@ -149,6 +149,10 @@ try {
   const mine = (t: string) => q.items.find((i) => i.text === t);
   expect("Enter puts each message in line: the first runs, the rest wait", mine("BUSY tidy the cart")?.status === "running" && mine("then rename the buttons")?.status === "queued" && mine("then write the notes")?.status === "queued", JSON.stringify(q.items.map((i) => [i.text, i.status])));
   await line.blur();
+  const summary = page.getByRole("button", { name: "show what you told Garry" });
+  await summary.waitFor({ timeout: 5000 }).catch(() => undefined);
+  expect("what you told Garry is one short line until you open it", (await page.getByRole("list", { name: "what you told Garry" }).count()) === 0 && /BUSY tidy the cart\s*Garry is on it · 2 waiting/.test(await summary.innerText()), await summary.innerText().catch(() => ""));
+  await summary.click();
   const shown = page.getByRole("list", { name: "what you told Garry" });
   await shown.getByText("then write the notes").waitFor({ timeout: 5000 }).catch(() => undefined);
   const rows = await shown.locator("li[data-status]").evaluateAll((ls) => ls.map((l) => `${l.getAttribute("data-status")}: ${(l as HTMLElement).innerText.replace(/\s+/g, " ").trim()}`));
@@ -166,9 +170,8 @@ try {
   await page.keyboard.press("Escape");
   expect("Escape leaves the field and closes the list", (await line.evaluate((el) => el !== document.activeElement)) && (await page.getByRole("listbox", { name: "commands" }).count()) === 0);
 
-  // the rail's talk button: to the field, dictating where the browser can
-  await rail.getByRole("button", { name: "talk to Garry" }).click();
-  expect("the rail's talk button goes to Garry's field", await line.evaluate((el) => el === document.activeElement));
+  // talking to Garry lives in the field only: no microphone in the rail
+  expect("the rail has no microphone of its own", (await rail.getByRole("button", { name: "talk to Garry" }).count()) === 0);
   expect("there is no separate voice dock any more", (await page.getByRole("dialog", { name: "Talk to Garry" }).count()) === 0);
 
   // the field floats at the foot, centred on the page

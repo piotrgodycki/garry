@@ -96,7 +96,7 @@ try {
   await shoot("dashboard", "/", "canvas[data-garry-crawl]");
   await shoot("build", "/build", "textarea");
   await shoot("thread", `/build/${ready}`, "text=wrote NOTES.md");
-  await shoot("pipeline", "/build?view=pipeline&feature=FEAT-123", "[data-crew]", '[role="tablist"]');
+  await shoot("pipeline", "/build?view=pipeline&feature=FEAT-123", "[data-crew]");
   await shoot("architecture", "/architecture", ".react-flow__node");
   await shoot("stacks", "/stacks", "h1");
   await shoot("routing", "/routing", "h1");

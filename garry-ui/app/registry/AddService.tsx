@@ -128,19 +128,19 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
 
       <div className={styles.fields}>
         <label className={styles.field}>
-          <span className="eyebrow">Name</span>
-          <input className="input mono" placeholder="checkout" value={name} onChange={(e) => setName(e.target.value.toLowerCase())} autoFocus />
+          <span className="fieldLabel">Name</span>
+          <input className="input mono" placeholder="e.g. checkout" value={name} onChange={(e) => setName(e.target.value.toLowerCase())} autoFocus />
         </label>
         <label className={styles.field}>
-          <span className="eyebrow">Repository</span>
-          <input className="input mono" placeholder="git@github.com:acme/checkout.git" value={repo} onChange={(e) => setRepo(e.target.value)} />
+          <span className="fieldLabel">Repository</span>
+          <input className="input mono" placeholder="e.g. git@github.com:acme/checkout.git" value={repo} onChange={(e) => setRepo(e.target.value)} />
         </label>
         <label className={styles.field}>
-          <span className="eyebrow">Owner</span>
-          <input className="input" placeholder="team-payments" value={owner} onChange={(e) => setOwner(e.target.value)} />
+          <span className="fieldLabel">Owner</span>
+          <input className="input" placeholder="e.g. team-payments" value={owner} onChange={(e) => setOwner(e.target.value)} />
         </label>
         <label className={styles.field}>
-          <span className="eyebrow">Stack</span>
+          <span className="fieldLabel">Stack</span>
           <Select
             ariaLabel="stack"
             value={stackRef}
@@ -160,13 +160,13 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
         </label>
         {current?.db && (
           <label className={styles.field}>
-            <span className="eyebrow">Database it owns</span>
+            <span className="fieldLabel">Database it owns</span>
             <Select ariaLabel="database" value={db} onChange={setDb} options={DATABASES.map((d) => ({ value: d.engine, label: d.label }))} />
           </label>
         )}
         {current?.exposes && (
           <label className={`${styles.field} ${styles.wide}`}>
-            <span className="eyebrow">{current.exposes.label}</span>
+            <span className="fieldLabel">{current.exposes.label}</span>
             <input className="input mono" placeholder={current.exposes.placeholder} value={exposes} onChange={(e) => setExposes(e.target.value)} />
           </label>
         )}

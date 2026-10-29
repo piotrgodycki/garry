@@ -41,7 +41,7 @@ export default function GithubImport({ onImported }: { onImported: (p: Project) 
       <GithubConnect onChange={setStatus} />
       {status?.connected && (
         <>
-          <input className="input" placeholder="Search your repositories" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input className="input" placeholder="Search your GitHub repositories" aria-label="search your GitHub repositories" value={query} onChange={(e) => setQuery(e.target.value)} />
           {repos === null ? (
             <p className={styles.filesNote}>Loading repositories…</p>
           ) : repos.length === 0 ? (

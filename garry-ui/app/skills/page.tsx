@@ -132,7 +132,7 @@ export default function Skills() {
           </div>
           <label className="searchField">
             {Icon.search}
-            <input className="input" placeholder="Search skills" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="search skills" />
+            <input className="input" placeholder="Search skills by name or what they do" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="search skills" />
           </label>
         </div>
       )}

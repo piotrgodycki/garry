@@ -273,3 +273,41 @@ li[data-status="running"] .qDot {
   font-size: 13px;
   color: var(--color-text-muted);
 }
+
+/* what you told Garry, folded to one line until you open it */
+.garrySummary {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 10px;
+  justify-self: center;
+  width: min(520px, 100%);
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text-default);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.garrySummary svg {
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  transform: rotate(-90deg);
+}
+.garrySummary .qDot {
+  --k: var(--state-idle);
+}
+.garrySummary .qDot[data-status="running"] {
+  --k: var(--state-work);
+}
+.garrySummary .qDot[data-status="done"] {
+  --k: var(--state-done);
+}
+.garrySummary .qDot[data-status="failed"] {
+  --k: var(--state-fail);
+}

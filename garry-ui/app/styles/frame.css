@@ -159,25 +159,6 @@
   background: var(--state-work);
   box-shadow: 0 0 0 2px var(--surface);
 }
-.railTalk {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--garry-clay) 40%, transparent);
-  background: color-mix(in srgb, var(--garry-clay) 12%, var(--surface));
-  color: var(--garry-clay);
-  cursor: pointer;
-}
-.railTalk svg {
-  width: 19px;
-  height: 19px;
-}
-.railTalk:hover {
-  background: var(--garry-clay);
-  color: #ffffff;
-}
 .railServer {
   display: grid;
   place-items: center;

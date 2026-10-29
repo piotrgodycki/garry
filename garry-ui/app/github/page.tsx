@@ -95,7 +95,7 @@ export default function Prs() {
           {Icon.search}
           <input
             className="input"
-            placeholder="Search service, repo or branch"
+            placeholder="Search by service, repository or branch"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setPage(0); }}
             aria-label="search pull requests"

@@ -64,9 +64,9 @@ try {
   await page.goto(`${base}/build`);
   const connect = page.getByRole("img", { name: "A cable plugging into a box holding a repository" });
   await connect.waitFor({ timeout: 8000 }).catch(() => undefined);
-  expect("Build with no repository shows Garry plugging one in", (await connect.count()) === 1 && (await page.getByText("Connect your first repository").count()) === 1);
+  expect("Build with no repository shows a repository waiting for its cable, and how to add one", (await connect.count()) === 1 && (await page.getByText("Add your first repository").count()) === 1 && (await page.getByRole("region", { name: "Add a repository" }).count()) === 1);
   if (shots) await page.screenshot({ path: join(shots, "crew-build.png") });
-  expect("and nothing in progress, with the sprout", (await page.getByRole("img", { name: /sprout with a feature tag/ }).count()) === 1 && (await page.getByText("Nothing in progress").count()) === 1);
+  expect("and no job form until there is a repository to work in", (await page.getByRole("region", { name: "Start a job" }).count()) === 0);
   await page.goto(`${base}/live`);
   await page.getByText("Nothing needs you").waitFor({ timeout: 8000 }).catch(() => undefined);
   expect("Live with nothing waiting: one quiet line, no empty column", (await page.getByText("Nothing needs you").count()) === 1 && (await page.getByRole("region", { name: /Needs you/ }).count()) === 0);

@@ -132,6 +132,12 @@ const problems = (page: Page) =>
       return false;
     };
 
+    // every field says what it is for, also to a screen reader: a label, aria-label or aria-labelledby
+    for (const f of document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input:not([type=hidden]), textarea, select")) {
+      if (f.closest("[inert], [aria-hidden=true]") || f.getClientRects().length === 0) continue;
+      const named = (f.labels?.length ?? 0) > 0 || f.getAttribute("aria-label")?.trim() || f.getAttribute("aria-labelledby") || f.getAttribute("title");
+      if (!named) out.push(`a field has no name (${f.tagName.toLowerCase()} "${f.getAttribute("placeholder") ?? ""}")`);
+    }
     if (document.documentElement.scrollWidth > vw + 1) out.push(`the page scrolls sideways (${document.documentElement.scrollWidth}px wide on a ${vw}px screen)`);
 
     /** the part of an element that can be seen: its box cut down by every ancestor that clips it */
@@ -241,8 +247,8 @@ try {
 
     const drawer = size.width <= 900;
     if (!drawer) {
-      const foot = await page.getByRole("button", { name: "talk to Garry" }).first().boundingBox();
-      expect(`at ${size.name} the sidebar foot is in view`, Boolean(foot && foot.y + foot.height <= size.height), JSON.stringify(foot));
+      const foot = await page.locator(".railFoot").boundingBox();
+      expect(`at ${size.name} the rail's foot (theme, server) is in view`, Boolean(foot && foot.y + foot.height <= size.height), JSON.stringify(foot));
       expect(`at ${size.name} there is no menu button`, (await page.getByRole("button", { name: "open menu" }).count()) === 0 || !(await page.getByRole("button", { name: "open menu" }).isVisible()));
     } else {
       await page.goto(`${base}/`);
@@ -275,6 +281,7 @@ try {
   for (const size of [ALL_SIZES[0], ALL_SIZES[ALL_SIZES.length - 1]]) {
     const page = await newPage({ width: size.width, height: size.height });
     await page.goto(`${base}/`);
+    await page.getByRole("button", { name: "show what you told Garry" }).click({ timeout: 8000 }).catch(() => undefined);
     await page.getByRole("list", { name: "what you told Garry" }).getByText("then rename the buttons").waitFor({ timeout: 8000 }).catch(() => undefined);
     const shown = (await page.getByRole("list", { name: "what you told Garry" }).count()) === 1;
     const found = await problems(page);

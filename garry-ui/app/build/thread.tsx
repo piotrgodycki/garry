@@ -126,7 +126,8 @@ export default function ThreadView() {
             <textarea
               className={`input ${styles.prompt}`}
               style={{ minHeight: 64 }}
-              placeholder={running ? "The agent is working…" : "Ask for a change, a fix, an explanation…"}
+              aria-label="reply to the agent"
+              placeholder={running ? "The agent is working…" : "Reply, or ask for another change, a fix or an explanation"}
               value={message}
               disabled={running}
               onChange={(e) => setMessage(e.target.value)}
@@ -181,7 +182,7 @@ export default function ThreadView() {
               </a>
             ) : (
               <>
-                <input className="input" placeholder={`Commit message (default: ${thread.title})`} value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} />
+                <input className="input" placeholder={`Commit message (empty: "${thread.title}")`} aria-label="commit message" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} />
                 <div className={styles.row}>
                   <button className="btn btnPrimary" disabled={running || busy || !diff?.uncommitted} onClick={() => void act(() => client.commitThread(id, commitMsg), "commit these changes")}>
                     Commit

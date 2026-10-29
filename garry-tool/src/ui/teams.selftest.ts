@@ -56,34 +56,37 @@ try {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`${base}/build`);
-  const modes = page.getByRole("radiogroup", { name: "how agents work" });
+  const modes = page.getByRole("radiogroup", { name: "who works on it" });
   await modes.waitFor();
 
   // a pair, from Build
-  await modes.getByRole("radio", { name: "With a reviewer" }).click();
+  await modes.getByRole("radio", { name: /^Agent and reviewer/ }).click();
   await page.getByRole("combobox", { name: "review rounds" }).selectOption("2");
-  await page.getByRole("textbox", { name: "what should change" }).fill("PAIR2 add a buy button");
-  await page.getByRole("button", { name: "Start the pair" }).click();
+  await page.getByRole("textbox", { name: "What should change?" }).fill("PAIR2 add a buy button");
+  await page.getByRole("button", { name: "Start the job" }).click();
   await page.waitForURL(/\/build\/[a-z0-9]+$/);
   let t = await teams();
   expect("With a reviewer starts a pair, two rounds, and opens the writer", t.pairs.length === 1 && page.url().endsWith(`/build/${t.pairs[0].writer}`) && t.pairs[0].task === "PAIR2 add a buy button" && t.pairs[0].maxRounds === 2);
   await page.goto(`${base}/build`);
-  const pairCard = page.getByRole("article", { name: "pair: PAIR2 add a buy button" });
-  await pairCard.getByText("Approved", { exact: true }).waitFor({ timeout: 20_000 }).catch(() => undefined);
+  const pairCard = page.getByRole("article", { name: "agent and reviewer: PAIR2 add a buy button" });
+  await pairCard.getByText("Approved, ready to review", { exact: true }).waitFor({ timeout: 20_000 }).catch(() => undefined);
   t = await teams();
-  expect("Together shows the pair until the reviewer approves, with its writer and reviewer", (await pairCard.getByText("Approved", { exact: true }).count()) === 1 && (await pairCard.getByRole("link", { name: "Writer" }).count()) === 1 && (await pairCard.getByRole("link", { name: "Reviewer" }).getAttribute("href")) === `/build/${t.pairs[0].reviewer}`, await pairCard.innerText().catch(() => ""));
+  expect("Your jobs shows the pair until the reviewer approves, with its writer and reviewer", (await pairCard.getByText("Approved, ready to review", { exact: true }).count()) === 1 && (await pairCard.getByRole("link", { name: "Agent", exact: true }).count()) === 1 && (await pairCard.getByRole("link", { name: "Reviewer" }).getAttribute("href")) === `/build/${t.pairs[0].reviewer}`, await pairCard.innerText().catch(() => ""));
   expect("and what the reviewer said last", (await pairCard.innerText()).includes("APPROVED"));
+  const jobs = page.getByRole("region", { name: "Your jobs" });
+  const loose = await jobs.locator(`li > a[href="/build/${t.pairs[0].writer}"], li > a[href="/build/${t.pairs[0].reviewer}"]`).count();
+  expect("the pair's two agents show inside it, not again as jobs of their own", loose === 0, String(loose));
 
   // a chain, from Build: steps written and put in order before it starts
-  await modes.getByRole("radio", { name: "A chain" }).click();
-  await page.getByRole("textbox", { name: "step 1" }).fill("BUSY write the spec");
+  await modes.getByRole("radio", { name: /^Several steps/ }).click();
+  await page.getByRole("textbox", { name: "Step 1: what should change first?" }).fill("BUSY write the spec");
   await page.getByRole("textbox", { name: "step 2" }).fill("write the notes");
   await page.getByRole("button", { name: "Add a step" }).first().click();
   await page.getByRole("textbox", { name: "step 3" }).fill("build it");
   await page.getByRole("button", { name: "move step 3 up" }).click();
   await page.getByRole("button", { name: "Add a step" }).first().click();
   await page.getByRole("textbox", { name: "step 4" }).fill("write the tests");
-  await page.getByRole("button", { name: "Start the chain" }).click();
+  await page.getByRole("button", { name: "Start the job" }).click();
   await page.waitForFunction(async () => true);
   await new Promise((r) => setTimeout(r, 800));
   t = await teams();
@@ -91,7 +94,7 @@ try {
   expect("A chain starts with its steps in the order you set", chain?.steps.map((s) => s.prompt).join(" > ") === "BUSY write the spec > build it > write the notes > write the tests" && chain.steps[0].status === "running", JSON.stringify(chain?.steps));
 
   // while they wait: move, drop, add
-  const chainCard = page.getByRole("article", { name: /^chain: / });
+  const chainCard = page.getByRole("article", { name: /^job in steps: / });
   await chainCard.getByRole("button", { name: "move down: build it" }).waitFor({ timeout: 8000 });
   await chainCard.getByRole("button", { name: "move down: build it" }).click();
   await page.waitForTimeout(500);
@@ -104,7 +107,7 @@ try {
   expect("waiting steps move, drop and get added to from Build", t.chains[0].steps.filter((s) => s.status !== "dropped").map((s) => s.prompt).join(" > ") === "BUSY write the spec > write the notes > build it > update the changelog", t.chains[0].steps.map((s) => `${s.prompt}:${s.status}`).join(" > "));
   const shown = await chainCard.locator("li[data-status]").evaluateAll((ls) => ls.map((l) => l.getAttribute("data-status")));
   expect("each step shows its state", shown.join() === "running,waiting,waiting,waiting", shown.join());
-  await chainCard.getByRole("button", { name: "Stop the chain" }).click();
+  await chainCard.getByRole("button", { name: "Stop after this step" }).click();
   await page.waitForTimeout(500);
   t = await teams();
   expect("the chain can be stopped: nothing more starts", t.chains[0].status === "stopped" && t.chains[0].steps.slice(1).every((s) => s.status === "dropped"));
