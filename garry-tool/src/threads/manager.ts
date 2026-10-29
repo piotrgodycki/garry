@@ -108,6 +108,20 @@ export class ThreadManager {
     return this.store.get(t.id)!;
   }
 
+  /**
+   * Another agent in the same working copy (branch and worktree) as a thread:
+   * a reviewer of its work, or the next step of a chain, with its own
+   * conversation. Removing it later leaves the working copy to its owner.
+   */
+  join(threadId: string, prompt: string, title: string, role: "reviewer" | "step"): Thread {
+    const owner = this.mustGet(threadId);
+    const root = owner.sharesWith ? this.mustGet(owner.sharesWith) : owner;
+    if (!prompt.trim()) throw new Error("the prompt is empty");
+    const t = this.store.save({ ...root, id: this.store.newId(), title: title.trim().slice(0, 80), status: "idle", sessionId: null, createdAt: now(), updatedAt: now(), commit: undefined, pr: undefined, sharesWith: root.id, role });
+    this.send(t.id, prompt);
+    return this.store.get(t.id)!;
+  }
+
   /** One turn: the user's message, then the agent's work until it finishes. */
   send(threadId: string, text: string): void {
     const t = this.store.get(threadId);
@@ -210,7 +224,8 @@ export class ThreadManager {
     const t = this.mustGet(threadId);
     this.stop(threadId);
     const project = this.store.project(t.projectId);
-    if (project) removeWorktree(project.path, t.worktree, t.branch);
+    // an agent that joined another's working copy leaves it to its owner
+    if (project && !t.sharesWith) removeWorktree(project.path, t.worktree, t.branch);
     t.status = "idle";
     this.store.save(t);
   }

@@ -2,7 +2,7 @@
 // A stand-in for the claude command in tests: prints the same stream-json
 // shapes, appends the prompt to NOTES.md in the working directory, and reports
 // --resume so the test can check that follow-ups continue the session.
-import { appendFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
 const prompt = args[args.indexOf("-p") + 1] ?? "";
@@ -17,7 +17,15 @@ if (prompt.includes("BUSY")) await new Promise((r) => setTimeout(r, 30000));
 appendFileSync("NOTES.md", `${prompt}\n`);
 out({ type: "user", message: { content: [{ type: "tool_result", tool_use_id: "t1", content: "File written" }] } });
 // ASK ends the turn with a question to the person; FAIL ends it with an error
-const text = prompt.includes("ASK") ? "I added the button.\nShould it be red or blue?" : resume ? `resumed ${resume}` : "wrote NOTES.md";
+// a reviewer in a pair: approves once the writer has fixed what it asked for N-1 times
+// (PAIR<N> in the writer's task, which is the first line of NOTES.md)
+const review = () => {
+  const notes = readFileSync("NOTES.md", "utf8");
+  const needed = Number(/PAIR(\d)/.exec(notes)?.[1] ?? 1);
+  const fixes = (notes.match(/The reviewer asks for these changes/g) ?? []).length;
+  return fixes >= needed - 1 ? "APPROVED\nLooks complete." : `CHANGES\n- rename the button (round ${fixes + 1})`;
+};
+const text = prompt.startsWith("[review]") ? review() : prompt.includes("ASK") ? "I added the button.\nShould it be red or blue?" : resume ? `resumed ${resume}` : "wrote NOTES.md";
 out({ type: "assistant", message: { content: [{ type: "text", text }] } });
 const failed = prompt.includes("FAIL");
 out({ type: "result", subtype: failed ? "error_during_execution" : "success", is_error: failed, total_cost_usd: 0.01, session_id: resume ?? "fake-session-1" });

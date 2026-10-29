@@ -177,6 +177,23 @@ works on it:
   terminal open on this computer only, never on a paired phone; a company can
   turn the terminal off with `GARRY_TERMINAL=off`.
 
+Agents can also work together, in one branch:
+
+- **With a reviewer** (a pair): one agent writes; each time it finishes, a
+  reviewer agent reads its changes and answers APPROVED, or CHANGES with what
+  to fix. The writer gets the fixes as its next message and the reviewer looks
+  again, up to the number of rounds you pick (1 to 5); out of rounds, or when
+  the writer asks you something, the pair waits for you.
+- **A chain**: steps in the order you set, each its own agent, the next
+  starting when the one before is done and building on its work. Steps that
+  have not started can be moved, dropped and added to (Build, Together), a
+  chain can be stopped, and any piece of work can be handed on to another agent
+  from its own page (**Then another agent**). A step that asks you something
+  pauses the chain until your answer's turn ends well.
+
+Live shows every agent of a pair or chain as its own lane, the reviewer with
+the reviewer's icon.
+
 The agent is [Claude Code](https://docs.claude.com/en/docs/claude-code) on your
 own Claude plan, run on the computer that runs Garry: install it and sign in once
 (`claude`). No API key is needed. It may read, edit and write files in the

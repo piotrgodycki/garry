@@ -1,73 +1,5 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryMessage, GarryQueue, LiveView, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent, WizardAnswers } from "./types";
-
-/** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
-export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
-
-export interface ClientOptions {
-  /** The server, for example http://192.168.1.20:8123. Empty means the page's own origin. */
-  baseUrl: string;
-  /** The device token from pairing; a browser on the server's own origin needs none. */
-  token?: string | null;
-  fetch?: FetchLike;
-}
-
-export class GarryError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-  ) {
-    super(message);
-  }
-  /** True when this device has to pair (again): its token is missing, wrong or revoked. */
-  get unpaired(): boolean {
-    return this.status === 401;
-  }
-}
-
-/** Where a pairing link (QR code) points: the server, and the one-time code. */
-export function parsePairingLink(link: string): { baseUrl: string; code: string } | null {
-  try {
-    const url = new URL(link.trim());
-    const code = url.searchParams.get("code");
-    if (!code || url.pathname !== "/pair" || !/^https?:$/.test(url.protocol)) return null;
-    return { baseUrl: url.origin, code };
-  } catch {
-    return null;
-  }
-}
-
-/** Trades a pairing code for this device's token. */
-export async function pair(baseUrl: string, code: string, name: string, f: FetchLike = fetch): Promise<{ token: string; device: PairedDevice }> {
-  const res = await f(`${baseUrl}/api/pair`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ code, name }),
-  });
-  const body = (await res.json().catch(() => ({}))) as { token?: string; device?: PairedDevice; error?: string };
-  if (!res.ok || !body.token || !body.device) throw new GarryError(body.error ?? `pairing failed (${res.status})`, res.status);
-  return { token: body.token, device: body.device };
-}
-
-/** Parses a server sent events body into Garry stream events. */
-export function parseStream(chunk: string): { events: StreamEvent[]; rest: string } {
-  const events: StreamEvent[] = [];
-  const blocks = chunk.split("\n\n");
-  const rest = blocks.pop() ?? "";
-  for (const block of blocks) {
-    let name = "message";
-    let data = "";
-    for (const line of block.split("\n")) {
-      if (line.startsWith("event:")) name = line.slice(6).trim();
-      else if (line.startsWith("data:")) data += line.slice(5).trim();
-    }
-    const payload = data ? (JSON.parse(data) as Record<string, unknown>) : {};
-    if (name === "feature") events.push({ type: "feature", ...(payload as { id: string; title: string; order: string[] }) });
-    else if (name === "task") events.push({ type: "task", ...(payload as { index: number; task: Task; text: string }) });
-    else if (name === "log") events.push({ type: "log", entry: payload as unknown as LogEntry });
-    else if (name === "done") events.push({ type: "done" });
-  }
-  return { events, rest };
-}
+import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryMessage, GarryQueue, LiveView, Pair, Chain, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, LogEntry, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, PairedDevice, Plan, Project, ProjectSettings, PullRequest, PushPreview, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, StreamEvent, Task, Thread, ServiceKindInfo, TerminalInfo, ThreadDiff, ThreadEvent, WizardAnswers } from "./types";
+import { GarryError, parseStream, type ClientOptions, type FetchLike } from "./connect";
 
 /** A typed client for one Garry server. */
 export class GarryClient {
@@ -174,6 +106,16 @@ export class GarryClient {
   pollGithubDevice = (deviceCode: string) => this.post<{ status: "pending" | "slow_down" | "done" | "expired" | "denied"; login?: string }>("/api/github/device/poll", { deviceCode });
   disconnectGithub = () => this.request<{ ok: true }>("/api/github", { method: "DELETE" });
   githubRepos = (query = "") => this.request<{ repos: GithubRepo[] }>(`/api/github/repos?q=${encodeURIComponent(query)}`).then((r) => r.repos);
+  /** Agents working together in the active project: pairs (writer and reviewer) and chains (steps in order). */
+  teams = () => this.request<{ pairs: Pair[]; chains: Chain[] }>("/api/teams");
+  /** A writer starts on the task; a reviewer looks after each of its turns, up to rounds times. */
+  startPair = (task: string, projectId?: string, rounds?: number) => this.post<Pair>("/api/pairs", { task, projectId, rounds });
+  /** Steps in order, each its own agent in one working copy; after: begin once that work is done. */
+  startChain = (steps: string[], opts: { name?: string; projectId?: string; after?: string } = {}) => this.post<Chain>("/api/chains", { steps, ...opts });
+  addChainStep = (id: string, prompt: string) => this.post<Chain>(`/api/chains/${id}/steps`, { prompt });
+  reorderChain = (id: string, order: string[]) => this.post<Chain>(`/api/chains/${id}/order`, { order });
+  dropChainStep = (id: string, step: string) => this.request<Chain>(`/api/chains/${id}/steps/${step}`, { method: "DELETE" });
+  stopChain = (id: string) => this.post<Chain>(`/api/chains/${id}/stop`, {});
   /** What you told Garry, in line (one at a time), and where a message can go. */
   garryQueue = () => this.request<GarryQueue>("/api/garry/queue");
   /** Puts a message in line for Garry; it starts when the work before it is done. */

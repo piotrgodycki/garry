@@ -37,6 +37,10 @@ export interface Thread {
   updatedAt: string;
   /** set once the work is committed or opened as a pull request */
   commit?: string;
+  /** another agent in the working copy of this thread (a reviewer, a chain's next step) */
+  sharesWith?: string;
+  /** what this agent does there: reviews the work, or is one step of a chain */
+  role?: "reviewer" | "step";
   pr?: { number: number; url: string };
 }
 

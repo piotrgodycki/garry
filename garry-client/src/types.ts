@@ -364,6 +364,7 @@ export interface LiveLane {
   turns: number;
   tools: number;
   doing: string | null;
+  role?: "reviewer" | "step";
   startedAt: string;
   updatedAt: string;
 }
@@ -399,6 +400,34 @@ export interface GarryQueue {
   items: GarryMessage[];
   /** where a message can go: the project's repositories */
   repos: { id: string; name: string }[];
+}
+
+// ---- Agents working together: pairs and chains ----
+export interface Pair {
+  id: string;
+  projectId: string;
+  task: string;
+  writer: string;
+  reviewer?: string;
+  round: number;
+  maxRounds: number;
+  status: "writing" | "reviewing" | "approved" | "needs-you";
+  lastReview?: string;
+  createdAt: string;
+}
+export interface ChainStep {
+  id: string;
+  prompt: string;
+  threadId?: string;
+  status: "waiting" | "running" | "done" | "needs-you" | "dropped";
+}
+export interface Chain {
+  id: string;
+  name: string;
+  projectId: string;
+  steps: ChainStep[];
+  status: "running" | "needs-you" | "done" | "stopped";
+  createdAt: string;
 }
 
 // ---- Garry projects ----

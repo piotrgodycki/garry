@@ -13,6 +13,8 @@ import Select from "../Select";
 import AgentsNow from "./AgentsNow";
 import AgentView from "../agent/page";
 import Illustrated from "../Illustrations";
+import { ChainSteps, ModePicker, type Mode } from "./StartModes";
+import Together from "./Together";
 
 const badge = (t: Thread) => (t.running || t.status === "running" ? "run" : t.attention === "needs-you" ? "danger" : t.pr ? "ok" : "");
 const label = (t: Thread) => (t.running || t.status === "running" ? "Working" : t.attention === "needs-you" ? (t.status === "error" ? "Stopped" : "Needs you") : t.pr ? "PR open" : t.commit ? "Committed" : "Ready for review");
@@ -28,6 +30,10 @@ export default function Build() {
   // the command line can hand over a task to start from
   const [prompt, setPrompt] = useState(() => params.get("task") ?? "");
   const [busy, setBusy] = useState(false);
+  // alone, with a reviewer, or as a chain of steps after the first
+  const [mode, setMode] = useState<Mode>("one");
+  const [rounds, setRounds] = useState(3);
+  const [steps, setSteps] = useState<string[]>([""]);
   const [error, setError] = useState<string | null>(null);
   const [offline, setOffline] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -74,8 +80,17 @@ export default function Build() {
     setBusy(true);
     setError(null);
     try {
-      const t = await client.createThread(projectId, prompt);
-      navigate(`/build/${t.id}`);
+      if (mode === "pair") {
+        const p = await client.startPair(prompt, projectId, rounds);
+        navigate(`/build/${p.writer}`);
+      } else if (mode === "chain") {
+        await client.startChain([prompt, ...steps.map((x) => x.trim()).filter(Boolean)], { projectId });
+        setPrompt("");
+        setSteps([""]);
+      } else {
+        const t = await client.createThread(projectId, prompt);
+        navigate(`/build/${t.id}`);
+      }
     } catch (e) {
       setError(String((e as Error).message ?? e));
     } finally {
@@ -134,18 +149,21 @@ export default function Build() {
               </button>
             </div>
             {settingsOpen && projectId && <ProjectSettingsPanel projectId={projectId} />}
+            <ModePicker mode={mode} onMode={setMode} rounds={rounds} onRounds={setRounds} />
             <textarea
               className={`input ${styles.prompt}`}
-              placeholder="What should change? For example: add a dark mode toggle to the settings page."
+              aria-label={mode === "chain" ? "step 1" : "what should change"}
+              placeholder={mode === "chain" ? "Step 1: what the first agent does" : "What should change? For example: add a dark mode toggle to the settings page."}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyDown={(e) => {
                 if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && prompt.trim() && !busy) void start();
               }}
             />
+            {mode === "chain" && <ChainSteps steps={steps} onSteps={setSteps} />}
             <div className={styles.row}>
               <button className="btn btnPrimary" disabled={!prompt.trim() || !projectId || busy} onClick={() => void start()}>
-                {busy ? "Starting…" : "Start"}
+                {busy ? "Starting…" : mode === "pair" ? "Start the pair" : mode === "chain" ? "Start the chain" : "Start"}
               </button>
               {error && <span className="badge danger">{error}</span>}
             </div>
@@ -184,6 +202,8 @@ export default function Build() {
           />
         </section>
       )}
+
+      <Together />
 
       <h2 className="eyebrow" style={{ marginTop: 28 }}>
         Work

@@ -247,7 +247,7 @@ function Timeline({
             onDoubleClick={() => onOpen(l.threadId)}
           >
             <div className={styles.who}>
-              <CrewFace role="dev" state={face(l.state ?? "shipped")} />
+              <CrewFace role={l.role === "reviewer" ? "reviewer" : "dev"} state={face(l.state ?? "shipped")} />
               <div className={styles.name}>
                 <b>{l.title}</b>
                 <span>
@@ -376,7 +376,7 @@ function Agent({ lane, now, onChange }: { lane: LiveLane; now: number; onChange:
   return (
     <section className={styles.agent} aria-label={`agent: ${lane.title}`}>
       <div className={styles.agentHead}>
-        <CrewFace role="dev" state={face(lane.state ?? "shipped")} />
+        <CrewFace role={lane.role === "reviewer" ? "reviewer" : "dev"} state={face(lane.state ?? "shipped")} />
         <div className={styles.name}>
           <b>{lane.title}</b>
           <span>{lane.doing ?? `${lane.project} · ${lane.state ? WORD[lane.state] : "Shipped"}`}</span>

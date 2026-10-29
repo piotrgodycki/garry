@@ -8,6 +8,8 @@ import { TerminalManager } from "../terminal/terminal.js";
 import { threadRoutes } from "../threads/routes.js";
 import { GarryQueue } from "../garry/queue.js";
 import { queueRoutes } from "../garry/routes.js";
+import { Teams } from "../garry/teams.js";
+import { teamRoutes } from "../garry/team-routes.js";
 import { activeGarryProject } from "../project/store.js";
 import { liveView } from "../status/live.js";
 import { garryStatus } from "../status/status.js";
@@ -33,6 +35,8 @@ export interface ServerConfig {
   threads?: ThreadManager;
   /** what you tell Garry, in order (garry/queue.ts); one is created when not given */
   queue?: GarryQueue;
+  /** agents working together: pairs and chains (garry/teams.ts); created when not given */
+  teams?: Teams;
   /** shells opened from the Files tab; one is created when not given */
   terminals?: TerminalManager;
 }
@@ -41,11 +45,12 @@ export interface ServerConfig {
 export function createGarryServer(cfg: ServerConfig, devices = new DeviceStore()): Server {
   cfg.threads ??= new ThreadManager();
   const queue = (cfg.queue ??= new GarryQueue(cfg.threads));
+  const teams = (cfg.teams ??= new Teams(cfg.threads));
   const terminals = (cfg.terminals ??= new TerminalManager());
   const server = createServer((req, res) => {
     void handle(req, res, cfg, devices).catch((e) => json(res, 500, { error: String((e as Error).message ?? e) }));
   });
-  server.on("close", () => (terminals.closeAll(), queue.close()));
+  server.on("close", () => (terminals.closeAll(), queue.close(), teams.close()));
   return server;
 }
 
@@ -138,6 +143,9 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
 
   // Talking to Garry: messages in line, one at a time (garry/routes.ts)
   if (path.startsWith("/api/garry/queue") && (await queueRoutes(req, res, path, { queue: cfg.queue!, threads: cfg.threads!, json, readBody }))) return;
+
+  // Agents working together: pairs and chains (garry/team-routes.ts)
+  if (/^\/api\/(teams|pairs|chains)(\/|$)/.test(path) && (await teamRoutes(req, res, path, { teams: cfg.teams!, threads: cfg.threads!, json, readBody })) !== false) return;
 
 
   // The rest, each group in a module of its own: GitHub and Garry projects, the

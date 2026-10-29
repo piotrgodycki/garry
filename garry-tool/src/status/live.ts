@@ -35,6 +35,8 @@ export interface LiveLane {
   tools: number;
   /** the tool it is using now, while it works */
   doing: string | null;
+  /** a reviewer of another agent's work, or a step of a chain; none for work you started */
+  role?: "reviewer" | "step";
   startedAt: string;
   updatedAt: string;
 }
@@ -128,6 +130,7 @@ export function laneOf(t: Thread, project: string, events: ThreadEvent[], runnin
     turns,
     tools,
     doing: running ? doing : null,
+    role: t.role,
     startedAt: t.createdAt,
     updatedAt: t.updatedAt,
   };
