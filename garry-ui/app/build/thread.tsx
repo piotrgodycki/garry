@@ -6,6 +6,7 @@ import { confirmAction } from "../lib/desktop";
 import { PageHeader, Skeleton } from "../ui";
 import styles from "./build.module.css";
 import Link from "../lib/router";
+import NextAgent from "./NextAgent";
 
 function EventRow({ e }: { e: ThreadEvent }) {
   switch (e.type) {
@@ -252,7 +253,7 @@ export default function ThreadView() {
           </div>
         </section>
       </div>
-
+      <NextAgent thread={thread} />
     </main>
   );
 }

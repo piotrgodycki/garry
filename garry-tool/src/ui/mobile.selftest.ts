@@ -140,9 +140,8 @@ try {
     expect("Let it fix sends the stopped agent back to work", /fix it/.test((threads.store.events(broke).filter((e) => e.type === "user")[1] as { text: string } | undefined)?.text ?? ""));
     await until(() => !threads.isRunning(broke));
     // nothing waits now: caught up
-    const rest = page.getByRole("img", { name: "Sprouts growing in the soil under a quiet sun" });
-    await rest.waitFor({ timeout: 10_000 }).catch(() => undefined);
-    expect("with nothing waiting, you are caught up", (await rest.count()) === 1 && (await page.getByText("You are all caught up", { exact: false }).count()) === 1);
+    await page.getByText("Nothing needs you").waitFor({ timeout: 10_000 }).catch(() => undefined);
+    expect("with nothing waiting, one quiet line instead of a card", (await page.getByText("Nothing needs you").count()) === 1 && (await page.getByText("Should it be red or blue?").count()) === 0);
     if (shots) await page.screenshot({ path: join(shots, "mobile-caught-up.png"), fullPage: true });
     const wide = await page.evaluate(() => document.documentElement.scrollWidth);
     expect("nothing is wider than the phone", wide <= 390, String(wide));

@@ -41,6 +41,7 @@ jobs:
           pnpm -C garry-tool test:style
           pnpm -C garry-tool test:frame
           pnpm -C garry-tool test:live-ui
+          pnpm -C garry-tool test:teams-ui
           pnpm -C garry-tool test:crew
           pnpm -C garry-mobile export:web
           pnpm -C garry-tool test:mobile
@@ -70,6 +71,7 @@ jobs:
           pnpm -C garry-tool test:status
           pnpm -C garry-tool test:live
           pnpm -C garry-tool test:queue
+          pnpm -C garry-tool test:teams
           pnpm -C garry-tool test:filesize
           pnpm -C garry-tool test:push-notify
           pnpm -C garry-tool test:terminal

@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Link, Redirect, Stack, useFocusEffect, useRouter } from "expo-router";
-import Svg, { Circle, Path } from "react-native-svg";
 import { GarryError, type Feature, type LiveAsk, type LiveLane, type LiveView } from "garry-client";
 import { useConnection } from "../lib/connection";
-import { STAGES, tint, usePalette, type State } from "../lib/theme";
+import { STAGES, usePalette, type State } from "../lib/theme";
 import { Body, Button, Card, Chip, CrewFace, Label, Loading, Notice, Pill, Stages, Title } from "../lib/ui";
 
 const WORD: Record<string, string> = { work: "Working", wait: "Needs you", fail: "Failed", done: "Ready" };
@@ -87,12 +86,7 @@ export default function Home() {
               {live.needsYou.length > 0 && <Pill state="wait">{live.needsYou.length}</Pill>}
             </View>
             {live.needsYou.length === 0 ? (
-              <Card>
-                <CaughtUp />
-                <Body muted style={{ textAlign: "center" }}>
-                  You are all caught up. When an agent asks something or stops, it shows up here.
-                </Body>
-              </Card>
+              <Body muted>Nothing needs you. When an agent asks something or stops, it shows up here.</Body>
             ) : (
               live.needsYou.map((a) => <Ask key={`${a.threadId}:${a.at}`} ask={a} onDone={load} />)
             )}
@@ -230,25 +224,6 @@ function Agent({ lane }: { lane: LiveLane }) {
         </Card>
       </Pressable>
     </Link>
-  );
-}
-
-/** Sprouts in the soil under a quiet sun: all caught up, the same picture as the dashboard's. */
-function CaughtUp() {
-  const p = usePalette();
-  return (
-    <View accessible accessibilityRole="image" accessibilityLabel="Sprouts growing in the soil under a quiet sun" style={{ alignItems: "center" }}>
-      <Svg width={200} height={104} viewBox="20 28 200 104">
-        <Circle cx={178} cy={46} r={15} fill={tint(p.wait, p.surface, 0.22)} stroke={tint(p.wait, p.surface, 0.55)} strokeWidth={1.5} />
-        <Path d="M171 46.5l5 5 9-10" stroke={p.done} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <Path d="M0 108Q60 88 120 100T240 96V140H0Z" fill={p.soil2} />
-        <Path d="M0 118Q80 106 150 116T240 112V140H0Z" fill={p.soil} />
-        <Path d="M70 104V80M118 102V72M160 104V90" stroke={p.leaf} strokeWidth={3} strokeLinecap="round" />
-        <Path d="M70 88c-9 0-14-6-14-14 9 0 14 6 14 14zM70 84c0-8 5-14 14-14 0 8-5 14-14 14z" fill={p.leaf} />
-        <Path d="M118 84c-11 0-17-7-17-17 11 0 17 7 17 17zM118 78c0-10 6-17 17-17 0 10-6 17-17 17zM118 94c-8 0-13-5-13-12 8 0 13 5 13 12z" fill={p.leaf} />
-        <Path d="M160 94c-6 0-9-4-9-9 6 0 9 4 9 9zM160 92c0-5 3-9 9-9 0 5-3 9-9 9z" fill={p.leaf} />
-      </Svg>
-    </View>
   );
 }
 

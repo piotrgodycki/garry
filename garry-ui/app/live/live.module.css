@@ -43,6 +43,22 @@
   align-items: start;
 }
 
+.single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.caughtUp {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--state-done);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.caughtUp svg {
+  width: 15px;
+  height: 15px;
+}
 .colHead {
   display: flex;
   align-items: center;

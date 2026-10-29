@@ -5,8 +5,31 @@
 }
 .title {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 16px;
   font-weight: 700;
+}
+/* each card's own mark: GitHub's logo, the projects' layers */
+.titleIcon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  color: var(--state-plan);
+  background: color-mix(in srgb, var(--state-plan) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--state-plan) 28%, var(--border));
+}
+.titleIcon svg {
+  width: 18px;
+  height: 18px;
+}
+.github {
+  color: var(--color-text-default);
+  background: var(--surface-3);
+  border-color: var(--border-strong);
 }
 .stack {
   display: grid;
