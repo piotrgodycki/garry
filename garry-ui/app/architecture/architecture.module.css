@@ -20,8 +20,6 @@
 .groupLabel {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   margin-top: 4px;
 }
 .palette :global(.input) {
@@ -121,8 +119,8 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 35%, transparent), 0 10px 24px -8px rgba(0, 0, 0, 0.25);
 }
 .error {
-  border-color: var(--color-brand-secondary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-secondary) 30%, transparent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 .warn {
   border-color: #d97706;
@@ -207,7 +205,7 @@
   background: #d97706;
 }
 .error .blockFlag {
-  background: var(--color-brand-secondary);
+  background: var(--accent);
 }
 .blockPorts {
   display: grid;
@@ -354,8 +352,6 @@
   color: #0ea5e9;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 .relationOn {
   opacity: 1;

@@ -19,8 +19,6 @@
   width: 100%;
   font-size: 10.5px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--color-text-muted);
 }
 .me {
@@ -42,7 +40,7 @@
   border-right: 0;
 }
 .contract {
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border);
   background: var(--surface);
   padding: 10px 12px;
   display: grid;

@@ -60,7 +60,7 @@
   display: grid;
   gap: 10px;
   padding: 14px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--surface-3) 60%, transparent);
   border: 1px solid var(--border);
   animation: rise 0.45s var(--ease) both;
@@ -88,7 +88,7 @@
   color: var(--color-text-muted);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   padding: 1px 8px;
   font-variant-numeric: tabular-nums;
 }
@@ -168,14 +168,14 @@
 .step {
   flex: 1;
   height: 6px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: var(--surface-3);
 }
 .stepDone {
   background: var(--accent);
 }
 .stepLive {
-  background: var(--color-brand-secondary);
+  background: var(--accent);
   animation: live 1.4s ease-in-out infinite alternate;
 }
 @keyframes live {

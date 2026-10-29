@@ -227,7 +227,7 @@
 .coreMark {
   width: 44px;
   height: 44px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
 }
 @keyframes breathe {
   0%, 100% { transform: scale(1); }
@@ -412,7 +412,7 @@
 }
 .bar {
   height: 6px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: var(--surface-3);
   overflow: hidden;
 }
@@ -537,7 +537,7 @@
     text-decoration: none;
   }
   .mRowActive {
-    border-left: 4px solid var(--color-brand-secondary);
+    border-left: 4px solid var(--accent);
   }
   .mMain {
     flex: 1;
@@ -557,7 +557,7 @@
     text-overflow: ellipsis;
   }
   .mRowActive .mAction {
-    color: var(--color-brand-secondary);
+    color: var(--accent);
   }
   .mChevron {
     display: inline-flex;

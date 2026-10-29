@@ -9,8 +9,6 @@
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   height: 30px;
   padding: 0 12px;
   border: none;
@@ -37,13 +35,13 @@
 }
 .mine {
   margin-left: auto;
-  background: var(--color-brand-secondary) !important;
-  border-color: var(--color-brand-secondary) !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
   color: #ffffff !important;
   font-size: 10px !important;
 }
 .local {
-  border-left: 4px solid var(--color-brand-secondary);
+  border-left: 4px solid var(--accent);
 }
 .foot {
   display: flex;
@@ -65,7 +63,7 @@
   cursor: pointer;
 }
 .remove {
-  color: var(--color-brand-secondary);
+  color: var(--accent);
 }
 .planned {
   font-size: 12px;
@@ -100,7 +98,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border);
   background: var(--surface);
   font-weight: 600;
   font-size: 13.5px;
@@ -116,7 +114,7 @@
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
   padding: 0;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--color-text-default);
   box-shadow: var(--shadow-lg);
@@ -151,14 +149,12 @@
 }
 .tabs {
   display: flex;
-  border-bottom: 2px solid var(--border-strong);
+  border-bottom: 1px solid var(--border);
 }
 .tabs button {
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   padding: 10px 14px;
   border: none;
   background: none;
@@ -169,7 +165,7 @@
 }
 .tabs button[aria-selected="true"] {
   color: var(--color-text-default);
-  border-bottom-color: var(--color-brand-secondary);
+  border-bottom-color: var(--accent);
 }
 .drop {
   position: relative;
@@ -203,8 +199,6 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--color-text-muted);
 }
 .field input,
@@ -226,7 +220,7 @@
   gap: 10px;
   align-items: flex-start;
   padding: 10px 12px;
-  border-left: 4px solid var(--color-brand-secondary);
+  border-left: 4px solid var(--accent);
   background: var(--surface-3);
   font-size: 13px;
 }
@@ -234,7 +228,7 @@
   width: 16px;
   height: 16px;
   flex: none;
-  color: var(--color-brand-secondary);
+  color: var(--accent);
   margin-top: 1px;
 }
 .check {
@@ -247,7 +241,7 @@
   display: grid;
   gap: 6px;
   padding: 12px 14px;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border);
 }
 .preview p {
   margin: 0;
@@ -274,8 +268,6 @@
   gap: 6px;
   font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 .audit svg {
   width: 13px;
@@ -289,7 +281,7 @@
   border-bottom: 2px dashed var(--border-strong);
 }
 .audit_fail {
-  color: var(--color-brand-secondary);
+  color: var(--accent);
 }
 .auditNone {
   font-size: 11px;
@@ -298,17 +290,17 @@
 }
 .blocked {
   opacity: 0.75;
-  border-color: var(--color-brand-secondary) !important;
+  border-color: var(--accent) !important;
   border-style: dashed !important;
 }
 .report {
   display: grid;
   gap: 10px;
   padding: 12px 14px;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border);
 }
 .report_fail {
-  border-color: var(--color-brand-secondary);
+  border-color: var(--accent);
 }
 .report_warn {
   border-style: dashed;
@@ -325,7 +317,7 @@
   flex: none;
 }
 .report_fail .reportHead {
-  color: var(--color-brand-secondary);
+  color: var(--accent);
 }
 .reportMeta {
   margin-left: auto;
@@ -355,20 +347,18 @@
 .sev {
   font-size: 10px;
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   text-align: center;
   padding: 3px 0;
   border: 1.5px solid var(--border-strong);
 }
 .sev_critical {
-  background: var(--color-brand-secondary);
-  border-color: var(--color-brand-secondary);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #ffffff;
 }
 .sev_high {
-  border-color: var(--color-brand-secondary);
-  color: var(--color-brand-secondary);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .sev_medium {
   border-style: dashed;
@@ -403,7 +393,7 @@
 .policy {
   margin: 0;
   padding: 10px 12px;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border);
   font-size: 13px;
   font-weight: 600;
 }
@@ -412,7 +402,7 @@
   gap: 12px;
   align-items: flex-start;
   padding: 12px 14px;
-  border: 2px solid var(--border-strong);
+  border: 1px solid var(--border);
   background: var(--surface-3);
 }
 .proposed svg {

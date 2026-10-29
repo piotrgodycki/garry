@@ -9,7 +9,8 @@
  * phone the menu is a drawer that opens, goes to a page and closes again; on a
  * wide screen the voice dock sits beside the page instead of over it.
  * GARRY_LAYOUT_SHOTS=<dir> also saves a screenshot of each page and size;
- * GARRY_LAYOUT_SIZES=phone,laptop checks only those sizes.
+ * GARRY_LAYOUT_SIZES=phone,laptop checks only those sizes; GARRY_LAYOUT_SCHEME=dark
+ * checks in the dark theme.
  * Needs the built dashboard and Chromium, like test:dropdown.
  * Run with: pnpm -C garry-tool test:layout (CI runs it too).
  */
@@ -190,7 +191,7 @@ const problems = (page: Page) =>
 const browser = await launchChromium();
 // tsx names the functions it compiles with a helper the page does not have
 const newPage = async (viewport: { width: number; height: number }) => {
-  const page = await browser.newPage({ viewport });
+  const page = await browser.newPage({ viewport, colorScheme: process.env.GARRY_LAYOUT_SCHEME === "dark" ? "dark" : "light" });
   await page.addInitScript("globalThis.__name = (f) => f");
   return page;
 };
