@@ -154,8 +154,10 @@ Projects, or `garry project export` / `import`). See [docs/cli-more.md](./docs/c
 ## Build with agents (the IDE)
 
 Garry is where you work on code with agents. Open **Build** in the dashboard, the
-desktop app or the phone app, pick a project, say what should change, and an agent
-works on it:
+desktop app or the phone app. **Start a job**: pick the repository, say what
+should change, and choose who works on it. **Your jobs** lists every job in one
+list, what needs you first, with filters (needs you, working, ready to review,
+done). Adding a repository and the feature pipeline are buttons in the header.
 
 - every piece of work gets its own branch and git worktree
   (`garry/<what>-<id>`), so your own checkout is never touched;
@@ -177,17 +179,18 @@ works on it:
   terminal open on this computer only, never on a paired phone; a company can
   turn the terminal off with `GARRY_TERMINAL=off`.
 
-Agents can also work together, in one branch:
+Who works on a job:
 
-- **With a reviewer** (a pair): one agent writes; each time it finishes, a
+- **One agent**: it makes the change on its own branch.
+- **Agent and reviewer** (a pair): one agent writes; each time it finishes, a
   reviewer agent reads its changes and answers APPROVED, or CHANGES with what
   to fix. The writer gets the fixes as its next message and the reviewer looks
   again, up to the number of rounds you pick (1 to 5); out of rounds, or when
   the writer asks you something, the pair waits for you.
-- **A chain**: steps in the order you set, each its own agent, the next
-  starting when the one before is done and building on its work. Steps that
-  have not started can be moved, dropped and added to (Build, Together), a
-  chain can be stopped, and any piece of work can be handed on to another agent
+- **Several steps** (a chain): steps in the order you set, each its own agent,
+  the next starting when the one before is done and building on its work.
+  Steps that have not started can be moved, dropped and added to (Build, Your
+  jobs), a chain can be stopped after the step that runs, and any piece of work can be handed on to another agent
   from its own page (**Then another agent**). A step that asks you something
   pauses the chain until your answer's turn ends well.
 

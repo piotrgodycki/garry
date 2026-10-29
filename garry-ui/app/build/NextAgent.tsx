@@ -5,7 +5,7 @@ import styles from "./build.module.css";
 
 /**
  * Hand this work on to another agent: it starts in the same branch once this
- * one is done, as the next step of a chain (Build lists it under Together,
+ * one is done, as the next step of a job in steps (Build lists it under Your jobs,
  * where more steps can be added and put in order).
  */
 export default function NextAgent({ thread }: { thread: Thread }) {
@@ -15,7 +15,7 @@ export default function NextAgent({ thread }: { thread: Thread }) {
     try {
       await client.startChain([text], { projectId: thread.projectId, after: thread.id, name: thread.title });
       setText("");
-      setNote({ ok: true, text: "Added: it starts here once this work is done (Build, Together)." });
+      setNote({ ok: true, text: "Added. It starts once this work is done; follow it in Build, Your jobs." });
     } catch (e) {
       setNote({ ok: false, text: e instanceof Error ? e.message : String(e) });
     }
@@ -23,6 +23,7 @@ export default function NextAgent({ thread }: { thread: Thread }) {
   return (
     <section className={`card ${styles.team}`} aria-label="then another agent">
       <span className="eyebrow">Then another agent</span>
+      <span className={styles.meta}>Hand this work on: another agent carries on in the same branch once this one is done.</span>
       <form
         className={styles.row}
         onSubmit={(e) => {
@@ -30,7 +31,7 @@ export default function NextAgent({ thread }: { thread: Thread }) {
           if (text.trim()) void send();
         }}
       >
-        <input className="input" aria-label="what the next agent does" placeholder="For example: write the tests for this" value={text} onChange={(e) => setText(e.target.value)} />
+        <input className="input" aria-label="what the next agent does" placeholder="e.g. Write the tests for this" value={text} onChange={(e) => setText(e.target.value)} />
         <button className="btn" type="submit" disabled={!text.trim()}>
           Hand it on
         </button>

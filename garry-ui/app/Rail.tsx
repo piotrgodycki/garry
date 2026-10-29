@@ -10,8 +10,8 @@ import { Icon } from "./icons";
 /**
  * The rail on a wide screen: Garry (crawling while agents work), every page as
  * an icon with its name on hover and focus, the work that needs you as a badge
- * on Live, the projects as squares to switch between, and at the foot talking
- * to Garry, the theme and whether the server is up.
+ * on Live, the projects as squares to switch between, and at the foot
+ * the theme and whether the server is up.
  */
 export default function Rail() {
   const path = usePathname();
@@ -53,9 +53,6 @@ export default function Rail() {
       <RailProjects />
       </div>
       <div className="railFoot">
-        <button type="button" className="railTalk" aria-label="talk to Garry" data-tip="Dictate to Garry  ⌘J" onClick={() => window.dispatchEvent(new Event("garry:voice"))}>
-          {Icon.mic}
-        </button>
         <ThemeCycle />
         <ServerDot />
       </div>

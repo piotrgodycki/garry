@@ -1,0 +1,387 @@
+/* Build: start a job beside the list of your jobs */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(340px, 440px) minmax(0, 1fr);
+  gap: var(--space-lg);
+  align-items: start;
+}
+.cardTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.help {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+/* start a job */
+.newJob {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+}
+.field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.label {
+  padding: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text-default);
+}
+.repoRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.repoRow :global(.btn svg) {
+  width: 15px;
+  height: 15px;
+}
+.repoName {
+  font-weight: 600;
+  font-size: 15px;
+}
+.prompt {
+  min-height: 120px;
+  padding: 12px 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.small {
+  width: 130px;
+}
+.modes {
+  display: grid;
+  gap: 8px;
+}
+.mode {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--color-text-default);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mode:hover {
+  border-color: var(--border-strong);
+}
+.mode[aria-checked="true"] {
+  border-color: var(--state-work);
+  background: color-mix(in srgb, var(--state-work) 6%, var(--surface));
+  box-shadow: 0 0 0 1px var(--state-work);
+}
+.modeIcon {
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--surface-3);
+  color: var(--color-text-muted);
+}
+.mode[aria-checked="true"] .modeIcon {
+  background: color-mix(in srgb, var(--state-work) 14%, var(--surface));
+  color: var(--state-work);
+}
+.modeIcon svg {
+  width: 19px;
+  height: 19px;
+}
+.mode b {
+  font-size: 15px;
+  font-weight: 600;
+}
+.mode span:last-child {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.steps li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 6px;
+}
+.stepNo {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.steps :global(.btn svg),
+.stepActs :global(.btn svg) {
+  width: 14px;
+  height: 14px;
+}
+.startRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+/* add a repository */
+.addRepo {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  margin-bottom: var(--space-lg);
+}
+.cloneRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+/* your jobs */
+.jobs {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.jobsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.filters button[aria-checked="true"] {
+  background: var(--surface-3);
+  color: var(--color-text-default);
+  font-weight: 600;
+}
+.count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: var(--surface-3);
+  font-size: 12.5px;
+  text-align: center;
+}
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.none {
+  margin: 0;
+  padding: var(--space-md);
+  color: var(--color-text-muted);
+}
+.job {
+  --k: var(--state-idle);
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+}
+a.job:hover {
+  border-color: var(--border-strong);
+}
+.job[data-kind="needs"] {
+  --k: var(--state-wait);
+  border-color: color-mix(in srgb, var(--state-wait) 40%, var(--border));
+}
+.job[data-kind="working"] {
+  --k: var(--state-work);
+}
+.job[data-kind="ready"] {
+  --k: var(--state-done);
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--k);
+}
+.jobMain {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.jobMain > b {
+  font-size: 15.5px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.jobLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 14px;
+}
+.state {
+  color: var(--k);
+  font-weight: 600;
+}
+.doing {
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.where {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.links {
+  display: flex;
+  gap: 6px;
+}
+.review {
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 13.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.chainSteps {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+.chainSteps li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+.chainSteps li[data-status="done"] .stepNo {
+  background: color-mix(in srgb, var(--state-done) 18%, var(--surface));
+  color: var(--state-done);
+}
+.chainSteps li[data-status="running"] .stepNo {
+  background: color-mix(in srgb, var(--state-work) 18%, var(--surface));
+  color: var(--state-work);
+}
+.chainSteps li[data-status="needs-you"] .stepNo {
+  background: color-mix(in srgb, var(--state-wait) 18%, var(--surface));
+  color: var(--state-wait);
+}
+.stepText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stepState {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+.stepActs {
+  display: inline-flex;
+  gap: 2px;
+}
+.addStep {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.addStep input {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .job {
+    grid-template-columns: 10px minmax(0, 1fr);
+  }
+  .where,
+  .links {
+    grid-column: 2;
+    justify-items: start;
+  }
+  .chainSteps li {
+    grid-template-columns: 26px minmax(0, 1fr);
+  }
+  .chainSteps li > :not(.stepNo):not(.stepText) {
+    grid-column: 2;
+  }
+  .steps li {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+  }
+  .steps li > :global(.btn) {
+    grid-row: 2;
+  }
+}

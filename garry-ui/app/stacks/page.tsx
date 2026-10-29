@@ -64,12 +64,12 @@ function Composer({ data, initial, template, onSaved, onCancel }: { data: Stacks
     <section className={`card ${styles.composer}`}>
       <div className={styles.head}>
         <label className={styles.field}>
-          <span className="eyebrow">Name</span>
-          <input className="input mono" placeholder="web-frontend" value={name} disabled={Boolean(initial)} onChange={(e) => setName(e.target.value.toLowerCase())} autoFocus={!initial} />
+          <span className="fieldLabel">Name</span>
+          <input className="input mono" placeholder="e.g. web-frontend" value={name} disabled={Boolean(initial)} onChange={(e) => setName(e.target.value.toLowerCase())} autoFocus={!initial} />
         </label>
         <label className={`${styles.field} ${styles.grow}`}>
-          <span className="eyebrow">What it is for</span>
-          <input className="input" placeholder="Our microfrontends: React, Vite, Module Federation" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <span className="fieldLabel">What it is for</span>
+          <input className="input" placeholder="e.g. Our microfrontends: React, Vite and Module Federation" value={description} onChange={(e) => setDescription(e.target.value)} />
         </label>
       </div>
 
@@ -85,7 +85,7 @@ function Composer({ data, initial, template, onSaved, onCancel }: { data: Stacks
                 <span>{byId.get(p.id)?.name ?? p.id}</span>
                 <input
                   className={styles.version}
-                  placeholder="version"
+                  placeholder="Version"
                   aria-label={`${p.id} version`}
                   value={p.version ?? ""}
                   onChange={(e) => setPicked((cur) => cur.map((c) => (c.id === p.id ? { ...c, version: e.target.value } : c)))}
@@ -100,7 +100,7 @@ function Composer({ data, initial, template, onSaved, onCancel }: { data: Stacks
         <Issues issues={issues} />
       </div>
 
-      <input className="input" aria-label="search the catalog" placeholder="Search the catalog: postgres, workers, tailwind…" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <input className="input" aria-label="search the catalog" placeholder="Search the catalog, e.g. postgres, workers or tailwind" value={query} onChange={(e) => setQuery(e.target.value)} />
       <div className={styles.catalog}>
         {data.categories.map((c) => {
           const techs = data.catalog.filter((t) => t.category === c.id && (!q || t.name.toLowerCase().includes(q) || t.id.includes(q)));

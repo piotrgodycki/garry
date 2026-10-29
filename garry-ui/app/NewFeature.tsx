@@ -66,14 +66,14 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
       }}
     >
       <label className={styles.field}>
-        <span className="eyebrow">Feature</span>
-        <input className="input" placeholder="Quick cart in the header" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} autoFocus />
+        <span className="fieldLabel">Feature</span>
+        <input className="input" placeholder="e.g. A quick cart in the header" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} autoFocus />
       </label>
       <label className={styles.field}>
-        <span className="eyebrow">Goal</span>
+        <span className="fieldLabel">Goal</span>
         <textarea
           className={`input ${styles.goal}`}
-          placeholder="What should it do, for whom, and why. The spec stage starts from this."
+          placeholder="e.g. Let shoppers see their cart without leaving the page, so fewer of them give up. Garry writes the spec from this."
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
         />

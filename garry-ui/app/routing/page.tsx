@@ -111,7 +111,7 @@ export default function Routing() {
             ))}
             {creating ? (
               <div className={`card ${own.profile} ${own.newProfile}`}>
-                <input className="input mono" placeholder="fast-and-cheap" value={newName} autoFocus onChange={(e) => setNewName(e.target.value.toLowerCase())} onKeyDown={(e) => e.key === "Enter" && newName.trim() && void create()} />
+                <input className="input mono" placeholder="e.g. fast-and-cheap" aria-label="new profile name" value={newName} autoFocus onChange={(e) => setNewName(e.target.value.toLowerCase())} onKeyDown={(e) => e.key === "Enter" && newName.trim() && void create()} />
                 <span className={own.profileDesc}>Starts as a copy of {selected || "default"}.</span>
                 <span className={own.row}>
                   <button className="btn btnSm btnPrimary" disabled={!newName.trim()} onClick={() => void create()}>

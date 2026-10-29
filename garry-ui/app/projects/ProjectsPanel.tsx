@@ -134,7 +134,7 @@ export default function ProjectsPanel() {
         <p className={styles.note}>Projects are made, imported and exported on the computer running Garry.</p>
       ) : (
         <div className={styles.tools}>
-          <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="New project name" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && name.trim() && void run("new", () => client.createGarryProject(name.trim()).then(() => setName("")), "Created")} />
+          <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="Name of a new project, e.g. Shop" aria-label="new project name" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && name.trim() && void run("new", () => client.createGarryProject(name.trim()).then(() => setName("")), "Created")} />
           <button className="btn btnPrimary" disabled={!name.trim() || !!busy} onClick={() => void run("new", () => client.createGarryProject(name.trim()).then(() => setName("")), "Created")}>
             New project
           </button>

@@ -54,7 +54,7 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
   return (
     <div className={styles.settings}>
       <fieldset className={styles.field} disabled={readOnly}>
-        <legend className="eyebrow">Pushing</legend>
+        <legend className="fieldLabel">Pushing</legend>
         <div className={styles.segmented} role="radiogroup" aria-label="Pushing">
           {MODES.map((m) => (
             <button key={m.id} role="radio" aria-checked={draft.push === m.id} className={draft.push === m.id ? styles.segOn : ""} onClick={() => set({ push: m.id })}>
@@ -65,18 +65,18 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
         <span className={styles.meta}>{MODES.find((m) => m.id === draft.push)?.hint}</span>
       </fieldset>
       <label className={styles.field}>
-        <span className="eyebrow">Pull requests into</span>
-        <input className="input" disabled={readOnly} placeholder="the repository's default branch" value={draft.baseBranch} onChange={(e) => set({ baseBranch: e.target.value })} />
+        <span className="fieldLabel">Pull requests into</span>
+        <input className="input" disabled={readOnly} placeholder="Empty: the repository's default branch" value={draft.baseBranch} onChange={(e) => set({ baseBranch: e.target.value })} />
       </label>
       <label className={styles.field}>
-        <span className="eyebrow">Branch prefix</span>
+        <span className="fieldLabel">Branch prefix</span>
         <input className="input" disabled={readOnly} value={draft.branchPrefix} onChange={(e) => set({ branchPrefix: e.target.value })} />
         <span className={styles.meta}>
           New work: {draft.branchPrefix}add-dark-mode-x1y2
         </span>
       </label>
       <label className={styles.field}>
-        <span className="eyebrow">Protected branches</span>
+        <span className="fieldLabel">Protected branches</span>
         <input className="input" disabled={readOnly} value={protectedText} onChange={(e) => setProtectedText(e.target.value)} />
         <span className={styles.meta}>Never pushed to, even with a yes. Comma separated, * matches anything.</span>
       </label>
@@ -85,7 +85,7 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
         Open pull requests as drafts
       </label>
       <label className={styles.field}>
-        <span className="eyebrow">Largest file an agent may commit</span>
+        <span className="fieldLabel">Largest file an agent may commit</span>
         <input
           className="input"
           type="number"
