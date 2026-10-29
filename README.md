@@ -27,12 +27,31 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
 
 ## Screenshots
 
-**Build** is the one place for agents: "Agents now" shows every agent at a
-glance (what it is doing right now, what it asks you, what is ready), and the
-feature pipeline view shows a feature's orchestration from left to right, each
-stage with the agent and model doing it for Garry and for every service.
+**Live** is mission control: every agent of the project as a lane on a
+timeline, built from what the agents actually did (working, waiting on you,
+ready, failed), with a now line running through. What needs you sits beside
+it in the agent's own words, and you answer right there; an agent that stopped
+gets **Let it fix**. Pick a lane (or J and K) to follow it step by step, with
+what it has cost.
 
-![Feature pipeline](docs/screenshots/live-agents.png)
+![Live](docs/screenshots/live.png)
+
+Every page sits in the same frame: a narrow **rail** with every page as an
+icon (Live carries a badge with what needs you, your projects are squares to
+switch between), a **top bar** with the project, the page and Garry at a
+glance (need you, working, ready), and a **command line** at the foot: press
+**Cmd/Ctrl+K** and type a page's name to go there, or a sentence to start an
+agent on it in Build or to talk it through with Garry (**Cmd/Ctrl+J** opens
+the voice dock). Paper by day, graphite by night; colour only ever means a
+state. Garry's crew has a face per role (the analyst's glasses, the
+developer's headphones, the reviewer's lens), and empty pages show Garry's
+world instead of a blank: soil, sprouts, Garry resting when you are caught up.
+
+**The feature pipeline** (in Build) shows a feature's orchestration from left
+to right, each stage with the agent and model doing it for Garry and for
+every service.
+
+![Feature pipeline](docs/screenshots/pipeline.png)
 
 **Architecture**: services and the platforms they run on, joined like puzzle
 pieces, on a board for the whole project and one for each repository. A wizard
@@ -50,11 +69,12 @@ Edge Delivery Services, Document Authoring, AEM Assets, App Builder, I/O Events)
   <img src="docs/screenshots/architecture-board-light.png" alt="Architecture board" />
 </picture>
 
-The dashboard's menu follows the work: **Work** (Dashboard, Build, Pull
+The dashboard's menu follows the work: **Work** (Dashboard, Live, Build, Pull
 requests) is the idea, the agents building it and what it ships as; **Project**
 (Services, Architecture, Stacks, Files) is what it happens in; **Garry**
 (Skills, Model routing, Settings) is how Garry works. Every page uses the whole
-width of the screen and works on a phone, where the menu becomes a drawer.
+width of the screen and works on a phone, where the rail becomes a menu in a
+drawer.
 
 <table>
   <tr>
@@ -199,8 +219,13 @@ and Other Computers, then Pair a Device, shows the pairing QR code.
 
 ## Mobile app
 
-`garry-mobile` is Garry on your phone: the features and the stage each is at, the
-agents working live, and the pull requests. New feature creates one (what it is,
+`garry-mobile` is Garry on your phone, in the same look as the dashboard. Its
+home screen starts with what needs you, in the agent's own words, answered
+right there (or **Let it fix** for an agent that stopped; Garry rests on his
+mound when nothing waits), then the agents at work with their faces and
+states, then the features and the stage each is at. A feature shows its work
+log and its pull requests; a piece of work shows the conversation, its
+changes, commit and pull request. New feature creates one (what it is,
 the goal, the services and contracts it touches), New work starts an agent in a
 project. It talks to the server on your
 computer over your Wi-Fi (or Tailscale), after pairing once with a QR code.
@@ -232,12 +257,20 @@ for everyone, `GARRY_PUSH_URL` sends to a push relay of your own, and
 build of the app with an EAS project id (`eas init`); Expo Go and the simulator
 cannot receive them.
 
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/iphone-light.png" alt="The iPhone app by day" /></td>
+    <td width="50%"><img src="docs/screenshots/iphone-dark.png" alt="The iPhone app at night" /></td>
+  </tr>
+</table>
+
 TestFlight and App Store builds come from Expo's build service:
 `eas build --platform ios --profile production`, then `eas submit --platform ios`
 ([`eas.json`](./garry-mobile/eas.json)). That needs an Expo account and an Apple
 Developer account (99 USD a year, the same one that signs the Mac app). Until then
 Expo Go runs the app. CI checks the app on every push: the
-client against a real server, a typecheck and a full bundle.
+client against a real server, a typecheck, a full bundle, and its web build in
+a phone-sized browser paired with a real server (`test:mobile`).
 
 ## Guides
 
@@ -259,6 +292,7 @@ client against a real server, a typecheck and a full bundle.
 | `pnpm -r typecheck` | type check every package |
 | `pnpm -C garry-tool check:registry <dir>` | validate a registry (for example `testdata/registry/frontend`) |
 | `pnpm -C garry-tool check:skills` | validate the skills manifest |
+| `pnpm -C garry-tool readme-shots` | retake the README's screenshots (after `pnpm -C garry-ui build` and `pnpm -C garry-mobile export:web`) |
 
 ## Continuous integration
 
@@ -269,6 +303,13 @@ every push and pull request. It has four jobs:
   tool packages, validation of the mfe and backend test registries
   (`check:registry`) and of the skills (`check:skills`), and the skill security audit: every
   pre-installed skill must pass it, and the audit's regression corpus must behave.
+  It also builds the dashboard and clicks through it in a real browser against
+  a real server whose agents are a stand-in for Claude Code: every page at six
+  screen sizes in light and dark (`test:layout`), the frame (`test:frame`),
+  Live (`test:live-ui`), Build, the crew and illustrations, the crawling Garry,
+  and the iPhone app's web build (`test:mobile`). `test:style` checks that text
+  and every state colour reach WCAG AA contrast on every surface, in both
+  themes, on the web and on the phone.
 - `package`: builds the `garry` npm package, packs it, installs the tarball into an
   empty project and runs the CLI there (`pnpm -C garry-tool smoke`).
 - `dash-guard`: runs `scripts/check-no-emdash.mjs`. The build fails if any em dash,

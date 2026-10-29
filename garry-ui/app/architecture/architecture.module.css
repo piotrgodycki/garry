@@ -60,6 +60,11 @@
   --xy-edge-label-background-color: var(--surface);
   --xy-edge-label-color: var(--color-text-default);
   --xy-minimap-background-color: var(--surface);
+  /* the minimap in the theme's colours, not React Flow's light grey */
+  --xy-minimap-mask-background-color: color-mix(in srgb, var(--bg) 70%, transparent);
+  --xy-minimap-mask-stroke-color: var(--border-strong);
+  --xy-minimap-node-background-color: var(--surface-3);
+  --xy-minimap-node-stroke-color: var(--border-strong);
   --xy-controls-button-background-color: var(--surface);
   --xy-controls-button-color: var(--color-text-default);
   --xy-controls-button-border-color: var(--border);
