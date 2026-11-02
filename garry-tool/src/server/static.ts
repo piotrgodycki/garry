@@ -25,9 +25,8 @@ const HEADERS = {
 };
 
 /**
- * Serves the built dashboard (garry-ui/dist) from garry serve: a file when the
- * path names one inside the folder, index.html for every other page (client side
- * routes). Returns false when there is no UI folder, so the caller can answer.
+ * Serves a file inside the built dashboard, or index.html for client side routes.
+ * Returns false when there is no UI folder, so the caller can answer.
  */
 export function serveUi(req: IncomingMessage, res: ServerResponse, uiDir: string | undefined, path: string): boolean {
   if (!uiDir || !existsSync(join(uiDir, "index.html"))) return false;

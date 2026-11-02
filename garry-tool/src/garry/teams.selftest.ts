@@ -1,12 +1,6 @@
 /**
- * Regression test for agents working together: a pair (a writer, then a
- * reviewer that answers APPROVED or CHANGES, the writer fixing until approved
- * or out of rounds), and a chain (steps in order, each its own agent in one
- * working copy, the next starting when the one before is done; steps added,
- * dropped and reordered while they wait; a chain started after work already
- * done; a question pausing it until your answer's turn ends well). And the
- * HTTP routes. A stand-in for Claude Code runs the turns.
- * Run with: pnpm -C garry-tool test:teams (CI runs it too).
+ * Tests pairs and chains of agents, and their HTTP routes, with a stand-in for Claude Code.
+ * Run with: pnpm -C garry-tool test:teams
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -53,7 +47,7 @@ const said = (id: string) =>
 const pairOf = (id: string) => teams.pairs().find((p) => p.id === id)!;
 const chainOf = (id: string) => teams.chains().find((c) => c.id === id)!;
 
-// a pair: the reviewer asks for changes once, then approves
+// PAIR2: the stand-in reviewer asks for changes once, then approves.
 const pair = teams.startPair(shop.id, "PAIR2 add a buy button");
 await until(() => pairOf(pair.id).status === "approved");
 const p = pairOf(pair.id);
@@ -72,7 +66,6 @@ expect(
 );
 expect("the last review is kept", p.lastReview?.startsWith("APPROVED") === true);
 
-// out of rounds: the pair stops and waits for you
 const stubborn = teams.startPair(shop.id, "PAIR9 refactor the cart", 2);
 await until(() => pairOf(stubborn.id).status === "needs-you");
 expect(
@@ -81,7 +74,7 @@ expect(
   JSON.stringify(pairOf(stubborn.id)),
 );
 
-// a writer that asks you something: no review until your answer's turn ends well
+// ASK: the stand-in writer asks a question, so no review starts until you answer.
 const asking = teams.startPair(shop.id, "PAIR1 ASK add a wish list");
 await until(() => pairOf(asking.id).status === "needs-you");
 expect("a writer that asks you something makes the pair wait, with no review yet", pairOf(asking.id).status === "needs-you" && !pairOf(asking.id).reviewer);
@@ -89,7 +82,6 @@ threads.send(pairOf(asking.id).writer, "a heart icon, please");
 await until(() => pairOf(asking.id).status === "approved");
 expect("answered, the review follows and approves", pairOf(asking.id).status === "approved" && !!pairOf(asking.id).reviewer);
 
-// a chain: steps in order, one working copy, each its own agent
 const chain = teams.startChain(shop.id, ["write the spec", "BUSY build it", "write the tests", "write the notes"], "Checkout");
 await until(() => chainOf(chain.id).steps[1].status === "running" && threads.store.events(chainOf(chain.id).steps[1].threadId!).some((e) => e.type === "tool"));
 let c = chainOf(chain.id);
@@ -105,7 +97,6 @@ expect(
   second.id !== first.id && second.worktree === first.worktree && second.sharesWith === first.id && second.role === "step",
 );
 expect("the step agent sees the work before it", readFileSync(join(first.worktree, "NOTES.md"), "utf8").startsWith("write the spec\n"));
-// while waiting: reorder, drop, add
 const [, , tests, notes] = c.steps;
 teams.reorder(chain.id, [notes.id, tests.id]);
 expect(
@@ -158,7 +149,6 @@ teams.addStep(chain.id, "and one more thing");
 await until(() => chainOf(chain.id).status === "done" && chainOf(chain.id).steps.length === 6 && chainOf(chain.id).steps[5].status === "done");
 expect("a step added to a finished chain runs it again", chainOf(chain.id).steps[5].status === "done");
 
-// a chain after work already done, by hand
 const mine = threads.create(shop.id, "add the footer");
 await until(() => !threads.isRunning(mine.id));
 const after = teams.startChain(shop.id, ["review the footer"], "", mine.id);
@@ -169,7 +159,6 @@ expect(
   a.steps[0].threadId === mine.id && a.steps[0].status === "done" && threads.store.get(a.steps[1].threadId!)?.worktree === mine.worktree,
 );
 
-// stopping: nothing more starts
 const stopped = teams.startChain(shop.id, ["BUSY one", "two"]);
 await until(() => chainOf(stopped.id).steps[0].status === "running");
 teams.stopChain(stopped.id);
@@ -180,12 +169,10 @@ expect(
   chainOf(stopped.id).status === "stopped" && chainOf(stopped.id).steps[1].status === "dropped" && !chainOf(stopped.id).steps[1].threadId,
 );
 
-// removing a reviewer leaves the writer's working copy
 threads.remove(reviewer.id);
 expect("removing an agent that joined leaves the working copy to its owner", existsSync(join(writer.worktree, "NOTES.md")));
 teams.close();
 
-// over HTTP
 const server = createGarryServer(
   { registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads },
   new DeviceStore(join(home, "devices.json")),

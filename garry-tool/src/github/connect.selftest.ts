@@ -1,8 +1,6 @@
 /**
- * Regression test for connecting GitHub and importing repositories, against a
- * stand-in for GitHub: the token order, saving a token (owner only), the device
- * flow, listing repositories, cloning without writing the token into the repo,
- * and the server's endpoints. Run with: pnpm -C garry-tool test:github (CI runs it too).
+ * Tests connecting GitHub and importing repositories against a stand-in GitHub.
+ * Run with: pnpm -C garry-tool test:github
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -112,7 +110,6 @@ expect(
 );
 expect("importing again reuses it", cloneRepo(TOKEN, "octo/shop") === dir);
 
-// the server (this computer)
 process.env.GARRY_GITHUB_WEB = ghUrl;
 const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
 const server = createGarryServer(

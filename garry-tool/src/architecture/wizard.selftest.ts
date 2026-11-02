@@ -1,11 +1,6 @@
 /**
  * Regression test for the architecture wizard and the boards per repository.
- * Every combination of answers builds a board the rules have nothing against
- * (no error, no missing piece), with every client, the data and every extra
- * asked for on it; the registry's services join it with what they need. A
- * board per repository is kept apart from the others and from the whole
- * project's, keeps its wizard answers when edited by hand, and is reset on its
- * own, from this computer only. Run with: pnpm -C garry-tool test:wizard (CI runs it too).
+ * Run with: pnpm -C garry-tool test:wizard
  */
 import { existsSync, mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -37,7 +32,6 @@ const EXTRA_CAP: Record<string, Capability> = {
   events: "events",
 };
 
-// every combination of answers, without services
 let boards = 0;
 const bad: string[] = [];
 for (const clients of subsets(WIZARD_CLIENTS).filter((s) => s.length))
@@ -87,7 +81,6 @@ expect(
   JSON.stringify(adobe.edges),
 );
 
-// wrong answers are refused
 const refused = (a: unknown) => {
   try {
     buildFromWizard(a);
@@ -103,7 +96,6 @@ expect(
     refused({ clients: ["web"], platform: "aws", data: "sql", extras: ["blockchain"] }),
 );
 
-// with the registry's services: each one is on the board with what it needs
 const registry = mkdtempSync(join(tmpdir(), "garry-wizard-"));
 const kinds = ["mfe-shell", "mfe-remote", "spa", "ssr", "ssg", "mobile", "backend", "bff", "worker", "function"];
 for (const kind of kinds)
@@ -146,7 +138,6 @@ expect(
   !buildFromWizard({ clients: ["web"], platform: "vercel", data: "sql", services: false }, services).nodes.some((n) => n.block.startsWith("service:")),
 );
 
-// boards per repository: apart, keep their answers, reset alone
 const answers: WizardAnswers = { clients: ["web"], platform: "cloudflare", data: "sql", extras: ["auth"], services: false };
 saveArchitecture(registry, buildFromWizard(answers), "shop");
 saveArchitecture(registry, buildFromWizard({ ...answers, platform: "aws" }), "admin");
@@ -186,7 +177,6 @@ for (const name of ["../x", "a/b", ".hidden"]) {
 }
 expect("a board name cannot leave the registry", thrown === 3);
 
-// the registry check and export know the boards per repository
 mkdirSync(join(registry, "architecture"), { recursive: true });
 writeFileSync(join(registry, "architecture", "broken.json"), JSON.stringify({ nodes: [{ id: "a", block: "nope", x: 0, y: 0 }], edges: [] }));
 expect(
@@ -199,7 +189,6 @@ expect(
   bundlePathOk("architecture/shop.json") && !bundlePathOk("architecture/../x.json") && !bundlePathOk("architecture/.x.json"),
 );
 
-// the server: a board per repository, the wizard's preview, reset from this computer only
 process.env.GARRY_HOME = join(registry, ".garry");
 const { createGarryServer } = await import("../server/server.js");
 const { DeviceStore } = await import("../server/auth.js");

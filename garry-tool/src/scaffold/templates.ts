@@ -5,7 +5,6 @@ export interface GeneratedFile {
   content: string;
 }
 
-/** Renders all files for a new microfrontend service. */
 export function renderService(opts: ScaffoldOptions): GeneratedFile[] {
   const isHost = opts.kind === "shell";
   const files: GeneratedFile[] = [

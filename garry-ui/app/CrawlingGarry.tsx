@@ -2,15 +2,9 @@ import { useEffect, useRef } from "react";
 import styles from "./crawl.module.css";
 
 /**
- * Garry crawling along a strip of soil at the foot of the dashboard. He moves
- * the way an earthworm does: a wave of contraction runs from head to tail,
- * squeezed segments grow fat and grip the ground, stretched ones grow thin and
- * slide forward, so he surges and rests on his own. Drawn on a canvas at the
- * screen's pixel density, timed by the clock rather than by frames. He pauses
- * and looks up when the pointer comes near his head, crawls faster while
- * agents are at work, leaves a faint moist trail, and walks on from the left
- * once he leaves the right. Still when motion is reduced, idle when off
- * screen. Colours come from the theme (--garry-*, --soil, --leaf).
+ * Garry crawls the way an earthworm does: a contraction wave runs head to tail, squeezed segments
+ * grip the ground and stretched ones slide forward. Timed by the clock rather than by frames;
+ * still with reduced motion and idle off screen.
  */
 
 const N = 28; // points along the body, head first
@@ -80,7 +74,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
     const trail = document.createElement("canvas");
     const tctx = trail.getContext("2d")!;
 
-    // the worm
     let tau = 0;
     let headX = -40;
     let xs: number[] = [];
@@ -109,7 +102,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       b.setTransform(dpr, 0, 0, dpr, 0, 0);
       const base = HEIGHT - 30;
       ground = (x) => base + 2.6 * Math.sin(x / 150 + 0.6) + 1.4 * Math.sin(x / 57 + 2.1);
-      // the far bank, then the near one
       b.fillStyle = paint.soil2;
       b.beginPath();
       b.moveTo(0, HEIGHT);
@@ -124,7 +116,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       b.lineTo(W, HEIGHT);
       b.closePath();
       b.fill();
-      // pebbles and crumbs in the soil
       const count = Math.round(W / 26);
       for (let i = 0; i < count; i++) {
         const x = hash(i + 1) * W;
@@ -186,7 +177,7 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
 
     const step = (dt: number) => {
       t += dt;
-      // ease the speed and the head: slow and look up near the pointer, hurry when agents work
+      // Slow down and look up near the pointer; hurry while agents work.
       const head = { x: headX, y: ground(headX) - 10 };
       const near = pointer && Math.hypot(pointer.x - head.x, pointer.y - head.y) < 70;
       const target = near ? 0 : busyRef.current ? 1.55 : 1;
@@ -206,14 +197,12 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       headX = Math.max(headX, num / den);
       xs = r.map((v) => v + headX);
 
-      // off the right edge: on again from the left, trail and all
       if (xs[N - 1] > W + 30) {
         const shift = W + bodyLength() + 80;
         headX -= shift;
         xs = xs.map((x) => x - shift);
       }
 
-      // a moist trail from the tail, fading slowly
       tctx.globalCompositeOperation = "destination-out";
       tctx.fillStyle = `rgba(0, 0, 0, ${1 - Math.exp(-dt * 0.45)})`;
       tctx.fillRect(0, 0, W, HEIGHT);
@@ -230,7 +219,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       }
       lastTail = tx;
 
-      // blink now and then
       if (t > nextBlink) {
         blink = 0.14;
         nextBlink = t + 2.8 + hash(t) * 3.5;
@@ -246,13 +234,12 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       ctx.drawImage(trail, 0, 0, W, HEIGHT);
       for (const s of sprouts()) drawSprout(s.x, s.h, reduce.matches ? 0 : 0.07 * Math.sin(t * 1.3 + s.phase));
 
-      // the spine: each point sits on the ground, fat squeezed segments rise higher
+      // Squeezed segments are fatter, so they sit higher off the ground.
       const w = xs.map((_, i) => girth(i / (N - 1)) / Math.sqrt(e[i]));
       const ys = xs.map((x, i) => {
         const lift = i < 4 ? (1 - i / 4) * (2 + 1.2 * Math.sin(t * 2.3) + look * 9) : 0;
         return ground(x) - w[i] / 2 - lift;
       });
-      // normals, then the two edges of the body
       const nx: number[] = [];
       const ny: number[] = [];
       for (let i = 0; i < N; i++) {
@@ -268,7 +255,7 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       const top = edge(-1);
       const bottom = edge(1);
 
-      // a smooth outline: curves through the midpoints of each edge, round at head and tail
+      // Curves through the edge midpoints, rounded at head and tail.
       const outline = (path: CanvasRenderingContext2D) => {
         path.beginPath();
         path.moveTo(top[0][0], top[0][1]);
@@ -284,7 +271,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
         path.closePath();
       };
 
-      // soft contact shadow, then the body
       ctx.save();
       ctx.shadowColor = "rgba(40, 20, 10, 0.22)";
       ctx.shadowBlur = 6;
@@ -307,7 +293,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       for (let i = c1; i >= c0; i--) ctx.lineTo(bottom[i][0], bottom[i][1]);
       ctx.closePath();
       ctx.fill();
-      // roundness: a highlight along the back, a shade along the belly
       const stripe = (k: number, color: string, width: number) => {
         ctx.strokeStyle = color;
         ctx.lineCap = "round";
@@ -323,7 +308,7 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       };
       stripe(-0.48, paint.light, 2.6);
       stripe(0.62, paint.shade, 3.2);
-      // the rings between segments, none across the band
+      // No rings across the clitellum.
       ctx.strokeStyle = paint.ring;
       ctx.lineWidth = 1.15;
       ctx.globalAlpha = 0.8;
@@ -338,7 +323,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       }
       ctx.restore();
 
-      // the face: an eye that blinks, a little blush
       const hx = xs[0] - 2.5 + nx[0] * -1.5;
       const hy = ys[0] - w[0] * 0.12 - look * 0.8;
       ctx.fillStyle = paint.ink;
@@ -360,7 +344,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
       ctx.globalAlpha = 1;
     };
 
-    // the loop: by the clock, only while on screen, not at all with reduced motion
     let raf = 0;
     let last = 0;
     let visible = true;
@@ -390,7 +373,6 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
     io.observe(canvas);
     const onMotion = () => (reduce.matches ? (stop(), draw()) : start());
     reduce.addEventListener("change", onMotion);
-    // the theme changed: repaint with its colours
     const retheme = () => {
       paint = read(canvas);
       drawBackdrop();

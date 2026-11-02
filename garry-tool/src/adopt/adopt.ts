@@ -12,14 +12,12 @@ export interface AdoptResult {
   remoteEntry: { name: string; entry: string; exposes: string[] } | null;
 }
 
-/** Derives the service name: the MF config name, else the directory name. */
 function serviceName(root: string, mf: MfConfig): string {
   return mf.name ?? basename(root);
 }
 
 /**
- * Reverse engineers a registry entry from an existing repository.
- * Pure: it reads the repo and returns what it found, without writing anything.
+ * Derives a registry entry from an existing repository. Pure: it writes nothing.
  */
 export function analyzeRepo(root: string): AdoptResult {
   const stack = detectStack(root);
@@ -45,8 +43,8 @@ export function analyzeRepo(root: string): AdoptResult {
 }
 
 /**
- * Writes the derived manifest into catalog/ and merges the remote into
- * contracts/remotes.json. Existing files are preserved and merged, not clobbered.
+ * Writes the manifest into catalog/ and merges the remote into
+ * contracts/remotes.json without clobbering existing files.
  */
 export function writeAdoption(registry: string, result: AdoptResult): string[] {
   const written: string[] = [];
@@ -73,7 +71,6 @@ export function writeAdoption(registry: string, result: AdoptResult): string[] {
   return written;
 }
 
-/** Reads the existing manifest name set, to warn about re-adopting. */
 export function existingServices(registry: string): Set<string> {
   const dir = join(registry, "catalog");
   if (!existsSync(dir)) return new Set();

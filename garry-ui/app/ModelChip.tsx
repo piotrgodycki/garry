@@ -12,7 +12,6 @@ export function offered<M extends { id: string; previous?: boolean }>(models: M[
   return models.filter((m) => !m.previous || m.id === chosen);
 }
 
-/** A model chip: a tier colored dot (tokens in globals.css) plus the model label. */
 export default function ModelChip({ id, label }: { id: string; label: string }) {
   if (!label) return null;
   return (

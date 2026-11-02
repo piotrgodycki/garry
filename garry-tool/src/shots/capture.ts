@@ -15,9 +15,8 @@ export interface ShotEntry {
 }
 
 /**
- * Captures every route in every viewport and theme. Motion is frozen (reduced
- * motion plus Playwright's animation freeze) so two runs of the same code give
- * the same pixels. A page that fails to load is recorded, not fatal.
+ * Motion is frozen so two runs of the same code give the same pixels. A page that fails to load is
+ * recorded, not fatal.
  */
 export async function capture(cfg: ShotsConfig, baseUrl: string, outDir: string, log = console.log): Promise<ShotEntry[]> {
   mkdirSync(outDir, { recursive: true });

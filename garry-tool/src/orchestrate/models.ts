@@ -6,7 +6,7 @@ export interface ModelInfo {
   previous?: boolean;
 }
 
-/** The Claude models Garry can route to, newest first. Shown in the model pickers. */
+/** Newest first. */
 export const MODELS: ModelInfo[] = [
   { id: "claude-opus-5-5", label: "Opus 5.5", tier: "opus" },
   { id: "claude-sonnet-5-5", label: "Sonnet 5.5", tier: "sonnet" },

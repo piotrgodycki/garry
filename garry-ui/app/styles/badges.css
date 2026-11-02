@@ -1,5 +1,4 @@
 /* badges, chips, dots, feedback, and the calm character (one part of globals.css, which imports them in this order) */
-/* ---- badges, chips, dots -------------------------------------------------- */
 .badge svg {
   width: 13px;
   height: 13px;
@@ -86,7 +85,6 @@
   box-shadow: inset 0 0 0 1.5px var(--wait);
 }
 
-/* ---- feedback ------------------------------------------------------------- */
 .notice {
   display: flex;
   align-items: flex-start;
@@ -147,7 +145,6 @@
   flex: none;
 }
 
-/* tier colored dot for a model (opus, sonnet, haiku, fable) */
 .tier {
   width: 8px;
   height: 8px;
@@ -168,7 +165,6 @@
   background: var(--tier-fable);
 }
 
-/* ---- calm character -------------------------------------------------------- */
 /* Sentence case everywhere, quiet borders, soft shadows, one neutral primary. */
 h1 {
   font-weight: 700;

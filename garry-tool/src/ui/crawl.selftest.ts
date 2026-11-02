@@ -1,11 +1,6 @@
 /**
- * Regression test for Garry crawling at the foot of the dashboard, in a real
- * browser: he moves forward every frame by small steps (no jumps), the page
- * keeps its frame rate, he stops when the pointer is at his head, he does not
- * move off screen nor with reduced motion (but is still drawn), and the soil
- * follows the theme. Positions are read from the canvas pixels: the worm is
- * the only pink on it. Needs the built dashboard and Chromium, like
- * test:dropdown. Run with: pnpm -C garry-tool test:crawl (CI runs it too).
+ * Browser regression test for Garry crawling at the foot of the dashboard; positions are read from the
+ * canvas, where the worm is the only pink. Run with: pnpm -C garry-tool test:crawl
  */
 import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -80,7 +75,6 @@ try {
   const first = await at(page);
   expect("Garry is drawn", first !== null && first.head - first.tail > 120, JSON.stringify(first));
 
-  // every frame for two seconds: small steps forward, never back, the frame rate kept
   const frames = (await page.evaluate(`new Promise((done) => {
     const out = [];
     const t0 = performance.now();
@@ -111,7 +105,6 @@ try {
       .slice(0, 120),
   );
 
-  // the pointer at his head: he stops and looks up
   const now = (await at(page))!;
   await page.mouse.move(box.x + now.head, box.y + 48);
   await page.waitForTimeout(900);
@@ -134,7 +127,6 @@ try {
   const after = (await at(page))!;
   expect("off screen he waits", hidden && Math.abs(after.head - before.head) < 1, `hidden ${hidden}, moved ${(after.head - before.head).toFixed(2)} px`);
 
-  // the theme: the soil follows it
   await page.setViewportSize({ width: 1280, height: 640 });
   await canvas.scrollIntoViewIfNeeded();
   const soil = () =>
@@ -167,7 +159,6 @@ try {
   );
   await tall.close();
 
-  // reduced motion: drawn, still
   const calm = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
   await calm.goto(`${base}/`);
   await calm.locator("canvas[data-garry-crawl]").scrollIntoViewIfNeeded();

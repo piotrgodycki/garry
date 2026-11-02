@@ -40,7 +40,6 @@ const router = createBrowserRouter([
     element: <Shell />,
     children: [
       { path: "/", element: <Dashboard /> },
-      // Live agents now lives in Build, as the feature pipeline
       { path: "/agent", element: <AgentRedirect /> },
       { path: "/registry", element: <Registry /> },
       { path: "/stacks", element: <Stacks /> },

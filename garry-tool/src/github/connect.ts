@@ -4,12 +4,9 @@ import { dirname, join } from "node:path";
 import { garryHome } from "../server/auth.js";
 
 /**
- * Connecting Garry to GitHub without editing files. The token comes from, in
- * order: GARRY_GITHUB_TOKEN (.env.local), the token saved when you connected in
- * Garry (~/.garry/github.json, readable by you only), or the GitHub CLI's own
- * sign in (gh auth token). Connecting is either pasting a token or, when
- * GARRY_GITHUB_CLIENT_ID names a GitHub OAuth app, the device flow: Garry shows
- * a code, you enter it on github.com, done.
+ * Connecting Garry to GitHub. The token comes from GARRY_GITHUB_TOKEN, then the
+ * one saved in ~/.garry/github.json (owner-readable only), then `gh auth token`.
+ * With GARRY_GITHUB_CLIENT_ID set, connecting can use the OAuth device flow.
  */
 
 const file = () => join(garryHome(), "github.json");
@@ -122,7 +119,6 @@ export interface RepoSummary {
   cloneUrl: string;
 }
 
-/** The repositories the signed in account can reach, most recently updated first. */
 export async function listRepos(token: string, query = ""): Promise<RepoSummary[]> {
   const res = await fetch(`${api()}/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member`, {
     headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json" },

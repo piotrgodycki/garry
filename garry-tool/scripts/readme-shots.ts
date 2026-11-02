@@ -1,9 +1,6 @@
 /**
- * The README's screenshots (docs/screenshots), taken from the real dashboard
- * and the iPhone app's web build against a real Garry server with a demo
- * project: agents that ask, work, stopped and are ready (a stand-in for
- * Claude Code runs them), the frontend test registry, and an architecture
- * board from a ready-made template. Run after a change to how Garry looks:
+ * The README's screenshots, taken from the real dashboard and the iPhone app's web build against a demo
+ * project. Run after a change to how Garry looks:
  *   pnpm -C garry-ui build && pnpm -C garry-mobile export:web
  *   pnpm -C garry-tool readme-shots
  */
@@ -124,7 +121,6 @@ try {
   await shoot("layers", "/layers", '[role="radiogroup"]');
   await shoot("routing", "/routing", "h1");
   await shoot("settings", "/settings", "h1");
-  // the board alone, in both themes
   for (const scheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.goto(`${base}/architecture`);

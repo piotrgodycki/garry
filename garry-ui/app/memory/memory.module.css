@@ -1,4 +1,3 @@
-/* Memory: add one thing, then the list, oldest first */
 .add {
   display: grid;
   gap: 8px;

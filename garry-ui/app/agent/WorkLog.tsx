@@ -11,7 +11,6 @@ export interface TaskLogEntry {
   model: string;
 }
 
-/** The feature's work log: one line per task, who did it with which model, how many steps it took. */
 export default function WorkLog({
   taskLog,
   logs,

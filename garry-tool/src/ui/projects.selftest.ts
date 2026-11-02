@@ -1,10 +1,6 @@
 /**
- * Regression test for removing projects in Settings, in a real browser against
- * a real Garry server: every project has Remove, which asks in place first
- * (what goes, what stays) and can be cancelled; removing the active project
- * hands over to another and the page follows; the last project cannot be
- * removed. Needs the built dashboard and Chromium, like test:dropdown.
- * Run with: pnpm -C garry-tool test:projects-ui (CI runs it too).
+ * Browser regression test for removing projects in Settings.
+ * Run with: pnpm -C garry-tool test:projects-ui
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync } from "node:fs";
@@ -103,7 +99,6 @@ try {
     (await removeButtons.count()) === 3 && (await removeButtons.evaluateAll((b) => b.every((x) => !(x as HTMLButtonElement).disabled))),
   );
 
-  // asks in place, and Cancel keeps it
   const blogRow = page.getByRole("group", { name: "project Blog" });
   await blogRow.getByRole("button", { name: "Remove", exact: true }).click();
   const ask = page.getByRole("alertdialog", { name: "remove Blog" });
@@ -123,7 +118,6 @@ try {
     .catch(() => undefined);
   expect("confirming removes it", !ids().includes(blog.id) && (await page.getByText("Removed Blog").isVisible()), ids());
 
-  // the active one: another takes over and the page follows
   const shopRow = page.getByRole("group", { name: "project Shop" });
   await shopRow.getByRole("button", { name: "Remove", exact: true }).click();
   const askShop = page.getByRole("alertdialog", { name: "remove Shop" });
@@ -137,7 +131,6 @@ try {
       (await page.getByRole("button", { name: "project: Default", exact: true }).count()) === 1,
   );
 
-  // on a phone the question fits the screen, a long name included
   await page.setViewportSize({ width: 390, height: 844 });
   const long = createGarryProject({ name: "A project with a rather long name for a phone" });
   await page.reload();
@@ -162,7 +155,6 @@ try {
     .catch(() => undefined);
   expect("and removes it", !ids().includes(long.id));
 
-  // the last one stays
   const last = page.getByRole("button", { name: "Remove", exact: true });
   expect(
     "the last project cannot be removed",

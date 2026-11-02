@@ -39,9 +39,8 @@ function readManifest(dir: string): ShotEntry[] {
 }
 
 /**
- * Compares a base and a head capture view by view and writes a self contained
- * report directory: base/, head/, diff/ and report.json. Missing base (a new
- * page, or a base that failed to build) is reported as added, not as an error.
+ * Writes a self contained report directory. A missing base (a new page, or a base that failed to build)
+ * is reported as added, not as an error.
  */
 export async function compare(baseDir: string, headDir: string, outDir: string, labels: { base: string; head: string }): Promise<Report> {
   for (const sub of ["base", "head", "diff"]) mkdirSync(join(outDir, sub), { recursive: true });
@@ -138,7 +137,6 @@ const DIFF_SCRIPT = `async ({ srcA, srcB, delta }) => {
   return { ratio: changed / (w * h), png: out.toDataURL("image/png").split(",")[1] };
 }`;
 
-/** Diffs two PNGs on a canvas inside Chromium. Returns the changed share and a diff image. */
 async function diffImages(page: Page, a: string, b: string): Promise<{ ratio: number; png: string }> {
   const toUrl = (f: string) => `data:image/png;base64,${readFileSync(f).toString("base64")}`;
   const args = JSON.stringify({ srcA: toUrl(a), srcB: toUrl(b), delta: PIXEL_DELTA });

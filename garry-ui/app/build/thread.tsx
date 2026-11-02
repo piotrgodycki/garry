@@ -64,7 +64,6 @@ function Patch({ patch }: { patch: string }) {
   );
 }
 
-/** One piece of work: the conversation with the agent, its changes, commit and pull request. */
 export default function ThreadView() {
   const id = useParams().id ?? "";
   const [thread, setThread] = useState<Thread | null>(null);
@@ -250,8 +249,7 @@ export default function ThreadView() {
                     onClick={() =>
                       void act(async () => {
                         const p = await client.pushPreview(id);
-                        // the project allows pushing without asking: go ahead
-                        // asks first, refused, or not on GitHub yet (creating it needs your yes)
+                        // Anything but an unrefused allow for an existing repository needs your yes first.
                         if (p.mode !== "allow" || p.refused || p.create) {
                           setNewRepo({ name: p.create?.name ?? "", private: true });
                           return setPush(p);

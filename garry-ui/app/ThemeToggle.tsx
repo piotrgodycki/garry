@@ -3,7 +3,7 @@ import { Icon } from "./icons";
 
 type Theme = "light" | "system" | "dark";
 
-/** Three way segmented control. "system" follows the OS preference live. */
+/** "system" follows the OS preference live. */
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("system");
 

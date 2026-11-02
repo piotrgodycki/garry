@@ -15,12 +15,8 @@ import { setupTouchId, touchIdAvailable } from "./touchid.js";
 import { setupTray } from "./tray.js";
 import { startPushNotifier } from "../../garry-tool/src/status/push.js";
 
-/**
- * The Garry desktop app: runs garry serve inside the app and shows the dashboard
- * it hosts. The project folder (registry, garry.routing.json, .env.local) is
- * chosen from the File menu and remembered. Other devices can connect only when
- * "Allow phones and other computers" is on, and only after pairing.
- */
+// Runs garry serve inside the app and shows its dashboard. Other devices can connect
+// only when "Allow phones and other computers" is on, and only after pairing.
 
 interface Settings {
   project?: string;
@@ -56,7 +52,6 @@ let followThreads: (() => void) | null = null;
 let stopPush: (() => void) | null = null;
 const dashboard = () => `http://127.0.0.1:${port}/`;
 
-/** Starts the server in the project folder: on :8123, or a free port when that is taken. */
 async function startServer(): Promise<void> {
   if (settings.project && existsSync(settings.project)) process.chdir(settings.project);
   else process.chdir(app.getPath("home"));
@@ -90,7 +85,6 @@ async function startServer(): Promise<void> {
     listen(PORT);
   });
   server = s;
-  // phones that asked to be notified hear when work needs them or is ready
   stopPush?.();
   stopPush = startPushNotifier(threads, devices);
 }
@@ -112,7 +106,6 @@ async function restartServer(): Promise<void> {
   followThreads?.();
 }
 
-/** Brings the window up on a page of the dashboard (from the menu bar or a notification). */
 function openPage(path: string): void {
   if (!win) createWindow();
   if (!touch.locked()) void win?.loadURL(`http://127.0.0.1:${port}${path}`);
@@ -175,7 +168,6 @@ async function toggleNetwork(on: boolean): Promise<void> {
   if (on) await showPairing();
 }
 
-/** A window with a one-time pairing QR code for a phone or another computer. */
 async function showPairing(): Promise<void> {
   if (!settings.network) {
     const r = await dialog.showMessageBox({
@@ -316,7 +308,6 @@ if (!app.requestSingleInstanceLock()) {
     }
     buildMenu();
     createWindow();
-    // Garry in the menu bar: working, needs you, ready
     followThreads = setupTray({ threads: () => threads, open: openPage });
     app.on("activate", () => {
       if (!BrowserWindow.getAllWindows().length) createWindow();

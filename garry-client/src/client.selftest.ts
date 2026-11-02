@@ -1,7 +1,4 @@
-/**
- * Runs the client against a real garry server: reads, the live stream, pairing
- * from another address and a revoked token. Run with: pnpm -C garry-client test
- */
+// Runs the client against a real garry server. Run with: pnpm -C garry-client test
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -60,7 +57,6 @@ try {
   expect("stream: every task and its logs", events.filter((e) => e.type === "task").length === plan.tasks.length && events.some((e) => e.type === "log"));
 
   {
-    // a terminal in the registry: what is typed runs and streams back, closing ends it
     const term = await local.openTerminal("registry", 80, 24);
     let seen = "";
     const abort = new AbortController();
@@ -78,7 +74,7 @@ try {
   expect("other links do not", parsePairingLink("http://evil.example/other?code=abc") === null && parsePairingLink("not a link") === null);
 
   {
-    // threads through the client, with the stand-in for Claude Code
+    // uses the stand-in for Claude Code
     const { execFileSync } = await import("node:child_process");
     const { writeFileSync } = await import("node:fs");
     const repoDir = join(mkdtempSync(join(tmpdir(), "garry-client-repo-")), "r");

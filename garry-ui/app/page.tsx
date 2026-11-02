@@ -55,7 +55,7 @@ export default function Dashboard() {
     try {
       localStorage.setItem(IDEAS_KEY, JSON.stringify(ideas));
     } catch {
-      /* ignore */
+      /* no storage: ideas stay for this visit */
     }
   }, [ideas]);
 
@@ -65,8 +65,7 @@ export default function Dashboard() {
     void load();
   };
 
-  // Capture an idea. It does NOT become a feature yet. It sits in Ideas until the
-  // human and Garry talk it through, and only then is a feature created.
+  // An idea is not a feature yet: it becomes one only after the human and Garry talk it through.
   const captureIdea = (e: React.FormEvent) => {
     e.preventDefault();
     const text = idea.trim();
@@ -117,7 +116,6 @@ export default function Dashboard() {
 
       {draft && <NewFeature title={draft.title} goal={draft.goal} onCreated={created} onCancel={() => setDraft(null)} />}
 
-      {/* Idea intake: the only thing the human drives. No feature picker, no run. */}
       <form className={`card ${styles.intake}`} onSubmit={captureIdea}>
         <span className={styles.intakeIcon} aria-hidden="true">
           {Icon.idea}
@@ -152,7 +150,6 @@ export default function Dashboard() {
       </div>
 
       <div className={styles.lanes}>
-        {/* Ideas: raw, not yet features. They become features only after a chat with Garry. */}
         <section className={styles.lane} aria-label="ideas">
           <div className={styles.laneHead}>
             <span className={styles.laneName}>
@@ -190,7 +187,6 @@ export default function Dashboard() {
           )}
         </section>
 
-        {/* Agents at work: autonomous. Read only report, no controls. */}
         <section className={styles.lane} aria-label="agents at work">
           <div className={styles.laneHead}>
             <span className={styles.laneName}>
@@ -245,7 +241,6 @@ export default function Dashboard() {
           )}
         </section>
 
-        {/* Shipped: done and deployed by the agents. */}
         <section className={styles.lane} aria-label="shipped">
           <div className={styles.laneHead}>
             <span className={styles.laneName}>
@@ -282,7 +277,6 @@ export default function Dashboard() {
         </section>
       </div>
 
-      {/* Garry crawling along the foot of the page; faster while agents work */}
       <CrawlingGarry busy={running.length > 0} />
     </main>
   );

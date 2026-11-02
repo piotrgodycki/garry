@@ -1,11 +1,6 @@
 /**
- * Regression test for talking to Garry: messages wait in line and run one at a
- * time, in one conversation per repository (the agent resumes its session, so
- * it remembers), a new message never interrupts the work in progress (nor your
- * own turn in Build), a waiting message can be dropped and a running one not,
- * Garry's answer is the agent's own words, a restart loses nothing, and the
- * HTTP routes. A stand-in for Claude Code runs the turns.
- * Run with: pnpm -C garry-tool test:queue (CI runs it too).
+ * Tests the message queue to Garry and its HTTP routes, with a stand-in for Claude Code.
+ * Run with: pnpm -C garry-tool test:queue
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -49,7 +44,6 @@ const shop = threads.store.addProject(repo("shop"), "Shop");
 const queue = new GarryQueue(threads);
 const status = (id: string) => queue.get(id)?.status;
 
-// in line: the first works, the rest wait
 const one = queue.add("BUSY add a checkout page", shop.id);
 const two = queue.add("ASK add a buy button", shop.id);
 const three = queue.add("write the release notes", shop.id);
@@ -66,12 +60,10 @@ expect(
 );
 expect("waiting does not touch the work in progress", threads.store.events(one.threadId!).filter((e) => e.type === "user").length === 1);
 
-// a waiting message can be dropped; a running one cannot
 const four = queue.add("never mind this one", shop.id);
 expect("a waiting message can be dropped", queue.cancel(four.id) && status(four.id) === "cancelled");
 expect("a running one cannot (stop it in Build)", !queue.cancel(one.id) && status(one.id) === "running");
 
-// the first ends (stopped): the next starts, in the same conversation
 threads.stop(one.threadId!);
 await until(() => status(one.id) !== "running");
 expect("a stopped turn is failed, saying so", status(one.id) === "failed" && !!queue.get(one.id)?.error);
@@ -91,7 +83,6 @@ await until(() => status(three.id) === "done", 15_000);
 expect("and the one after it, resuming the session (it remembers)", queue.get(three.id)?.reply === "resumed fake-session-1", queue.get(three.id)?.reply);
 expect("never two at once", !queue.list().some((i) => i.id !== three.id && i.status === "running"));
 
-// your own turn in Build: Garry waits for it
 const garryThread = one.threadId!;
 threads.send(garryThread, "BUSY you, directly in Build");
 await until(() => threads.store.events(garryThread).filter((e) => e.type === "tool").length >= 4);
@@ -105,13 +96,11 @@ threads.stop(garryThread);
 await until(() => status(five.id) === "done", 15_000);
 expect("and goes once your turn ends", status(five.id) === "done");
 
-// another repository: its own conversation
 const blog = threads.store.addProject(repo("blog"), "Blog");
 const six = queue.add("write a post", blog.id);
 await until(() => status(six.id) === "done", 15_000);
 expect("each repository has its own conversation", !!queue.get(six.id)?.threadId && queue.get(six.id)?.threadId !== garryThread);
 
-// a restart loses nothing: what waits still waits, a cut off turn is failed
 const seven = queue.add("BUSY a long one", shop.id);
 const eight = queue.add("then this", shop.id);
 await until(() => status(seven.id) === "running");
@@ -138,7 +127,6 @@ expect(
   })(),
 );
 
-// over HTTP
 const server = createGarryServer(
   { registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads },
   new DeviceStore(join(home, "devices.json")),

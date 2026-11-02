@@ -7,9 +7,8 @@ const pct = (r?: number) => (r === undefined ? "" : r < 0.001 ? "<0.1%" : `${(r 
 const label = (e: ReportEntry) => `${e.route} · ${e.viewport} · ${e.theme}`;
 
 /**
- * Renders the pull request comment. Changed views come first with before, after
- * and a diff; new and live views show the current state; unchanged views are
- * only listed, so a reviewer sees what moved without scrolling through noise.
+ * Changed views come first with before, after and diff; unchanged views are only listed, so a reviewer
+ * sees what moved without scrolling through noise.
  */
 export function renderComment(report: Report, imageUrl: (rel: string) => string, opts: { runUrl?: string; maxImages?: number } = {}): string {
   const by = (s: ReportEntry["status"]) => report.entries.filter((e) => e.status === s);

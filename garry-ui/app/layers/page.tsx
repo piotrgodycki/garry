@@ -21,11 +21,7 @@ const summary = (l: Layer | undefined) => {
   return parts.length ? parts.join(" · ") : "Nothing of its own";
 };
 
-/**
- * Layers: what agents are given, set for the whole project and changed per
- * repository and per service. Pick a layer on the left, change it in the
- * middle, and see on the right what an agent in a repository ends up with.
- */
+/** What agents are given, set for the whole project and changed per repository and per service. */
 export default function LayersPage() {
   const [data, setData] = useState<Data | null>(null);
   const [skills, setSkills] = useState<SkillSummary[]>([]);

@@ -1,11 +1,6 @@
 /**
- * Regression test, in a real browser, for commands after a slash in Garry's
- * field and the Memory page: typing / suggests the commands, a few letters
- * narrow them, one that needs words waits for them, Enter runs it and Garry
- * answers above the field; /memory opens Memory, /new opens the job, an
- * unknown command says so; Memory adds and forgets. A stand-in for Claude
- * Code runs the agents. Needs the built dashboard and Chromium.
- * Run with: pnpm -C garry-tool test:commands-ui (CI runs it too).
+ * Browser regression test for slash commands in Garry's field and the Memory page.
+ * Run with: pnpm -C garry-tool test:commands-ui
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";

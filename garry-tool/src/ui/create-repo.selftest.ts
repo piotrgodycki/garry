@@ -1,11 +1,6 @@
 /**
- * Regression test, in a real browser, for creating a repository's home on
- * GitHub from the dashboard: a piece of work in a repository not on GitHub
- * offers to create it, named as in Garry, before the pull request (the name
- * can be changed and it can be public); the repository's settings in Build
- * offer the same on their own. A stand-in for GitHub's API and local bare
- * repositories as the remotes. Needs the built dashboard and Chromium.
- * Run with: pnpm -C garry-tool test:create-repo-ui (CI runs it too).
+ * Browser regression test for creating a repository on GitHub from the dashboard, against a stand-in API.
+ * Run with: pnpm -C garry-tool test:create-repo-ui
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -152,7 +147,6 @@ try {
       ).slice(0, 1500)}`;
   expect("the work's log says so", logged, why);
 
-  // a repository's settings in Build offer the same on their own
   await page.goto(`${base}/build`);
   const job = page.getByRole("region", { name: "Start a job" });
   await job.getByRole("combobox", { name: "repository" }).click();

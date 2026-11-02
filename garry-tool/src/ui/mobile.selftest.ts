@@ -1,14 +1,6 @@
 /**
- * Regression test for the iPhone app in its new look, through its web build
- * (the same React Native code) in a phone-sized browser, paired with a real
- * Garry server like a phone is: what needs you comes first in the agent's own
- * words and is answered right there (the agent then works on the answer); a
- * stopped agent can be told to fix it; once nothing waits, you are caught up; the
- * agents show with their crew faces in their state; the features follow. Both
- * themes use the shared palette, and the old signal red is gone.
- * Needs the app's web export (pnpm -C garry-mobile export:web) and Chromium.
- * Run with: pnpm -C garry-tool test:mobile (CI runs it too).
- * GARRY_MOBILE_SHOTS=<dir> also saves screenshots there.
+ * Regression test for the iPhone app through its web build, paired with a real server like a phone is.
+ * Run with: pnpm -C garry-tool test:mobile (GARRY_MOBILE_SHOTS=<dir> also saves screenshots there)
  */
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -111,7 +103,6 @@ try {
     await answer.waitFor({ timeout: 20_000 }).catch(() => undefined);
     if (shots) await page.screenshot({ path: join(shots, `mobile-${scheme}.png`), fullPage: true });
 
-    // the shared palette, and no old signal red anywhere
     const colours = await page.evaluate(() => {
       const all = new Set<string>();
       for (const el of document.querySelectorAll("body *")) {
@@ -132,7 +123,6 @@ try {
       continue;
     }
 
-    // what needs you comes first, in the agent's words
     const text = await page.locator("body").innerText();
     expect(
       "what needs you comes before the agents and the features",
@@ -144,7 +134,6 @@ try {
       "the stopped agent is there, with Let it fix",
       text.includes("Stopped before finishing") && (await page.getByRole("button", { name: "Let it fix" }).count()) === 1,
     );
-    // the crew: each face in its state
     const faces = await page.locator('[data-testid^="crew-"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
     expect(
       "the crew shows each agent's state on its face",
@@ -154,7 +143,6 @@ try {
     expect("the working agent says what it does", text.includes("Write NOTES.md"));
     expect("the features follow", text.includes("FEAT-123") && text.includes("New checkout flow with a quick cart"));
 
-    // answering in place: it reaches the agent, and the question goes
     await answer.fill("Blue, like the other actions");
     await page.getByRole("button", { name: "Send" }).click();
     await until(() => threads.store.events(asks).some((e) => e.type === "user" && e.text === "Blue, like the other actions"), 5000);
@@ -170,7 +158,6 @@ try {
       /fix it/.test((threads.store.events(broke).filter((e) => e.type === "user")[1] as { text: string } | undefined)?.text ?? ""),
     );
     await until(() => !threads.isRunning(broke));
-    // nothing waits now: caught up
     await page
       .getByText("Nothing needs you")
       .waitFor({ timeout: 10_000 })

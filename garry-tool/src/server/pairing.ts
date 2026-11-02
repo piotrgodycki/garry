@@ -29,7 +29,6 @@ export function advertisedHost(host: string): string | null {
   return isLoopbackHost(host) ? null : host;
 }
 
-/** Prints the pairing link and its QR code. */
 export async function printPairing(host: string, port: number, code: string, expiresAt: string): Promise<void> {
   const link = pairingLink(host, port, code);
   const qr = await QRCode.toString(link, { type: "terminal", small: true });

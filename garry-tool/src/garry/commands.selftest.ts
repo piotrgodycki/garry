@@ -1,10 +1,6 @@
 /**
- * Regression test for Garry's memory and the commands typed after a slash:
- * remembering (once, within limits), forgetting by number, id or words, the
- * memory reaching every agent's instructions, and each command (/remember,
- * /forget, /memory, /new, /pair, /stop, /help) through the server, with the
- * page it leads to. A stand-in for Claude Code runs the agents.
- * Run with: pnpm -C garry-tool test:commands (CI runs it too).
+ * Tests Garry's memory and the slash commands, directly and through the server.
+ * Run with: pnpm -C garry-tool test:commands
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -40,7 +36,6 @@ const status = (fn: () => unknown) => {
   }
 };
 
-// --- memory on its own
 const reg = join(home, "reg");
 expect("nothing remembered at first, and agents get nothing", readMemory(reg).length === 0 && memoryPrompt(reg) === "");
 const first = remember(reg, "  We deploy   on Fridays ");
@@ -70,7 +65,6 @@ expect("up to a limit", status(() => remember(full, "one more")) === 409 && read
 writeFileSync(join(home, "broken.json"), "");
 expect("an unreadable file reads as nothing remembered", readMemory(join(home, "nowhere")).length === 0);
 
-// --- through the server
 const repo = join(home, "shop");
 execFileSync("git", ["init", "-q", repo]);
 writeFileSync(join(repo, "README.md"), "# shop\n");

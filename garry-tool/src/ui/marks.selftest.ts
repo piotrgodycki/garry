@@ -1,9 +1,6 @@
 /**
- * Every technology in Garry's catalog has a mark in the dashboard (a logo, or a
- * monogram where the brand's own cannot be used), so a technology added to the
- * catalog without one is caught here rather than shown as two bare letters.
- * The same for every block of the architecture board.
- * Run with: pnpm -C garry-tool test:marks (CI runs it too).
+ * Every catalog technology and board block has a mark in the dashboard, so one added without a mark is caught.
+ * Run with: pnpm -C garry-tool test:marks
  */
 import { CATALOG } from "../registry/schema/stacks.js";
 import { COMPONENTS } from "../registry/schema/architecture.js";

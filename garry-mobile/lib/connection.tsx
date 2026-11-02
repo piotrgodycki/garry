@@ -17,7 +17,7 @@ interface ConnectionState {
   ready: boolean;
   connection: Connection | null;
   client: GarryClient | null;
-  /** Pairs with the server from a pairing link (QR code); throws with a readable message. */
+  /** Throws with a readable message. */
   connect: (link: string) => Promise<void>;
   forget: () => Promise<void>;
   /** iOS with Face ID on: the app is locked until unlock() succeeds */

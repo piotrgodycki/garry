@@ -5,11 +5,7 @@ import Illustrated from "../Illustrations";
 import { PageHeader, ServerNotice, Skeleton } from "../ui";
 import styles from "./memory.module.css";
 
-/**
- * Garry's memory of the project: what you asked it to keep in mind (here, or
- * with /remember in Garry's field). Every agent working in the project reads
- * it before it starts.
- */
+/** What you asked Garry to keep in mind, here or with /remember. Every agent in the project reads it before it starts. */
 export default function Memory() {
   const [entries, setEntries] = useState<MemoryEntry[] | null>(null);
   const [offline, setOffline] = useState(false);

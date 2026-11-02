@@ -9,7 +9,6 @@ import { confirmWithBiometrics } from "../../lib/biometrics";
 
 const CONTRACTS = ["events.json", "remotes.json", "shared-deps.json", "design-tokens.json", "api.json"];
 
-/** Create a feature from the phone: what it is, why, and which services it touches. */
 export default function CreateFeature() {
   const { client } = useConnection();
   const router = useRouter();

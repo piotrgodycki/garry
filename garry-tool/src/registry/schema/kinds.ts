@@ -1,10 +1,6 @@
 import type { Capability, Component } from "./architecture.js";
 
-/**
- * The kinds of service a registry holds, in one place: how they are named and
- * explained, what they expose, whether they may own a database, the stack a
- * new one starts from, and the block they are on the architecture board.
- */
+/** The single place that defines each kind of service a registry holds. */
 
 export const SERVICE_KIND_IDS = ["mfe-remote", "mfe-shell", "spa", "ssr", "isr", "ssg", "mobile", "backend", "bff", "worker", "function"] as const;
 export type ServiceKind = (typeof SERVICE_KIND_IDS)[number];

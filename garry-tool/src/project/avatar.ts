@@ -2,11 +2,8 @@ import { parseSlug } from "../github/client.js";
 import { remoteSlug } from "../threads/git.js";
 
 /**
- * A Garry project's picture: the GitHub owner most of its repositories live
- * under (cloned ones by their origin, ones still to clone by their remote).
- * The dashboard shows that owner's avatar; none (no repository on GitHub, or
- * GARRY_GITHUB_AVATARS=off for a company that keeps names off github.com
- * requests) shows the first letter.
+ * The GitHub owner most of a project's repositories live under, for its avatar.
+ * GARRY_GITHUB_AVATARS=off keeps names off github.com requests.
  */
 export function projectOwner(repoPaths: string[], pendingRemotes: string[] = []): string | null {
   if (process.env.GARRY_GITHUB_AVATARS?.trim() === "off") return null;

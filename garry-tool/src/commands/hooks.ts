@@ -16,7 +16,6 @@ Lockfiles, generated code (dist/, @generated, linguist-generated in .gitattribut
 const MARK = "# garry: file size";
 const LINE = `${MARK}\nnpx --no-install garry hooks check || exit 1\n`;
 
-/** garry hooks: the file size check, and putting it in a repository's pre-commit hook. */
 export function runHooks(args: string[]): void {
   const [sub, ...rest] = args;
   if (sub === "check") {

@@ -5,10 +5,9 @@ import { garryHome } from "../server/auth.js";
 import { applySettings, settingsOf, type ProjectSettings } from "./settings.js";
 
 /**
- * Projects and threads. A project is a git repository on this machine; a thread
- * is one piece of work in it: its own branch and worktree, the agent's session,
- * and every event of the conversation. Everything lives under ~/.garry (or
- * $GARRY_HOME): projects.json and threads/<id>/{thread.json,events.jsonl}.
+ * A project is a git repository on this machine; a thread is one piece of work in
+ * it with its own branch, worktree and agent session. Stored under ~/.garry as
+ * projects.json and threads/<id>/{thread.json,events.jsonl}.
  */
 
 export interface Project {
@@ -39,7 +38,6 @@ export interface Thread {
   commit?: string;
   /** another agent in the working copy of this thread (a reviewer, a chain's next step) */
   sharesWith?: string;
-  /** what this agent does there: reviews the work, or is one step of a chain */
   role?: "reviewer" | "step";
   pr?: { number: number; url: string };
 }
@@ -66,8 +64,6 @@ export class ThreadStore {
     mkdirSync(join(home, "threads"), { recursive: true, mode: 0o700 });
   }
 
-  // ---- projects ----
-
   projects(): Project[] {
     const f = join(this.root, "projects.json");
     if (!existsSync(f)) return [];
@@ -82,7 +78,6 @@ export class ThreadStore {
     return this.projects().find((p) => p.id === id);
   }
 
-  /** The repositories of one Garry project. */
   projectsOf(garryProject: string): Project[] {
     return this.projects().filter((p) => (p.garryProject ?? "default") === garryProject);
   }
@@ -119,7 +114,6 @@ export class ThreadStore {
     return settingsOf(p.settings);
   }
 
-  /** Changes some settings (checked) and returns the whole. */
   saveSettings(projectId: string, input: unknown): ProjectSettings {
     const list = this.projects();
     const p = list.find((x) => x.id === projectId);
@@ -128,8 +122,6 @@ export class ThreadStore {
     this.write(join(this.root, "projects.json"), { projects: list });
     return p.settings as ProjectSettings;
   }
-
-  // ---- threads ----
 
   private dir(threadId: string): string {
     if (!/^[a-z0-9]{4,16}$/.test(threadId)) throw new Error("bad thread id");

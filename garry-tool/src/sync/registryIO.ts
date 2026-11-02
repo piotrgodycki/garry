@@ -27,7 +27,6 @@ export interface Contracts {
   events?: Record<string, EventDef>;
 }
 
-/** Reads one service manifest from the registry catalog. */
 export function readManifest(registry: string, service: string): Manifest {
   const file = join(registry, "catalog", `${service}.yaml`);
   if (!existsSync(file)) throw new Error(`service manifest not found: ${file}`);
@@ -35,7 +34,6 @@ export function readManifest(registry: string, service: string): Manifest {
   return { name: service, exposes: [], consumes: {}, ...raw } as Manifest;
 }
 
-/** Reads every service manifest from the registry catalog. */
 export function listManifests(registry: string): Manifest[] {
   const dir = join(registry, "catalog");
   if (!existsSync(dir)) return [];
@@ -52,7 +50,7 @@ function readJson<T>(p: string): T | undefined {
   return JSON.parse(readFileSync(p, "utf8")) as T;
 }
 
-/** Reads the full set of contracts from the registry. Missing files are left undefined. */
+/** Missing files are left undefined. */
 export function readContracts(registry: string): Contracts {
   const dir = join(registry, "contracts");
   return {

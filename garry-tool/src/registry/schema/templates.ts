@@ -1,10 +1,6 @@
 import type { Architecture, Capability } from "./architecture.js";
 
-/**
- * Ready-made architectures for the board: common, sound setups to start from
- * and change. Every one passes the board's rules with nothing to say (the
- * architecture test checks that).
- */
+/** Ready-made board architectures. Each must pass the board's rules with no issues; the architecture test checks that. */
 
 export interface ArchitectureTemplate {
   id: string;

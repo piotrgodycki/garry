@@ -9,7 +9,6 @@ import { ConnectionProvider } from "../lib/connection";
 import { LockGate } from "../lib/LockGate";
 import { usePalette } from "../lib/theme";
 
-/** A tapped notification opens the work it is about. */
 function OpenFromNotifications() {
   const router = useRouter();
   useEffect(() => {

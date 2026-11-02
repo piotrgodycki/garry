@@ -1,12 +1,6 @@
 /**
- * Regression test for the dashboard's dropdowns, in a real browser against a
- * real Garry server: the model picker on Model routing opens with the keyboard
- * and the mouse, moves with the arrows, picks with Enter and saves the choice,
- * closes with Escape or a click elsewhere without changing anything, jumps by
- * typing, and the folder list in Files shows whole, on top of its panel.
- * Needs the built dashboard (pnpm -C garry-ui build) and Chromium
- * (pnpm -C garry-tool exec playwright install chromium; GARRY_CHROMIUM_PATH
- * points at another). Run with: pnpm -C garry-tool test:dropdown (CI runs it too).
+ * Browser regression test for the dashboard's dropdowns.
+ * Run with: pnpm -C garry-tool test:dropdown
  */
 import { existsSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -50,7 +44,6 @@ try {
   expect("the default starts on Opus 5.5", before === "claude-opus-5-5", String(before));
   expect("it shows the chosen model", (await picker.innerText()).includes("Opus 5.5"));
 
-  // keyboard: open, move down one, pick
   await picker.focus();
   await page.keyboard.press("ArrowDown");
   const list = page.getByRole("listbox", { name: "model for spec" });
@@ -69,7 +62,6 @@ try {
   expect("Enter picks the next model and saves it", (await specModel()) === "claude-sonnet-5-5" && !(await list.isVisible()), String(await specModel()));
   expect("focus returns to the picker", await picker.evaluate((el) => el === document.activeElement));
 
-  // Escape and a click elsewhere close without changing anything
   await page.keyboard.press("Enter");
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Escape");
@@ -78,19 +70,16 @@ try {
   await page.mouse.click(5, 880);
   expect("a click elsewhere closes it", !(await list.isVisible()) && (await specModel()) === "claude-sonnet-5-5");
 
-  // the mouse: open, click an option
   await picker.click();
   await list.getByRole("option", { name: /Haiku 5\.5/ }).click();
   await page.waitForTimeout(400);
   expect("a click on an option picks it", (await specModel()) === "claude-haiku-5-5");
 
-  // typing on a closed picker jumps to a match, like a select
   await picker.focus();
   await page.keyboard.type("O");
   await page.waitForTimeout(400);
   expect("typing picks the first match", (await specModel()) === "claude-opus-5-5", String(await specModel()));
 
-  // further down a page: opening scrolls it into view, and the list stays open and follows the page
   await page.goto(`${base}/registry`);
   await page.getByRole("radio", { name: /^API/ }).click();
   const stack = page.getByRole("combobox", { name: "stack" });
@@ -122,7 +111,6 @@ try {
   const folder = page.getByRole("combobox", { name: "folder" });
   await folder.click();
   const folders = page.getByRole("listbox", { name: "folder" });
-  // its last option is on top at its own centre: nothing clips or covers it
   const onTop = await folders.evaluate((el) => {
     const last = el.querySelector('[role="option"]:last-of-type') as HTMLElement;
     const r = last.getBoundingClientRect();

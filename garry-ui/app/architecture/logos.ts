@@ -32,9 +32,8 @@ import {
 } from "simple-icons";
 
 /**
- * The logo of each block on the board: the brand's own mark (Simple Icons,
- * CC0) where there is one, else a monogram in the brand's colour (AWS asks for
- * its marks not to be redistributed, so its services get one).
+ * Simple Icons (CC0) where there is one, else a monogram in the brand's colour. AWS asks for its
+ * marks not to be redistributed, so its services get one.
  */
 export type Logo = { path: string; hex: string } | { text: string; hex: string };
 

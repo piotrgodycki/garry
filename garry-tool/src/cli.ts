@@ -88,7 +88,7 @@ async function main(): Promise<void> {
     case "project":
       runProject(rest);
       break;
-    // the repositories of the active project ("projects" is the old name)
+    // "projects" is the old name.
     case "repos":
     case "projects":
       runProjects(rest);

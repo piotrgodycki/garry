@@ -10,7 +10,6 @@ const MODES: { id: ProjectSettings["push"]; label: string; hint: string }[] = [
   { id: "never", label: "Never", hint: "Nothing leaves this computer; push by hand." },
 ];
 
-/** What Garry may do with one project's remote: pushing, branches, pull requests. */
 export default function ProjectSettingsPanel({ projectId }: { projectId: string }) {
   const [saved, setSaved] = useState<ProjectSettings | null>(null);
   const [draft, setDraft] = useState<ProjectSettings | null>(null);

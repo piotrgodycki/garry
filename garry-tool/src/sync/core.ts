@@ -5,7 +5,6 @@ import { computeSlice } from "./slice.js";
 import { generateContractTypes } from "./codegen.js";
 import { readStack } from "../registry/stacks.js";
 
-/** Reads the registry, computes the slice for one service and writes it into the repo. */
 export function syncService(repo: string, registry: string, service: string): string[] {
   const manifest = readManifest(registry, service);
   const contracts = readContracts(registry);

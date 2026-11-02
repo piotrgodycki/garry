@@ -1,6 +1,5 @@
 import { GarryError, type ClientOptions, type FetchLike } from "./connect";
 
-/** The transport every part of the client shares: the server's address, the token, JSON in and out. */
 export class HttpClient {
   protected readonly base: string;
   protected readonly f: FetchLike;

@@ -1,15 +1,11 @@
 #!/usr/bin/env node
 /**
- * Garry's brand files, drawn from one source: the worm's geometry in
- * garry-ui/app/GarryMark.tsx. Writes the mark, the logo (light and dark), the
- * favicon, and the app icons for the Mac app and the iPhone app.
+ * Garry's brand files, all drawn from the worm geometry in garry-ui/app/GarryMark.tsx.
  *
  *   node garry-tool/scripts/brand.mjs           write them all
  *   node garry-tool/scripts/brand.mjs --check   fail if a committed SVG differs (CI)
  *
- * The PNG icons are rendered with Chromium (Playwright, GARRY_CHROMIUM_PATH
- * like the UI tests); --check compares the SVGs only, which the PNGs are
- * drawn from.
+ * --check compares the SVGs only, since the PNG icons are rendered from them with Chromium.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";

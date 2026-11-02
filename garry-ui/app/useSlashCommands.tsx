@@ -6,12 +6,7 @@ import { Icon } from "./icons";
 
 type Option = { id: string; label: ReactNode; hint: string; icon: ReactNode; run: () => void };
 
-/**
- * Commands after a slash in Garry's field: as you type "/", the commands that
- * fit are suggested; picking one that needs words puts it in the field for
- * them, and Enter runs it at once (the server does the work, so the phone
- * has the same ones). Garry's answer shows above the field.
- */
+/** Slash commands for Garry's field, suggested as you type "/". The server runs them, so the phone has the same set. */
 export function useSlashCommands(text: string, opts: { setText: (t: string) => void; done: () => void; focus: () => void; after: () => void }) {
   const navigate = useNavigate();
   const [commands, setCommands] = useState<GarryCommand[]>([]);

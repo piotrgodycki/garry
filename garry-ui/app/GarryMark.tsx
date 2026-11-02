@@ -14,12 +14,8 @@ const CLITELLUM = "M45.69 80.70L46.76 80.83L47.84 80.92L48.92 80.98L50.00 81.00L
 const WIDTH = 15.5;
 
 /**
- * Garry, an earthworm curled into a G: a pink body (currentColor, --garry-worm
- * by default), darker rings between the segments (--garry-ring) and the
- * clitellum, the band every earthworm has, in clay (--garry-clay). The brand
- * files (logo, favicon, app icons) are drawn from this same geometry by
- * garry-tool/scripts/brand.mjs. Animated: the rings travel from tail to head like a
- * peristaltic wave, so the worm crawls; busy makes it crawl faster.
+ * The brand files (logo, favicon, app icons) are drawn from this same geometry by garry-tool/scripts/brand.mjs.
+ * The rings travel from tail to head like a peristaltic wave; busy makes it crawl faster.
  */
 export default function GarryMark({ size = 40, busy = false, className = "", title }: { size?: number; busy?: boolean; className?: string; title?: string }) {
   const id = `garry-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;

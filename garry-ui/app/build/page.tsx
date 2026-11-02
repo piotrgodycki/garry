@@ -12,11 +12,6 @@ import Illustrated from "../Illustrations";
 import NewJob from "./NewJob";
 import Jobs from "./Jobs";
 
-/**
- * Build: give agents jobs in the project's repositories and follow every job
- * to a pull request. Adding a repository and the feature pipeline are a
- * button away in the header; Live shows the agents as they work.
- */
 export default function Build() {
   const [params] = useSearchParams();
   if (params.get("view") === "pipeline")

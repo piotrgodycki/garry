@@ -14,9 +14,8 @@ export interface Routing {
 const DEFAULT_ROUTE: Route = { agent: "garry-dev", model: "claude-sonnet-5-5" };
 
 /**
- * Resolves the routing: the profile (the feature's `routing:`, else the active
- * one in the registry, else Garry's example: garry.routing.json or the
- * built-in), then the per feature override from the frontmatter.
+ * The profile is the feature's `routing:`, else the registry's active one, else Garry's example. The
+ * feature's frontmatter override applies on top.
  */
 export function resolveRouting(
   routingFile: string | undefined,
@@ -28,7 +27,7 @@ export function resolveRouting(
   return { base: profile.defaults ?? DEFAULT_ROUTE, stages: profile.stages, override: override ?? {} };
 }
 
-/** Picks the agent and model for a stage: override wins, then the stage map, then the base. */
+/** Override wins, then the stage map, then the base. */
 export function routeFor(r: Routing, stage: string): Route {
   return r.override[stage] ?? r.stages[stage] ?? r.base;
 }

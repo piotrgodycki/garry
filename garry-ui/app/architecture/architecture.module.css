@@ -22,7 +22,6 @@
   grid-template-columns: 220px minmax(0, 1fr) 280px;
   gap: 12px;
 }
-/* the board's own controls, along the top of the canvas */
 .toolbar {
   position: absolute;
   top: 10px;
@@ -45,7 +44,6 @@
   background: var(--surface-3);
   border-color: var(--border-strong);
 }
-/* the wizard and the ready-made architectures, over the canvas */
 .overlay {
   position: absolute;
   inset: 58px 10px 10px;
@@ -150,7 +148,6 @@
   line-height: 1.45;
 }
 
-/* a block: provides on the left, needs on the right */
 .block {
   --tone: #64748b;
   position: relative;
@@ -169,7 +166,6 @@
     border-color 0.15s;
 }
 .block::before {
-  /* a strip of the block's colour along the top */
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
@@ -318,7 +314,6 @@
   font-weight: 550;
   text-align: right;
 }
-/* the plugs: hollow sockets in, filled plugs out */
 .port {
   width: 12px !important;
   height: 12px !important;
@@ -372,7 +367,6 @@
   font-size: 14px;
 }
 
-/* ready-made architectures */
 .templates {
   display: grid;
   gap: 12px;
@@ -410,7 +404,6 @@
   color: var(--color-text-muted);
 }
 
-/* relations: what flows from the block that needs to the block that provides */
 .relationPath {
   stroke: var(--color-text-muted) !important;
   stroke-width: 1.8px !important;
@@ -464,7 +457,6 @@ path.relationOn {
   opacity: 0.25;
 }
 
-/* the board picker and what can be done with the board */
 .boardBar {
   display: flex;
   align-items: center;

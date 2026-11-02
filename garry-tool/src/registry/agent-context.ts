@@ -6,7 +6,6 @@ import { listStacks } from "./stacks.js";
 import { readLayers, resolveLayers, type From, type Resolved } from "./layers.js";
 import { memoryPrompt } from "../garry/memory.js";
 
-/** Everything an agent in one repository is given, and where each piece comes from. */
 export interface AgentContext extends Resolved {
   repo: string;
   services: string[];

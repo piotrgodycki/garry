@@ -4,11 +4,9 @@ import { dirname, join, relative, sep } from "node:path";
 import { createGarryProject, garryProject, GarryProjectError, listGarryProjects, type GarryProject, type PendingRepo } from "./store.js";
 
 /**
- * A Garry project in one file (.garry.json): its registry (services, contracts,
- * features, stacks, routing, the architecture board) and the repositories it
- * works on, as remotes to clone. Never tokens, never the code itself. Import
- * makes a new project from it; nothing outside the registry folders is ever
- * written, whatever the file says.
+ * A Garry project in one .garry.json file: its registry plus repositories as
+ * remotes to clone, never tokens or code. Import never writes outside the new
+ * project's registry folder, whatever the file says.
  */
 
 export const BUNDLE_FORMAT = "garry-project";
@@ -20,7 +18,6 @@ export interface GarryBundle {
   name: string;
   description?: string;
   exportedAt: string;
-  /** registry files by path, as text */
   files: Record<string, string>;
   repos: PendingRepo[];
 }

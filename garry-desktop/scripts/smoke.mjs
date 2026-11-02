@@ -1,6 +1,5 @@
-// Starts the packaged app (electron-builder --dir output) and checks that the
-// window shows the dashboard and the built-in server answers. Needs a display:
-// in CI it runs under xvfb-run. Usage: node scripts/smoke.mjs <app executable>
+// Smoke test for the packaged app (electron-builder --dir output). Needs a display;
+// CI runs it under xvfb-run. Usage: node scripts/smoke.mjs <app executable>
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -20,11 +19,9 @@ try {
     .waitFor({ timeout: 20000 });
   const url = win.url();
   if (!/^http:\/\/127\.0\.0\.1:\d+\/$/.test(url)) throw new Error(`unexpected page ${url}`);
-  // a fresh app starts empty: the server answers, with no sample features
   const features = await win.evaluate(() => fetch("/api/features").then((r) => r.json()));
   if (!Array.isArray(features.features) || features.features.length) throw new Error(`expected no features, got ${JSON.stringify(features)}`);
   console.log(`ok  the app shows the dashboard at ${url} and its server answers`);
-  // the menu bar icon: its images ship with the app, and the status it shows answers
   const icons = await app.evaluate(({ app: electronApp }) => {
     const fs = process.getBuiltinModule("node:fs");
     const path = process.getBuiltinModule("node:path");

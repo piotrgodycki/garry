@@ -6,9 +6,8 @@ import { Icon } from "../icons";
 import styles from "./build.module.css";
 
 /**
- * A repository's home on GitHub. One that has none gets a proposal, named as
- * it is in Garry, and is created only when you say yes: private unless you
- * untick it, then added as origin with the current branch pushed.
+ * A repository without a GitHub home gets a proposal, created only when you say yes:
+ * private unless you untick it, then added as origin with the current branch pushed.
  */
 export default function GithubHome({ projectId }: { projectId: string }) {
   const [home, setHome] = useState<{ remote: string | null; create: { owner: string; name: string } | null } | null>(null);

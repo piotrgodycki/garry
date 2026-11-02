@@ -1,4 +1,3 @@
-/* one event contract: sender -> event and its data -> receiver */
 .event {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1.3fr) 28px minmax(0, 1fr);

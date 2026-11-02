@@ -1,8 +1,6 @@
 #!/usr/bin/env node
-// Fails if any forbidden dash character appears in tracked text files.
-// The project rule is plain ASCII punctuation only: no em dash, en dash,
-// figure dash or horizontal bar. The forbidden characters are built from
-// their code points so this file itself stays clean.
+// Fails on em dashes, en dashes, figure dashes and horizontal bars in tracked text files.
+// The characters are built from code points so this file itself stays clean.
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 

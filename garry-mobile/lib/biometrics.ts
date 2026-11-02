@@ -2,11 +2,8 @@ import { Platform } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 
-/**
- * Face ID (or Touch ID) on iOS: unlocks the app, guards the key to the
- * computer in the keychain, and confirms the actions that change code. Other
- * platforms are unchanged for now. On by default on iOS; Settings turns it off.
- */
+// Face ID unlocks the app, guards the keychain item and confirms actions that change code.
+// iOS only for now; on by default, Settings turns it off.
 
 export const biometricsSupported = Platform.OS === "ios";
 const SETTING = "garry.biometrics";
@@ -27,7 +24,6 @@ export async function confirmWithBiometrics(reason: string): Promise<boolean> {
   return r.success;
 }
 
-/** What the lock screen calls the method: "Face ID", "Touch ID" or "passcode". */
 export async function biometricLabel(): Promise<string> {
   const types: LocalAuthentication.AuthenticationType[] = await LocalAuthentication.supportedAuthenticationTypesAsync().catch(() => []);
   if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) return "Face ID";

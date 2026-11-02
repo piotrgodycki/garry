@@ -12,12 +12,7 @@ import { GitHub, parseSlug } from "../github/client.js";
 import { CORS, json, readBody, type RouteCtx } from "./http.js";
 import type { ServerConfig } from "./server.js";
 
-/**
- * Features: create and remove one, its status, the plan Garry would run, the
- * pull requests per service, a model per service, and the plan streamed as it
- * runs (SSE). Returns false when the request is not about features.
- */
-/** Updates the status: field in a feature markdown frontmatter. Returns false if not found. */
+/** Updates the status: field in a feature's frontmatter. Returns false if not found. */
 function setFeatureStatus(registry: string, id: string, status: string): boolean {
   const dir = join(registry, "features");
   if (!existsSync(dir)) return false;
@@ -95,7 +90,6 @@ async function prsFor(cfg: ServerConfig, id: string) {
   );
 }
 
-/** A short human readable action for a skill, for the agent work log. */
 function actionFor(skill: string): string {
   const map: Record<string, string> = {
     "spec-draft": "drafted the feature spec",
@@ -173,7 +167,7 @@ function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
 
 export async function featureRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
   const { cfg, local } = ctx;
-  // Features: create one (this machine and paired devices), remove one (this machine only)
+  // Creating is open to paired devices; removing is this machine only.
   if (req.method === "POST" && path === "/api/features") {
     try {
       return json(res, 200, createFeature(cfg.registry, (await readBody(req)) as FeatureInput));
@@ -195,7 +189,6 @@ export async function featureRoutes(req: IncomingMessage, res: ServerResponse, p
     }
   }
 
-  // POST a feature status change (kanban drag), persisted to the feature frontmatter
   const postStatus = /^\/api\/features\/([^/]+)\/status$/.exec(path);
   if (req.method === "POST" && postStatus) {
     const id = decodeURIComponent(postStatus[1]);
@@ -206,7 +199,6 @@ export async function featureRoutes(req: IncomingMessage, res: ServerResponse, p
     return json(res, 200, { ok: true, id, status: body.status });
   }
 
-  // POST per service model override
   const postModels = /^\/api\/features\/([^/]+)\/service-models$/.exec(path);
   if (req.method === "POST" && postModels) {
     const id = decodeURIComponent(postModels[1]);

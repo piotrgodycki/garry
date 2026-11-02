@@ -26,7 +26,6 @@
   }
 }
 
-/* the clitellum: smooth, no rings, clay. It throbs while the agents work. */
 .clitellum {
   fill: none;
   stroke: var(--garry-clay);
@@ -45,7 +44,6 @@
   }
 }
 
-/* a slow peristaltic squeeze of the whole body */
 .mark {
   animation: squeeze calc(var(--crawl) * 2) ease-in-out infinite;
 }

@@ -47,11 +47,7 @@ const STEP_WORD = { waiting: "waiting", running: "working", done: "done", "needs
 
 type Job = { key: string; kind: Kind; at: string; node: ReactElement };
 
-/**
- * Every job in the project's repositories, in one list: single agents, agents
- * with a reviewer, and jobs in several steps. Filter by what it needs; what
- * needs you comes first. Waiting steps can be moved, dropped and added to.
- */
+/** What needs you comes first. Waiting steps can be moved, dropped and added to. */
 export default function Jobs({
   threads,
   teams,

@@ -1,5 +1,5 @@
 /* code colours, the dashboard's dropdowns and technology marks (one part of globals.css, which imports them in this order) */
-/* ---- code colours (the Files editor; CodeMirror's tok-* classes) ---------- */
+/* CodeMirror's tok-* classes, for the Files editor */
 :root {
   --syn-keyword: #a626a4;
   --syn-name: #0b5cad;
@@ -83,7 +83,7 @@
   color: var(--syn-invalid);
 }
 
-/* ---- dropdowns (Select.tsx): the dashboard's own, in place of the browser's -- */
+/* Select.tsx: the dashboard's own dropdowns, in place of the browser's */
 .gselect {
   display: inline-flex;
   align-items: center;
@@ -206,7 +206,7 @@
   }
 }
 
-/* ---- technology marks (TechIcon.tsx) ---------------------------------------- */
+/* TechIcon.tsx */
 .techIcon {
   display: inline-grid;
   place-items: center;

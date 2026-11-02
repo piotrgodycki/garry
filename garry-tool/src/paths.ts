@@ -4,26 +4,20 @@ import { fileURLToPath } from "node:url";
 import { activeGarryProject } from "./project/store.js";
 
 /**
- * Where garry finds its skills and its registry when no flag names them.
- *
- * Skills: the ones shipped with garry (skills/ in the package, which is
- * garry-tool/skills in the monorepo). The registry is always the user's own:
- * Garry ships no sample services or features.
+ * Default locations for skills, the registry and the dashboard when no flag names
+ * them. The registry is always the user's own: Garry ships no sample services.
  */
 
 /** The package root: garry-tool/ when run from source, the installed package when bundled. */
 export const PACKAGE_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
-/** The pre-installed skills, shipped with garry. */
 export function defaultSkillsRoot(): string {
   return join(PACKAGE_ROOT, "skills");
 }
 
 /**
- * The registry: ./registry when it holds a catalog, else the active Garry
- * project's (the default project's is ~/.garry/registry), created empty on
- * first use. Services and features are added from there on (garry service add,
- * the dashboard).
+ * ./registry when it holds a catalog, else the active Garry project's registry,
+ * created empty on first use.
  */
 export function defaultRegistry(): string {
   if (existsSync(join("registry", "catalog"))) return "registry";

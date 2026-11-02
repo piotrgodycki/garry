@@ -6,10 +6,7 @@ import { usePalette } from "./theme";
 import { Body, Button, Title } from "./ui";
 import icon from "../assets/icon.png";
 
-/**
- * Nothing of Garry shows while the app is locked (iOS, Face ID on), and the
- * screen is covered while the app is in the app switcher.
- */
+/** Hides everything while locked (iOS, Face ID on) and covers the screen in the app switcher. */
 export function LockGate({ children }: { children: ReactNode }) {
   const { ready, locked, covered, unlock } = useConnection();
   const p = usePalette();

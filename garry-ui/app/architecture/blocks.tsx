@@ -16,11 +16,6 @@ import styles from "./architecture.module.css";
 import { isDark, logoOf } from "./logos";
 import { relationOf } from "./relations";
 
-/**
- * The pieces of an architecture board: a block (a puzzle piece with what it
- * provides on the left and what it needs on the right), its logo, a relation
- * between two blocks, and the board to and from React Flow's nodes and edges.
- */
 // the block's header, then one row per port
 export const HEAD = 58;
 export const ROW = 26;
@@ -85,7 +80,6 @@ const GLYPH: Record<string, ReactNode> = {
   ),
 };
 
-/** The service's logo, its monogram, or the glyph of its kind (browsers, your own services). */
 export function BlockLogo({ blockId, group, small }: { blockId: string; group: string; small?: boolean }) {
   const logo = logoOf(blockId);
   const color = logo ? (isDark(logo.hex) ? "var(--color-text-default)" : logo.hex) : undefined;

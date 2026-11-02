@@ -37,7 +37,6 @@
   font-size: 12px;
 }
 
-/* the three steps of a contract's life */
 .steps {
   list-style: none;
   margin: 0;
@@ -119,7 +118,6 @@
   font-size: 13px;
 }
 
-/* delegation order with the reason for each place */
 .order {
   list-style: none;
   margin: 0;

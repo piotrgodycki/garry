@@ -6,11 +6,7 @@ import { client } from "../lib/client";
 
 const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
-/**
- * One shell, drawn by xterm.js. What is typed goes to the shell on the
- * computer running Garry; what it prints streams back. It fits its box and
- * tells the shell when the box changes size.
- */
+/** One xterm.js shell on the computer running Garry. It fits its box and tells the shell when the size changes. */
 export default function Terminal({ id, active, onExit }: { id: string; active: boolean; onExit: () => void }) {
   const box = useRef<HTMLDivElement>(null);
   const term = useRef<XTerm | null>(null);
@@ -62,7 +58,6 @@ export default function Terminal({ id, active, onExit }: { id: string; active: b
       })
       .catch(() => undefined);
 
-    // follow the box: fit, then tell the shell
     let last = "";
     const resize = () => {
       if (!box.current?.offsetWidth) return;

@@ -1,10 +1,6 @@
 import type { ReactNode } from "react";
 
-/**
- * Garry's own icon set: 24px grid, 1.7 stroke, round ends, so every screen
- * speaks the same visual language. A few carry the brand: an agent is a worm's
- * head, Build is lanes of work with agents at their ends, ideas sprout.
- */
+/** Garry's own icon set: 24px grid, 1.7 stroke, round ends. */
 const svg = (children: ReactNode) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     {children}
@@ -120,7 +116,6 @@ export const Icon = {
     </>,
   ),
   bolt: svg(<path d="M13 2.5L4.5 13.5H12l-1 8 8.5-11H12l1-8z" />),
-  // Live: a pulse, things happening now
   live: svg(<path d="M3 12h4l2.5-6 5 12 2.5-6h4" />),
   coin: svg(
     <>

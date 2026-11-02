@@ -1,7 +1,5 @@
-// Builds the desktop app: the main process as one ESM bundle (garry serve and its
-// dependencies inlined, so the app needs no node_modules), plus the dashboard,
-// and the pre-installed skills next to it, the same layout
-// as the garry npm package (see garry-tool/src/paths.ts).
+// garry serve and its dependencies are inlined so the app needs no node_modules.
+// The layout matches the garry npm package (see garry-tool/src/paths.ts).
 import { execFileSync } from "node:child_process";
 import { build } from "esbuild";
 import { cpSync, existsSync, rmSync } from "node:fs";

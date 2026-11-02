@@ -5,13 +5,8 @@ import { isKnownModel } from "./models.js";
 import type { Route } from "./routing.js";
 
 /**
- * Routing profiles: which agent role and which model handle each SDLC stage.
- * "default" is the profile used unless another is active. It starts as Garry's
- * values (garry.routing.json when the folder has one, else the built-in below);
- * change it like any other and it is saved to routing/default.json in the
- * registry, and reset brings Garry's values back. Other profiles live next to
- * it (routing/<name>.json). A feature can pick a profile with `routing: <name>`
- * in its frontmatter.
+ * Routing profiles: which agent and model handle each SDLC stage. "default" starts as Garry's values and is
+ * saved to routing/default.json once changed; reset brings Garry's values back.
  */
 
 export interface RoutingProfile {
@@ -120,7 +115,7 @@ export function listProfiles(registry: string, legacyFile?: string): { active: s
   return { active: activeProfileName(registry), profiles: [defaultProfile(legacyFile, registry), ...custom] };
 }
 
-/** Writes a profile. With from, it starts as a copy of that profile. */
+/** With `from`, it starts as a copy of that profile. */
 export function saveProfile(registry: string, input: unknown, opts: { replace?: boolean; legacyFile?: string } = {}): RoutingProfile {
   const raw = (input ?? {}) as Partial<RoutingProfile> & { from?: string };
   const source = raw.from ? readProfile(registry, raw.from, opts.legacyFile) : null;
@@ -140,7 +135,7 @@ export function saveProfile(registry: string, input: unknown, opts: { replace?: 
   return r.data;
 }
 
-/** Changes one stage (or the fallback, stage "defaults") of a profile, the default one included. */
+/** Stage "defaults" changes the fallback route. */
 export function setStageRoute(registry: string, name: string, stage: string, route: Partial<Route>, legacyFile?: string): RoutingProfile {
   const p = readProfile(registry, name, legacyFile);
   if (!p) throw new RoutingError(`no profile ${name}`, 404);
@@ -156,7 +151,7 @@ export function setActiveProfile(registry: string, name: string): void {
   writeFileSync(indexFile(registry), JSON.stringify({ active: name }, null, 2) + "\n");
 }
 
-/** Removes a profile; for default, puts Garry's values back. */
+/** Removing default puts Garry's values back. */
 export function removeProfile(registry: string, name: string): void {
   if (name === "default") {
     if (existsSync(file(registry, "default"))) unlinkSync(file(registry, "default"));

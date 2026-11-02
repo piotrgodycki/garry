@@ -4,18 +4,15 @@ import type { ThreadManager } from "../threads/manager.js";
 import { now } from "../threads/store.js";
 
 /**
- * What you tell Garry, in order. Every message waits its turn: Garry works on
- * one at a time, in one conversation per repository (so it remembers what came
- * before), and a new message never interrupts the work in progress; it starts
- * when the agent is free. You can drop a message while it waits. Kept in
- * ~/.garry/garry-queue.json, so a restart loses nothing.
+ * What you tell Garry, run one message at a time in one conversation per
+ * repository. A new message never interrupts work in progress. Kept in
+ * ~/.garry/garry-queue.json so a restart loses nothing.
  */
 export type QueueStatus = "queued" | "running" | "done" | "failed" | "cancelled";
 
 export interface QueueItem {
   id: string;
   text: string;
-  /** the repository it is for */
   projectId: string;
   status: QueueStatus;
   /** the conversation it runs in (Garry's thread for that repository) */
@@ -30,7 +27,6 @@ export interface QueueItem {
 
 interface QueueFile {
   items: QueueItem[];
-  /** Garry's conversation per repository */
   threads: Record<string, string>;
 }
 
@@ -88,7 +84,6 @@ export class GarryQueue {
     return true;
   }
 
-  /** Starts the next message when nothing of Garry's runs and its conversation is free. */
   private pump(): void {
     if (this.data.items.some((i) => i.status === "running")) return;
     const next = this.data.items.find((i) => i.status === "queued");

@@ -1,11 +1,8 @@
 import type { Contracts, EventDef, Manifest, Remote } from "./registryIO.js";
 
 /**
- * Computes the slice of contracts a single service may rely on.
- * - remotes: only the services this one consumes.
- * - shared dependencies and design tokens: the full contract, because shared
- *   singletons and tokens are global by nature.
- * - events: only those where this service is a producer or a consumer.
+ * Remotes and events are narrowed to what this service consumes or produces. Shared dependencies and design
+ * tokens stay whole because singletons and tokens are global by nature.
  */
 export function computeSlice(manifest: Manifest, contracts: Contracts): Contracts {
   const consumed = Object.keys(manifest.consumes ?? {});

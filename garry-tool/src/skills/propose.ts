@@ -3,12 +3,8 @@ import { gitTry } from "../workspace/git.js";
 import { enforceAudit, prepareSkill, SkillError, type InstallRequest, type PreparedSkill } from "./local.js";
 
 /**
- * Proposes a skill to the whole team: opens a pull request that adds it to the
- * pre-installed skills (garry-tool/skills/skills/<stage>/<name>/ plus a manifest entry).
- * The skill-audit workflow then audits it again in CI with secret and static
- * scanners, CODEOWNERS asks a named reviewer to approve, and only after the merge
- * does it ship to everyone. The same local audit runs first, so a skill that
- * fails is never even proposed.
+ * Proposes a skill to the team as a pull request against the pre-installed skills. CI audits it again and
+ * CODEOWNERS review gates the merge; the local audit runs first so a failing skill is never proposed.
  */
 
 export interface ProposeResult {

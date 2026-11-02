@@ -4,11 +4,7 @@ import { client } from "../lib/client";
 import styles from "./projects.module.css";
 import ProjectMark from "./ProjectMark";
 
-/**
- * Settings, Projects: make one, switch, export one to a .garry.json file,
- * import one, remove one (any, as long as one is left; a removed active one
- * hands over to another). On this computer only; a paired phone sees the list.
- */
+/** Projects live on this computer only; a paired phone just sees the list. At least one project always remains. */
 export default function ProjectsPanel() {
   const [data, setData] = useState<GarryProjects | null>(null);
   const [name, setName] = useState("");

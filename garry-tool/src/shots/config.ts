@@ -31,7 +31,7 @@ export interface ShotsConfig {
 
 const SAFE_NAME = /^[a-z0-9][a-z0-9-]*$/;
 
-/** Loads and checks garry.screenshots.json. Names become file names, so they are kept to a safe charset. */
+/** Names become file names, so they are kept to a safe charset. */
 export function loadShotsConfig(file: string): ShotsConfig {
   if (!existsSync(file)) throw new Error(`screenshot config not found: ${file}`);
   const raw = JSON.parse(readFileSync(file, "utf8")) as Partial<ShotsConfig>;
@@ -52,7 +52,6 @@ export function loadShotsConfig(file: string): ShotsConfig {
   return { routes, viewports, themes, wait: raw.wait ?? 800, themeStorageKey: raw.themeStorageKey };
 }
 
-/** File name of one shot: route, viewport and theme. */
 export function shotName(route: string, viewport: string, theme: string): string {
   return `${route}--${viewport}--${theme}`;
 }

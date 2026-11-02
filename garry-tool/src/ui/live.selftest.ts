@@ -1,14 +1,6 @@
 /**
- * Regression test for the Live screen, in a real browser against a real Garry
- * server whose agents are a stand-in for Claude Code: what needs you is listed
- * with the agent's own words and answered in place (the agent then works on
- * your answer); a stopped agent can be told to fix it; every agent is a lane
- * on the timeline in the state the server gives it, segments where its events
- * put them; picking a lane (click, arrows, J and K) shows what it did and what
- * it cost; the rail's badge and the top bar's counts lead here.
- * Needs the built dashboard and Chromium, like test:dropdown.
- * Run with: pnpm -C garry-tool test:live-ui (CI runs it too).
- * GARRY_LIVE_SHOTS=<dir> also saves screenshots there.
+ * Browser regression test for the Live screen against a real server with stand-in agents.
+ * Run with: pnpm -C garry-tool test:live-ui (GARRY_LIVE_SHOTS=<dir> also saves screenshots there)
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -97,7 +89,6 @@ try {
     page.on("pageerror", (e) => errors.push(String(e)));
     await page.goto(`${base}/`);
     if (scheme === "light") {
-      // the rail's badge and the top bar's count both lead here
       const badge = page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Live, 3 need you" });
       await badge.waitFor({ timeout: 8000 }).catch(() => undefined);
       expect("the rail's Live carries what needs you", (await badge.count()) === 1);
@@ -116,7 +107,6 @@ try {
       continue;
     }
 
-    // what needs you: the question in the agent's words, and the stop
     const question = needs.getByRole("article", { name: /Add a buy button: asks a question/ });
     const stopped = needs.getByRole("article", { name: /Fix the search prices: stopped before finishing/ });
     expect(
@@ -127,7 +117,6 @@ try {
     expect("and the agent that stopped", (await stopped.count()) === 1 && (await stopped.getByRole("button", { name: "Let it fix" }).count()) === 1);
     expect("its count is three", (await needs.getByRole("heading").innerText()).includes("3"));
 
-    // every agent is a lane, in the server's state, what needs you first
     const options = await lanes.getByRole("option").evaluateAll((os) => os.map((o) => o.getAttribute("aria-label")));
     const waits = /, (Needs you|Failed)$/;
     expect(
@@ -170,7 +159,6 @@ try {
       (await saleLane.locator('[title][data-state="wait"]').getAttribute("title"))!.startsWith("Needs you: Should it start on Monday?"),
     );
 
-    // picking a lane: what it did and what it cost
     const agent = page.getByRole("region", { name: /^agent: / });
     expect(
       "the first lane is followed below",
@@ -211,7 +199,6 @@ try {
       (await working.innerText()).includes("Write NOTES.md") && (await working.getByRole("button", { name: "Stop" }).count()) === 1,
     );
 
-    // answering in place: the agent works on your answer, and it leaves needs you
     await question.getByRole("textbox", { name: "answer ASK Add a buy button" }).fill("Blue, like the other actions");
     await question.getByRole("button", { name: "Send" }).click();
     await until(() => threads.store.events(asks).some((e) => e.type === "user" && e.text === "Blue, like the other actions"), 5000);
@@ -223,7 +210,6 @@ try {
     await question.waitFor({ state: "detached", timeout: 8000 }).catch(() => undefined);
     expect("and the question leaves needs you", (await question.count()) === 0);
 
-    // a stop: Let it fix sends it back to work
     await stopped.getByRole("button", { name: "Let it fix" }).click();
     await until(() => threads.store.events(broke).filter((e) => e.type === "user").length === 2, 5000);
     expect(
@@ -231,14 +217,12 @@ try {
       /fix it/.test((threads.store.events(broke).filter((e) => e.type === "user")[1] as { text: string } | undefined)?.text ?? ""),
     );
 
-    // the time span
     await page.getByRole("button", { name: "15 min" }).click();
     expect("the time span can be changed", (await page.getByRole("button", { name: "15 min" }).getAttribute("aria-pressed")) === "true");
     expect("no errors in the page", errors.length === 0, errors.join("; "));
     await page.close();
   }
 
-  // on a phone: one column, nothing wider than the screen
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await phone.goto(`${base}/live`);
   await phone.getByRole("listbox", { name: "agents" }).getByRole("option").first().waitFor();

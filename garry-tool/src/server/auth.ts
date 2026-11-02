@@ -5,13 +5,9 @@ import { dirname, join } from "node:path";
 import type { IncomingMessage } from "node:http";
 
 /**
- * Device pairing. The machine that runs garry serve is trusted (loopback). Any
- * other device, a phone on the same Wi-Fi or another computer, has to pair once
- * with a one-time code (shown as a QR code by garry serve and garry pair) and then
- * sends the device token it got with every request.
- *
- * Only a SHA-256 hash of each device token is stored, in ~/.garry/devices.json
- * (or $GARRY_HOME). Pairing codes live in memory and expire after 10 minutes.
+ * Device pairing. Loopback is trusted; any other device pairs once with a
+ * one-time code and then sends its device token with every request. Only a
+ * SHA-256 hash of each token is stored, and pairing codes live in memory.
  */
 
 export interface Device {
@@ -20,7 +16,6 @@ export interface Device {
   tokenHash: string;
   createdAt: string;
   lastSeenAt: string | null;
-  /** an Expo push token the device asked to be notified on (Garry needs you, work is ready) */
   pushToken?: string;
 }
 
@@ -60,7 +55,6 @@ export class DeviceStore {
     renameSync(tmp, this.file);
   }
 
-  /** A fresh one-time pairing code. */
   createCode(): { code: string; expiresAt: string } {
     const code = token();
     const expires = Date.now() + CODE_TTL_MS;
@@ -68,7 +62,7 @@ export class DeviceStore {
     return { code, expiresAt: new Date(expires).toISOString() };
   }
 
-  /** Trades a pairing code for a device token. The code works once. */
+  /** Trades a pairing code for a device token. Each code works once. */
   pair(code: string, name: string): { device: Omit<Device, "tokenHash">; token: string } | { error: string; status: number } {
     const now = Date.now();
     this.failures = this.failures.filter((t) => now - t < 60_000);
@@ -95,13 +89,12 @@ export class DeviceStore {
     return { device: pub, token: secret };
   }
 
-  /** The device a token belongs to, or null. */
   verify(secret: string): Device | null {
     const h = sha256(secret);
     const devices = this.list();
     const device = devices.find((d) => d.tokenHash === h) ?? null;
     if (device) {
-      // record the last use at most once a minute, so requests do not rewrite the file
+      // At most once a minute, so every request does not rewrite the file.
       const seen = device.lastSeenAt ? Date.parse(device.lastSeenAt) : 0;
       if (Date.now() - seen > 60_000) {
         device.lastSeenAt = new Date().toISOString();
@@ -111,7 +104,6 @@ export class DeviceStore {
     return device;
   }
 
-  /** Sets (or with null, clears) the push token of one device. */
   setPushToken(id: string, pushToken: string | null): boolean {
     if (pushToken !== null && !PUSH_TOKEN.test(pushToken)) throw new Error("not an Expo push token");
     const devices = this.list();
@@ -132,7 +124,6 @@ export class DeviceStore {
   }
 }
 
-/** True for requests from this machine. */
 export function isLoopback(req: IncomingMessage): boolean {
   const a = req.socket.remoteAddress ?? "";
   return a === "127.0.0.1" || a === "::1" || a === "::ffff:127.0.0.1";
@@ -158,7 +149,6 @@ export function requestToken(req: IncomingMessage, url: URL): string | null {
   return null;
 }
 
-/** True when the Host header names this machine or one of the extra host names. */
 export function hostAllowed(req: IncomingMessage, extra: string[]): boolean {
   const host = req.headers.host;
   if (!host) return true; // HTTP/1.0 clients; a browser always sends one
@@ -171,7 +161,6 @@ export function hostAllowed(req: IncomingMessage, extra: string[]): boolean {
   return ["localhost", "127.0.0.1", "::1", ...extra].includes(name);
 }
 
-/** The link a device opens or scans to pair: http://<host>:<port>/pair?code=... */
 export function pairingLink(host: string, port: number, code: string): string {
   const h = host.includes(":") && !host.startsWith("[") ? `[${host}]` : host;
   return `http://${h}:${port}/pair?code=${encodeURIComponent(code)}`;

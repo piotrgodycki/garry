@@ -1,12 +1,6 @@
 /**
- * Regression test for creating a repository's home on GitHub, named as it is
- * in Garry and only on a person's yes: the name GitHub gets, the proposal in
- * the push preview, nothing made without the yes (or before an "ask first"
- * yes), creating it (yours or an organization's, private by default) with
- * origin added and the branch pushed, then the pull request; a name already
- * taken, an origin elsewhere, and the HTTP routes. A stand-in for GitHub's API
- * and local bare repositories as the remotes.
- * Run with: pnpm -C garry-tool test:create-repo (CI runs it too).
+ * Tests creating a repository on GitHub on a person's yes, against a stand-in GitHub API.
+ * Run with: pnpm -C garry-tool test:create-repo
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -147,7 +141,6 @@ expect("allow: still nothing made without a yes to creating it", !!allowNoYes &&
 await manager.openPr(d.id, undefined, undefined, false, { name: "cart" });
 expect("allow: with it, created and the pull request opened", made.some((m) => m.name === "cart") && opened.at(-1)?.repo === "octo/cart");
 
-// an origin that is not on GitHub is left alone
 const elsewherePath = newRepo("elsewhere");
 git(elsewherePath, ["remote", "add", "origin", "https://gitlab.example/team/elsewhere.git"]);
 const elsewhere = store.addProject(elsewherePath, "elsewhere");
@@ -160,7 +153,6 @@ expect(
   keep?.status === 409 && git(elsewherePath, ["config", "--get", "remote.origin.url"]).trim() === "https://gitlab.example/team/elsewhere.git",
 );
 
-// the server
 const server = createGarryServer(
   { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads: manager },
   new DeviceStore(join(home, "devices.json")),

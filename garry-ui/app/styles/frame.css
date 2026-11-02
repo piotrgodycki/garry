@@ -1,5 +1,4 @@
 /* the frame on a wide screen: the rail, the top bar (one part of globals.css, which imports them in this order) */
-/* ---- the frame on a wide screen: rail, top bar, page, command line -------- */
 .frame {
   display: flex;
   flex-direction: column;

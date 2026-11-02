@@ -11,7 +11,6 @@
   font-size: 16px;
   font-weight: 700;
 }
-/* each card's own mark: GitHub's logo, the projects' layers */
 .titleIcon {
   display: grid;
   place-items: center;

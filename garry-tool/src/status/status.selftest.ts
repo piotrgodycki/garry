@@ -1,8 +1,6 @@
 /**
- * Regression test for Garry at a glance: real threads run by a stand-in for
- * Claude Code, each ending a different way, and the status the menu bar and
- * the iPhone app read (working, needs you, ready, nothing) both directly
- * and over /api/status. Run with: pnpm -C garry-tool test:status (CI runs it too).
+ * Tests the menu bar status for threads run by a stand-in for Claude Code, directly and over /api/status.
+ * Run with: pnpm -C garry-tool test:status
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -32,7 +30,6 @@ const until = async (f: () => boolean, ms = 10_000) => {
   return f();
 };
 
-// what counts as a question
 expect("a last line ending in ? is a question", asksSomething("Done.\nShould it be red or blue?") && asksSomething("Which one?**"));
 expect("a question earlier on is not", !asksSomething("Should I? I did it anyway.\nAll done."));
 expect("nothing is not a question", !asksSomething(""));
@@ -47,7 +44,6 @@ const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
 const project = threads.store.addProject(repo);
 expect("nothing in flight is idle", garryStatus(threads).state === "idle");
 
-// everything that happens reaches one listener (the menu bar)
 const seen: string[] = [];
 const stop = threads.subscribeAll((id, e) => seen.push(`${id}:${e.type}`));
 
@@ -66,23 +62,19 @@ expect(
   [asks.id, fails.id, fine.id].every((id) => seen.includes(`${id}:turn_end`)),
 );
 
-// notifications: what changed between two looks
 const before = garryStatus(threads);
 expect("the first look announces what waits", statusChanges(null, before).length === 3);
 expect("looking again announces nothing", statusChanges(before, garryStatus(threads)).length === 0);
 
-// answering the question: the follow-up ends well, so it is ready
 threads.send(asks.id, "blue, thanks");
 await until(() => !threads.isRunning(asks.id));
 expect("an answered question is ready again", byId(garryStatus(threads), asks.id)?.state === "done");
 const changed = statusChanges(before, garryStatus(threads));
 expect("then exactly that thread is news", changed.length === 1 && changed[0].threadId === asks.id && changed[0].state === "done");
 
-// committed work waits on nobody
 threads.commit(fine.id, "notes");
 expect("committed work leaves the list", !byId(garryStatus(threads), fine.id));
 
-// a turn in progress is working
 const slow = threads.create(project.id, "SLOW job");
 await until(() => threads.isRunning(slow.id));
 s = garryStatus(threads);
@@ -92,7 +84,6 @@ const busy = threads.create(project.id, "BUSY job");
 await until(() => threads.store.events(busy.id).some((e) => e.type === "tool"));
 stop();
 
-// over HTTP: what the menu bar and the iPhone app read
 const server = createGarryServer(
   { registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads },
   new DeviceStore(join(home, "devices.json")),

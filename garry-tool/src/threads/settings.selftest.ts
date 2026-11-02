@@ -1,9 +1,6 @@
 /**
- * Regression test for what Garry may do with a project's remote: the settings
- * (checked, per project), branch names from the prefix, protected branches,
- * asking before a push, never pushing, and the server's endpoints. A stand-in
- * for GitHub's API and a local repository as the remote.
- * Run with: pnpm -C garry-tool test:push (CI runs it too).
+ * Tests push settings, branch rules and the HTTP endpoints against a stand-in GitHub API.
+ * Run with: pnpm -C garry-tool test:push
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -58,7 +55,6 @@ const throws = (f: () => unknown) => {
   }
 };
 
-// the rules
 expect("asks before pushing by default", DEFAULT_SETTINGS.push === "ask");
 expect(
   "main and release/* are protected",
@@ -166,7 +162,6 @@ const started = manager.create(project.id, "add a footer");
 expect("new branches use the prefix", started.branch.startsWith("team/garry-add-a-footer-"), started.branch);
 manager.stop(started.id);
 
-// the server
 const server = createGarryServer(
   { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads: manager },
   new DeviceStore(join(home, "devices.json")),

@@ -109,7 +109,6 @@
   height: 16px;
 }
 
-/* install dialog */
 .dialog {
   width: min(560px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
@@ -261,7 +260,6 @@
   margin-right: auto;
 }
 
-/* security audit */
 .audit {
   display: inline-flex;
   align-items: center;
@@ -389,7 +387,6 @@
   background: var(--surface-2);
 }
 
-/* team proposal */
 .policy {
   margin: 0;
   padding: 10px 12px;

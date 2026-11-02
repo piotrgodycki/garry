@@ -3,14 +3,9 @@ import type { ThreadManager } from "../threads/manager.js";
 import { garryStatus, statusChanges, type GarryStatus, type StatusItem } from "./status.js";
 
 /**
- * Notifications on the phone: when a piece of work comes to need you, or is
- * ready, every paired device that asked for notifications gets one, through
- * Expo's push service (the phone app's own). Off unless a phone asks.
- *
- * For a company: GARRY_PUSH=off turns it off for everyone; GARRY_PUSH_URL
- * sends to a push relay of your own instead of Expo's; GARRY_PUSH_DETAIL=minimal
- * leaves titles and details out (only "Garry needs you" / "Work is ready"), so
- * no project names leave the computer.
+ * Push notifications through Expo when work comes to need you or is ready; off
+ * unless a phone asks. GARRY_PUSH=off disables them, GARRY_PUSH_URL uses your own
+ * relay, and GARRY_PUSH_DETAIL=minimal keeps project names on this computer.
  */
 
 export const pushEnabled = () => (process.env.GARRY_PUSH ?? "").toLowerCase() !== "off";

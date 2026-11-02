@@ -1,13 +1,6 @@
 /**
- * Regression test for Build, in a real browser against a real Garry server
- * whose agents are a stand-in for Claude Code: Your jobs lists every job in
- * one list, the one that needs you first with what it asks, a working one with
- * what it is doing, filters by what each needs, follows the agents without a
- * reload, and a row opens its work; Start a job has labelled fields and
- * explains each way agents can work; the feature pipeline opens from the
- * header, and old links to Live agents land there. Needs the built dashboard
- * and Chromium, like test:dropdown.
- * Run with: pnpm -C garry-tool test:build-ui (CI runs it too).
+ * Browser regression test for Build against a real server with stand-in agents.
+ * Run with: pnpm -C garry-tool test:build-ui
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -103,7 +96,6 @@ try {
   expect("a filter shows only its jobs", needing.length === 1 && needing[0].includes("ASK add a buy button"), needing.join(" | "));
   await filters.getByRole("radio", { name: "All" }).click();
 
-  // the agent finishes: the row changes without reloading
   threads.stop(busy.id);
   const changed = await page
     .waitForFunction(() => !document.querySelector('[aria-labelledby="your-jobs"]')?.textContent?.includes("Write NOTES.md"), undefined, { timeout: 8000 })
@@ -117,7 +109,6 @@ try {
   await page.waitForURL(`**/build/${asks.id}`);
   expect("a row opens its work", page.url().endsWith(`/build/${asks.id}`));
 
-  // starting a job: labelled fields, the way it runs explained
   await page.goto(`${base}/build`);
   const job = page.getByRole("region", { name: "Start a job" });
   await job.waitFor();
@@ -125,7 +116,6 @@ try {
   expect("who works on it: three ways, each explained", how.length === 3 && how.every((h) => h.split("\n").filter(Boolean).length >= 2), how.join(" | "));
   expect("the fields are labelled, not only hinted", (await job.getByRole("textbox", { name: "What should change?" }).count()) === 1);
 
-  // the feature pipeline is a view of Build, and old links land there
   await page.goto(`${base}/build`);
   await page.getByRole("link", { name: "Feature pipeline" }).click();
   await page

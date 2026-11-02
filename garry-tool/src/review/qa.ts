@@ -1,12 +1,6 @@
 /**
- * Does this change need a person to try it before it ships? Reads a diff (the
- * changed paths and their added lines) and names the areas a human should check,
- * each with what to do: screens that look different, controls that behave
- * differently, settings that change how things run, sign in and pairing flows,
- * the native apps. Pure tests, docs and CI plumbing need nobody.
- *
- * Used by garry qa (the PR label and checklist in CI) and by Garry when it opens
- * a pull request for a thread.
+ * Decides from a diff whether a change needs a person to try it before it ships, and names the areas to
+ * check. Pure tests, docs and CI plumbing need nobody.
  */
 
 export interface ChangedFile {
@@ -133,7 +127,6 @@ export function assessQa(files: ChangedFile[]): QaAssessment {
   return { needed: areas.length > 0, areas };
 }
 
-/** Splits a unified diff into changed files with their added lines. */
 export function parseDiff(patch: string): ChangedFile[] {
   const files: ChangedFile[] = [];
   let cur: ChangedFile | null = null;
@@ -150,7 +143,6 @@ export function parseDiff(patch: string): ChangedFile[] {
 export const QA_LABEL = "needs human QA";
 export const QA_MARKER = "<!-- garry:qa -->";
 
-/** The pull request comment: a badge, then what to check, area by area. */
 export function qaMarkdown(a: QaAssessment): string {
   if (!a.needed) {
     return `${QA_MARKER}\n![QA](https://img.shields.io/badge/QA-automated%20checks%20only-2ea44f)\n\nNothing here needs a person to try it: the change is covered by tests and review.`;
