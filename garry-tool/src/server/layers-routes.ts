@@ -1,10 +1,10 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
 import { activeGarryProject, garryProject } from "../project/store.js";
 import { listManifests } from "../sync/registryIO.js";
 import { LayerError, layerAt, parseScope, readLayers, saveLayer } from "../registry/layers.js";
 import { agentContext, servicesIn } from "../registry/agent-context.js";
 import type { ThreadManager } from "../threads/manager.js";
-import { json, readBody, type RouteCtx } from "./http.js";
+import { json, readBody } from "./http.js";
+import type { RouteCtx, RouteGroup } from "./context.js";
 
 /** The registry a repository's Garry project keeps, the active one read from the server's config. */
 export function registryOf(cfg: RouteCtx["cfg"], garry: string | undefined): { path: string; name: string } {
@@ -29,10 +29,10 @@ export function wireAgentContext(cfg: RouteCtx["cfg"], threads: ThreadManager): 
  * Layers of the active Garry project: read them all, save one (the project's,
  * a repository's or a service's), and see what an agent in one repository gets.
  */
-export async function layerRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
+export const layerRoutes: RouteGroup = async (req, res, path, ctx) => {
   const { cfg, url } = ctx;
   if (!path.startsWith("/api/layers")) return false;
-  const repos = cfg.threads?.store.projectsOf(activeGarryProject().id) ?? [];
+  const repos = ctx.repos();
   if (req.method === "GET" && path === "/api/layers") {
     // each service with the repository here it lives in, if any
     const home = new Map<string, string>();
@@ -63,4 +63,4 @@ export async function layerRoutes(req: IncomingMessage, res: ServerResponse, pat
     return json(res, 200, agentContext({ registry: reg.path, skillsRoot: cfg.skills, project: reg.name, repo }));
   }
   return false;
-}
+};

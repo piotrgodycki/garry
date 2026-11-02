@@ -1,4 +1,3 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
 import { cloneRepo, forgetToken, githubStatus, listRepos, pollDeviceFlow, saveToken, startDeviceFlow } from "../github/connect.js";
 import { githubToken } from "../github/env.js";
 import {
@@ -9,17 +8,17 @@ import {
   removeGarryProject,
   updateGarryProject,
   useGarryProject,
-  activeGarryProject,
 } from "../project/store.js";
 import { exportGarryProject, importGarryProject, originOf } from "../project/bundle.js";
 import { avatarUrl, projectOwner } from "../project/avatar.js";
-import { json, readBody, type RouteCtx } from "./http.js";
+import { json, readBody } from "./http.js";
+import type { RouteGroup } from "./context.js";
 
 /**
  * GitHub connection and Garry projects. Returns false when the request is about
  * neither.
  */
-export async function projectRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
+export const projectRoutes: RouteGroup = async (req, res, path, ctx) => {
   const { cfg, local, url } = ctx;
   // GitHub is connected on this machine only.
   if (path.startsWith("/api/github") || path === "/api/projects/import") {
@@ -41,7 +40,7 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
       if (req.method === "POST" && path === "/api/projects/import") {
         const repo = String(((await readBody(req)) as { repo?: string }).repo ?? "");
         const dir = cloneRepo(token, repo);
-        return json(res, 200, cfg.threads!.store.addProject(dir, repo.split("/")[1], activeGarryProject().id));
+        return json(res, 200, ctx.services.threads.store.addProject(dir, repo.split("/")[1], ctx.project.id));
       }
       return json(res, 405, { error: "method not allowed" });
     } catch (e) {
@@ -53,12 +52,12 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
   if (path === "/api/garry-projects" || path.startsWith("/api/garry-projects/")) {
     const list = () => {
       const { active, projects } = listGarryProjects();
-      const store = cfg.threads?.store;
+      const store = ctx.services.threads.store;
       return {
         active,
         registry: cfg.registry,
         projects: projects.map((p) => {
-          const repos = store ? store.projectsOf(p.id) : [];
+          const repos = store.projectsOf(p.id);
           const owner = projectOwner(
             repos.map((r) => r.path),
             (p.pendingRepos ?? []).map((r) => r.remote),
@@ -88,13 +87,11 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
       if (one) {
         const [, id, action] = one;
         if (req.method === "GET" && action === "/export") {
-          const store = cfg.threads?.store;
+          const store = ctx.services.threads.store;
           const repos = store
-            ? store
-                .projectsOf(id)
-                .map((r) => ({ name: r.name, remote: originOf(r.path), ...(r.settings ? { settings: r.settings } : {}) }))
-                .filter((r) => r.remote)
-            : [];
+            .projectsOf(id)
+            .map((r) => ({ name: r.name, remote: originOf(r.path), ...(r.settings ? { settings: r.settings } : {}) }))
+            .filter((r) => r.remote);
           const bundle = exportGarryProject(id, repos as { name: string; remote: string }[]);
           res.setHeader("content-disposition", `attachment; filename="${id}.garry.json"`);
           return json(res, 200, bundle);
@@ -110,27 +107,25 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
           const token = githubToken();
           if (!token) return json(res, 400, { error: "connect GitHub first (Settings, GitHub)" });
           const dir = cloneRepo(token, `${slug[1]}/${slug[2]}`);
-          const repo = cfg.threads!.store.addProject(dir, pending.name, id);
-          if (pending.settings) cfg.threads!.store.saveSettings(repo.id, pending.settings);
+          const repo = ctx.services.threads.store.addProject(dir, pending.name, id);
+          if (pending.settings) ctx.services.threads.store.saveSettings(repo.id, pending.settings);
           updateGarryProject(id, { pendingRepos: (p.pendingRepos ?? []).filter((r) => r.remote !== remote) });
           return json(res, 200, repo);
         }
         if (req.method === "POST" && !action) return json(res, 200, updateGarryProject(id, (await readBody(req)) as { name?: unknown; description?: unknown }));
         if (req.method === "DELETE" && !action) {
-          const store = cfg.threads?.store;
+          const store = ctx.services.threads.store;
           // agents at work in it are stopped first, by the human
           const busy = store
-            ? store
-                .projectsOf(id)
-                .flatMap((r) => store.threads(r.id))
-                .filter((t) => cfg.threads!.isRunning(t.id))
-            : [];
+            .projectsOf(id)
+            .flatMap((r) => store.threads(r.id))
+            .filter((t) => ctx.services.threads.isRunning(t.id));
           if (busy.length)
             return json(res, 409, {
               error: `${busy.length} agent${busy.length === 1 ? " is" : "s are"} at work in this project: stop ${busy.length === 1 ? "it" : "them"} first`,
             });
           const now = removeGarryProject(id);
-          store?.forgetProjectsOf(id);
+          store.forgetProjectsOf(id);
           cfg.registry = now.path;
           return json(res, 200, list());
         }
@@ -142,4 +137,4 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
     }
   }
   return false;
-}
+};

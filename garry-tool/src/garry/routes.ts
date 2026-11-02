@@ -1,66 +1,50 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-import type { ThreadManager } from "../threads/manager.js";
-import { activeGarryProject } from "../project/store.js";
-import type { GarryQueue } from "./queue.js";
-import type { Teams } from "./teams.js";
 import { CommandError, commandList, runCommand } from "./commands.js";
 import { MemoryError, forget, readMemory, remember } from "./memory.js";
+import type { RouteGroup } from "../server/context.js";
+import { json, readBody } from "../server/http.js";
 
 /**
  * /api/garry/queue, /commands and /memory, for this machine and paired devices.
  * A message without projectId goes to the project's first repository.
  */
-export async function queueRoutes(
-  req: IncomingMessage,
-  res: ServerResponse,
-  path: string,
-  ctx: {
-    queue: GarryQueue;
-    threads: ThreadManager;
-    teams: Teams;
-    registry: string;
-    json: (res: ServerResponse, code: number, body: unknown) => void;
-    readBody: (req: IncomingMessage) => Promise<unknown>;
-  },
-): Promise<boolean> {
-  const { queue, threads, json } = ctx;
+export const queueRoutes: RouteGroup = async (req, res, path, { services: { queue, threads, teams }, cfg, repos }) => {
+  if (!/^\/api\/garry\/(queue|commands|memory)(\/|$)/.test(path)) return false;
   const fail = (e: unknown) => {
-    if (e instanceof CommandError || e instanceof MemoryError) return (json(res, e.status, { error: e.message }), true);
-    return (json(res, 400, { error: String((e as Error).message ?? e) }), true);
+    if (e instanceof CommandError || e instanceof MemoryError) return json(res, e.status, { error: e.message });
+    return json(res, 400, { error: String((e as Error).message ?? e) });
   };
-  const repos = () => threads.store.projectsOf(activeGarryProject().id);
   const mine = () => {
     const ids = new Set(repos().map((r) => r.id));
     return queue.list().filter((i) => ids.has(i.projectId));
   };
   if (path === "/api/garry/queue") {
-    if (req.method === "GET") return (json(res, 200, { items: mine(), repos: repos().map((r) => ({ id: r.id, name: r.name })) }), true);
+    if (req.method === "GET") return json(res, 200, { items: mine(), repos: repos().map((r) => ({ id: r.id, name: r.name })) });
     if (req.method === "POST") {
-      const body = (await ctx.readBody(req)) as { text?: string; projectId?: string };
+      const body = (await readBody(req)) as { text?: string; projectId?: string };
       const projectId = body.projectId || repos()[0]?.id;
-      if (!projectId) return (json(res, 400, { error: "add a repository to this project first (Build)" }), true);
-      if (!repos().some((r) => r.id === projectId)) return (json(res, 400, { error: "that repository is not in this project" }), true);
+      if (!projectId) return json(res, 400, { error: "add a repository to this project first (Build)" });
+      if (!repos().some((r) => r.id === projectId)) return json(res, 400, { error: "that repository is not in this project" });
       try {
-        return (json(res, 200, queue.add(String(body.text ?? ""), projectId)), true);
+        return json(res, 200, queue.add(String(body.text ?? ""), projectId));
       } catch (e) {
-        return (json(res, 400, { error: String((e as Error).message ?? e) }), true);
+        return json(res, 400, { error: String((e as Error).message ?? e) });
       }
     }
   }
-  if (path === "/api/garry/commands" && req.method === "GET") return (json(res, 200, { commands: commandList() }), true);
+  if (path === "/api/garry/commands" && req.method === "GET") return json(res, 200, { commands: commandList() });
   if (path === "/api/garry/commands" && req.method === "POST") {
-    const body = (await ctx.readBody(req)) as { text?: unknown };
+    const body = (await readBody(req)) as { text?: unknown };
     try {
-      return (json(res, 200, runCommand(String(body.text ?? ""), { registry: ctx.registry, repos: repos(), threads, teams: ctx.teams, queue })), true);
+      return json(res, 200, runCommand(String(body.text ?? ""), { registry: cfg.registry, repos: repos(), threads, teams, queue }));
     } catch (e) {
       return fail(e);
     }
   }
   if (path === "/api/garry/memory") {
-    if (req.method === "GET") return (json(res, 200, { entries: readMemory(ctx.registry) }), true);
+    if (req.method === "GET") return json(res, 200, { entries: readMemory(cfg.registry) });
     if (req.method === "POST") {
       try {
-        return (json(res, 200, remember(ctx.registry, String(((await ctx.readBody(req)) as { text?: unknown }).text ?? ""))), true);
+        return json(res, 200, remember(cfg.registry, String(((await readBody(req)) as { text?: unknown }).text ?? "")));
       } catch (e) {
         return fail(e);
       }
@@ -69,15 +53,15 @@ export async function queueRoutes(
   const mem = /^\/api\/garry\/memory\/([a-f0-9]{10})$/.exec(path);
   if (mem && req.method === "DELETE") {
     try {
-      return (json(res, 200, forget(ctx.registry, mem[1])), true);
+      return json(res, 200, forget(cfg.registry, mem[1]));
     } catch (e) {
       return fail(e);
     }
   }
   const one = /^\/api\/garry\/queue\/([a-z0-9]{4,16})$/.exec(path);
   if (one && req.method === "DELETE") {
-    if (!mine().some((i) => i.id === one[1])) return (json(res, 404, { error: "no such message" }), true);
+    if (!mine().some((i) => i.id === one[1])) return json(res, 404, { error: "no such message" });
     return queue.cancel(one[1]) ? (json(res, 200, { cancelled: true }), true) : (json(res, 409, { error: "it has already started; stop it in Build" }), true);
   }
   return false;
-}
+};

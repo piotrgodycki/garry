@@ -1,24 +1,26 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
 import { mkdirSync } from "node:fs";
 import { TerminalError, terminalEnabled } from "../terminal/terminal.js";
 import { CORS, json, readBody } from "./http.js";
-import type { ServerConfig } from "./server.js";
+import type { RouteCtx, RouteGroup } from "./context.js";
 
 /** Where a Files tab root lives on disk: the registry, a repo's checkout, a piece of work's worktree. */
-function rootDir(cfg: ServerConfig, root: string): string | null {
+function rootDir({ cfg, services: { threads } }: RouteCtx, root: string): string | null {
   if (root === "registry") {
     mkdirSync(cfg.registry, { recursive: true });
     return cfg.registry;
   }
   const m = /^(project|thread):([a-z0-9]{4,16})$/.exec(root);
   if (!m) return null;
-  const store = cfg.threads!.store;
+  const store = threads.store;
   if (m[1] === "project") return store.project(m[2])?.path ?? null;
   return store.get(m[2])?.worktree ?? null;
 }
 
-export async function terminalRoutes(req: IncomingMessage, res: ServerResponse, path: string, cfg: ServerConfig): Promise<void> {
-  const terminals = cfg.terminals!;
+/** A shell on this computer is never opened for a paired device. */
+export const terminalRoutes: RouteGroup = async (req, res, path, ctx) => {
+  if (path !== "/api/terminals" && !path.startsWith("/api/terminals/")) return false;
+  if (!ctx.local) return json(res, 403, { error: "the terminal opens on the computer running Garry" });
+  const { terminals } = ctx.services;
   const m = req.method ?? "GET";
   try {
     if (path === "/api/terminals") {
@@ -26,7 +28,7 @@ export async function terminalRoutes(req: IncomingMessage, res: ServerResponse, 
       if (m !== "POST") return json(res, 405, { error: "method not allowed" });
       const body = (await readBody(req)) as { root?: string; cols?: number; rows?: number };
       const root = String(body.root ?? "");
-      const dir = rootDir(cfg, root);
+      const dir = rootDir(ctx, root);
       if (!dir) return json(res, 404, { error: `no such folder to open a terminal in: ${root || "(none)"}` });
       return json(res, 200, terminals.open(root, dir, body));
     }
@@ -65,4 +67,4 @@ export async function terminalRoutes(req: IncomingMessage, res: ServerResponse, 
     if (e instanceof TerminalError) return json(res, e.status, { error: e.message });
     throw e;
   }
-}
+};

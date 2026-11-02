@@ -1,47 +1,38 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-import { PushError, FileSizeError, type ThreadManager } from "./manager.js";
+import { PushError, FileSizeError } from "./manager.js";
 import { CreateRepoError, createRepo, proposeRepo } from "../github/create-repo.js";
 import { githubToken } from "../github/env.js";
 import { remoteSlug } from "./git.js";
+
+const SSE_HEADERS = { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive", ...CORS };
 
 const remoteOf = (path: string) => {
   const s = remoteSlug(path);
   return s ? `${s.owner}/${s.name}` : null;
 };
 import { fileRoute } from "./files.js";
-import { activeGarryProject } from "../project/store.js";
 import { threadState } from "../status/status.js";
+import type { RouteGroup } from "../server/context.js";
+import { CORS, json, readBody } from "../server/http.js";
 
 /**
  * Runs after the server checked the caller is this machine or a paired device. Adding
  * projects, hand-editing files and discarding work stay on this machine.
  */
-export async function threadRoutes(
-  req: IncomingMessage,
-  res: ServerResponse,
-  path: string,
-  ctx: {
-    threads: ThreadManager;
-    local: boolean;
-    json: (res: ServerResponse, code: number, body: unknown) => void;
-    readBody: (req: IncomingMessage) => Promise<unknown>;
-    sseHeaders: Record<string, string>;
-  },
-): Promise<boolean> {
-  const { threads, local, json, readBody } = ctx;
+export const threadRoutes: RouteGroup = async (req, res, path, { services: { threads }, local, url, project: active, repos }) => {
+  if (!path.startsWith("/api/projects") && !path.startsWith("/api/threads")) return false;
   const store = threads.store;
   const m = req.method ?? "GET";
   const fail = (e: unknown, code = 400) => json(res, code, { error: String((e as Error).message ?? e) });
 
   if (path === "/api/projects") {
-    if (m === "GET") return (json(res, 200, { projects: store.projectsOf(activeGarryProject().id) }), true);
+    if (m === "GET") return json(res, 200, { projects: repos() });
     if (m === "POST") {
-      if (!local) return (json(res, 403, { error: "projects are added on the computer running Garry" }), true);
+      if (!local) return json(res, 403, { error: "projects are added on the computer running Garry" });
       const body = (await readBody(req)) as { path?: string; name?: string };
       try {
-        return (json(res, 200, store.addProject(String(body.path ?? ""), body.name, activeGarryProject().id)), true);
+        return json(res, 200, store.addProject(String(body.path ?? ""), body.name, active.id));
       } catch (e) {
-        return (fail(e), true);
+        return fail(e);
       }
     }
   }
@@ -49,28 +40,28 @@ export async function threadRoutes(
   // Paired devices may read the settings; only this computer changes them.
   const settings = /^\/api\/projects\/([a-z0-9]{4,16})\/settings$/.exec(path);
   if (settings) {
-    if (!store.project(settings[1])) return (json(res, 404, { error: "no such project" }), true);
-    if (m === "GET") return (json(res, 200, store.settings(settings[1])), true);
+    if (!store.project(settings[1])) return json(res, 404, { error: "no such project" });
+    if (m === "GET") return json(res, 200, store.settings(settings[1]));
     if (m === "POST") {
-      if (!local) return (json(res, 403, { error: "a project's settings are changed on the computer running Garry" }), true);
+      if (!local) return json(res, 403, { error: "a project's settings are changed on the computer running Garry" });
       try {
-        return (json(res, 200, store.saveSettings(settings[1], await readBody(req))), true);
+        return json(res, 200, store.saveSettings(settings[1], await readBody(req)));
       } catch (e) {
-        return (fail(e), true);
+        return fail(e);
       }
     }
-    return (json(res, 405, { error: "method not allowed" }), true);
+    return json(res, 405, { error: "method not allowed" });
   }
 
   // Creating the GitHub repository needs a person's yes on this computer.
   const home = /^\/api\/projects\/([a-z0-9]{4,16})\/github-repo$/.exec(path);
   if (home) {
     const p = store.project(home[1]);
-    if (!p) return (json(res, 404, { error: "no such project" }), true);
-    if (m === "GET") return (json(res, 200, { remote: remoteOf(p.path), create: await proposeRepo(p, githubToken()) }), true);
+    if (!p) return json(res, 404, { error: "no such project" });
+    if (m === "GET") return json(res, 200, { remote: remoteOf(p.path), create: await proposeRepo(p, githubToken()) });
     if (m === "POST") {
-      if (!local) return (json(res, 403, { error: "repositories are created on GitHub from the computer running Garry" }), true);
-      if (store.settings(p.id).push === "never") return (json(res, 403, { error: "this project never pushes (its settings)" }), true);
+      if (!local) return json(res, 403, { error: "repositories are created on GitHub from the computer running Garry" });
+      if (store.settings(p.id).push === "never") return json(res, 403, { error: "this project never pushes (its settings)" });
       const body = (await readBody(req)) as { owner?: unknown; name?: unknown; private?: unknown };
       try {
         const made = await createRepo(p, githubToken(), {
@@ -78,27 +69,27 @@ export async function threadRoutes(
           name: typeof body.name === "string" ? body.name : undefined,
           private: body.private !== false,
         });
-        return (json(res, 200, made), true);
+        return json(res, 200, made);
       } catch (e) {
-        return (fail(e, e instanceof CreateRepoError ? e.status : 400), true);
+        return fail(e, e instanceof CreateRepoError ? e.status : 400);
       }
     }
-    return (json(res, 405, { error: "method not allowed" }), true);
+    return json(res, 405, { error: "method not allowed" });
   }
 
   // Hand-editing a project's checkout is this computer only.
   const proj = /^\/api\/projects\/([a-z0-9]{4,16})(\/files|\/file)$/.exec(path);
   if (proj) {
     const p = store.project(proj[1]);
-    if (!p) return (json(res, 404, { error: "no such project" }), true);
+    if (!p) return json(res, 404, { error: "no such project" });
     return fileRoute(req, res, proj[2], p.path, { local, json, readBody });
   }
 
   if (path === "/api/threads") {
     if (m === "GET") {
-      const project = new URL(req.url ?? "/", "http://x").searchParams.get("project") ?? undefined;
-      const repos = new Set(store.projectsOf(activeGarryProject().id).map((p) => p.id));
-      const list = store.threads(project).filter((t) => project || repos.has(t.projectId));
+      const project = url.searchParams.get("project") ?? undefined;
+      const ours = new Set(repos().map((p) => p.id));
+      const list = store.threads(project).filter((t) => project || ours.has(t.projectId));
       // Same reading as the menu bar, plus one line on what the agent is doing or asks.
       return (
         json(res, 200, {
@@ -114,9 +105,9 @@ export async function threadRoutes(
     if (m === "POST") {
       const body = (await readBody(req)) as { projectId?: string; prompt?: string; title?: string };
       try {
-        return (json(res, 200, threads.create(String(body.projectId ?? ""), String(body.prompt ?? ""), body.title)), true);
+        return json(res, 200, threads.create(String(body.projectId ?? ""), String(body.prompt ?? ""), body.title));
       } catch (e) {
-        return (fail(e), true);
+        return fail(e);
       }
     }
   }
@@ -126,12 +117,12 @@ export async function threadRoutes(
   const id = one[1];
   const action = one[2] ?? "";
   const t = store.get(id);
-  if (!t) return (json(res, 404, { error: "no such thread" }), true);
+  if (!t) return json(res, 404, { error: "no such thread" });
 
   try {
-    if (m === "GET" && action === "") return (json(res, 200, { thread: { ...t, running: threads.isRunning(id) }, events: store.events(id) }), true);
+    if (m === "GET" && action === "") return json(res, 200, { thread: { ...t, running: threads.isRunning(id) }, events: store.events(id) });
     if (m === "GET" && action === "/events") {
-      res.writeHead(200, ctx.sseHeaders);
+      res.writeHead(200, SSE_HEADERS);
       const send = (e: unknown) => res.write(`data: ${JSON.stringify(e)}\n\n`);
       for (const e of store.events(id)) send(e);
       const off = threads.subscribe(id, send);
@@ -143,7 +134,7 @@ export async function threadRoutes(
       });
       return true;
     }
-    if (m === "GET" && action === "/diff") return (json(res, 200, threads.diff(id)), true);
+    if (m === "GET" && action === "/diff") return json(res, 200, threads.diff(id));
     if (
       await fileRoute(req, res, action, t.worktree, {
         local,
@@ -156,14 +147,14 @@ export async function threadRoutes(
     if (m === "POST" && action === "/messages") {
       const body = (await readBody(req)) as { text?: string };
       threads.send(id, String(body.text ?? ""));
-      return (json(res, 200, { ok: true }), true);
+      return json(res, 200, { ok: true });
     }
-    if (m === "POST" && action === "/stop") return (json(res, 200, { stopped: threads.stop(id) }), true);
+    if (m === "POST" && action === "/stop") return json(res, 200, { stopped: threads.stop(id) });
     if (m === "POST" && action === "/commit") {
       const body = (await readBody(req)) as { message?: string };
-      return (json(res, 200, threads.commit(id, String(body.message ?? ""))), true);
+      return json(res, 200, threads.commit(id, String(body.message ?? "")));
     }
-    if (m === "GET" && action === "/push") return (json(res, 200, await threads.pushPreview(id)), true);
+    if (m === "GET" && action === "/push") return json(res, 200, await threads.pushPreview(id));
     if (m === "POST" && action === "/pr") {
       const body = (await readBody(req)) as {
         title?: string;
@@ -179,12 +170,12 @@ export async function threadRoutes(
               private: body.create.private !== false,
             }
           : undefined;
-      return (json(res, 200, await threads.openPr(id, body.title, body.body, body.confirmed === true, create)), true);
+      return json(res, 200, await threads.openPr(id, body.title, body.body, body.confirmed === true, create));
     }
     if (m === "DELETE" && action === "") {
-      if (!local) return (json(res, 403, { error: "a thread's work is discarded on the computer running Garry" }), true);
+      if (!local) return json(res, 403, { error: "a thread's work is discarded on the computer running Garry" });
       threads.remove(id);
-      return (json(res, 200, { ok: true }), true);
+      return json(res, 200, { ok: true });
     }
   } catch (e) {
     return (
@@ -199,5 +190,5 @@ export async function threadRoutes(
       true
     );
   }
-  return (json(res, 405, { error: "method not allowed" }), true);
-}
+  return json(res, 405, { error: "method not allowed" });
+};

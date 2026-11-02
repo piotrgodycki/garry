@@ -1,4 +1,3 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
@@ -17,10 +16,11 @@ import {
 import { AUDIT_RULES, auditFiles, readSkillFolder } from "../skills/audit.js";
 import { proposeSkill, skillsRepo } from "../skills/propose.js";
 import { githubToken } from "../github/env.js";
-import { json, readBody, type RouteCtx } from "./http.js";
+import { json, readBody } from "./http.js";
+import type { RouteGroup } from "./context.js";
 
 /** Returns false when the request is not about skills. */
-export async function skillRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
+export const skillRoutes: RouteGroup = async (req, res, path, ctx) => {
   const { cfg } = ctx;
   if (req.method === "POST" && path === "/api/skills/install") {
     const body = (await readBody(req)) as InstallRequest & { scope?: unknown };
@@ -106,4 +106,4 @@ export async function skillRoutes(req: IncomingMessage, res: ServerResponse, pat
     });
   }
   return false;
-}
+};
