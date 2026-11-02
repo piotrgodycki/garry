@@ -51,7 +51,12 @@ export default function ArchitecturePage() {
   const reset = async () => {
     const current = await client.architecture(boardId);
     const n = current.architecture.nodes.length;
-    if (!window.confirm(`Reset the ${boardName} board? Its ${n} block${n === 1 ? "" : "s"}, their links and the wizard's answers are removed. Other boards stay as they are.`)) return;
+    if (
+      !window.confirm(
+        `Reset the ${boardName} board? Its ${n} block${n === 1 ? "" : "s"}, their links and the wizard's answers are removed. Other boards stay as they are.`,
+      )
+    )
+      return;
     setError(null);
     try {
       await client.resetArchitecture(boardId);
@@ -71,7 +76,12 @@ export default function ArchitecturePage() {
         ariaLabel="board"
         value={boardId}
         onChange={(id) => setParams(id ? { board: id } : {})}
-        options={state.boards.map((b) => ({ value: b.id, label: b.name, hint: b.blocks ? `${b.blocks} blocks` : "empty", group: b.id ? "Repositories" : undefined }))}
+        options={state.boards.map((b) => ({
+          value: b.id,
+          label: b.name,
+          hint: b.blocks ? `${b.blocks} blocks` : "empty",
+          group: b.id ? "Repositories" : undefined,
+        }))}
       />
       <button className="btn btnSm" aria-pressed={showWizard} onClick={() => (setShowTemplates(false), setWizardOpen(!showWizard || empty ? true : false))}>
         {state.architecture.wizard ? "Change the answers" : "Wizard"}

@@ -42,7 +42,10 @@ export default function Settings() {
           <Label>Notifications</Label>
           <Switch value={push} onValueChange={(on) => void togglePush(on)} trackColor={{ true: p.text }} />
         </View>
-        <Body muted>When work needs you (a question, or it stopped) or is ready for review, even with Garry closed. They go through Expo&apos;s push service; your computer decides how much they say.</Body>
+        <Body muted>
+          When work needs you (a question, or it stopped) or is ready for review, even with Garry closed. They go through Expo&apos;s push service; your
+          computer decides how much they say.
+        </Body>
         {pushNote && <Body>{pushNote}</Body>}
       </Card>
       {biometricsSupported && (
@@ -54,7 +57,9 @@ export default function Settings() {
           <Body muted>Face ID unlocks Garry, guards its key to your computer, and confirms new work, commits and pull requests.</Body>
         </Card>
       )}
-      <Button kind="ghost" onPress={() => router.push("/connect")}>Pair with another server</Button>
+      <Button kind="ghost" onPress={() => router.push("/connect")}>
+        Pair with another server
+      </Button>
       <Button
         kind="danger"
         onPress={async () => {

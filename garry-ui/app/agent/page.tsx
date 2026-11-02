@@ -7,7 +7,7 @@ import Waveform from "../Waveform";
 import GarryMark from "../GarryMark";
 import { apiBase } from "../lib/api";
 import { Icon } from "../icons";
-import { Empty, PageHeader } from "../ui";
+import { PageHeader } from "../ui";
 import Select from "../Select";
 import CrewFace, { roleOf } from "../Crew";
 import WorkLog, { type TaskLogEntry } from "./WorkLog";
@@ -49,7 +49,6 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
   const [plan, setPlan] = useState<Plan | null>(null);
   const [planError, setPlanError] = useState<string | null>(null);
   const [models, setModels] = useState<Record<string, string>>({});
-  const [consumes, setConsumes] = useState<Record<string, string[]>>({});
   const [current, setCurrent] = useState<number | null>(null);
   const [done, setDone] = useState(0);
   const [finished, setFinished] = useState(false);
@@ -75,16 +74,6 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
     fetch(`${apiBase}/api/models`)
       .then((r) => r.json())
       .then((d) => setModels(Object.fromEntries(((d.models as Model[]) ?? []).map((m) => [m.id, m.label]))))
-      .catch(() => undefined);
-    fetch(`${apiBase}/api/registry`)
-      .then((r) => r.json())
-      .then((d) => {
-        const map: Record<string, string[]> = {};
-        for (const s of (d.services as { name: string; consumes?: Record<string, string[]> }[]) ?? []) {
-          map[s.name] = Object.keys(s.consumes ?? {});
-        }
-        setConsumes(map);
-      })
       .catch(() => undefined);
   }, []);
 
@@ -121,7 +110,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
       const d = JSON.parse((e as MessageEvent).data) as { index: number; task: Task };
       setCurrent(d.index);
       setDone(d.index - 1);
-      const who = d.task.scope === "service" ? d.task.service ?? "service" : "supervisor";
+      const who = d.task.scope === "service" ? (d.task.service ?? "service") : "supervisor";
       setTaskLog((prev) => [...prev, { index: d.index, stage: d.task.stage, who, agent: d.task.agent, model: d.task.model }]);
     });
     es.addEventListener("log", (e) => {
@@ -182,7 +171,6 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
 
   const task = current && plan ? plan.tasks[current - 1] : null;
   const busy = task !== null;
-  const coreActive = busy && task?.scope === "global";
   const total = plan?.tasks.length ?? 0;
   const progress = finished ? total : done;
   const pct = total ? progress / total : 0;
@@ -210,7 +198,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
     const svcTasks = plan?.tasks.filter((t) => t.scope === "service" && t.service === svc) ?? [];
     const first = svcTasks[0];
     const id = first?.model ?? "";
-    return { role: first?.agent ?? "", modelId: id, model: id ? models[id] ?? id : "" };
+    return { role: first?.agent ?? "", modelId: id, model: id ? (models[id] ?? id) : "" };
   };
 
   const Wrap = embedded ? "section" : "main";
@@ -228,7 +216,12 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
           </span>
           <span className={styles.embedActions}>
             {features.length > 1 && (
-              <Select ariaLabel="feature" value={selected} onChange={pickFeature} options={features.map((f) => ({ value: f.id, label: `${f.id} ${f.title}` }))} />
+              <Select
+                ariaLabel="feature"
+                value={selected}
+                onChange={pickFeature}
+                options={features.map((f) => ({ value: f.id, label: `${f.id} ${f.title}` }))}
+              />
             )}
             <button className="btn btnDanger" onClick={stopAll} disabled={stopped || finished || !plan} aria-label="stop all agents">
               {Icon.stop}
@@ -238,26 +231,31 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
         </div>
       ) : (
         <PageHeader
-        back={{ href: "/", label: "Dashboard" }}
-        title={
-          <span className={styles.titleRow}>
-            {plan && <span className={styles.featureId}>{plan.feature.id}</span>}
-            {featureTitle}
-          </span>
-        }
-        lede="The orchestration from left to right: each stage, and the agent and model doing it for Garry and for every service. Click a service for its detailed work log."
-        actions={
-          <>
-            {features.length > 1 && (
-              <Select ariaLabel="feature" value={selected} onChange={pickFeature} options={features.map((f) => ({ value: f.id, label: `${f.id} ${f.title}` }))} />
-            )}
-            <button className="btn btnDanger" onClick={stopAll} disabled={stopped || finished || !plan} aria-label="stop all agents">
-              {Icon.stop}
-              {stopped ? "Stopped" : "Stop all agents"}
-            </button>
-          </>
-        }
-      />
+          back={{ href: "/", label: "Dashboard" }}
+          title={
+            <span className={styles.titleRow}>
+              {plan && <span className={styles.featureId}>{plan.feature.id}</span>}
+              {featureTitle}
+            </span>
+          }
+          lede="The orchestration from left to right: each stage, and the agent and model doing it for Garry and for every service. Click a service for its detailed work log."
+          actions={
+            <>
+              {features.length > 1 && (
+                <Select
+                  ariaLabel="feature"
+                  value={selected}
+                  onChange={pickFeature}
+                  options={features.map((f) => ({ value: f.id, label: `${f.id} ${f.title}` }))}
+                />
+              )}
+              <button className="btn btnDanger" onClick={stopAll} disabled={stopped || finished || !plan} aria-label="stop all agents">
+                {Icon.stop}
+                {stopped ? "Stopped" : "Stop all agents"}
+              </button>
+            </>
+          }
+        />
       )}
 
       {planError && (
@@ -288,7 +286,9 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
           {Icon.alert}
           <div>
             <strong>Cannot reach garry-server</strong>
-            <span>Start it with <code>pnpm serve</code>, then reload.</span>
+            <span>
+              Start it with <code>pnpm serve</code>, then reload.
+            </span>
           </div>
         </div>
       )}
@@ -299,7 +299,9 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
           <GarryMark size={44} busy={busy} />
           <div className={styles.mHubText}>
             <span className={styles.mHubPct}>{Math.round(pct * 100)}%</span>
-            <span className={styles.mHubSub}>{progress} of {total} tasks</span>
+            <span className={styles.mHubSub}>
+              {progress} of {total} tasks
+            </span>
           </div>
           <button className="btn btnSm" onClick={() => window.dispatchEvent(new Event("garry:voice"))} aria-label="talk to Garry">
             {Icon.mic}
@@ -316,9 +318,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
                   <span className={`dot ${st === "active" ? "run" : st === "done" ? "ok" : "wait"}`} />
                   <span className={styles.mMain}>
                     <span className={styles.mName}>{nd.svc}</span>
-                    <span className={styles.mAction}>
-                      {st === "active" ? (lastAction(nd.svc) ?? task?.stage ?? "") : st === "done" ? "Done" : "Waiting"}
-                    </span>
+                    <span className={styles.mAction}>{st === "active" ? (lastAction(nd.svc) ?? task?.stage ?? "") : st === "done" ? "Done" : "Waiting"}</span>
                   </span>
                   <ModelChip id={rm.modelId} label={rm.model} />
                   <span className={styles.mChevron}>{Icon.chevron}</span>
@@ -331,7 +331,12 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
 
       {/* the status of the whole run, in one line */}
       <div className={`card ${styles.runBar}`}>
-        <button className={`${styles.runCore} ${busy ? styles.busy : ""}`} onClick={() => window.dispatchEvent(new Event("garry:voice"))} title="talk to Garry (Cmd/Ctrl+J)" aria-label="talk to Garry">
+        <button
+          className={`${styles.runCore} ${busy ? styles.busy : ""}`}
+          onClick={() => window.dispatchEvent(new Event("garry:voice"))}
+          title="talk to Garry (Cmd/Ctrl+J)"
+          aria-label="talk to Garry"
+        >
           <GarryMark size={34} busy={busy} />
         </button>
         <span className={`badge ${statusTone}`}>

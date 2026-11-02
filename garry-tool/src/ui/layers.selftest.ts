@@ -59,7 +59,8 @@ const server = createGarryServer({ registry, skills: builtin, routing: join(home
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const md = (name: string) => `---\nname: ${name}\ndescription: Checks ${name} in the changed files.\nstage: review\n---\n\nRead the diff and check ${name}.\n`;
-const install = (name: string, scope?: unknown) => fetch(`${base}/api/skills/install`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ content: md(name), scope }) });
+const install = (name: string, scope?: unknown) =>
+  fetch(`${base}/api/skills/install`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ content: md(name), scope }) });
 await install("house-style");
 await install("tone-check", { level: "repo", name: "blog" });
 
@@ -71,12 +72,23 @@ try {
   await page.goto(`${base}/layers`);
   const where = page.getByRole("radiogroup", { name: "layer to change" });
   await where.getByRole("radio").first().waitFor();
-  expect("Layers is in the menu, under Project", (await page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Layers" }).getAttribute("aria-current")) === "page");
-  expect("the layers to pick: the project, its repository, its service with where it lives", (await where.getByRole("radio", { name: /^Whole project/ }).getAttribute("aria-checked")) === "true" && (await where.getByRole("radio", { name: /^shop/ }).count()) === 1 && (await where.getByRole("radio", { name: /^api in shop/ }).count()) === 1);
+  expect(
+    "Layers is in the menu, under Project",
+    (await page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Layers" }).getAttribute("aria-current")) === "page",
+  );
+  expect(
+    "the layers to pick: the project, its repository, its service with where it lives",
+    (await where.getByRole("radio", { name: /^Whole project/ }).getAttribute("aria-checked")) === "true" &&
+      (await where.getByRole("radio", { name: /^shop/ }).count()) === 1 &&
+      (await where.getByRole("radio", { name: /^api in shop/ }).count()) === 1,
+  );
 
   const editor = page.getByRole("region", { name: "Whole project" });
   const skill = (r: typeof editor, n: string) => r.getByRole("listitem").filter({ hasText: n });
-  expect("a skill for every project starts on, and says so", (await skill(editor, "house-style").getByRole("checkbox").isChecked()) && (await skill(editor, "house-style").innerText()).includes("from every project"));
+  expect(
+    "a skill for every project starts on, and says so",
+    (await skill(editor, "house-style").getByRole("checkbox").isChecked()) && (await skill(editor, "house-style").innerText()).includes("from every project"),
+  );
   expect("a skill installed for another repository starts off", !(await skill(editor, "tone-check").getByRole("checkbox").isChecked()));
   const save = page.getByRole("button", { name: "Save the layer" });
   expect("nothing to save before a change", await save.isDisabled());
@@ -86,26 +98,44 @@ try {
   await save.click();
   await page.getByRole("status").filter({ hasText: "Saved" }).waitFor();
   let l = readLayers(registry);
-  expect("the project's layer is saved: the skill, the stack, the notes", JSON.stringify(l.project) === JSON.stringify({ skills: ["tone-check"], skillsOff: [], stacks: ["web"], notes: "Write in British English." }), JSON.stringify(l.project));
+  expect(
+    "the project's layer is saved: the skill, the stack, the notes",
+    JSON.stringify(l.project) === JSON.stringify({ skills: ["tone-check"], skillsOff: [], stacks: ["web"], notes: "Write in British English." }),
+    JSON.stringify(l.project),
+  );
 
   const gets = page.getByRole("complementary", { name: "What an agent gets" });
   const got = (label: string) => gets.getByRole("region", { name: label });
   await got("skills it gets").getByText("tone-check").waitFor();
-  expect("what an agent in shop gets, with where each comes from", (await got("skills it gets").innerText()).includes("house-style\nevery project") && (await got("skills it gets").innerText()).includes("tone-check\nproject") && (await got("stacks it keeps to").innerText()).includes("web"), await gets.innerText());
+  expect(
+    "what an agent in shop gets, with where each comes from",
+    (await got("skills it gets").innerText()).includes("house-style\nevery project") &&
+      (await got("skills it gets").innerText()).includes("tone-check\nproject") &&
+      (await got("stacks it keeps to").innerText()).includes("web"),
+    await gets.innerText(),
+  );
   await gets.getByText("The exact text the agent reads").click();
   expect("down to the text the agent reads", (await gets.locator("pre").innerText()).includes("Write in British English."));
 
   // the repository: what the project turned on shows as inherited and can be turned off here
   await where.getByRole("radio", { name: /^shop/ }).click();
   const repoEditor = page.getByRole("region", { name: "shop" });
-  expect("a repository starts from the project's skills", (await skill(repoEditor, "tone-check").innerText()).includes("from the project") && (await skill(repoEditor, "tone-check").getByRole("checkbox").isChecked()));
+  expect(
+    "a repository starts from the project's skills",
+    (await skill(repoEditor, "tone-check").innerText()).includes("from the project") &&
+      (await skill(repoEditor, "tone-check").getByRole("checkbox").isChecked()),
+  );
   expect("and says it keeps the project's stacks", (await repoEditor.innerText()).includes("keep the project's: web"));
   await skill(repoEditor, "house-style").getByRole("checkbox").uncheck();
   expect("turning off an inherited skill says so", (await skill(repoEditor, "house-style").innerText()).includes("turned off here"));
   await page.getByRole("button", { name: "Save the layer" }).click();
   await page.getByRole("status").filter({ hasText: "Saved" }).waitFor();
   l = readLayers(registry);
-  expect("the repository's layer keeps only the change", JSON.stringify(l.repos.shop) === JSON.stringify({ skills: [], skillsOff: ["house-style"], stacks: [], notes: "" }), JSON.stringify(l.repos));
+  expect(
+    "the repository's layer keeps only the change",
+    JSON.stringify(l.repos.shop) === JSON.stringify({ skills: [], skillsOff: ["house-style"], stacks: [], notes: "" }),
+    JSON.stringify(l.repos),
+  );
   await gets.getByText("house-style").waitFor({ state: "detached" });
   expect("and the agent no longer gets that skill", !(await got("skills it gets").innerText()).includes("house-style"));
 
@@ -114,10 +144,17 @@ try {
   const svc = page.getByRole("region", { name: "api" });
   const svcText = await svc.innerText();
   expect("a service says whose agents get it", svcText.includes("Added for agents in shop"), svcText);
-  expect("a service starts from its repository: off there stays off", !(await skill(svc, "house-style").getByRole("checkbox").isChecked()) && (await skill(svc, "tone-check").getByRole("checkbox").isChecked()));
+  expect(
+    "a service starts from its repository: off there stays off",
+    !(await skill(svc, "house-style").getByRole("checkbox").isChecked()) && (await skill(svc, "tone-check").getByRole("checkbox").isChecked()),
+  );
   await svc.getByRole("textbox", { name: "Notes for the agents" }).fill("The API is public.");
   await page.getByRole("button", { name: "Undo changes" }).click();
-  expect("undo puts the layer back", (await svc.getByRole("textbox", { name: "Notes for the agents" }).inputValue()) === "" && (await page.getByRole("button", { name: "Save the layer" }).isDisabled()));
+  expect(
+    "undo puts the layer back",
+    (await svc.getByRole("textbox", { name: "Notes for the agents" }).inputValue()) === "" &&
+      (await page.getByRole("button", { name: "Save the layer" }).isDisabled()),
+  );
 
   // Skills: install one for a single repository, and change who gets one later
   await page.goto(`${base}/skills`);
@@ -133,7 +170,11 @@ try {
   await dialog.waitFor({ state: "detached" });
   l = readLayers(registry);
   const side = (n: string) => JSON.parse(readFileSync(join(home, "skills", n, "garry.json"), "utf8")) as { everywhere: boolean };
-  expect("a skill installed for one repository is turned on there only", l.repos.shop?.skills.includes("sql-review") === true && side("sql-review").everywhere === false, JSON.stringify(l.repos.shop));
+  expect(
+    "a skill installed for one repository is turned on there only",
+    l.repos.shop?.skills.includes("sql-review") === true && side("sql-review").everywhere === false,
+    JSON.stringify(l.repos.shop),
+  );
   const card = page.locator(".card").filter({ hasText: "Checks sql-review" });
   expect("its card says agents get it where a layer turns it on", (await card.innerText()).includes("where a layer turns it on"));
   await card.getByRole("button", { name: "Give to every project" }).click();

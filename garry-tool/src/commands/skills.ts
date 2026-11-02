@@ -106,9 +106,7 @@ export async function runSkills(argv: string[]): Promise<void> {
     }
     if (sub === "audit") {
       const reportFile = opt("report");
-      const folders = [target, ...rest].filter(
-        (a): a is string => Boolean(a) && !a.startsWith("--") && a !== opt("skills") && a !== reportFile,
-      );
+      const folders = [target, ...rest].filter((a): a is string => Boolean(a) && !a.startsWith("--") && a !== opt("skills") && a !== reportFile);
       const reports: { name: string; audit: AuditReport }[] = [];
       if (folders.length) {
         for (const f of folders) {
@@ -146,8 +144,7 @@ export async function runSkills(argv: string[]): Promise<void> {
 }
 
 function printAudit(name: string, audit: AuditReport): void {
-  const head =
-    audit.verdict === "pass" ? pc.green("PASS") : audit.verdict === "warn" ? pc.yellow("WARN") : pc.red("FAIL");
+  const head = audit.verdict === "pass" ? pc.green("PASS") : audit.verdict === "warn" ? pc.yellow("WARN") : pc.red("FAIL");
   console.log(`${head} ${name}`);
   for (const f of audit.findings) {
     const sev = f.severity === "critical" || f.severity === "high" ? pc.red(f.severity) : pc.yellow(f.severity);

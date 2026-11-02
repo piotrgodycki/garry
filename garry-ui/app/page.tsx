@@ -119,7 +119,9 @@ export default function Dashboard() {
 
       {/* Idea intake: the only thing the human drives. No feature picker, no run. */}
       <form className={`card ${styles.intake}`} onSubmit={captureIdea}>
-        <span className={styles.intakeIcon} aria-hidden="true">{Icon.idea}</span>
+        <span className={styles.intakeIcon} aria-hidden="true">
+          {Icon.idea}
+        </span>
         <input
           className={styles.intakeInput}
           placeholder="Drop an idea, e.g. Let shoppers save items for later"
@@ -153,7 +155,10 @@ export default function Dashboard() {
         {/* Ideas: raw, not yet features. They become features only after a chat with Garry. */}
         <section className={styles.lane} aria-label="ideas">
           <div className={styles.laneHead}>
-            <span className={styles.laneName}><span className="dot wait" />Ideas</span>
+            <span className={styles.laneName}>
+              <span className="dot wait" />
+              Ideas
+            </span>
             <span className={styles.laneCount}>{ideas.length}</span>
           </div>
           <p className={styles.laneHint}>Talk it through with Garry to make it a feature.</p>
@@ -172,7 +177,10 @@ export default function Dashboard() {
                       {Icon.mic}
                       Talk it through
                     </button>
-                    <button className="btn btnSm btnPrimary" onClick={() => setDraft({ title: it.text.length > 120 ? `${it.text.slice(0, 117)}...` : it.text, goal: it.text, idea: it.key })}>
+                    <button
+                      className="btn btnSm btnPrimary"
+                      onClick={() => setDraft({ title: it.text.length > 120 ? `${it.text.slice(0, 117)}...` : it.text, goal: it.text, idea: it.key })}
+                    >
                       Make it a feature
                     </button>
                   </span>
@@ -185,7 +193,10 @@ export default function Dashboard() {
         {/* Agents at work: autonomous. Read only report, no controls. */}
         <section className={styles.lane} aria-label="agents at work">
           <div className={styles.laneHead}>
-            <span className={styles.laneName}><span className={`dot ${running.length ? "run" : "wait"}`} />Agents at work</span>
+            <span className={styles.laneName}>
+              <span className={`dot ${running.length ? "run" : "wait"}`} />
+              Agents at work
+            </span>
             <span className={styles.laneCount}>{running.length}</span>
           </div>
           <p className={styles.laneHint}>Building, reviewing, testing and shipping on their own.</p>
@@ -193,7 +204,9 @@ export default function Dashboard() {
             <Skeleton rows={1} height={150} />
           ) : running.length === 0 ? (
             <div className={styles.laneEmpty}>
-              <Illustrated art="caughtUp" title="Nothing in flight">Start a feature and the crew picks it up.</Illustrated>
+              <Illustrated art="caughtUp" title="Nothing in flight">
+                Start a feature and the crew picks it up.
+              </Illustrated>
             </div>
           ) : (
             running.map((f) => {
@@ -203,20 +216,23 @@ export default function Dashboard() {
                 <Link key={f.id} href={`/build?view=pipeline&feature=${f.id}`} className={`card cardLink ${styles.row}`}>
                   <div className={styles.rowTop}>
                     <span className={styles.id}>{f.id}</span>
-                    <span className="badge run"><span className="dot run" />{f.status}</span>
+                    <span className="badge run">
+                      <span className="dot run" />
+                      {f.status}
+                    </span>
                   </div>
                   <div className={styles.title}>{f.title}</div>
                   <div className={styles.svcs}>
-                    {f.services.map((s) => <span key={s} className="chip mono">{s}</span>)}
+                    {f.services.map((s) => (
+                      <span key={s} className="chip mono">
+                        {s}
+                      </span>
+                    ))}
                   </div>
                   <div className={styles.progress}>
                     <div className={styles.track} aria-label={`stage ${idx + 1} of ${steps.length}: ${f.status}`}>
                       {steps.map((s, i) => (
-                        <span
-                          key={s}
-                          className={`${styles.step} ${i < idx ? styles.stepDone : ""} ${i === idx ? styles.stepLive : ""}`}
-                          title={s}
-                        />
+                        <span key={s} className={`${styles.step} ${i < idx ? styles.stepDone : ""} ${i === idx ? styles.stepLive : ""}`} title={s} />
                       ))}
                     </div>
                     <span className={styles.progressLabel}>
@@ -232,7 +248,10 @@ export default function Dashboard() {
         {/* Shipped: done and deployed by the agents. */}
         <section className={styles.lane} aria-label="shipped">
           <div className={styles.laneHead}>
-            <span className={styles.laneName}><span className="dot ok" />Shipped</span>
+            <span className={styles.laneName}>
+              <span className="dot ok" />
+              Shipped
+            </span>
             <span className={styles.laneCount}>{shipped.length}</span>
           </div>
           <p className={styles.laneHint}>Merged, tagged and deployed.</p>
@@ -251,7 +270,11 @@ export default function Dashboard() {
                 </div>
                 <div className={styles.title}>{f.title}</div>
                 <div className={styles.svcs}>
-                  {f.services.map((s) => <span key={s} className="chip mono">{s}</span>)}
+                  {f.services.map((s) => (
+                    <span key={s} className="chip mono">
+                      {s}
+                    </span>
+                  ))}
                 </div>
               </Link>
             ))

@@ -48,7 +48,11 @@ export async function proposeRepo(project: { path: string; name: string }, token
   return login ? { owner: login, name: githubName(project.name) } : null;
 }
 
-export async function createRepo(project: { path: string; name: string }, token: string | null | undefined, opts: { owner?: string; name?: string; private?: boolean; description?: string } = {}): Promise<{ owner: string; name: string; url: string; pushed: string | null }> {
+export async function createRepo(
+  project: { path: string; name: string },
+  token: string | null | undefined,
+  opts: { owner?: string; name?: string; private?: boolean; description?: string } = {},
+): Promise<{ owner: string; name: string; url: string; pushed: string | null }> {
   if (!token) throw new CreateRepoError("connect GitHub first (Settings, GitHub)", 400);
   if (remoteSlug(project.path)) throw new CreateRepoError("this repository is already on GitHub", 409);
   if (hasOrigin(project.path)) throw new CreateRepoError("this repository already has an origin remote that is not on GitHub; Garry leaves it as it is", 409);
@@ -64,7 +68,8 @@ export async function createRepo(project: { path: string; name: string }, token:
   } catch (e) {
     const msg = String((e as Error).message);
     if (/\b422\b/.test(msg)) throw new CreateRepoError(`${owner}/${name} already exists on GitHub: pick another name`, 409);
-    if (/\b40[34]\b/.test(msg)) throw new CreateRepoError(`GitHub would not create ${owner}/${name}: the token may not create repositories${owner === login ? "" : ` in ${owner}`}`, 403);
+    if (/\b40[34]\b/.test(msg))
+      throw new CreateRepoError(`GitHub would not create ${owner}/${name}: the token may not create repositories${owner === login ? "" : ` in ${owner}`}`, 403);
     throw e;
   }
   // no credentials in the remote url: the token goes with each push only

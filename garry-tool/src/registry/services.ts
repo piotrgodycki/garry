@@ -61,7 +61,11 @@ export function addService(
   if (!repo) throw new ServiceError("repo: the git URL (or path) of the service's repository", 400);
   if (existsSync(file(registry, name)) && !opts.replace) throw new ServiceError(`service ${name} already exists`, 409);
 
-  const others = new Map(listManifests(registry).filter((m) => m.name !== name).map((m) => [m.name, m]));
+  const others = new Map(
+    listManifests(registry)
+      .filter((m) => m.name !== name)
+      .map((m) => [m.name, m]),
+  );
   const consumes: Record<string, string[]> = {};
   for (const [dep, modules] of Object.entries(input.consumes ?? {})) {
     const target = others.get(dep);
@@ -99,6 +103,7 @@ export function addService(
 export function removeService(registry: string, name: string): void {
   if (!NAME.test(name) || !existsSync(file(registry, name))) throw new ServiceError(`no service ${name}`, 404);
   const users = listManifests(registry).filter((m) => m.name !== name && name in (m.consumes ?? {}));
-  if (users.length) throw new ServiceError(`${users.map((u) => u.name).join(", ")} ${users.length > 1 ? "use" : "uses"} ${name}; take it out of their consumes first`, 409);
+  if (users.length)
+    throw new ServiceError(`${users.map((u) => u.name).join(", ")} ${users.length > 1 ? "use" : "uses"} ${name}; take it out of their consumes first`, 409);
   unlinkSync(file(registry, name));
 }

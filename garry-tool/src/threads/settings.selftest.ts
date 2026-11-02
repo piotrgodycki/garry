@@ -60,10 +60,23 @@ const throws = (f: () => unknown) => {
 
 // the rules
 expect("asks before pushing by default", DEFAULT_SETTINGS.push === "ask");
-expect("main and release/* are protected", isProtected("main", DEFAULT_SETTINGS.protectedBranches) && isProtected("release/1.2", DEFAULT_SETTINGS.protectedBranches) && !isProtected("garry/x-1", DEFAULT_SETTINGS.protectedBranches));
+expect(
+  "main and release/* are protected",
+  isProtected("main", DEFAULT_SETTINGS.protectedBranches) &&
+    isProtected("release/1.2", DEFAULT_SETTINGS.protectedBranches) &&
+    !isProtected("garry/x-1", DEFAULT_SETTINGS.protectedBranches),
+);
 expect("a dot in a pattern is a dot", !isProtected("mainx", ["main"]) && !isProtected("v1x2", ["v1.2"]));
-expect("bad settings are refused", throws(() => applySettings(DEFAULT_SETTINGS, { push: "yolo" })) && throws(() => applySettings(DEFAULT_SETTINGS, { branchPrefix: "../x" })) && throws(() => applySettings(DEFAULT_SETTINGS, { baseBranch: "a..b" })));
-expect("a prefix that would be protected is refused", throws(() => applySettings(DEFAULT_SETTINGS, { branchPrefix: "release/" })));
+expect(
+  "bad settings are refused",
+  throws(() => applySettings(DEFAULT_SETTINGS, { push: "yolo" })) &&
+    throws(() => applySettings(DEFAULT_SETTINGS, { branchPrefix: "../x" })) &&
+    throws(() => applySettings(DEFAULT_SETTINGS, { baseBranch: "a..b" })),
+);
+expect(
+  "a prefix that would be protected is refused",
+  throws(() => applySettings(DEFAULT_SETTINGS, { branchPrefix: "release/" })),
+);
 expect("never pushing is never", pushRefusal({ ...DEFAULT_SETTINGS, push: "never" }, "garry/x", "main") !== null);
 expect("never into the base branch", pushRefusal(DEFAULT_SETTINGS, "dev", "dev") !== null);
 
@@ -101,26 +114,50 @@ const remoteHas = (branch: string) => git(join(remotes, "octo", "shop.git"), ["b
 
 const a = thread("garry/work-a");
 const preview = await manager.pushPreview(a.id);
-expect("the preview shows the branch, the remote, the base and the commits", preview.branch === "garry/work-a" && preview.remote === "octo/shop" && preview.base === "main" && preview.commits.length === 1 && preview.commits[0].subject === "work" && preview.mode === "ask" && preview.refused === null);
-const unconfirmed = await manager.openPr(a.id).then(() => null, (e: { status?: number }) => e);
+expect(
+  "the preview shows the branch, the remote, the base and the commits",
+  preview.branch === "garry/work-a" &&
+    preview.remote === "octo/shop" &&
+    preview.base === "main" &&
+    preview.commits.length === 1 &&
+    preview.commits[0].subject === "work" &&
+    preview.mode === "ask" &&
+    preview.refused === null,
+);
+const unconfirmed = await manager.openPr(a.id).then(
+  () => null,
+  (e: { status?: number }) => e,
+);
 expect("asking first: nothing is pushed without a yes", unconfirmed?.status === 428 && !remoteHas("garry/work-a"));
 await manager.openPr(a.id, undefined, undefined, true);
-expect("with a yes it is pushed and the PR opened", remoteHas("garry/work-a") && opened.at(-1)?.head === "garry/work-a" && opened.at(-1)?.base === "main" && opened.at(-1)?.draft === false);
+expect(
+  "with a yes it is pushed and the PR opened",
+  remoteHas("garry/work-a") && opened.at(-1)?.head === "garry/work-a" && opened.at(-1)?.base === "main" && opened.at(-1)?.draft === false,
+);
 
 store.saveSettings(project.id, { push: "allow", baseBranch: "develop", draftPr: true, protectedBranches: ["main"] });
 git(repo, ["push", "-q", "origin", "main:develop"]);
 const b = thread("garry/work-b");
 await manager.openPr(b.id);
-expect("allow: pushed without asking, into the chosen base, as a draft", remoteHas("garry/work-b") && opened.at(-1)?.base === "develop" && opened.at(-1)?.draft === true);
+expect(
+  "allow: pushed without asking, into the chosen base, as a draft",
+  remoteHas("garry/work-b") && opened.at(-1)?.base === "develop" && opened.at(-1)?.draft === true,
+);
 
 store.saveSettings(project.id, { protectedBranches: ["main", "hotfix/*"] });
 const c = thread("hotfix/urgent");
-const prot = await manager.openPr(c.id, undefined, undefined, true).then(() => null, (e: { status?: number }) => e);
+const prot = await manager.openPr(c.id, undefined, undefined, true).then(
+  () => null,
+  (e: { status?: number }) => e,
+);
 expect("a protected branch is never pushed, even with a yes", prot?.status === 403 && !remoteHas("hotfix/urgent"));
 
 store.saveSettings(project.id, { push: "never" });
 const d = thread("garry/work-d");
-const never = await manager.openPr(d.id, undefined, undefined, true).then(() => null, (e: { status?: number }) => e);
+const never = await manager.openPr(d.id, undefined, undefined, true).then(
+  () => null,
+  (e: { status?: number }) => e,
+);
 expect("never: nothing leaves this computer", never?.status === 403 && !remoteHas("garry/work-d"));
 
 store.saveSettings(project.id, { push: "ask", branchPrefix: "team/garry-" });
@@ -130,16 +167,24 @@ expect("new branches use the prefix", started.branch.startsWith("team/garry-add-
 manager.stop(started.id);
 
 // the server
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads: manager }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads: manager },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-const post = (path: string, body: unknown, headers: Record<string, string> = {}) => fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
+const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
+  fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
 const got = (await fetch(`${base}/api/projects/${project.id}/settings`).then((r) => r.json())) as { push: string; branchPrefix: string };
 expect("GET settings", got.push === "ask" && got.branchPrefix === "team/garry-");
 const saved = await post(`/api/projects/${project.id}/settings`, { push: "allow" });
 expect("POST settings saves", saved.status === 200 && store.settings(project.id).push === "allow");
 expect("bad settings are a 400", (await post(`/api/projects/${project.id}/settings`, { push: "yolo" })).status === 400);
-expect("a write from another site is refused", (await post(`/api/projects/${project.id}/settings`, { push: "never" }, { origin: "https://evil.example" })).status === 403 && store.settings(project.id).push === "allow");
+expect(
+  "a write from another site is refused",
+  (await post(`/api/projects/${project.id}/settings`, { push: "never" }, { origin: "https://evil.example" })).status === 403 &&
+    store.settings(project.id).push === "allow",
+);
 store.saveSettings(project.id, { push: "ask" });
 const e = thread("garry/work-e");
 const pv = (await fetch(`${base}/api/threads/${e.id}/push`).then((r) => r.json())) as { branch: string; mode: string };

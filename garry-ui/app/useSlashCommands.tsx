@@ -55,7 +55,8 @@ export function useSlashCommands(text: string, opts: { setText: (t: string) => v
           hint: c.help,
           icon: Icon.bolt,
           // a command that needs words waits for them; the rest run at once
-          run: () => (c.args && !rest.length ? (opts.setText(`/${c.name} `), opts.focus()) : void run(rest.length ? `/${c.name} ${rest.join(" ")}` : `/${c.name}`)),
+          run: () =>
+            c.args && !rest.length ? (opts.setText(`/${c.name} `), opts.focus()) : void run(rest.length ? `/${c.name} ${rest.join(" ")}` : `/${c.name}`),
         }));
 
   return { slash, options, run: () => void run(q), said, error, clear: () => (setSaid(null), setError(null)) };

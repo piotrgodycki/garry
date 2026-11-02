@@ -22,7 +22,11 @@ export default function Build() {
   if (params.get("view") === "pipeline")
     return (
       <main className="page">
-        <PageHeader back={{ href: "/build", label: "Build" }} title="Feature pipeline" lede="How a feature moves through spec, plan, design, build, review, test and release, and which agent and model does each stage for every service." />
+        <PageHeader
+          back={{ href: "/build", label: "Build" }}
+          title="Feature pipeline"
+          lede="How a feature moves through spec, plan, design, build, review, test and release, and which agent and model does each stage for every service."
+        />
         <AgentView embedded />
       </main>
     );
@@ -52,7 +56,11 @@ function Work({ task }: { task: string }) {
         .catch(() => setOffline(true)),
     [],
   );
-  const loadGarry = () => client.garryProjects().then((g) => setGarry(g.projects.find((p) => p.id === g.active) ?? null), () => undefined);
+  const loadGarry = () =>
+    client.garryProjects().then(
+      (g) => setGarry(g.projects.find((p) => p.id === g.active) ?? null),
+      () => undefined,
+    );
   useEffect(() => {
     void load();
     void loadGarry();
@@ -101,7 +109,8 @@ function Work({ task }: { task: string }) {
             Add a repository
           </h2>
           <p className={styles.help}>
-            Import one from GitHub below. A repository already on this computer: run <code>garry repos add &lt;folder&gt;</code>, or start <code>garry serve</code> inside it.
+            Import one from GitHub below. A repository already on this computer: run <code>garry repos add &lt;folder&gt;</code>, or start{" "}
+            <code>garry serve</code> inside it.
           </p>
           <GithubImport
             onImported={() => {

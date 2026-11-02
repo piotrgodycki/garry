@@ -29,7 +29,14 @@ export function messagesFor(changes: StatusItem[], tokens: string[]): PushMessag
   return changes.flatMap((i) =>
     tokens.map((to) => ({
       to,
-      title: i.state === "needs-you" ? (minimal() ? "Garry needs you" : `Garry needs you: ${i.title}`) : minimal() ? "Work is ready for review" : `Ready for review: ${i.title}`,
+      title:
+        i.state === "needs-you"
+          ? minimal()
+            ? "Garry needs you"
+            : `Garry needs you: ${i.title}`
+          : minimal()
+            ? "Work is ready for review"
+            : `Ready for review: ${i.title}`,
       body: minimal() ? "Open Garry to see it." : i.detail,
       data: { threadId: i.threadId, state: i.state },
       ...(i.state === "needs-you" ? { sound: "default" as const } : {}),
@@ -50,7 +57,11 @@ export function startPushNotifier(threads: ThreadManager, devices: DeviceStore, 
     const tokens = devices.list().flatMap((d) => (d.pushToken ? [d.pushToken] : []));
     if (!tokens.length) return;
     try {
-      const res = await fetch(pushUrl(), { method: "POST", headers: { "content-type": "application/json", accept: "application/json" }, body: JSON.stringify(messagesFor(changes, tokens)) });
+      const res = await fetch(pushUrl(), {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify(messagesFor(changes, tokens)),
+      });
       if (!res.ok) throw new Error(`push service answered ${res.status}`);
     } catch (e) {
       opts.onError?.(e);

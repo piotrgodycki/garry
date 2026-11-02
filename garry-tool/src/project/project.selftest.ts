@@ -68,11 +68,19 @@ expect("cleanRemote keeps ssh remotes", cleanRemote("git@github.com:acme/web.git
 
 // import: a new project, never writing outside it
 const imported = importGarryProject(bundle);
-expect("import makes a new project with a free name", imported.name === "Shop (2)" && readFileSync(join(imported.path, "catalog", "web.yaml"), "utf8").includes("web") && imported.pendingRepos?.[0]?.name === "web");
+expect(
+  "import makes a new project with a free name",
+  imported.name === "Shop (2)" &&
+    readFileSync(join(imported.path, "catalog", "web.yaml"), "utf8").includes("web") &&
+    imported.pendingRepos?.[0]?.name === "web",
+);
 for (const bad of ["../escape.yaml", "catalog/../../x", "/etc/passwd", "catalog/.git/config", ".env", "secrets/x", "catalog//x"]) {
   expect(`refuses ${bad}`, !bundlePathOk(bad) && status(() => importGarryProject({ ...bundle, files: { [bad]: "x" } })) === 400);
 }
-expect("refuses what is not a Garry project", status(() => importGarryProject({ hello: 1 })) === 400 && status(() => importGarryProject({ ...bundle, version: 99 })) === 400);
+expect(
+  "refuses what is not a Garry project",
+  status(() => importGarryProject({ hello: 1 })) === 400 && status(() => importGarryProject({ ...bundle, version: 99 })) === 400,
+);
 expect("nothing escaped", !existsSync(join(process.env.GARRY_HOME!, "garry-projects", "escape.yaml")) && !existsSync(join(home, "x")));
 
 // repositories belong to a project
@@ -84,27 +92,60 @@ execFileSync("git", ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@t", "c
 const store = new ThreadStore(process.env.GARRY_HOME!);
 const webRepo = store.addProject(repo, "web", shop.id);
 const at = new Date().toISOString();
-store.save({ id: "thrshop1", projectId: webRepo.id, title: "shop work", status: "idle", branch: "garry/x", worktree: repo, baseSha: "", sessionId: null, createdAt: at, updatedAt: at });
+store.save({
+  id: "thrshop1",
+  projectId: webRepo.id,
+  title: "shop work",
+  status: "idle",
+  branch: "garry/x",
+  worktree: repo,
+  baseSha: "",
+  sessionId: null,
+  createdAt: at,
+  updatedAt: at,
+});
 expect("a repository belongs to one project", store.projectsOf(shop.id).length === 1 && store.projectsOf("default").length === 0);
 
 // the server
 useGarryProject("default");
 const remote = reachableAddresses()[0];
 const devices = new DeviceStore(join(home, "devices.json"));
-const cfg = { registry: defaultRegistry(), skills: join(home, "none"), routing: join(home, "none.json"), threads: new ThreadManager(store), hosts: remote ? [remote] : [] };
+const cfg = {
+  registry: defaultRegistry(),
+  skills: join(home, "none"),
+  routing: join(home, "none.json"),
+  threads: new ThreadManager(store),
+  hosts: remote ? [remote] : [],
+};
 const server = createGarryServer(cfg, devices);
 await new Promise<void>((r) => server.listen(0, "0.0.0.0", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-const post = (path: string, body: unknown, headers: Record<string, string> = {}) => fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
+const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
+  fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
 const list = (await fetch(`${base}/api/garry-projects`).then((r) => r.json())) as { active: string; projects: { id: string; repos: unknown[] }[] };
-expect("GET /api/garry-projects lists them with their repositories", list.active === "default" && list.projects.find((p) => p.id === shop.id)?.repos.length === 1);
-expect("the default project shows none of the shop's repositories", ((await fetch(`${base}/api/projects`).then((r) => r.json())) as { projects: unknown[] }).projects.length === 0);
-expect("nor its work", ((await fetch(`${base}/api/threads`).then((r) => r.json())) as { threads: { id: string }[] }).threads.every((t) => t.id !== "thrshop1"));
+expect(
+  "GET /api/garry-projects lists them with their repositories",
+  list.active === "default" && list.projects.find((p) => p.id === shop.id)?.repos.length === 1,
+);
+expect(
+  "the default project shows none of the shop's repositories",
+  ((await fetch(`${base}/api/projects`).then((r) => r.json())) as { projects: unknown[] }).projects.length === 0,
+);
+expect(
+  "nor its work",
+  ((await fetch(`${base}/api/threads`).then((r) => r.json())) as { threads: { id: string }[] }).threads.every((t) => t.id !== "thrshop1"),
+);
 expect("POST /api/garry-projects/active switches", (await post("/api/garry-projects/active", { id: shop.id })).status === 200 && cfg.registry === shop.path);
 const services = (await fetch(`${base}/api/registry`).then((r) => r.json())) as { services: { name: string }[] };
-expect("and the registry follows", services.services.some((s) => s.name === "web"));
+expect(
+  "and the registry follows",
+  services.services.some((s) => s.name === "web"),
+);
 expect("the shop's repositories show", ((await fetch(`${base}/api/projects`).then((r) => r.json())) as { projects: unknown[] }).projects.length === 1);
-expect("and its work", ((await fetch(`${base}/api/threads`).then((r) => r.json())) as { threads: { id: string }[] }).threads.some((t) => t.id === "thrshop1"));
+expect(
+  "and its work",
+  ((await fetch(`${base}/api/threads`).then((r) => r.json())) as { threads: { id: string }[] }).threads.some((t) => t.id === "thrshop1"),
+);
 const exported = await fetch(`${base}/api/garry-projects/${shop.id}/export`);
 expect("GET .../export downloads the file", exported.status === 200 && (exported.headers.get("content-disposition") ?? "").includes(".garry.json"));
 const viaApi = await post("/api/garry-projects/import", await exported.json());
@@ -115,7 +156,11 @@ expect("a write from another site is refused", (await post("/api/garry-projects"
 if (remote) {
   const port = (server.address() as AddressInfo).port;
   const { code } = devices.createCode();
-  const { token } = (await fetch(`http://${remote}:${port}/api/pair`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code, name: "phone" }) }).then((r) => r.json())) as { token: string };
+  const { token } = (await fetch(`http://${remote}:${port}/api/pair`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ code, name: "phone" }),
+  }).then((r) => r.json())) as { token: string };
   const phone = { authorization: `Bearer ${token}`, "content-type": "application/json" };
   expect("a phone sees the projects", (await fetch(`http://${remote}:${port}/api/garry-projects`, { headers: phone })).status === 200);
   const tries = [
@@ -125,7 +170,11 @@ if (remote) {
     await fetch(`http://${remote}:${port}/api/garry-projects/import`, { method: "POST", headers: phone, body: JSON.stringify(bundle) }),
   ];
   expect("but cannot make, switch, export or import", tries.every((r) => r.status === 403) && cfg.registry === shop.path, tries.map((r) => r.status).join());
-  expect("a phone cannot remove a project", (await fetch(`http://${remote}:${port}/api/garry-projects/${imported.id}`, { method: "DELETE", headers: phone })).status === 403 && listGarryProjects().projects.some((p) => p.id === imported.id));
+  expect(
+    "a phone cannot remove a project",
+    (await fetch(`http://${remote}:${port}/api/garry-projects/${imported.id}`, { method: "DELETE", headers: phone })).status === 403 &&
+      listGarryProjects().projects.some((p) => p.id === imported.id),
+  );
 } else console.log("skip phone checks: no network address to pair from");
 
 // removing: an agent at work in it keeps it
@@ -137,7 +186,10 @@ const until = async (f: () => boolean) => {
 };
 await until(() => store.events(working.id).some((e) => e.type === "tool"));
 const refusedBusy = await del(shop.id);
-expect("a project with an agent at work is not removed", refusedBusy.status === 409 && ((await refusedBusy.json()) as { error: string }).error.includes("stop it first") && existsSync(shop.path));
+expect(
+  "a project with an agent at work is not removed",
+  refusedBusy.status === 409 && ((await refusedBusy.json()) as { error: string }).error.includes("stop it first") && existsSync(shop.path),
+);
 cfg.threads.stop(working.id);
 await until(() => !cfg.threads.isRunning(working.id));
 
@@ -145,26 +197,56 @@ await until(() => !cfg.threads.isRunning(working.id));
 expect("the active project is shop", listGarryProjects().active === shop.id);
 const gone = await del(shop.id);
 const after = (await gone.json()) as { active: string; projects: { id: string }[] };
-expect("removing the active project makes the default active", gone.status === 200 && after.active === "default" && cfg.registry === defaultRegistry() && !after.projects.some((p) => p.id === shop.id));
+expect(
+  "removing the active project makes the default active",
+  gone.status === 200 && after.active === "default" && cfg.registry === defaultRegistry() && !after.projects.some((p) => p.id === shop.id),
+);
 expect("its registry folder is gone", !existsSync(shop.path));
-expect("its repositories leave Build but stay on disk", store.projectsOf(shop.id).length === 0 && existsSync(join(repo, ".git")) && ((await fetch(`${base}/api/projects`).then((r) => r.json())) as { projects: unknown[] }).projects.length === 0);
+expect(
+  "its repositories leave Build but stay on disk",
+  store.projectsOf(shop.id).length === 0 &&
+    existsSync(join(repo, ".git")) &&
+    ((await fetch(`${base}/api/projects`).then((r) => r.json())) as { projects: unknown[] }).projects.length === 0,
+);
 
 // the default one goes too while another is left
 const otherDefaultFile = join(defaultRegistry(), "catalog", "old.yaml");
 writeFileSync(otherDefaultFile, "name: old\n");
 const noDefault = await del("default");
 const left = (await noDefault.json()) as { active: string; projects: { id: string }[] };
-expect("the default project can be removed while another is left", noDefault.status === 200 && !left.projects.some((p) => p.id === "default") && left.active === left.projects[0]?.id && !existsSync(otherDefaultFile));
-expect("and stays removed: Garry does not bring it back", !listGarryProjects().projects.some((p) => p.id === "default") && activeGarryProject().id === left.active);
+expect(
+  "the default project can be removed while another is left",
+  noDefault.status === 200 && !left.projects.some((p) => p.id === "default") && left.active === left.projects[0]?.id && !existsSync(otherDefaultFile),
+);
+expect(
+  "and stays removed: Garry does not bring it back",
+  !listGarryProjects().projects.some((p) => p.id === "default") && activeGarryProject().id === left.active,
+);
 // down to one: that one stays
 for (const p of left.projects.slice(1)) await del(p.id);
 const last = await del(listGarryProjects().projects[0].id);
 const lastError = ((await last.json()) as { error: string }).error;
-expect("the last project stays, and Garry says why", last.status === 400 && lastError.includes("make another one first") && listGarryProjects().projects.length === 1, `${last.status} ${lastError}`);
+expect(
+  "the last project stays, and Garry says why",
+  last.status === 400 && lastError.includes("make another one first") && listGarryProjects().projects.length === 1,
+  `${last.status} ${lastError}`,
+);
 server.close();
 
 // a project's mark: the GitHub owner most of its repositories live under
-expect("repositories still to clone count by their remote; others are not GitHub", projectOwner([], ["https://github.com/solo/x", "https://gitlab.example/other/y", "https://gitlab.example/other/z", "https://github.com/acme/web.git", "git@github.com:acme/api.git"]) === "acme");
+expect(
+  "repositories still to clone count by their remote; others are not GitHub",
+  projectOwner(
+    [],
+    [
+      "https://github.com/solo/x",
+      "https://gitlab.example/other/y",
+      "https://gitlab.example/other/z",
+      "https://github.com/acme/web.git",
+      "git@github.com:acme/api.git",
+    ],
+  ) === "acme",
+);
 expect("no repository on GitHub: no owner", projectOwner([], ["https://gitlab.example/a/b"]) === null);
 process.env.GARRY_GITHUB_AVATARS = "off";
 expect("a company can keep names off github.com requests", projectOwner([], ["https://github.com/acme/web.git"]) === null);

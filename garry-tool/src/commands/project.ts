@@ -28,12 +28,17 @@ export function runProject(argv: string[]): void {
     const store = new ThreadStore();
     for (const p of projects) {
       const repos = store.projectsOf(p.id).length;
-      console.log(`${p.id === active ? pc.green("●") : " "} ${pc.bold(p.id.padEnd(24))} ${p.name}${pc.dim(`  ${repos} repo${repos === 1 ? "" : "s"}${p.pendingRepos?.length ? `, ${p.pendingRepos.length} to clone` : ""}`)}`);
+      console.log(
+        `${p.id === active ? pc.green("●") : " "} ${pc.bold(p.id.padEnd(24))} ${p.name}${pc.dim(`  ${repos} repo${repos === 1 ? "" : "s"}${p.pendingRepos?.length ? `, ${p.pendingRepos.length} to clone` : ""}`)}`,
+      );
     }
     return;
   }
   if (sub === "new") {
-    const name = argv.slice(1).filter((a) => !a.startsWith("--")).join(" ");
+    const name = argv
+      .slice(1)
+      .filter((a) => !a.startsWith("--"))
+      .join(" ");
     const p = createGarryProject({ name, description: flag("description") });
     console.log(pc.green(`Created ${p.name} (${p.id}). Switch to it with garry project use ${p.id}`));
     return;
@@ -59,14 +64,19 @@ export function runProject(argv: string[]): void {
   if (sub === "import") {
     if (!arg) throw new Error("garry project import <file.garry.json>");
     const p = importGarryProject(JSON.parse(readFileSync(arg, "utf8")));
-    console.log(pc.green(`Imported ${p.name} (${p.id}).`) + (p.pendingRepos?.length ? pc.dim(` ${p.pendingRepos.length} repositories to clone from the dashboard (Build).`) : ""));
+    console.log(
+      pc.green(`Imported ${p.name} (${p.id}).`) +
+        (p.pendingRepos?.length ? pc.dim(` ${p.pendingRepos.length} repositories to clone from the dashboard (Build).`) : ""),
+    );
     return;
   }
   if (sub === "remove") {
     if (!arg) throw new Error("garry project remove <id>");
     const now = removeGarryProject(arg);
     const repos = new ThreadStore().forgetProjectsOf(arg);
-    console.log(pc.green(`Removed ${arg}`) + pc.dim(`${repos ? ` (${repos} repositories left Build; they stay on disk)` : ""}. ${now.name} is the active project.`));
+    console.log(
+      pc.green(`Removed ${arg}`) + pc.dim(`${repos ? ` (${repos} repositories left Build; they stay on disk)` : ""}. ${now.name} is the active project.`),
+    );
     return;
   }
   throw new Error(`unknown subcommand: ${sub}\n\n${HELP}`);

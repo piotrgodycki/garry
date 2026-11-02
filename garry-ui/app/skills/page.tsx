@@ -40,7 +40,9 @@ export default function Skills() {
   const toggleAudit = async (name: string) => {
     if (auditOpen === name) return setAuditOpen(null);
     setAuditOpen(name);
-    const d = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/audit`).then((r) => r.json()).catch(() => ({}));
+    const d = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/audit`)
+      .then((r) => r.json())
+      .catch(() => ({}));
     setAudits((m) => ({ ...m, [name]: (d as { audit?: AuditReport | null }).audit ?? null }));
   };
 
@@ -74,7 +76,11 @@ export default function Skills() {
   };
 
   const setEverywhere = async (name: string, on: boolean) => {
-    const r = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/everywhere`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ on }) });
+    const r = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/everywhere`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ on }),
+    });
     if (!r.ok) return flash(((await r.json()) as { error?: string }).error ?? "could not change who gets the skill");
     flash(on ? `${name} now goes to agents in every project` : `${name} now goes only where a layer turns it on`);
     load();
@@ -84,7 +90,9 @@ export default function Skills() {
     if (open === name) return setOpen(null);
     setOpen(name);
     if (name in docs) return;
-    const d = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/doc`).then((r) => r.json()).catch(() => ({}));
+    const d = await fetch(`${apiBase}/api/skills/${encodeURIComponent(name)}/doc`)
+      .then((r) => r.json())
+      .catch(() => ({}));
     setDocs((m) => ({ ...m, [name]: (d as { doc?: string | null }).doc ?? null }));
   };
 
@@ -99,9 +107,7 @@ export default function Skills() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return (skills ?? []).filter(
-      (s) =>
-        (filter === "all" || s.source === filter) &&
-        (!q || s.name.includes(q) || s.summary.toLowerCase().includes(q) || s.stage.includes(q)),
+      (s) => (filter === "all" || s.source === filter) && (!q || s.name.includes(q) || s.summary.toLowerCase().includes(q) || s.stage.includes(q)),
     );
   }, [skills, query, filter]);
   const stages = STAGE_ORDER.filter((st) => filtered.some((s) => s.stage === st));
@@ -144,7 +150,13 @@ export default function Skills() {
           </div>
           <label className="searchField">
             {Icon.search}
-            <input className="input" placeholder="Search skills by name or what they do" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="search skills" />
+            <input
+              className="input"
+              placeholder="Search skills by name or what they do"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="search skills"
+            />
           </label>
         </div>
       )}
@@ -155,8 +167,14 @@ export default function Skills() {
         <div className="card">
           <div className={s2.emptyLocal}>
             <Empty icon={Icon.bolt}>No local skills yet. Install one to teach the agents something new.</Empty>
-            <button className="btn btnPrimary" onClick={() => setInstalling(true)}>Install skill</button>
-            {localDir && <span className={s2.where}>They are stored in <code>{localDir}</code></span>}
+            <button className="btn btnPrimary" onClick={() => setInstalling(true)}>
+              Install skill
+            </button>
+            {localDir && (
+              <span className={s2.where}>
+                They are stored in <code>{localDir}</code>
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -172,21 +190,24 @@ export default function Skills() {
           <section key={stage} className="section">
             <div className="sectionHead">
               <h2 className={styles.stageTitle}>{stage}</h2>
-              <span className="count">{items.length} {items.length === 1 ? "skill" : "skills"}</span>
+              <span className="count">
+                {items.length} {items.length === 1 ? "skill" : "skills"}
+              </span>
             </div>
             <div className={styles.grid}>
               {items.map((s) => (
-                <div
-                  key={s.name}
-                  className={`card ${styles.skill} ${s.source === "local" ? s2.local : ""} ${s.audit?.verdict === "fail" ? s2.blocked : ""}`}
-                >
+                <div key={s.name} className={`card ${styles.skill} ${s.source === "local" ? s2.local : ""} ${s.audit?.verdict === "fail" ? s2.blocked : ""}`}>
                   <div className={styles.skillHead}>
                     <span className={styles.skillIcon}>{Icon.bolt}</span>
                     <span className={styles.skillName}>{s.name}</span>
                     {s.source === "builtin" ? (
-                      <span className={`badge ${s2.pre}`} title="Ships with the project">Pre-installed</span>
+                      <span className={`badge ${s2.pre}`} title="Ships with the project">
+                        Pre-installed
+                      </span>
                     ) : (
-                      <span className={`badge ${s2.mine}`} title="Installed on this machine">Local</span>
+                      <span className={`badge ${s2.mine}`} title="Installed on this machine">
+                        Local
+                      </span>
                     )}
                   </div>
                   <p className={styles.skillSummary}>{s.summary}</p>
@@ -201,7 +222,11 @@ export default function Skills() {
                   {s.hasDoc && (
                     <div className={s2.foot}>
                       <span className={s2.planned}>
-                        {s.source === "builtin" ? "Used by the feature pipeline. " : s.everywhere ? "Agents in every project get it. " : "Agents get it where a layer turns it on. "}
+                        {s.source === "builtin"
+                          ? "Used by the feature pipeline. "
+                          : s.everywhere
+                            ? "Agents in every project get it. "
+                            : "Agents get it where a layer turns it on. "}
                         <Link href="/layers">Layers</Link>
                       </span>
                       {s.source === "local" && (
@@ -211,9 +236,7 @@ export default function Skills() {
                       )}
                     </div>
                   )}
-                  {s.audit?.verdict === "fail" && (
-                    <span className={s2.planned}>Left out of every plan until it passes the audit.</span>
-                  )}
+                  {s.audit?.verdict === "fail" && <span className={s2.planned}>Left out of every plan until it passes the audit.</span>}
                   {auditOpen === s.name && (audits[s.name] ? <AuditFindings audit={audits[s.name]!} /> : <span className={s2.planned}>Auditing...</span>)}
                   <div className={s2.foot}>
                     {s.hasDoc ? (
@@ -229,9 +252,7 @@ export default function Skills() {
                       </button>
                     )}
                   </div>
-                  {open === s.name && (
-                    <pre className={s2.doc}>{s.name in docs ? docs[s.name] ?? "No SKILL.md yet." : "Loading..."}</pre>
-                  )}
+                  {open === s.name && <pre className={s2.doc}>{s.name in docs ? (docs[s.name] ?? "No SKILL.md yet.") : "Loading..."}</pre>}
                 </div>
               ))}
             </div>

@@ -66,7 +66,8 @@ export function applySettings(current: ProjectSettings, input: unknown): Project
   if (i.protectedBranches !== undefined) {
     const list = Array.isArray(i.protectedBranches) ? i.protectedBranches : String(i.protectedBranches).split(",");
     const clean = [...new Set(list.map((x) => String(x).trim()).filter(Boolean))];
-    if (clean.length > 30 || clean.some((x) => !/^[A-Za-z0-9._/*-]{1,100}$/.test(x))) throw new SettingsError("protectedBranches: branch names or patterns with *, up to 30");
+    if (clean.length > 30 || clean.some((x) => !/^[A-Za-z0-9._/*-]{1,100}$/.test(x)))
+      throw new SettingsError("protectedBranches: branch names or patterns with *, up to 30");
     next.protectedBranches = clean;
   }
   if (i.draftPr !== undefined) next.draftPr = i.draftPr === true || i.draftPr === "true";
@@ -75,7 +76,8 @@ export function applySettings(current: ProjectSettings, input: unknown): Project
     if (!Number.isInteger(n) || (n !== 0 && (n < 500 || n > 100_000))) throw new SettingsError("maxFileTokens: 0 (off) or 500 to 100000");
     next.maxFileTokens = n;
   }
-  if (isProtected(`${next.branchPrefix}work`, next.protectedBranches)) throw new SettingsError("branchPrefix: Garry's branches would be protected and could never be pushed");
+  if (isProtected(`${next.branchPrefix}work`, next.protectedBranches))
+    throw new SettingsError("branchPrefix: Garry's branches would be protected and could never be pushed");
   return next;
 }
 

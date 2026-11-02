@@ -2,6 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { join } from "node:path";
 import { launchChromium } from "./browser.js";
 import type { ShotEntry } from "./capture.js";
+import type { Page } from "playwright";
 
 export type ShotStatus = "changed" | "unchanged" | "added" | "removed" | "live" | "failed";
 
@@ -44,7 +45,11 @@ function readManifest(dir: string): ShotEntry[] {
  */
 export async function compare(baseDir: string, headDir: string, outDir: string, labels: { base: string; head: string }): Promise<Report> {
   for (const sub of ["base", "head", "diff"]) mkdirSync(join(outDir, sub), { recursive: true });
-  const base = new Map(readManifest(baseDir).filter((e) => !e.error).map((e) => [e.name, e]));
+  const base = new Map(
+    readManifest(baseDir)
+      .filter((e) => !e.error)
+      .map((e) => [e.name, e]),
+  );
   const head = readManifest(headDir);
   const entries: ReportEntry[] = [];
   const browser = await launchChromium();
@@ -134,7 +139,7 @@ const DIFF_SCRIPT = `async ({ srcA, srcB, delta }) => {
 }`;
 
 /** Diffs two PNGs on a canvas inside Chromium. Returns the changed share and a diff image. */
-async function diffImages(page: import("playwright").Page, a: string, b: string): Promise<{ ratio: number; png: string }> {
+async function diffImages(page: Page, a: string, b: string): Promise<{ ratio: number; png: string }> {
   const toUrl = (f: string) => `data:image/png;base64,${readFileSync(f).toString("base64")}`;
   const args = JSON.stringify({ srcA: toUrl(a), srcB: toUrl(b), delta: PIXEL_DELTA });
   return page.evaluate(`(${DIFF_SCRIPT})(${args})`) as Promise<{ ratio: number; png: string }>;

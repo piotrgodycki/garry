@@ -77,7 +77,10 @@ const COMMANDS: (CommandInfo & { run: Run })[] = [
     help: "What Garry remembers about this project",
     run: (_args, ctx) => {
       const n = readMemory(ctx.registry).length;
-      return { message: n ? `I remember ${n} thing${n === 1 ? "" : "s"} about this project.` : "I do not remember anything about this project yet. Try /remember.", open: "/memory" };
+      return {
+        message: n ? `I remember ${n} thing${n === 1 ? "" : "s"} about this project.` : "I do not remember anything about this project yet. Try /remember.",
+        open: "/memory",
+      };
     },
   },
   {

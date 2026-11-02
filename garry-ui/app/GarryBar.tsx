@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import type { GarryMessage, GarryQueue } from "garry-client";
+import type { GarryQueue } from "garry-client";
 import Link from "./lib/router";
 import { client } from "./lib/client";
 import { GROUPS } from "./Nav";
@@ -10,10 +10,19 @@ import { useSlashCommands } from "./useSlashCommands";
 type Option = { id: string; label: ReactNode; hint: string; icon: ReactNode; run: () => void };
 
 /** The browser's dictation, where there is one (Chrome, Safari, the Mac app). */
-type Recognition = { lang: string; interimResults: boolean; continuous: boolean; start(): void; stop(): void; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null };
-const Dictation = (globalThis as unknown as { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition }).SpeechRecognition ?? (globalThis as unknown as { webkitSpeechRecognition?: new () => Recognition }).webkitSpeechRecognition;
-
-const WORD: Record<GarryMessage["status"], string> = { queued: "waiting", running: "working", done: "done", failed: "stopped", cancelled: "dropped" };
+type Recognition = {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  start(): void;
+  stop(): void;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+};
+const Dictation =
+  (globalThis as unknown as { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition }).SpeechRecognition ??
+  (globalThis as unknown as { webkitSpeechRecognition?: new () => Recognition }).webkitSpeechRecognition;
 
 /**
  * Talking to Garry, from every page: one field floating at the foot of the
@@ -71,8 +80,12 @@ export default function GarryBar() {
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
-      if (e.key.toLowerCase() === "k") (e.preventDefault(), input.current?.focus(), setOpen(true));
-      else if (e.key.toLowerCase() === "j") (e.preventDefault(), listen());
+      const k = e.key.toLowerCase();
+      if (k !== "k" && k !== "j") return;
+      e.preventDefault();
+      if (k === "j") return listen();
+      input.current?.focus();
+      setOpen(true);
     };
     // the old ways in: the rail's talk button, an idea on the dashboard
     const voice = () => listen();
@@ -109,12 +122,47 @@ export default function GarryBar() {
 
   const q = text.trim();
   const pages = GROUPS.flatMap((g) => g.links);
-  const go = (l: (typeof pages)[number]): Option => ({ id: `go:${l.href}`, label: <>Go to <b>{l.label}</b></>, hint: "page", icon: l.icon, run: () => (navigate(l.href), done()) });
+  const go = (l: (typeof pages)[number]): Option => ({
+    id: `go:${l.href}`,
+    label: (
+      <>
+        Go to <b>{l.label}</b>
+      </>
+    ),
+    hint: "page",
+    icon: l.icon,
+    run: () => (navigate(l.href), done()),
+  });
   const exact = pages.find((l) => l.label.toLowerCase() === q.toLowerCase());
   const like = pages.filter((l) => q && l !== exact && l.label.toLowerCase().includes(q.toLowerCase())).map(go);
-  const tell: Option = { id: "tell", label: <>Tell Garry: <b>{q}</b></>, hint: "in line, one at a time", icon: Icon.agent, run: () => void send(q) };
-  const build: Option = { id: "build", label: <>Start separate work: <b>{q}</b></>, hint: "its own agent in Build", icon: Icon.code, run: () => (navigate(`/build?task=${encodeURIComponent(q)}`), done()) };
-  const cmd = useSlashCommands(text, { setText: (t) => (setText(t), setAt(0), setOpen(true)), done, focus: () => input.current?.focus(), after: () => void load() });
+  const tell: Option = {
+    id: "tell",
+    label: (
+      <>
+        Tell Garry: <b>{q}</b>
+      </>
+    ),
+    hint: "in line, one at a time",
+    icon: Icon.agent,
+    run: () => void send(q),
+  };
+  const build: Option = {
+    id: "build",
+    label: (
+      <>
+        Start separate work: <b>{q}</b>
+      </>
+    ),
+    hint: "its own agent in Build",
+    icon: Icon.code,
+    run: () => (navigate(`/build?task=${encodeURIComponent(q)}`), done()),
+  };
+  const cmd = useSlashCommands(text, {
+    setText: (t) => (setText(t), setAt(0), setOpen(true)),
+    done,
+    focus: () => input.current?.focus(),
+    after: () => void load(),
+  });
   // a slash starts a command; a page's exact name goes there; anything else is for Garry
   const options: Option[] = cmd.slash ? cmd.options : !q ? pages.map(go) : exact ? [go(exact), tell, build, ...like] : [tell, build, ...like];
   // Enter with nothing picked: a command runs (the server says when there is no such one), a message goes in line
@@ -132,7 +180,14 @@ export default function GarryBar() {
       {open && options.length > 0 && (
         <ul className="cmdList" role="listbox" id="garry-commands" aria-label="commands">
           {options.map((o, i) => (
-            <li key={o.id} role="option" aria-selected={i === pick} className={i === pick ? "on" : ""} onMouseDown={(e) => (e.preventDefault(), o.run())} onMouseEnter={() => setAt(i)}>
+            <li
+              key={o.id}
+              role="option"
+              aria-selected={i === pick}
+              className={i === pick ? "on" : ""}
+              onMouseDown={(e) => (e.preventDefault(), o.run())}
+              onMouseEnter={() => setAt(i)}
+            >
               <span className="cmdIcon">{o.icon}</span>
               <span className="cmdLabel">{o.label}</span>
               <span className="cmdHint">{o.hint}</span>
@@ -180,7 +235,9 @@ export default function GarryBar() {
               <span className="qDot" aria-hidden="true" />
               <span className="qText">
                 <b>{m.text}</b>
-                <span className="qReply">{m.status === "running" ? "Garry is on it" : `waiting, ${i - live.findIndex((x) => x.status === "queued") + 1} in line`}</span>
+                <span className="qReply">
+                  {m.status === "running" ? "Garry is on it" : `waiting, ${i - live.findIndex((x) => x.status === "queued") + 1} in line`}
+                </span>
               </span>
               {m.status === "queued" ? (
                 <button type="button" className="qAct" aria-label={`drop: ${m.text}`} onClick={() => drop(m.id)}>
@@ -241,10 +298,23 @@ export default function GarryBar() {
           onFocus={() => setOpen(Boolean(text))}
           onBlur={() => setOpen(false)}
           onKeyDown={(e) => {
-            if (e.key === "ArrowDown") (e.preventDefault(), setOpen(true), setAt((pick + 1) % options.length));
-            else if (e.key === "ArrowUp") (e.preventDefault(), setAt((pick - 1 + options.length) % options.length));
-            else if (e.key === "Enter" && q) (e.preventDefault(), (open && options[pick] ? options[pick] : fallback).run());
-            else if (e.key === "Escape") (done(), input.current?.blur());
+            if (e.key === "Escape") {
+              done();
+              input.current?.blur();
+              return;
+            }
+            const keys: Record<string, () => void> = {
+              ArrowDown: () => {
+                setOpen(true);
+                setAt((pick + 1) % options.length);
+              },
+              ArrowUp: () => setAt((pick - 1 + options.length) % options.length),
+              Enter: () => q && (open && options[pick] ? options[pick] : fallback).run(),
+            };
+            const run = keys[e.key];
+            if (!run) return;
+            e.preventDefault();
+            run();
           }}
         />
         {repos.length > 1 && (
@@ -257,7 +327,14 @@ export default function GarryBar() {
           </select>
         )}
         {Dictation && (
-          <button type="button" className="garryMic" aria-pressed={listening} aria-label={listening ? "stop dictating" : "dictate"} title="Dictate (Cmd/Ctrl+J)" onClick={listen}>
+          <button
+            type="button"
+            className="garryMic"
+            aria-pressed={listening}
+            aria-label={listening ? "stop dictating" : "dictate"}
+            title="Dictate (Cmd/Ctrl+J)"
+            onClick={listen}
+          >
             {Icon.mic}
           </button>
         )}

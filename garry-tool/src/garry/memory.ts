@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 
@@ -71,10 +71,17 @@ export function forget(registry: string, what: string): MemoryEntry {
   if (!key) throw new MemoryError("say what to forget: its number in Memory, or words from it");
   const entries = readMemory(registry);
   const byNumber = /^\d+$/.test(key) ? entries[Number(key) - 1] : undefined;
-  const matches = byNumber ? [byNumber] : (entries.filter((e) => e.id === key).length ? entries.filter((e) => e.id === key) : entries.filter((e) => e.text.toLowerCase().includes(key.toLowerCase())));
+  const matches = byNumber
+    ? [byNumber]
+    : entries.filter((e) => e.id === key).length
+      ? entries.filter((e) => e.id === key)
+      : entries.filter((e) => e.text.toLowerCase().includes(key.toLowerCase()));
   if (matches.length === 0) throw new MemoryError(`nothing remembered matches "${key}"`, 404);
   if (matches.length > 1) throw new MemoryError(`${matches.length} things match "${key}": say more, or use its number in Memory`, 409);
-  write(registry, entries.filter((e) => e.id !== matches[0].id));
+  write(
+    registry,
+    entries.filter((e) => e.id !== matches[0].id),
+  );
   return matches[0];
 }
 

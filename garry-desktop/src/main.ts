@@ -200,7 +200,13 @@ async function showPairing(): Promise<void> {
 <div><img src="${qr}" width="280" height="280" alt="Pairing QR code"><p style="margin:16px 24px 4px">Scan with the Garry app, or open the link on another computer:</p>
 <p style="font:12px ui-monospace,monospace;word-break:break-all;margin:0 24px">${link}</p>
 <p style="color:#666;font-size:12px">One device, one use, until ${new Date(expiresAt).toLocaleTimeString()}.</p></div></body>`;
-  const w = new BrowserWindow({ width: 420, height: 520, title: "Pair a device", parent: win ?? undefined, webPreferences: { sandbox: true, contextIsolation: true, javascript: false } });
+  const w = new BrowserWindow({
+    width: 420,
+    height: 520,
+    title: "Pair a device",
+    parent: win ?? undefined,
+    webPreferences: { sandbox: true, contextIsolation: true, javascript: false },
+  });
   w.setMenuBarVisibility(false);
   void w.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
 }
@@ -238,7 +244,16 @@ function buildMenu(): void {
     { role: "editMenu" },
     {
       label: "View",
-      submenu: [{ role: "reload" }, { role: "toggleDevTools" }, { type: "separator" }, { role: "resetZoom" }, { role: "zoomIn" }, { role: "zoomOut" }, { type: "separator" }, { role: "togglefullscreen" }],
+      submenu: [
+        { role: "reload" },
+        { role: "toggleDevTools" },
+        { type: "separator" },
+        { role: "resetZoom" },
+        { role: "zoomIn" },
+        { role: "zoomOut" },
+        { type: "separator" },
+        { role: "togglefullscreen" },
+      ],
     },
     {
       label: "Devices",

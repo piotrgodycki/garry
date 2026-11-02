@@ -44,10 +44,16 @@ execFileSync("git", ["-C", repo, "add", "-A"]);
 execFileSync("git", ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"]);
 const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
 threads.store.addProject(repo, "Shop");
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-type Teams = { pairs: { task: string; status: string; writer: string; reviewer?: string; round: number; maxRounds: number }[]; chains: { name: string; status: string; steps: { prompt: string; status: string; threadId?: string }[] }[] };
+type Teams = {
+  pairs: { task: string; status: string; writer: string; reviewer?: string; round: number; maxRounds: number }[];
+  chains: { name: string; status: string; steps: { prompt: string; status: string; threadId?: string }[] }[];
+};
 const teams = async () => (await (await fetch(`${base}/api/teams`)).json()) as Teams;
 
 const browser = await launchChromium();
@@ -66,12 +72,24 @@ try {
   await page.getByRole("button", { name: "Start the job" }).click();
   await page.waitForURL(/\/build\/[a-z0-9]+$/);
   let t = await teams();
-  expect("With a reviewer starts a pair, two rounds, and opens the writer", t.pairs.length === 1 && page.url().endsWith(`/build/${t.pairs[0].writer}`) && t.pairs[0].task === "PAIR2 add a buy button" && t.pairs[0].maxRounds === 2);
+  expect(
+    "With a reviewer starts a pair, two rounds, and opens the writer",
+    t.pairs.length === 1 && page.url().endsWith(`/build/${t.pairs[0].writer}`) && t.pairs[0].task === "PAIR2 add a buy button" && t.pairs[0].maxRounds === 2,
+  );
   await page.goto(`${base}/build`);
   const pairCard = page.getByRole("article", { name: "agent and reviewer: PAIR2 add a buy button" });
-  await pairCard.getByText("Approved, ready to review", { exact: true }).waitFor({ timeout: 20_000 }).catch(() => undefined);
+  await pairCard
+    .getByText("Approved, ready to review", { exact: true })
+    .waitFor({ timeout: 20_000 })
+    .catch(() => undefined);
   t = await teams();
-  expect("Your jobs shows the pair until the reviewer approves, with its writer and reviewer", (await pairCard.getByText("Approved, ready to review", { exact: true }).count()) === 1 && (await pairCard.getByRole("link", { name: "Agent", exact: true }).count()) === 1 && (await pairCard.getByRole("link", { name: "Reviewer" }).getAttribute("href")) === `/build/${t.pairs[0].reviewer}`, await pairCard.innerText().catch(() => ""));
+  expect(
+    "Your jobs shows the pair until the reviewer approves, with its writer and reviewer",
+    (await pairCard.getByText("Approved, ready to review", { exact: true }).count()) === 1 &&
+      (await pairCard.getByRole("link", { name: "Agent", exact: true }).count()) === 1 &&
+      (await pairCard.getByRole("link", { name: "Reviewer" }).getAttribute("href")) === `/build/${t.pairs[0].reviewer}`,
+    await pairCard.innerText().catch(() => ""),
+  );
   expect("and what the reviewer said last", (await pairCard.innerText()).includes("APPROVED"));
   const jobs = page.getByRole("region", { name: "Your jobs" });
   const loose = await jobs.locator(`li > a[href="/build/${t.pairs[0].writer}"], li > a[href="/build/${t.pairs[0].reviewer}"]`).count();
@@ -91,7 +109,12 @@ try {
   await new Promise((r) => setTimeout(r, 800));
   t = await teams();
   const chain = t.chains[0];
-  expect("A chain starts with its steps in the order you set", chain?.steps.map((s) => s.prompt).join(" > ") === "BUSY write the spec > build it > write the notes > write the tests" && chain.steps[0].status === "running", JSON.stringify(chain?.steps));
+  expect(
+    "A chain starts with its steps in the order you set",
+    chain?.steps.map((s) => s.prompt).join(" > ") === "BUSY write the spec > build it > write the notes > write the tests" &&
+      chain.steps[0].status === "running",
+    JSON.stringify(chain?.steps),
+  );
 
   // while they wait: move, drop, add
   const chainCard = page.getByRole("article", { name: /^job in steps: / });
@@ -104,7 +127,14 @@ try {
   await chainCard.getByRole("button", { name: "Add a step" }).click();
   await page.waitForTimeout(600);
   t = await teams();
-  expect("waiting steps move, drop and get added to from Build", t.chains[0].steps.filter((s) => s.status !== "dropped").map((s) => s.prompt).join(" > ") === "BUSY write the spec > write the notes > build it > update the changelog", t.chains[0].steps.map((s) => `${s.prompt}:${s.status}`).join(" > "));
+  expect(
+    "waiting steps move, drop and get added to from Build",
+    t.chains[0].steps
+      .filter((s) => s.status !== "dropped")
+      .map((s) => s.prompt)
+      .join(" > ") === "BUSY write the spec > write the notes > build it > update the changelog",
+    t.chains[0].steps.map((s) => `${s.prompt}:${s.status}`).join(" > "),
+  );
   const shown = await chainCard.locator("li[data-status]").evaluateAll((ls) => ls.map((l) => l.getAttribute("data-status")));
   expect("each step shows its state", shown.join() === "running,waiting,waiting,waiting", shown.join());
   await chainCard.getByRole("button", { name: "Stop after this step" }).click();
@@ -118,11 +148,18 @@ try {
   const next = page.getByRole("region", { name: "then another agent" });
   await next.getByRole("textbox", { name: "what the next agent does" }).fill("write the tests for the button");
   await next.getByRole("button", { name: "Hand it on" }).click();
-  await next.getByText(/it starts here once this work is done/).waitFor({ timeout: 5000 }).catch(() => undefined);
+  await next
+    .getByText(/it starts here once this work is done/)
+    .waitFor({ timeout: 5000 })
+    .catch(() => undefined);
   await new Promise((r) => setTimeout(r, 1500));
   t = await teams();
   const handed = t.chains.find((c) => c.steps[0].threadId === t.pairs[0].writer);
-  expect("Then another agent hands the work on: a chain after it, in its working copy", !!handed && handed.steps[1]?.prompt === "write the tests for the button" && ["running", "done"].includes(handed.steps[1].status), JSON.stringify(handed));
+  expect(
+    "Then another agent hands the work on: a chain after it, in its working copy",
+    !!handed && handed.steps[1]?.prompt === "write the tests for the button" && ["running", "done"].includes(handed.steps[1].status),
+    JSON.stringify(handed),
+  );
 
   // Live: the reviewer is a reviewer
   await page.goto(`${base}/live`);

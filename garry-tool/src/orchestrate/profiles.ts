@@ -133,7 +133,8 @@ export function saveProfile(registry: string, input: unknown, opts: { replace?: 
   });
   if (!r.success) throw new RoutingError(r.error.issues.map((i) => i.message).join("; "), 400);
   // default always exists (with Garry's values until changed): it is changed, never created
-  if ((r.data.name === "default" || existsSync(file(registry, r.data.name))) && !opts.replace) throw new RoutingError(`profile ${r.data.name} already exists`, 409);
+  if ((r.data.name === "default" || existsSync(file(registry, r.data.name))) && !opts.replace)
+    throw new RoutingError(`profile ${r.data.name} already exists`, 409);
   mkdirSync(dir(registry), { recursive: true });
   writeFileSync(file(registry, r.data.name), JSON.stringify(r.data, null, 2) + "\n");
   return r.data;

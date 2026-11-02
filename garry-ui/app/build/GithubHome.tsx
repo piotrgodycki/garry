@@ -19,11 +19,14 @@ export default function GithubHome({ projectId }: { projectId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const load = () =>
-    client.githubRepo(projectId).then((h) => {
-      setHome(h);
-      setOwner(h.create?.owner ?? "");
-      setName(h.create?.name ?? "");
-    }, () => setHome(null));
+    client.githubRepo(projectId).then(
+      (h) => {
+        setHome(h);
+        setOwner(h.create?.owner ?? "");
+        setName(h.create?.name ?? "");
+      },
+      () => setHome(null),
+    );
   useEffect(() => void load(), [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!home) return null;

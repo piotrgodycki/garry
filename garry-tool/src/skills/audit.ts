@@ -61,8 +61,10 @@ const re = (r: RegExp) => (line: string) => r.test(line);
 
 // Secrets and the places they leave through. Either alone is worth a look; both
 // on one line is how exfiltration reads.
-const SECRET = /\b(GITHUB_TOKEN|GARRY_GITHUB_TOKEN|GH_TOKEN|NPM_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_(SECRET_ACCESS_KEY|ACCESS_KEY_ID|SESSION_TOKEN)|PRIVATE[_ ]KEY)\b|~?\/?\.ssh\b|\bid_(rsa|ed25519|ecdsa)\b|\.npmrc\b|\.netrc\b|\.aws\/credentials|(^|[\s"'`/])\.env(\.\w+)?\b|\bkeychain\b|\bprocess\.env\b|\bos\.environ\b|\bprintenv\b/i;
-const SINK = /\b(curl|wget|nc|ncat|netcat|scp|rsync|ftp)\b|\bfetch\s*\(|\baxios\b|\brequests\.(post|put|get)\b|\bhttps?:\/\/|\bwebhook\b|\bupload\b|\bsend\s+(it|them|the\s+\w+)\s+to\b/i;
+const SECRET =
+  /\b(GITHUB_TOKEN|GARRY_GITHUB_TOKEN|GH_TOKEN|NPM_TOKEN|ANTHROPIC_API_KEY|OPENAI_API_KEY|AWS_(SECRET_ACCESS_KEY|ACCESS_KEY_ID|SESSION_TOKEN)|PRIVATE[_ ]KEY)\b|~?\/?\.ssh\b|\bid_(rsa|ed25519|ecdsa)\b|\.npmrc\b|\.netrc\b|\.aws\/credentials|(^|[\s"'`/])\.env(\.\w+)?\b|\bkeychain\b|\bprocess\.env\b|\bos\.environ\b|\bprintenv\b/i;
+const SINK =
+  /\b(curl|wget|nc|ncat|netcat|scp|rsync|ftp)\b|\bfetch\s*\(|\baxios\b|\brequests\.(post|put|get)\b|\bhttps?:\/\/|\bwebhook\b|\bupload\b|\bsend\s+(it|them|the\s+\w+)\s+to\b/i;
 
 const RULES: Rule[] = [
   // ---- critical: direct compromise of the machine or the agent ----
@@ -72,7 +74,9 @@ const RULES: Rule[] = [
     severity: "critical",
     why: "Piping a download into a shell runs whatever the server returns, unreviewed.",
     in: "any",
-    test: re(/\b(curl|wget|iwr|Invoke-WebRequest)\b[^\n]*\|\s*(sudo\s+)?(ba|z|da|fi)?sh\b|\b(curl|wget)\b[^\n]*\|\s*(python3?|node|perl|ruby)\b|\biex\s*\(\s*(New-Object|iwr|Invoke-WebRequest)/i),
+    test: re(
+      /\b(curl|wget|iwr|Invoke-WebRequest)\b[^\n]*\|\s*(sudo\s+)?(ba|z|da|fi)?sh\b|\b(curl|wget)\b[^\n]*\|\s*(python3?|node|perl|ruby)\b|\biex\s*\(\s*(New-Object|iwr|Invoke-WebRequest)/i,
+    ),
   },
   {
     id: "decode-and-exec",
@@ -80,7 +84,9 @@ const RULES: Rule[] = [
     severity: "critical",
     why: "Encoded commands hide what actually runs from the reviewer.",
     in: "any",
-    test: re(/base64\s+(-d|--decode|-D)\b[^\n]*\|\s*(ba|z)?sh\b|\beval\s*\(\s*(atob|Buffer\.from)\s*\(|\beval\s+"?\$\(\s*echo[^\n]*base64|exec\s*\(\s*(base64\.b64decode|codecs\.decode)/i),
+    test: re(
+      /base64\s+(-d|--decode|-D)\b[^\n]*\|\s*(ba|z)?sh\b|\beval\s*\(\s*(atob|Buffer\.from)\s*\(|\beval\s+"?\$\(\s*echo[^\n]*base64|exec\s*\(\s*(base64\.b64decode|codecs\.decode)/i,
+    ),
   },
   {
     id: "reverse-shell",
@@ -96,7 +102,9 @@ const RULES: Rule[] = [
     severity: "critical",
     why: "Wipes the disk, the home folder or the repository, or crashes the machine.",
     in: "any",
-    test: re(/\brm\s+-[a-z]*r[a-z]*f?[a-z]*\s+(--no-preserve-root\s+)?(\/|~|\$HOME|\/\*|\*|\.\/?\*?)(\s|$)|\bmkfs(\.\w+)?\s|\bdd\s+if=[^\n]*\bof=\/dev\/(sd|nvme|disk|hd)|:\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:|\bshred\s+[^\n]*\/dev\//i),
+    test: re(
+      /\brm\s+-[a-z]*r[a-z]*f?[a-z]*\s+(--no-preserve-root\s+)?(\/|~|\$HOME|\/\*|\*|\.\/?\*?)(\s|$)|\bmkfs(\.\w+)?\s|\bdd\s+if=[^\n]*\bof=\/dev\/(sd|nvme|disk|hd)|:\(\)\s*\{\s*:\s*\|\s*:\s*&\s*\}\s*;\s*:|\bshred\s+[^\n]*\/dev\//i,
+    ),
   },
   {
     id: "secret-exfiltration",
@@ -112,7 +120,9 @@ const RULES: Rule[] = [
     severity: "critical",
     why: "Classic prompt injection: replaces the rules the agent and the human agreed on.",
     in: "doc",
-    test: re(/\b(ignore|disregard|forget|override|bypass)\s+(all\s+|any\s+|every\s+)?(of\s+)?(the\s+|your\s+|my\s+)?(previous|prior|above|earlier|preceding|system|original|other|safety)\s+(instructions?|prompts?|rules|guidelines|messages|directives|constraints)/i),
+    test: re(
+      /\b(ignore|disregard|forget|override|bypass)\s+(all\s+|any\s+|every\s+)?(of\s+)?(the\s+|your\s+|my\s+)?(previous|prior|above|earlier|preceding|system|original|other|safety)\s+(instructions?|prompts?|rules|guidelines|messages|directives|constraints)/i,
+    ),
   },
 
   // ---- high: deception, privilege, persistence, unreviewable content ----
@@ -122,7 +132,9 @@ const RULES: Rule[] = [
     severity: "high",
     why: "A skill must never ask the agent to conceal what it does from the person it works for.",
     in: "doc",
-    test: re(/\b(do\s+not|don'?t|never)\s+(tell|inform|mention|reveal|show|report|notify)\s+(this\s+to\s+)?(the\s+)?(user|human|reviewer|owner|operator)|\bwithout\s+(telling|asking|notifying|informing)\s+(the\s+)?(user|human|reviewer)|\b(hide|conceal)\s+(this|it|these|the\s+\w+)\s+from\s+(the\s+)?(user|human|reviewer)|\bsilently\s+(push|delete|send|upload|modify|commit)/i),
+    test: re(
+      /\b(do\s+not|don'?t|never)\s+(tell|inform|mention|reveal|show|report|notify)\s+(this\s+to\s+)?(the\s+)?(user|human|reviewer|owner|operator)|\bwithout\s+(telling|asking|notifying|informing)\s+(the\s+)?(user|human|reviewer)|\b(hide|conceal)\s+(this|it|these|the\s+\w+)\s+from\s+(the\s+)?(user|human|reviewer)|\bsilently\s+(push|delete|send|upload|modify|commit)/i,
+    ),
   },
   {
     id: "role-hijack",
@@ -130,7 +142,9 @@ const RULES: Rule[] = [
     severity: "high",
     why: "Role and persona overrides are a common way to switch off an agent's safeguards.",
     in: "doc",
-    test: re(/\byou\s+are\s+now\s+(a|an|in|the|no\s+longer)\b|\bnew\s+system\s+prompt\b|\bact\s+as\s+(root|admin|an?\s+unrestricted|dan)\b|\bjailbreak|\bdeveloper\s+mode\s+(enabled|on)\b|\bno\s+(longer\s+)?(bound|restricted)\s+by\b/i),
+    test: re(
+      /\byou\s+are\s+now\s+(a|an|in|the|no\s+longer)\b|\bnew\s+system\s+prompt\b|\bact\s+as\s+(root|admin|an?\s+unrestricted|dan)\b|\bjailbreak|\bdeveloper\s+mode\s+(enabled|on)\b|\bno\s+(longer\s+)?(bound|restricted)\s+by\b/i,
+    ),
   },
   {
     id: "safety-bypass",
@@ -138,7 +152,9 @@ const RULES: Rule[] = [
     severity: "high",
     why: "Skipping hooks, reviews, approvals or permissions removes the checks that keep changes safe.",
     in: "any",
-    test: re(/--no-verify\b|--dangerously[\w-]*|\bbypassPermissions\b|\bskip[-_ ]?permissions\b|\bgit\s+push\s+[^\n]*(--force\b|-f\b)|\bchmod\s+(-R\s+)?(0?777|a\+rwx)\b|\bsudo\s+\w|\b(disable|turn\s+off|skip|bypass)\s+(the\s+)?(code\s+review|review|approvals?|safety|security\s+checks?|sandbox|tests|ci|branch\s+protection)\b/i),
+    test: re(
+      /--no-verify\b|--dangerously[\w-]*|\bbypassPermissions\b|\bskip[-_ ]?permissions\b|\bgit\s+push\s+[^\n]*(--force\b|-f\b)|\bchmod\s+(-R\s+)?(0?777|a\+rwx)\b|\bsudo\s+\w|\b(disable|turn\s+off|skip|bypass)\s+(the\s+)?(code\s+review|review|approvals?|safety|security\s+checks?|sandbox|tests|ci|branch\s+protection)\b/i,
+    ),
   },
   {
     id: "persistence",
@@ -146,7 +162,9 @@ const RULES: Rule[] = [
     severity: "high",
     why: "Writing to shell profiles, cron, services or system files keeps code running after the task.",
     in: "any",
-    test: re(/>>?\s*["']?(~|\$HOME)?\/?\.(bashrc|zshrc|profile|bash_profile|zprofile|config\/fish)\b|\bcrontab\s+(-\w+\s+)*-?\s*$|\bcrontab\s+-[el]?\s*[^\n]*\||\bcrontab\s+\S+\.cron|\blaunchctl\s+(load|bootstrap)|\bsystemctl\s+(--user\s+)?enable\b|\/etc\/(passwd|shadow|sudoers|crontab|rc\.local)\b|\bauthorized_keys\b/i),
+    test: re(
+      />>?\s*["']?(~|\$HOME)?\/?\.(bashrc|zshrc|profile|bash_profile|zprofile|config\/fish)\b|\bcrontab\s+(-\w+\s+)*-?\s*$|\bcrontab\s+-[el]?\s*[^\n]*\||\bcrontab\s+\S+\.cron|\blaunchctl\s+(load|bootstrap)|\bsystemctl\s+(--user\s+)?enable\b|\/etc\/(passwd|shadow|sudoers|crontab|rc\.local)\b|\bauthorized_keys\b/i,
+    ),
   },
   {
     id: "suspicious-host",
@@ -154,7 +172,9 @@ const RULES: Rule[] = [
     severity: "high",
     why: "Raw IPs, link shorteners, paste sites and tunnels are how payloads are fetched and data is dropped.",
     in: "any",
-    test: re(/\bhttps?:\/\/(\d{1,3}\.){3}\d{1,3}\b|\bhttps?:\/\/[^\s/]*\b(bit\.ly|tinyurl\.com|t\.co|goo\.gl|is\.gd|pastebin\.com|paste\.ee|hastebin|ghostbin|transfer\.sh|file\.io|ngrok(-free)?\.(io|app)|trycloudflare\.com|requestbin|pipedream\.net|webhook\.site|interact\.sh|burpcollaborator)\b/i),
+    test: re(
+      /\bhttps?:\/\/(\d{1,3}\.){3}\d{1,3}\b|\bhttps?:\/\/[^\s/]*\b(bit\.ly|tinyurl\.com|t\.co|goo\.gl|is\.gd|pastebin\.com|paste\.ee|hastebin|ghostbin|transfer\.sh|file\.io|ngrok(-free)?\.(io|app)|trycloudflare\.com|requestbin|pipedream\.net|webhook\.site|interact\.sh|burpcollaborator)\b/i,
+    ),
   },
   {
     id: "obfuscation",
@@ -170,7 +190,9 @@ const RULES: Rule[] = [
     severity: "high",
     why: "Editing workflows or git hooks can run code with the repository's secrets on every push.",
     in: "doc",
-    test: re(/\b(edit|modify|change|write|overwrite|add\s+to|append\s+to|delete|remove)\s+[^\n]{0,40}(\.github\/workflows|\.git\/hooks|\.husky\/|CODEOWNERS|branch\s+protection)/i),
+    test: re(
+      /\b(edit|modify|change|write|overwrite|add\s+to|append\s+to|delete|remove)\s+[^\n]{0,40}(\.github\/workflows|\.git\/hooks|\.husky\/|CODEOWNERS|branch\s+protection)/i,
+    ),
   },
 
   // ---- medium: needs a human look ----
@@ -188,7 +210,9 @@ const RULES: Rule[] = [
     severity: "medium",
     why: "New dependencies are supply chain risk: check the names (typosquatting) and pin versions.",
     in: "any",
-    test: re(/\b(npm|pnpm|yarn|bun)\s+(i|install|add)\s+(-[-\w]+\s+)*[@a-z0-9]|\bnpx\s+(-y\s+|--yes\s+)?[@a-z0-9]|\bpip3?\s+install\s+[^-\s]|\bgem\s+install\b|\bcargo\s+install\b|\bgo\s+install\b|\bbrew\s+install\b|\bapt(-get)?\s+install\b/i),
+    test: re(
+      /\b(npm|pnpm|yarn|bun)\s+(i|install|add)\s+(-[-\w]+\s+)*[@a-z0-9]|\bnpx\s+(-y\s+|--yes\s+)?[@a-z0-9]|\bpip3?\s+install\s+[^-\s]|\bgem\s+install\b|\bcargo\s+install\b|\bgo\s+install\b|\bbrew\s+install\b|\bapt(-get)?\s+install\b/i,
+    ),
   },
   {
     id: "process-exec",
@@ -196,7 +220,9 @@ const RULES: Rule[] = [
     severity: "medium",
     why: "Scripts that start processes can do anything the user can; check every command.",
     in: "code",
-    test: re(/\bchild_process\b|\bexecSync\s*\(|\bexec(File)?\s*\(|\bspawn(Sync)?\s*\(|\beval\s*\(|\bnew\s+Function\s*\(|\bsubprocess\.|\bos\.system\s*\(|\bos\.popen\s*\(|Runtime\.getRuntime\(\)\.exec/),
+    test: re(
+      /\bchild_process\b|\bexecSync\s*\(|\bexec(File)?\s*\(|\bspawn(Sync)?\s*\(|\beval\s*\(|\bnew\s+Function\s*\(|\bsubprocess\.|\bos\.system\s*\(|\bos\.popen\s*\(|Runtime\.getRuntime\(\)\.exec/,
+    ),
   },
   {
     id: "external-url",
@@ -267,13 +293,13 @@ const DOC_EXT = new Set([".md", ".markdown", ".txt", ".yaml", ".yml", ".json", "
 
 // Characters a human cannot see: bidirectional overrides (Trojan Source), Unicode
 // tags (invisible prompt text) and zero width characters.
-const BIDI = /[‪-‮⁦-⁩]/;
+const BIDI = /[\u202A-\u202E\u2066-\u2069]/;
 const TAGS = /[\u{E0000}-\u{E007F}]/u;
-const ZERO_WIDTH = /[​-‍⁠᠎]|(?!^)﻿/;
+const ZERO_WIDTH = /[\u200B-\u200D\u2060\u180E]|(?!^)\uFEFF/;
 
 const visible = (s: string) =>
   s
-    .replace(/[‪-‮⁦-⁩​-‍⁠᠎﻿]/g, (c) => `<U+${c.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0")}>`)
+    .replace(/[\u202A-\u202E\u2066-\u2069\u200B-\u200D\u2060\u180E\uFEFF]/g, (c) => `<U+${c.charCodeAt(0).toString(16).toUpperCase().padStart(4, "0")}>`)
     .replace(/[\u{E0000}-\u{E007F}]/gu, "<TAG>")
     .trim()
     .slice(0, 180);
@@ -306,16 +332,26 @@ export function auditFiles(files: AuditFile[]): AuditReport {
     if (TAGS.test(text) || BIDI.test(text)) {
       const lineNo = text.split("\n").findIndex((l) => TAGS.test(l) || BIDI.test(l)) + 1;
       add(
-        { rule: "hidden-unicode", title: "Hides text with invisible characters", severity: "critical", why: "Bidirectional overrides and Unicode tag characters show one thing to a human and another to the agent." },
+        {
+          rule: "hidden-unicode",
+          title: "Hides text with invisible characters",
+          severity: "critical",
+          why: "Bidirectional overrides and Unicode tag characters show one thing to a human and another to the agent.",
+        },
         f.rel,
         lineNo,
         text.split("\n")[lineNo - 1] ?? "",
       );
     }
     if (ZERO_WIDTH.test(text)) {
-      const lineNo = text.split("\n").findIndex((l, i) => (i === 0 ? ZERO_WIDTH.test(l.replace(/^﻿/, "")) : ZERO_WIDTH.test(l))) + 1;
+      const lineNo = text.split("\n").findIndex((l, i) => (i === 0 ? ZERO_WIDTH.test(l.replace(/^\uFEFF/, "")) : ZERO_WIDTH.test(l))) + 1;
       add(
-        { rule: "zero-width", title: "Contains zero width characters", severity: "high", why: "Invisible characters can split words to slip past review or smuggle instructions." },
+        {
+          rule: "zero-width",
+          title: "Contains zero width characters",
+          severity: "high",
+          why: "Invisible characters can split words to slip past review or smuggle instructions.",
+        },
         f.rel,
         Math.max(lineNo, 1),
         text.split("\n")[Math.max(lineNo, 1) - 1] ?? "",
@@ -326,7 +362,12 @@ export function auditFiles(files: AuditFile[]): AuditReport {
         if (!m[1].trim()) continue;
         const lineNo = text.slice(0, m.index).split("\n").length;
         add(
-          { rule: "html-comment", title: "Has text hidden in an HTML comment", severity: "medium", why: "Comments do not show in a rendered preview but the agent still reads them." },
+          {
+            rule: "html-comment",
+            title: "Has text hidden in an HTML comment",
+            severity: "medium",
+            why: "Comments do not show in a rendered preview but the agent still reads them.",
+          },
           f.rel,
           lineNo,
           m[0],
@@ -338,7 +379,12 @@ export function auditFiles(files: AuditFile[]): AuditReport {
     lines.forEach((line, i) => {
       if (kind === "code" && line.length > 1000) {
         add(
-          { rule: "minified-code", title: "Has minified or one line code", severity: "medium", why: "Very long lines are hard to review and often minified or generated." },
+          {
+            rule: "minified-code",
+            title: "Has minified or one line code",
+            severity: "medium",
+            why: "Very long lines are hard to review and often minified or generated.",
+          },
           f.rel,
           i + 1,
           line,

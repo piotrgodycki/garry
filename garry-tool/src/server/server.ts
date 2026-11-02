@@ -144,11 +144,18 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   }
 
   // Talking to Garry: messages in line, one at a time (garry/routes.ts)
-  if (/^\/api\/garry\/(queue|commands|memory)(\/|$)/.test(path) && (await queueRoutes(req, res, path, { queue: cfg.queue!, threads: cfg.threads!, teams: cfg.teams!, registry: cfg.registry, json, readBody }))) return;
+  if (
+    /^\/api\/garry\/(queue|commands|memory)(\/|$)/.test(path) &&
+    (await queueRoutes(req, res, path, { queue: cfg.queue!, threads: cfg.threads!, teams: cfg.teams!, registry: cfg.registry, json, readBody }))
+  )
+    return;
 
   // Agents working together: pairs and chains (garry/team-routes.ts)
-  if (/^\/api\/(teams|pairs|chains)(\/|$)/.test(path) && (await teamRoutes(req, res, path, { teams: cfg.teams!, threads: cfg.threads!, json, readBody })) !== false) return;
-
+  if (
+    /^\/api\/(teams|pairs|chains)(\/|$)/.test(path) &&
+    (await teamRoutes(req, res, path, { teams: cfg.teams!, threads: cfg.threads!, json, readBody })) !== false
+  )
+    return;
 
   // The rest, each group in a module of its own: GitHub and Garry projects, the
   // registry (files, services, boards, stacks, routing), skills, features
@@ -160,7 +167,12 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     if (!cfg.threads) return json(res, 200, { state: "idle", counts: { needsYou: 0, working: 0, done: 0 }, items: [] });
     const store = cfg.threads.store;
     const repos = new Set(store.projectsOf(activeGarryProject().id).map((r) => r.id));
-    const ids = new Set(store.threads().filter((t) => repos.has(t.projectId)).map((t) => t.id));
+    const ids = new Set(
+      store
+        .threads()
+        .filter((t) => repos.has(t.projectId))
+        .map((t) => t.id),
+    );
     return json(res, 200, garryStatus(cfg.threads, ids));
   }
 
@@ -170,7 +182,12 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     if (!cfg.threads) return json(res, 200, { now: new Date().toISOString(), lanes: [], needsYou: [], spentToday: 0 });
     const store = cfg.threads.store;
     const repos = new Set(store.projectsOf(activeGarryProject().id).map((r) => r.id));
-    const ids = new Set(store.threads().filter((t) => repos.has(t.projectId)).map((t) => t.id));
+    const ids = new Set(
+      store
+        .threads()
+        .filter((t) => repos.has(t.projectId))
+        .map((t) => t.id),
+    );
     const hours = Math.min(Math.max(Number(new URL(req.url ?? "/", "http://x").searchParams.get("hours")) || 24, 1), 24 * 14);
     return json(res, 200, liveView(cfg.threads, ids, new Date(Date.now() - hours * 3600_000)));
   }

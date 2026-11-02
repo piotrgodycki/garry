@@ -45,7 +45,9 @@ export class GarryQueue {
     this.file = join(threads.store.root, "garry-queue.json");
     this.data = this.read();
     // a turn that was running when Garry stopped did not finish: say so, and go on
-    for (const i of this.data.items) if (i.status === "running" && !(i.threadId && threads.isRunning(i.threadId))) Object.assign(i, { status: "failed", error: "Garry stopped before it finished", endedAt: now() });
+    for (const i of this.data.items)
+      if (i.status === "running" && !(i.threadId && threads.isRunning(i.threadId)))
+        Object.assign(i, { status: "failed", error: "Garry stopped before it finished", endedAt: now() });
     this.write();
     // when an agent is free again (its turn ended), the next message starts
     this.off = threads.subscribeAll((threadId, e) => {
@@ -119,7 +121,11 @@ export class GarryQueue {
       const lastUser = events.map((e) => e.type).lastIndexOf("user");
       const said = events.slice(lastUser + 1).filter((e) => e.type === "text");
       const ok = events.slice(lastUser + 1).some((e) => e.type === "turn_end" && e.ok);
-      Object.assign(item, { status: error || !ok ? "failed" : "done", reply: said.length ? (said[said.length - 1] as { text: string }).text : undefined, endedAt: now() });
+      Object.assign(item, {
+        status: error || !ok ? "failed" : "done",
+        reply: said.length ? (said[said.length - 1] as { text: string }).text : undefined,
+        endedAt: now(),
+      });
       if (item.status === "failed") item.error ??= "The agent stopped before it finished";
     }
     // also when it was your own turn in Build that ended: Garry may go on

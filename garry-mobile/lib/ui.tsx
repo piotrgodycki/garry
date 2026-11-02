@@ -53,13 +53,31 @@ export function Pill({ state, children }: { state: State; children: ReactNode })
   );
 }
 
-export function Button({ children, onPress, kind = "primary", disabled, label }: { children: ReactNode; onPress: () => void; kind?: "primary" | "ghost" | "danger"; disabled?: boolean; label?: string }) {
+export function Button({
+  children,
+  onPress,
+  kind = "primary",
+  disabled,
+  label,
+}: {
+  children: ReactNode;
+  onPress: () => void;
+  kind?: "primary" | "ghost" | "danger";
+  disabled?: boolean;
+  label?: string;
+}) {
   const p = usePalette();
   const bg = kind === "primary" ? p.primary : kind === "danger" ? tint(p.fail, p.surface, 0.1) : p.surface;
   const fg = kind === "primary" ? p.onPrimary : kind === "danger" ? p.fail : p.text;
   const border = kind === "primary" ? p.primary : kind === "danger" ? tint(p.fail, p.surface, 0.45) : p.lineStrong;
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.button, { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.45 : pressed ? 0.75 : 1 }]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [s.button, { backgroundColor: bg, borderColor: border, opacity: disabled ? 0.45 : pressed ? 0.75 : 1 }]}
+    >
       <Text style={[s.buttonText, { color: fg }]}>{children}</Text>
     </Pressable>
   );
@@ -122,12 +140,36 @@ export function CrewFace({ role = "dev", state, size = 34 }: { role?: CrewRole; 
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       testID={`crew-${role}-${state}`}
-      style={{ width: size, height: size, borderRadius: size * 0.28, borderWidth: 1, alignItems: "center", justifyContent: "center", backgroundColor: tint(p[state], p.surface, 0.16), borderColor: tint(p[state], p.line, 0.34), opacity: state === "idle" ? 0.6 : 1 }}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.28,
+        borderWidth: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: tint(p[state], p.surface, 0.16),
+        borderColor: tint(p[state], p.line, 0.34),
+        opacity: state === "idle" ? 0.6 : 1,
+      }}
     >
       <Svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24">
         <Path d={TOOL[role]} stroke={p[state]} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </Svg>
-      {state === "fail" && <View style={{ position: "absolute", top: -3, right: -3, width: 11, height: 11, borderRadius: 6, backgroundColor: p.fail, borderWidth: 2, borderColor: p.surface }} />}
+      {state === "fail" && (
+        <View
+          style={{
+            position: "absolute",
+            top: -3,
+            right: -3,
+            width: 11,
+            height: 11,
+            borderRadius: 6,
+            backgroundColor: p.fail,
+            borderWidth: 2,
+            borderColor: p.surface,
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -141,7 +183,16 @@ const s = StyleSheet.create({
   body: { fontSize: 15, lineHeight: 21 },
   chip: { borderWidth: 1, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2 },
   chipText: { fontSize: 12, fontFamily: monoFamily },
-  pill: { flexDirection: "row", alignItems: "center", gap: 6, borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: "flex-start" },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignSelf: "flex-start",
+  },
   pillDot: { width: 7, height: 7, borderRadius: 4 },
   pillText: { fontSize: 12.5, fontWeight: "600" },
   button: { borderWidth: 1, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 16, alignItems: "center" },

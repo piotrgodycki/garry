@@ -13,7 +13,11 @@ const app = await electron.launch({ executablePath: exe, args: ["--no-sandbox"],
 try {
   const win = await app.firstWindow();
   // the server dot in the rail on a wide window, the status line in the narrow one's menu
-  await win.locator('.railServer[aria-label="Server online"], .serverStatus:has-text("Server online")').locator("visible=true").first().waitFor({ timeout: 20000 });
+  await win
+    .locator('.railServer[aria-label="Server online"], .serverStatus:has-text("Server online")')
+    .locator("visible=true")
+    .first()
+    .waitFor({ timeout: 20000 });
   const url = win.url();
   if (!/^http:\/\/127\.0\.0\.1:\d+\/$/.test(url)) throw new Error(`unexpected page ${url}`);
   // a fresh app starts empty: the server answers, with no sample features

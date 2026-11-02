@@ -38,7 +38,11 @@ const put = (path: string, bytes: number | string, stage = true) => {
   writeFileSync(join(repo, path), typeof bytes === "string" ? bytes : "x".repeat(bytes));
   if (stage) g("add", path);
 };
-const names = () => oversizedStaged(repo).map((f) => `${f.path}:${f.tokens}`).sort().join(" ");
+const names = () =>
+  oversizedStaged(repo)
+    .map((f) => `${f.path}:${f.tokens}`)
+    .sort()
+    .join(" ");
 
 // the limit: 5,000 tokens is 20,000 bytes
 put("src/at-limit.ts", 20_000);
@@ -88,14 +92,27 @@ put("src/App.tsx", 26_000);
 put("src/styles.css", 26_000);
 put("docs/guide.md", 26_000);
 put("config/data.json", 26_000);
-expect("what people and agents write is checked, whatever its kind", names() === "config/data.json:6500 docs/guide.md:6500 src/App.tsx:6500 src/styles.css:6500", names());
+expect(
+  "what people and agents write is checked, whatever its kind",
+  names() === "config/data.json:6500 docs/guide.md:6500 src/App.tsx:6500 src/styles.css:6500",
+  names(),
+);
 
 // the message says how to split each kind
 const msg = sizeMessage(oversizedStaged(repo));
-expect("the message names every file with its size", ["src/App.tsx: about 6,500 tokens", "src/styles.css: about 6,500 tokens", "docs/guide.md: about 6,500 tokens", "config/data.json: about 6,500 tokens"].every((l) => msg.includes(l)), msg);
+expect(
+  "the message names every file with its size",
+  ["src/App.tsx: about 6,500 tokens", "src/styles.css: about 6,500 tokens", "docs/guide.md: about 6,500 tokens", "config/data.json: about 6,500 tokens"].every(
+    (l) => msg.includes(l),
+  ),
+  msg,
+);
 expect("and how many files it should become", msg.includes("(2 files of under 5,000 would hold it)"));
 const section = (path: string) => msg.slice(msg.indexOf(path), msg.indexOf("\n\n", msg.indexOf(path)));
-expect("a component: move components, hooks and constants into files of their own", /component[\s\S]*own[\s\S]*hooks[\s\S]*constants/i.test(section("src/App.tsx")));
+expect(
+  "a component: move components, hooks and constants into files of their own",
+  /component[\s\S]*own[\s\S]*hooks[\s\S]*constants/i.test(section("src/App.tsx")),
+);
 expect("styles: split by section", /Split by section/.test(section("src/styles.css")));
 expect("docs: a short overview and a page per section, linked", /overview[\s\S]*docs\/<topic>\.md[\s\S]*Link/.test(section("docs/guide.md")));
 expect("data: one file per entry, or mark it generated", /one file per entry[\s\S]*linguist-generated/.test(section("config/data.json")));
@@ -107,7 +124,11 @@ const cli = fileURLToPath(new URL("../cli.ts", import.meta.url));
 const tsx = import.meta.resolve("tsx");
 const run = (...args: string[]) => spawnSync(process.execPath, ["--import", tsx, cli, ...args], { cwd: repo, encoding: "utf8" });
 const check = run("hooks", "check");
-expect("garry hooks check fails the commit and prints the message", check.status === 1 && check.stderr.includes("src/App.tsx: about 6,500 tokens"), check.stderr.slice(0, 200));
+expect(
+  "garry hooks check fails the commit and prints the message",
+  check.status === 1 && check.stderr.includes("src/App.tsx: about 6,500 tokens"),
+  check.stderr.slice(0, 200),
+);
 expect("--max sets another limit", run("hooks", "check", "--max", "10000").status === 0);
 g("reset", "-q");
 expect("nothing staged, nothing refused", run("hooks", "check").status === 0);
@@ -115,7 +136,11 @@ writeFileSync(join(repo, ".git", "hooks", "pre-commit"), "#!/bin/sh\necho mine\n
 run("hooks", "install");
 run("hooks", "install");
 const hook = readFileSync(join(repo, ".git", "hooks", "pre-commit"), "utf8");
-expect("garry hooks install adds the check once, after the hook already there", hook.startsWith("#!/bin/sh\necho mine\n") && hook.split("garry hooks check").length === 2, hook);
+expect(
+  "garry hooks install adds the check once, after the hook already there",
+  hook.startsWith("#!/bin/sh\necho mine\n") && hook.split("garry hooks check").length === 2,
+  hook,
+);
 
 // Garry refuses to commit an agent's oversized file
 const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
@@ -135,8 +160,16 @@ try {
   refused = e;
 }
 const status = execFileSync("git", ["-C", t.worktree, "status", "--porcelain"], { encoding: "utf8" });
-expect("Garry refuses to commit an agent's file over the limit, saying how to split it", refused instanceof FileSizeError && (refused as Error).message.includes("NOTES.md: about") && (refused as InstanceType<typeof FileSizeError>).status === 422, String(refused));
-expect("and leaves the work as it was: nothing committed, nothing staged", !threads.store.get(t.id)?.commit && status.trim() !== "" && !status.split("\n").some((l) => /^[AM]/.test(l)), status);
+expect(
+  "Garry refuses to commit an agent's file over the limit, saying how to split it",
+  refused instanceof FileSizeError && (refused as Error).message.includes("NOTES.md: about") && (refused as InstanceType<typeof FileSizeError>).status === 422,
+  String(refused),
+);
+expect(
+  "and leaves the work as it was: nothing committed, nothing staged",
+  !threads.store.get(t.id)?.commit && status.trim() !== "" && !status.split("\n").some((l) => /^[AM]/.test(l)),
+  status,
+);
 threads.store.saveSettings(project.id, { maxFileTokens: 0 });
 let done: { commit?: string } = {};
 try {

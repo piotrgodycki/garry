@@ -51,9 +51,7 @@ export const contractLabel = (file: string) => CONTRACT_LABEL[file] ?? file;
 /** Events that involve at least one of the given services, as producer or consumer. */
 export function eventsFor(contracts: Contracts, services: string[]): [string, EventContract][] {
   const set = new Set(services);
-  return Object.entries(contracts.events ?? {}).filter(
-    ([, e]) => (e.producers ?? []).some((s) => set.has(s)) || (e.consumers ?? []).some((s) => set.has(s)),
-  );
+  return Object.entries(contracts.events ?? {}).filter(([, e]) => (e.producers ?? []).some((s) => set.has(s)) || (e.consumers ?? []).some((s) => set.has(s)));
 }
 
 /** Flattens nested design tokens into dotted names: color.brand.primary -> #0a0a0a. */

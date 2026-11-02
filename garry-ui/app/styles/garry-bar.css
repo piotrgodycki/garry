@@ -33,7 +33,9 @@
 }
 .garryField:focus-within {
   border-color: color-mix(in srgb, var(--state-work) 55%, var(--border-strong));
-  box-shadow: var(--shadow-lg), 0 0 0 3px color-mix(in srgb, var(--state-work) 18%, transparent);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 3px color-mix(in srgb, var(--state-work) 18%, transparent);
 }
 .garryField[data-listening] {
   border-color: var(--garry-clay);

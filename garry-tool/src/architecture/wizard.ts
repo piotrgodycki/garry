@@ -16,16 +16,117 @@ type Extra = WizardAnswers["extras"][number];
 
 /** The block each platform uses for each piece. */
 const PICK: Record<Platform, { app: string; sql: string; document: string } & Record<Extra, string>> = {
-  vercel: { app: "vercel-app", sql: "neon", document: "mongodb", auth: "clerk", cms: "sanity", files: "vercel-blob", queue: "upstash", cache: "upstash", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
-  cloudflare: { app: "cf-workers", sql: "cf-d1", document: "mongodb", auth: "clerk", cms: "sanity", files: "cf-r2", queue: "cf-queues", cache: "cf-kv", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
-  aws: { app: "aws-lambda", sql: "aws-aurora", document: "aws-dynamodb", auth: "aws-cognito", cms: "sanity", files: "aws-s3", queue: "aws-sqs", cache: "aws-elasticache", search: "algolia", email: "aws-ses", cdn: "aws-cloudfront", events: "aws-sns" },
-  supabase: { app: "vercel-app", sql: "supabase", document: "mongodb", auth: "supabase", cms: "sanity", files: "supabase", queue: "upstash", cache: "upstash", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
-  adobe: { app: "adobe-app-builder", sql: "neon", document: "mongodb", auth: "auth0", cms: "aem-sites", files: "aem-assets", queue: "upstash", cache: "upstash", search: "algolia", email: "resend", cdn: "aem-eds", events: "adobe-io-events" },
-  "self-hosted": { app: "vps", sql: "postgres", document: "mongodb", auth: "keycloak", cms: "strapi", files: "cf-r2", queue: "rabbitmq", cache: "redis", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
-  kubernetes: { app: "kubernetes", sql: "postgres", document: "mongodb", auth: "keycloak", cms: "strapi", files: "cf-r2", queue: "rabbitmq", cache: "redis", search: "algolia", email: "resend", cdn: "cf-cdn", events: "kafka" },
+  vercel: {
+    app: "vercel-app",
+    sql: "neon",
+    document: "mongodb",
+    auth: "clerk",
+    cms: "sanity",
+    files: "vercel-blob",
+    queue: "upstash",
+    cache: "upstash",
+    search: "algolia",
+    email: "resend",
+    cdn: "cf-cdn",
+    events: "kafka",
+  },
+  cloudflare: {
+    app: "cf-workers",
+    sql: "cf-d1",
+    document: "mongodb",
+    auth: "clerk",
+    cms: "sanity",
+    files: "cf-r2",
+    queue: "cf-queues",
+    cache: "cf-kv",
+    search: "algolia",
+    email: "resend",
+    cdn: "cf-cdn",
+    events: "kafka",
+  },
+  aws: {
+    app: "aws-lambda",
+    sql: "aws-aurora",
+    document: "aws-dynamodb",
+    auth: "aws-cognito",
+    cms: "sanity",
+    files: "aws-s3",
+    queue: "aws-sqs",
+    cache: "aws-elasticache",
+    search: "algolia",
+    email: "aws-ses",
+    cdn: "aws-cloudfront",
+    events: "aws-sns",
+  },
+  supabase: {
+    app: "vercel-app",
+    sql: "supabase",
+    document: "mongodb",
+    auth: "supabase",
+    cms: "sanity",
+    files: "supabase",
+    queue: "upstash",
+    cache: "upstash",
+    search: "algolia",
+    email: "resend",
+    cdn: "cf-cdn",
+    events: "kafka",
+  },
+  adobe: {
+    app: "adobe-app-builder",
+    sql: "neon",
+    document: "mongodb",
+    auth: "auth0",
+    cms: "aem-sites",
+    files: "aem-assets",
+    queue: "upstash",
+    cache: "upstash",
+    search: "algolia",
+    email: "resend",
+    cdn: "aem-eds",
+    events: "adobe-io-events",
+  },
+  "self-hosted": {
+    app: "vps",
+    sql: "postgres",
+    document: "mongodb",
+    auth: "keycloak",
+    cms: "strapi",
+    files: "cf-r2",
+    queue: "rabbitmq",
+    cache: "redis",
+    search: "algolia",
+    email: "resend",
+    cdn: "cf-cdn",
+    events: "kafka",
+  },
+  kubernetes: {
+    app: "kubernetes",
+    sql: "postgres",
+    document: "mongodb",
+    auth: "keycloak",
+    cms: "strapi",
+    files: "cf-r2",
+    queue: "rabbitmq",
+    cache: "redis",
+    search: "algolia",
+    email: "resend",
+    cdn: "cf-cdn",
+    events: "kafka",
+  },
 };
 
-const CAP_OF: Record<Extra, Capability> = { auth: "auth", cms: "content", files: "blob", queue: "queue", cache: "cache", search: "search", email: "email", cdn: "cdn", events: "events" };
+const CAP_OF: Record<Extra, Capability> = {
+  auth: "auth",
+  cms: "content",
+  files: "blob",
+  queue: "queue",
+  cache: "cache",
+  search: "search",
+  email: "email",
+  cdn: "cdn",
+  events: "events",
+};
 const LABEL: Record<string, string> = { app: "Your app", api: "API", site: "Static site", db: "Database" };
 
 const COL = 420;
@@ -122,7 +223,11 @@ export function buildFromWizard(input: unknown, services: { name: string; kind?:
 
   // your services, joined to what they need
   if (answers.services) {
-    const placed = services.map((s) => ({ s, b: serviceBlock(s), id: place(3, `svc-${s.name}`.replace(/[^A-Za-z0-9_-]/g, "-").slice(0, 64), `service:${s.name}`) }));
+    const placed = services.map((s) => ({
+      s,
+      b: serviceBlock(s),
+      id: place(3, `svc-${s.name}`.replace(/[^A-Za-z0-9_-]/g, "-").slice(0, 64), `service:${s.name}`),
+    }));
     const providerOf = (cap: Capability, self: string): string | null => {
       // another of your services first (a shell's microfrontends, a BFF's API), then the platform
       const own = placed.find((p) => p.id !== self && p.b.provides.includes(cap));
@@ -137,16 +242,15 @@ export function buildFromWizard(input: unknown, services: { name: string; kind?:
       }
       return null;
     };
-    for (const p of placed) for (const need of p.b.needs ?? []) {
-      const to = providerOf(need, p.id);
-      if (to) link(p.id, to, need);
-    }
+    for (const p of placed)
+      for (const need of p.b.needs ?? []) {
+        const to = providerOf(need, p.id);
+        if (to) link(p.id, to, need);
+      }
     // what serves pages takes the visitors for them
     for (const p of placed) if (p.b.provides.includes("web") && web) link("browser", p.id, "web");
   }
 
-  const nodes = columns
-    .filter((col) => col.length)
-    .flatMap((col, x) => col.map((n, y) => ({ ...n, x: x * COL, y: y * ROW - ((col.length - 1) * ROW) / 2 })));
+  const nodes = columns.filter((col) => col.length).flatMap((col, x) => col.map((n, y) => ({ ...n, x: x * COL, y: y * ROW - ((col.length - 1) * ROW) / 2 })));
   return { nodes, edges, wizard: answers };
 }

@@ -68,21 +68,38 @@ try {
   const bearer = { authorization: `Bearer ${token}` };
   expect("a paired device reads", (await call(remote, "/api/features", { headers: bearer })).status === 200);
   expect("a paired device reads the stream with access_token", (await call(remote, `/api/registry?access_token=${token}`)).status === 200);
-  expect("access_token is not accepted for writes", (await call(remote, `/api/routing?access_token=${token}`, post({ stage: "spec", model: "x" }))).status === 401);
+  expect(
+    "access_token is not accepted for writes",
+    (await call(remote, `/api/routing?access_token=${token}`, post({ stage: "spec", model: "x" }))).status === 401,
+  );
   expect("a paired device cannot manage devices", (await call(remote, "/api/devices", { headers: bearer })).status === 403);
   expect("a paired device cannot mint codes", (await call(remote, "/api/pair/codes", { method: "POST", headers: bearer })).status === 403);
   expect("the token is stored hashed", !JSON.stringify(store.list()).includes(token));
 
   expect("a rebound host name is refused", (await raw("127.0.0.1", "/api/features", "GET", { host: `rebound.example:${port}` })) === 403);
 
-  const cookiePaired = await fetch(`http://${remote}:${port}/api/pair`, post({ code: (await call("127.0.0.1", "/api/pair/codes", { method: "POST" })).body?.code, name: "browser", session: "cookie" }));
+  const cookiePaired = await fetch(
+    `http://${remote}:${port}/api/pair`,
+    post({ code: (await call("127.0.0.1", "/api/pair/codes", { method: "POST" })).body?.code, name: "browser", session: "cookie" }),
+  );
   const cookie = (cookiePaired.headers.get("set-cookie") ?? "").split(";")[0];
   const cookieBody = (await cookiePaired.json()) as Record<string, unknown>;
-  expect("a browser gets an HttpOnly SameSite cookie, not the token", /HttpOnly/.test(cookiePaired.headers.get("set-cookie") ?? "") && /SameSite=Strict/.test(cookiePaired.headers.get("set-cookie") ?? "") && !("token" in cookieBody));
+  expect(
+    "a browser gets an HttpOnly SameSite cookie, not the token",
+    /HttpOnly/.test(cookiePaired.headers.get("set-cookie") ?? "") &&
+      /SameSite=Strict/.test(cookiePaired.headers.get("set-cookie") ?? "") &&
+      !("token" in cookieBody),
+  );
   expect("the cookie authenticates the browser", (await call(remote, "/api/features", { headers: { cookie } })).status === 200);
   const routing = JSON.stringify({ stage: "spec", model: "x" });
-  expect("a cookie write from the dashboard's own origin passes the origin check", (await raw(remote, "/api/routing", "POST", { cookie, origin: `http://${remote}:${port}`, "content-type": "application/json" }, routing)) !== 403);
-  expect("a cookie write from another site is refused", (await raw(remote, "/api/routing", "POST", { cookie, origin: "http://evil.example", "content-type": "application/json" }, routing)) === 403);
+  expect(
+    "a cookie write from the dashboard's own origin passes the origin check",
+    (await raw(remote, "/api/routing", "POST", { cookie, origin: `http://${remote}:${port}`, "content-type": "application/json" }, routing)) !== 403,
+  );
+  expect(
+    "a cookie write from another site is refused",
+    (await raw(remote, "/api/routing", "POST", { cookie, origin: "http://evil.example", "content-type": "application/json" }, routing)) === 403,
+  );
 
   const id = store.list()[0]?.id ?? "";
   expect("this machine revokes a device", (await call("127.0.0.1", `/api/devices/${id}`, { method: "DELETE" })).status === 200);

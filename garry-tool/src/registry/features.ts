@@ -80,11 +80,7 @@ export function createFeature(registry: string, input: FeatureInput): { id: stri
   const id = `FEAT-${next}`;
   const front = stringifyYaml({ id, title, status: STAGES[0], services, contractChanges, ...(routing ? { routing } : {}) }).trimEnd();
   const goal = (input.goal ?? "").trim() || title;
-  const body = [
-    `---\n${front}\n---`,
-    `## Goal\n\n${goal}`,
-    `## Stage state\n\n${STAGES.map((s) => `- [ ] ${s}`).join("\n")}`,
-  ].join("\n\n");
+  const body = [`---\n${front}\n---`, `## Goal\n\n${goal}`, `## Stage state\n\n${STAGES.map((s) => `- [ ] ${s}`).join("\n")}`].join("\n\n");
 
   const dir = join(registry, "features");
   mkdirSync(dir, { recursive: true });

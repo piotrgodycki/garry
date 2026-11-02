@@ -68,7 +68,12 @@ export default function CreateFeature() {
       ) : (
         <View style={s.chips}>
           {(services ?? []).map((svc) => (
-            <Pressable key={svc.name} onPress={() => setPicked((l) => flip(l, svc.name))} accessibilityRole="checkbox" accessibilityState={{ checked: picked.includes(svc.name) }}>
+            <Pressable
+              key={svc.name}
+              onPress={() => setPicked((l) => flip(l, svc.name))}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: picked.includes(svc.name) }}
+            >
               <Chip strong={picked.includes(svc.name)}>{svc.name}</Chip>
             </Pressable>
           ))}
@@ -77,7 +82,12 @@ export default function CreateFeature() {
       <Label>Contracts it changes</Label>
       <View style={s.chips}>
         {CONTRACTS.map((c) => (
-          <Pressable key={c} onPress={() => setContracts((l) => flip(l, c))} accessibilityRole="checkbox" accessibilityState={{ checked: contracts.includes(c) }}>
+          <Pressable
+            key={c}
+            onPress={() => setContracts((l) => flip(l, c))}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: contracts.includes(c) }}
+          >
             <Chip strong={contracts.includes(c)}>{c}</Chip>
           </Pressable>
         ))}

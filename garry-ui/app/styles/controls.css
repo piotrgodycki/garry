@@ -17,7 +17,12 @@
   color: var(--color-text-default);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, opacity 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    box-shadow 0.15s,
+    opacity 0.15s;
 }
 .btn svg {
   width: 16px;
@@ -80,7 +85,9 @@
   /* the colour only: the chevron image comes from the select rule above */
   background-color: var(--surface);
   color: var(--color-text-default);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 .select {
   padding-right: 30px;

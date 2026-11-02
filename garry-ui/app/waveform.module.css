@@ -19,10 +19,20 @@
   opacity: 1;
 }
 @keyframes waveIdle {
-  0%, 100% { transform: scaleY(0.18); }
-  50% { transform: scaleY(0.4); }
+  0%,
+  100% {
+    transform: scaleY(0.18);
+  }
+  50% {
+    transform: scaleY(0.4);
+  }
 }
 @keyframes waveActive {
-  0%, 100% { transform: scaleY(0.2); }
-  50% { transform: scaleY(1); }
+  0%,
+  100% {
+    transform: scaleY(0.2);
+  }
+  50% {
+    transform: scaleY(1);
+  }
 }

@@ -123,7 +123,7 @@ function actionFor(skill: string): string {
     "drift-check": "checked for contract drift",
     "cross-repo-merge": "coordinated the cross repo merge",
     "version-tag": "tagged the versions",
-    "changelog": "generated the changelog",
+    changelog: "generated the changelog",
     "api-contract": "updated the API contract",
     "db-provision": "provisioned the database",
     "db-migrate": "ran the migrations",

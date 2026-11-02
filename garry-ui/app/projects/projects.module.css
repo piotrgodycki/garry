@@ -214,7 +214,6 @@
   }
 }
 
-
 /* in the top bar on a wide screen: compact, beside the page's name */
 :global(.topbar) .switcher {
   margin: 0;

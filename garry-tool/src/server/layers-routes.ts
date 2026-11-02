@@ -37,7 +37,12 @@ export async function layerRoutes(req: IncomingMessage, res: ServerResponse, pat
     // each service with the repository here it lives in, if any
     const home = new Map<string, string>();
     for (const r of repos) for (const s of servicesIn(cfg.registry, r)) if (!home.has(s.name)) home.set(s.name, r.name);
-    const services = listManifests(cfg.registry).map((m) => ({ name: m.name, repo: String(m.repo ?? ""), inRepo: home.get(m.name) ?? null, stackRef: typeof m.stackRef === "string" ? m.stackRef : null }));
+    const services = listManifests(cfg.registry).map((m) => ({
+      name: m.name,
+      repo: String(m.repo ?? ""),
+      inRepo: home.get(m.name) ?? null,
+      stackRef: typeof m.stackRef === "string" ? m.stackRef : null,
+    }));
     return json(res, 200, { layers: readLayers(cfg.registry), repos: repos.map((r) => ({ id: r.id, name: r.name })), services });
   }
   if (req.method === "POST" && path === "/api/layers") {

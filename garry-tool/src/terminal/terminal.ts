@@ -80,7 +80,8 @@ export class TerminalManager {
   open(root: string, cwd: string, size: { cols?: unknown; rows?: unknown } = {}): TerminalInfo {
     if (!terminalEnabled()) throw new TerminalError("the terminal is turned off on this computer (GARRY_TERMINAL=off)", 403);
     if (!existsSync(cwd) || !statSync(cwd).isDirectory()) throw new TerminalError(`no folder ${cwd}`, 404);
-    if ([...this.terms.values()].filter((t) => !t.exited).length >= MAX_TERMINALS) throw new TerminalError(`at most ${MAX_TERMINALS} terminals are open at once; close one first`, 429);
+    if ([...this.terms.values()].filter((t) => !t.exited).length >= MAX_TERMINALS)
+      throw new TerminalError(`at most ${MAX_TERMINALS} terminals are open at once; close one first`, 429);
     const cols = clampSize(size.cols, 100, 500);
     const rows = clampSize(size.rows, 30, 200);
     const shell = defaultShell();
@@ -94,7 +95,20 @@ export class TerminalManager {
     const env = { ...process.env, TERM: "xterm-256color", COLORTERM: "truecolor", GARRY_TERMINAL_ROOT: root };
     const proc = spawn("script", args, { cwd, env, stdio: ["pipe", "pipe", "pipe"] });
     const id = randomBytes(6).toString("hex");
-    const t: Terminal = { id, root, cwd, shell, createdAt: new Date().toISOString(), exited: false, proc, backlog: "", listeners: new Set(), ttyFile, pidFile, tmp };
+    const t: Terminal = {
+      id,
+      root,
+      cwd,
+      shell,
+      createdAt: new Date().toISOString(),
+      exited: false,
+      proc,
+      backlog: "",
+      listeners: new Set(),
+      ttyFile,
+      pidFile,
+      tmp,
+    };
     const decoder = new StringDecoder("utf8");
     const emit = (data: string) => {
       if (!data) return;

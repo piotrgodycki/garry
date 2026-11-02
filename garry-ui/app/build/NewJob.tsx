@@ -74,7 +74,13 @@ export default function NewJob({ projects, task, onStarted }: { projects: Projec
         </label>
         <div className={styles.repoRow}>
           {projects.length > 1 ? (
-            <Select id="job-repo" ariaLabel="repository" value={repo} onChange={setProjectId} options={projects.map((p) => ({ value: p.id, label: p.name, hint: p.path }))} />
+            <Select
+              id="job-repo"
+              ariaLabel="repository"
+              value={repo}
+              onChange={setProjectId}
+              options={projects.map((p) => ({ value: p.id, label: p.name, hint: p.path }))}
+            />
           ) : (
             <span id="job-repo" className={styles.repoName} title={projects[0]?.path}>
               {projects[0]?.name}
@@ -125,7 +131,13 @@ export default function NewJob({ projects, task, onStarted }: { projects: Projec
           <label className={styles.label} htmlFor="job-rounds">
             Review rounds
           </label>
-          <select id="job-rounds" className={`input ${styles.small}`} aria-label="review rounds" value={rounds} onChange={(e) => setRounds(Number(e.target.value))}>
+          <select
+            id="job-rounds"
+            className={`input ${styles.small}`}
+            aria-label="review rounds"
+            value={rounds}
+            onChange={(e) => setRounds(Number(e.target.value))}
+          >
             {[1, 2, 3, 4, 5].map((n) => (
               <option key={n} value={n}>
                 {n === 1 ? "1 round" : `${n} rounds`}
@@ -145,14 +157,31 @@ export default function NewJob({ projects, task, onStarted }: { projects: Projec
                 <span className={styles.stepNo} aria-hidden="true">
                   {i + 2}
                 </span>
-                <input className="input" aria-label={`step ${i + 2}`} placeholder="e.g. Write tests for it" value={s} onChange={(e) => setStep(i, e.target.value)} />
+                <input
+                  className="input"
+                  aria-label={`step ${i + 2}`}
+                  placeholder="e.g. Write tests for it"
+                  value={s}
+                  onChange={(e) => setStep(i, e.target.value)}
+                />
                 <button type="button" className="btn btnSm btnGhost" aria-label={`move step ${i + 2} up`} disabled={i === 0} onClick={() => moveStep(i, -1)}>
                   ↑
                 </button>
-                <button type="button" className="btn btnSm btnGhost" aria-label={`move step ${i + 2} down`} disabled={i === steps.length - 1} onClick={() => moveStep(i, 1)}>
+                <button
+                  type="button"
+                  className="btn btnSm btnGhost"
+                  aria-label={`move step ${i + 2} down`}
+                  disabled={i === steps.length - 1}
+                  onClick={() => moveStep(i, 1)}
+                >
                   ↓
                 </button>
-                <button type="button" className="btn btnSm btnGhost" aria-label={`remove step ${i + 2}`} onClick={() => setSteps(steps.filter((_, k) => k !== i))}>
+                <button
+                  type="button"
+                  className="btn btnSm btnGhost"
+                  aria-label={`remove step ${i + 2}`}
+                  onClick={() => setSteps(steps.filter((_, k) => k !== i))}
+                >
                   {Icon.close}
                 </button>
               </li>

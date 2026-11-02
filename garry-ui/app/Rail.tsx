@@ -36,24 +36,35 @@ export default function Rail() {
         <GarryMark size={36} busy={(status?.counts.working ?? 0) > 0} />
       </Link>
       <div className="railMiddle" onScroll={hide}>
-      <nav className="railNav" aria-label="main">
-        {GROUPS.map((g, gi) => (
-          <div key={g.label} className="railGroup" role="group" aria-label={g.label}>
-            {gi > 0 && <span className="railSep" aria-hidden="true" />}
-            {g.links.map((l) => {
-              const on = matches(l, path);
-              const badge = l.href === "/live" && needsYou > 0 ? needsYou : 0;
-              return (
-                <Link key={l.href} href={l.href} className={`railItem${on ? " on" : ""}`} aria-current={on ? "page" : undefined} aria-label={badge ? `${l.label}, ${badge} need you` : l.label} data-tip={l.label}>
-                  {l.icon}
-                  {badge > 0 && <span className="railBadge" aria-hidden="true">{badge}</span>}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
-      </nav>
-      <RailProjects />
+        <nav className="railNav" aria-label="main">
+          {GROUPS.map((g, gi) => (
+            <div key={g.label} className="railGroup" role="group" aria-label={g.label}>
+              {gi > 0 && <span className="railSep" aria-hidden="true" />}
+              {g.links.map((l) => {
+                const on = matches(l, path);
+                const badge = l.href === "/live" && needsYou > 0 ? needsYou : 0;
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={`railItem${on ? " on" : ""}`}
+                    aria-current={on ? "page" : undefined}
+                    aria-label={badge ? `${l.label}, ${badge} need you` : l.label}
+                    data-tip={l.label}
+                  >
+                    {l.icon}
+                    {badge > 0 && (
+                      <span className="railBadge" aria-hidden="true">
+                        {badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+        <RailProjects />
       </div>
       <div className="railFoot">
         <ThemeCycle />
@@ -84,7 +95,15 @@ function RailProjects() {
   return (
     <div className="railProjects" role="group" aria-label="projects">
       {data.projects.slice(0, 6).map((p) => (
-        <button key={p.id} type="button" className={`railProject${p.id === data.active ? " on" : ""}`} aria-pressed={p.id === data.active} aria-label={`project ${p.name}`} data-tip={p.name} onClick={() => void pick(p.id)}>
+        <button
+          key={p.id}
+          type="button"
+          className={`railProject${p.id === data.active ? " on" : ""}`}
+          aria-pressed={p.id === data.active}
+          aria-label={`project ${p.name}`}
+          data-tip={p.name}
+          onClick={() => void pick(p.id)}
+        >
           <ProjectMark project={p} />
           {p.id === data.active && (status?.counts.working ?? 0) > 0 && <span className="railLive" aria-hidden="true" />}
         </button>
@@ -135,7 +154,11 @@ function ServerDot() {
   const [up, setUp] = useState<boolean | null>(null);
   useEffect(() => {
     let alive = true;
-    const check = () => client.status().then(() => alive && setUp(true), () => alive && setUp(false));
+    const check = () =>
+      client.status().then(
+        () => alive && setUp(true),
+        () => alive && setUp(false),
+      );
     void check();
     const t = setInterval(check, 15000);
     return () => {

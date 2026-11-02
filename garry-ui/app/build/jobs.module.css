@@ -80,7 +80,9 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 .mode:hover {
   border-color: var(--border-strong);

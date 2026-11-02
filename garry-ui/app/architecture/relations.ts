@@ -34,7 +34,8 @@ const VERBS: Record<string, string> = {
 
 export function relationOf(from: ArchBlock | undefined, capability: string): Relation {
   // passes on what it offers itself: a CDN fetching the origin, a pooler in front of a database
-  if (from?.provides.includes(capability)) return { verb: capability === "web" ? "forwards traffic to" : capability === "sql" ? "pools connections to" : "forwards to", proxy: true };
+  if (from?.provides.includes(capability))
+    return { verb: capability === "web" ? "forwards traffic to" : capability === "sql" ? "pools connections to" : "forwards to", proxy: true };
   // an API in front of code it does not run itself
   if (capability === "compute" && from?.provides.includes("http") && !from.provides.includes("compute")) return { verb: "forwards requests to", proxy: true };
   return { verb: VERBS[capability] ?? "uses", proxy: false };

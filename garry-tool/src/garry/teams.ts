@@ -102,7 +102,16 @@ export class Teams {
     if (!task.trim()) throw new TeamError("the task is empty");
     if (!Number.isInteger(maxRounds) || maxRounds < 1 || maxRounds > 10) throw new TeamError("rounds: 1 to 10");
     const writer = this.threads.create(projectId, task);
-    const pair: Pair = { id: this.threads.store.newId(), projectId, task: task.trim(), writer: writer.id, round: 0, maxRounds, status: "writing", createdAt: now() };
+    const pair: Pair = {
+      id: this.threads.store.newId(),
+      projectId,
+      task: task.trim(),
+      writer: writer.id,
+      round: 0,
+      maxRounds,
+      status: "writing",
+      createdAt: now(),
+    };
     this.data.pairs.push(pair);
     this.write();
     return pair;
@@ -112,13 +121,25 @@ export class Teams {
   startChain(projectId: string, prompts: string[], name = "", after?: string): Chain {
     const steps = prompts.map((p) => p.trim()).filter(Boolean);
     if (!steps.length && !after) throw new TeamError("a chain needs at least one step");
-    const chain: Chain = { id: this.threads.store.newId(), name: name.trim() || steps[0]?.split("\n")[0].slice(0, 60) || "Chain", projectId, steps: steps.map((prompt) => ({ id: this.threads.store.newId(), prompt, status: "waiting" })), status: "running", createdAt: now() };
+    const chain: Chain = {
+      id: this.threads.store.newId(),
+      name: name.trim() || steps[0]?.split("\n")[0].slice(0, 60) || "Chain",
+      projectId,
+      steps: steps.map((prompt) => ({ id: this.threads.store.newId(), prompt, status: "waiting" })),
+      status: "running",
+      createdAt: now(),
+    };
     if (after) {
       const t = this.threads.store.get(after);
       if (!t || t.projectId !== projectId) throw new TeamError("that work is not in this repository", 404);
       // the work you start from is the chain's first step
       const result = this.threads.isRunning(after) ? null : outcome(this.threads.store.events(after)).result;
-      chain.steps.unshift({ id: this.threads.store.newId(), prompt: t.title, threadId: after, status: result === null ? "running" : result === "done" ? "done" : "needs-you" });
+      chain.steps.unshift({
+        id: this.threads.store.newId(),
+        prompt: t.title,
+        threadId: after,
+        status: result === null ? "running" : result === "done" ? "done" : "needs-you",
+      });
       if (result && result !== "done") chain.status = "needs-you";
     }
     this.data.chains.push(chain);
@@ -142,7 +163,8 @@ export class Teams {
   reorder(chainId: string, order: string[]): Chain {
     const chain = this.chain(chainId);
     const waiting = chain.steps.filter((s) => s.status === "waiting");
-    if (order.length !== waiting.length || !waiting.every((s) => order.includes(s.id))) throw new TeamError("order: every step that has not started, once each");
+    if (order.length !== waiting.length || !waiting.every((s) => order.includes(s.id)))
+      throw new TeamError("order: every step that has not started, once each");
     const started = chain.steps.filter((s) => s.status !== "waiting");
     chain.steps = [...started, ...order.map((id) => waiting.find((s) => s.id === id)!)];
     this.write();
@@ -222,7 +244,9 @@ export class Teams {
     const before = [...chain.steps.slice(0, chain.steps.indexOf(next))].reverse().find((s) => s.threadId);
     const title = `${chain.name}: ${next.prompt.split("\n")[0]}`.slice(0, 80);
     try {
-      next.threadId = before?.threadId ? this.threads.join(before.threadId, next.prompt, title, "step").id : this.threads.create(chain.projectId, next.prompt, title).id;
+      next.threadId = before?.threadId
+        ? this.threads.join(before.threadId, next.prompt, title, "step").id
+        : this.threads.create(chain.projectId, next.prompt, title).id;
       next.status = "running";
     } catch (e) {
       next.status = "needs-you";

@@ -109,7 +109,11 @@ export default function FeatureScreen() {
               <Body muted>
                 {pr.branch} · checks {pr.checks}
               </Body>
-              {pr.url ? <Button kind="ghost" onPress={() => void Linking.openURL(pr.url)}>Open on GitHub</Button> : null}
+              {pr.url ? (
+                <Button kind="ghost" onPress={() => void Linking.openURL(pr.url)}>
+                  Open on GitHub
+                </Button>
+              ) : null}
             </View>
           ))
         )}

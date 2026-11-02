@@ -22,8 +22,15 @@ const github = createServer((req, res) => {
   const send = (code: number, body: unknown) => (res.writeHead(code, { "content-type": "application/json" }), res.end(JSON.stringify(body)));
   const authed = req.headers.authorization === `Bearer ${TOKEN}`;
   if (req.url === "/user") return authed ? send(200, { login: "octo" }) : send(401, { message: "Bad credentials" });
-  if (req.url?.startsWith("/user/repos")) return authed ? send(200, [{ full_name: "octo/shop", description: "The shop", private: true, default_branch: "main", updated_at: "2026-10-01T00:00:00Z", clone_url: "x" }, { full_name: "octo/blog", description: null, private: false, default_branch: "main", updated_at: "2026-09-01T00:00:00Z", clone_url: "y" }]) : send(401, {});
-  if (req.url === "/login/device/code") return send(200, { device_code: "dev-1", user_code: "ABCD-1234", verification_uri: "https://github.com/login/device", interval: 0, expires_in: 60 });
+  if (req.url?.startsWith("/user/repos"))
+    return authed
+      ? send(200, [
+          { full_name: "octo/shop", description: "The shop", private: true, default_branch: "main", updated_at: "2026-10-01T00:00:00Z", clone_url: "x" },
+          { full_name: "octo/blog", description: null, private: false, default_branch: "main", updated_at: "2026-09-01T00:00:00Z", clone_url: "y" },
+        ])
+      : send(401, {});
+  if (req.url === "/login/device/code")
+    return send(200, { device_code: "dev-1", user_code: "ABCD-1234", verification_uri: "https://github.com/login/device", interval: 0, expires_in: 60 });
   if (req.url === "/login/oauth/access_token") return send(200, ++polls < 2 ? { error: "authorization_pending" } : { access_token: TOKEN });
   send(404, {});
 });
@@ -43,7 +50,11 @@ const expect = (name: string, ok: boolean, detail = "") => {
   console.log(`${ok ? "ok  " : "FAIL"} ${name}${ok || !detail ? "" : `: ${detail}`}`);
   if (!ok) failed++;
 };
-const rejects = async (p: Promise<unknown>) => p.then(() => false, () => true);
+const rejects = async (p: Promise<unknown>) =>
+  p.then(
+    () => false,
+    () => true,
+  );
 
 expect("not connected at first", !(await githubStatus()).connected && !tokenWithSource());
 expect("a token GitHub refuses is not saved", (await rejects(saveToken("ghp_" + "b".repeat(36)))) && !existsSync(join(process.env.GARRY_HOME!, "github.json")));
@@ -79,23 +90,35 @@ execFileSync("git", ["-C", src, "add", "-A"]);
 execFileSync("git", ["-C", src, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"]);
 execFileSync("git", ["clone", "-q", "--bare", src, join(remotes, "octo", "shop.git")]);
 process.env.GARRY_GITHUB_WEB = `file://${remotes}`;
-expect("bad names are refused", (() => {
-  try {
-    cloneRepo(TOKEN, "../etc");
-    return false;
-  } catch {
-    return true;
-  }
-})());
+expect(
+  "bad names are refused",
+  (() => {
+    try {
+      cloneRepo(TOKEN, "../etc");
+      return false;
+    } catch {
+      return true;
+    }
+  })(),
+);
 const dir = cloneRepo(TOKEN, "octo/shop");
 expect("a repository is cloned into ~/.garry/repos", dir === join(process.env.GARRY_HOME!, "repos", "octo", "shop") && existsSync(join(dir, "README.md")));
-expect("the token is not written into the clone", !readFileSync(join(dir, ".git", "config"), "utf8").includes(TOKEN) && !readFileSync(join(dir, ".git", "config"), "utf8").toLowerCase().includes("authorization"));
+expect(
+  "the token is not written into the clone",
+  !readFileSync(join(dir, ".git", "config"), "utf8").includes(TOKEN) &&
+    !readFileSync(join(dir, ".git", "config"), "utf8")
+      .toLowerCase()
+      .includes("authorization"),
+);
 expect("importing again reuses it", cloneRepo(TOKEN, "octo/shop") === dir);
 
 // the server (this computer)
 process.env.GARRY_GITHUB_WEB = ghUrl;
 const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const status = (await fetch(`${base}/api/github`).then((r) => r.json())) as { connected: boolean; login: string; deviceFlow: boolean };
@@ -103,10 +126,21 @@ expect("GET /api/github says who is connected", status.connected && status.login
 const listed = (await fetch(`${base}/api/github/repos?q=blog`).then((r) => r.json())) as { repos: { fullName: string }[] };
 expect("GET /api/github/repos lists them", listed.repos.length === 1 && listed.repos[0].fullName === "octo/blog");
 process.env.GARRY_GITHUB_WEB = `file://${remotes}`;
-const imported = await fetch(`${base}/api/projects/import`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ repo: "octo/shop" }) });
+const imported = await fetch(`${base}/api/projects/import`, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ repo: "octo/shop" }),
+});
 const project = (await imported.json()) as { name: string; path: string };
-expect("POST /api/projects/import adds it as a project", imported.status === 200 && project.name === "shop" && threads.store.projects().some((p) => p.path === dir));
-const cross = await fetch(`${base}/api/github/token`, { method: "POST", headers: { "content-type": "application/json", origin: "https://evil.example" }, body: JSON.stringify({ token: TOKEN }) });
+expect(
+  "POST /api/projects/import adds it as a project",
+  imported.status === 200 && project.name === "shop" && threads.store.projects().some((p) => p.path === dir),
+);
+const cross = await fetch(`${base}/api/github/token`, {
+  method: "POST",
+  headers: { "content-type": "application/json", origin: "https://evil.example" },
+  body: JSON.stringify({ token: TOKEN }),
+});
 expect("a write from another site is refused", cross.status === 403);
 server.close();
 github.close();

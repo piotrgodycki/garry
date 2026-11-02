@@ -46,7 +46,8 @@ const STYLE_EXT = new Set(["css", "scss", "sass", "less"]);
 
 // real use in code (a call, an option, a header), not the bare words, which also
 // appear in comments and in these rules
-const SECURITY_CALLS = /\b(authenticateAsync|promptTouchID)\s*\(|\brequireAuthentication\s*:|headers\.authorization\b|["']authorization["']\s*[:,\]]|["']set-cookie["']/i;
+const SECURITY_CALLS =
+  /\b(authenticateAsync|promptTouchID)\s*\(|\brequireAuthentication\s*:|headers\.authorization\b|["']authorization["']\s*[:,\]]|["']set-cookie["']/i;
 
 const RULES: Rule[] = [
   {
@@ -62,7 +63,12 @@ const RULES: Rule[] = [
   {
     id: "interaction",
     label: "Behaves differently",
-    match: (f) => !TEST.test(f.path) && any(f, /\bon(Click|Press|Submit|Change|KeyDown|KeyUp|Blur|Focus|Drag\w*|Pointer\w*)\b|addEventListener\(|useState\(|useReducer\(|<(button|input|select|textarea|form)\b|window\.confirm\(|navigate\(|router\.(push|replace)\(/),
+    match: (f) =>
+      !TEST.test(f.path) &&
+      any(
+        f,
+        /\bon(Click|Press|Submit|Change|KeyDown|KeyUp|Blur|Focus|Drag\w*|Pointer\w*)\b|addEventListener\(|useState\(|useReducer\(|<(button|input|select|textarea|form)\b|window\.confirm\(|navigate\(|router\.(push|replace)\(/,
+      ),
     checks: [
       "Click through every changed control and the path around it",
       "Use the keyboard only: Tab order, Enter, Escape, focus after actions",
@@ -86,7 +92,8 @@ const RULES: Rule[] = [
   {
     id: "security",
     label: "Sign in, pairing and permissions",
-    match: (f) => /(auth|pairing|pair|token|session|biometric|touchid|faceid|permission|devices?)[\w.-]*\.(ts|tsx|js)$/i.test(base(f.path)) || any(f, SECURITY_CALLS),
+    match: (f) =>
+      /(auth|pairing|pair|token|session|biometric|touchid|faceid|permission|devices?)[\w.-]*\.(ts|tsx|js)$/i.test(base(f.path)) || any(f, SECURITY_CALLS),
     checks: [
       "Pair a new device, revoke it, and check it is locked out",
       "Lock and unlock (Face ID, Touch ID, passcode fallback, cancel)",
@@ -114,7 +121,8 @@ const RULES: Rule[] = [
 ];
 
 /** Whether a file can matter to a person at all: tests, docs and CI plumbing do not. */
-const relevant = (f: ChangedFile) => !TEST.test(f.path) && !DOCS.test(f.path) && !/^\.github\//.test(f.path) && !/(^|\/)(pnpm-lock\.yaml|package-lock\.json|yarn\.lock)$/.test(f.path);
+const relevant = (f: ChangedFile) =>
+  !TEST.test(f.path) && !DOCS.test(f.path) && !/^\.github\//.test(f.path) && !/(^|\/)(pnpm-lock\.yaml|package-lock\.json|yarn\.lock)$/.test(f.path);
 
 export function assessQa(files: ChangedFile[]): QaAssessment {
   const areas: QaArea[] = [];

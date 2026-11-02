@@ -64,7 +64,12 @@ export default function InstallSkill({
       () => undefined,
     );
   }, []);
-  const scope = who === "everywhere" ? undefined : who === "project" ? { level: "project" } : { level: who.slice(0, who.indexOf(":")), name: who.slice(who.indexOf(":") + 1) };
+  const scope =
+    who === "everywhere"
+      ? undefined
+      : who === "project"
+        ? { level: "project" }
+        : { level: who.slice(0, who.indexOf(":")), name: who.slice(who.indexOf(":") + 1) };
 
   const doPropose = async () => {
     setBusy(true);
@@ -139,16 +144,23 @@ export default function InstallSkill({
     <dialog ref={ref} className={styles.dialog} onClose={onClose} aria-labelledby="install-title">
       <form method="dialog" className={styles.dialogHead}>
         <h2 id="install-title">{policy === "ci-only" ? "Propose a skill" : "Add a skill"}</h2>
-        <button className="btn btnGhost iconBtn" aria-label="close">{Icon.close}</button>
+        <button className="btn btnGhost iconBtn" aria-label="close">
+          {Icon.close}
+        </button>
       </form>
 
       <div className={styles.dialogBody}>
         <p className={styles.help}>
-          A skill is a folder with a <code>SKILL.md</code>: YAML frontmatter with <code>name</code> and{" "}
-          <code>description</code> (and optionally <code>stage</code>), then the instructions for the agent. It is
-          audited first. <b>Install locally</b> adds it on this machine only. <b>Propose to team</b> opens a pull request
-          {propose.repo ? <> to <code>{propose.repo}</code></> : null}: CI audits it again with a secret scanner and
-          Semgrep, a code owner reviews it, and after the merge every teammate gets it pre-installed.
+          A skill is a folder with a <code>SKILL.md</code>: YAML frontmatter with <code>name</code> and <code>description</code> (and optionally{" "}
+          <code>stage</code>), then the instructions for the agent. It is audited first. <b>Install locally</b> adds it on this machine only.{" "}
+          <b>Propose to team</b> opens a pull request
+          {propose.repo ? (
+            <>
+              {" "}
+              to <code>{propose.repo}</code>
+            </>
+          ) : null}
+          : CI audits it again with a secret scanner and Semgrep, a code owner reviews it, and after the merge every teammate gets it pre-installed.
         </p>
         {policy === "ci-only" && (
           <p className={styles.policy}>Local installs are turned off for this team: skills only arrive through a reviewed pull request.</p>
@@ -159,7 +171,10 @@ export default function InstallSkill({
             <div>
               <b>Pull request #{proposed.number} opened</b>
               <span>
-                The skill-audit check and a code owner review it now. <a href={proposed.url} target="_blank" rel="noopener noreferrer">Open it on GitHub</a>
+                The skill-audit check and a code owner review it now.{" "}
+                <a href={proposed.url} target="_blank" rel="noopener noreferrer">
+                  Open it on GitHub
+                </a>
               </span>
             </div>
           </div>
@@ -191,19 +206,19 @@ export default function InstallSkill({
             <input type="file" accept=".md,text/markdown" onChange={(e) => readFile(e.target.files?.[0])} />
             <span className={styles.dropIcon}>{Icon.inbox}</span>
             <span>
-              {fileName ? <b>{fileName}</b> : <>Drop a <b>SKILL.md</b> here, or click to choose one</>}
+              {fileName ? (
+                <b>{fileName}</b>
+              ) : (
+                <>
+                  Drop a <b>SKILL.md</b> here, or click to choose one
+                </>
+              )}
             </span>
           </label>
         ) : (
           <label className={styles.field}>
             <span>Folder (or its SKILL.md) on the machine running garry-server</span>
-            <input
-              className="input"
-              placeholder="e.g. ~/skills/a11y-audit"
-              value={path}
-              onChange={(e) => setPath(e.target.value)}
-              spellCheck={false}
-            />
+            <input className="input" placeholder="e.g. ~/skills/a11y-audit" value={path} onChange={(e) => setPath(e.target.value)} spellCheck={false} />
             <span className={styles.hint}>Copies SKILL.md and the files next to it (no symlinks, up to 50 files, 2 MB).</span>
           </label>
         )}
@@ -223,7 +238,12 @@ export default function InstallSkill({
 
         <label className={styles.field}>
           <span>Stage</span>
-          <Select ariaLabel="stage" value={stage} onChange={setStage} options={[{ value: "", label: "From the SKILL.md frontmatter" }, ...STAGES.map((s) => ({ value: s, label: s }))]} />
+          <Select
+            ariaLabel="stage"
+            value={stage}
+            onChange={setStage}
+            options={[{ value: "", label: "From the SKILL.md frontmatter" }, ...STAGES.map((s) => ({ value: s, label: s }))]}
+          />
         </label>
 
         {error && (
@@ -256,17 +276,14 @@ export default function InstallSkill({
 
         {preview && <AuditFindings audit={preview.audit} />}
         {preview?.audit.verdict === "fail" && (
-          <p className={styles.help}>
-            This skill cannot be installed. Remove what the audit found from the skill, then try again.
-          </p>
+          <p className={styles.help}>This skill cannot be installed. Remove what the audit found from the skill, then try again.</p>
         )}
         {!propose.ready && preview && preview.audit.verdict !== "fail" && (
           <p className={styles.hint}>To propose it to the team, add GARRY_GITHUB_TOKEN to .env.local and restart the server.</p>
         )}
         {preview?.audit.verdict === "warn" && (
           <label className={styles.check}>
-            <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} />
-            I have read these warnings and trust this skill
+            <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} />I have read these warnings and trust this skill
           </label>
         )}
       </div>
@@ -281,7 +298,11 @@ export default function InstallSkill({
               type="button"
               className={`btn ${policy === "ci-only" ? "btnPrimary" : ""}`}
               disabled={!preview || busy || !propose.ready || preview.audit.verdict === "fail" || (preview.audit.verdict === "warn" && !ack)}
-              title={propose.ready ? "Open a pull request so CI and a code owner review it for the whole team" : "Set GARRY_GITHUB_TOKEN in .env.local to open pull requests"}
+              title={
+                propose.ready
+                  ? "Open a pull request so CI and a code owner review it for the whole team"
+                  : "Set GARRY_GITHUB_TOKEN in .env.local to open pull requests"
+              }
               onClick={() => void doPropose()}
             >
               {Icon.prs}

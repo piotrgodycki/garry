@@ -46,7 +46,8 @@ const worm = (id) =>
     `</g>`,
   ].join("\n");
 
-const mark = () => `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" role="img" aria-label="Garry">\n${worm("gm")}\n</svg>\n`;
+const mark = () =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" role="img" aria-label="Garry">\n${worm("gm")}\n</svg>\n`;
 
 const logo = (theme) => `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="88" viewBox="0 0 300 88" role="img" aria-label="Garry logo">
 <g transform="translate(0 0) scale(.88)">
@@ -117,7 +118,10 @@ try {
   const page = await browser.newPage({ viewport: { width: 1024, height: 1024 } });
   for (const [path, svg] of Object.entries(PNGS)) {
     await page.setContent(`<html><body style="margin:0;background:transparent">${svg}</body></html>`);
-    await page.locator("svg").first().screenshot({ path: join(root, path), omitBackground: true });
+    await page
+      .locator("svg")
+      .first()
+      .screenshot({ path: join(root, path), omitBackground: true });
     console.log(`wrote ${relative(root, join(root, path))}`);
   }
 } finally {

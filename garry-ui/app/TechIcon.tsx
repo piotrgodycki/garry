@@ -328,7 +328,14 @@ const tone = (hex: string) => {
 
 /** A technology's mark at text size; a technology Garry does not know shows its first letters. */
 export default function TechIcon({ id, size = 14 }: { id: string; size?: number }) {
-  const mark = MARKS[id] ?? mono(id.replace(/[^a-z0-9]/gi, "").slice(0, 2).toUpperCase() || "?");
+  const mark =
+    MARKS[id] ??
+    mono(
+      id
+        .replace(/[^a-z0-9]/gi, "")
+        .slice(0, 2)
+        .toUpperCase() || "?",
+    );
   const style = { "--tone": tone(mark.hex), width: size, height: size } as CSSProperties;
   return (
     <span className="techIcon" style={style} aria-hidden="true">

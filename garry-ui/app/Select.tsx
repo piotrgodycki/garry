@@ -89,7 +89,13 @@ export default function Select({
     const below = window.innerHeight - r.bottom - 8;
     const above = r.top - 8;
     const up = below < 220 && above > below;
-    setPlace({ left: Math.max(8, Math.min(r.left, window.innerWidth - Math.max(r.width, 180) - 8)), top: up ? r.top - 4 : r.bottom + 4, width: Math.max(r.width, 180), up, maxHeight: Math.min(340, up ? above : below) });
+    setPlace({
+      left: Math.max(8, Math.min(r.left, window.innerWidth - Math.max(r.width, 180) - 8)),
+      top: up ? r.top - 4 : r.bottom + 4,
+      width: Math.max(r.width, 180),
+      up,
+      maxHeight: Math.min(340, up ? above : below),
+    });
   };
   useLayoutEffect(() => {
     if (open) measure();
@@ -135,15 +141,22 @@ export default function Select({
       }
       return;
     }
-    if (e.key === "ArrowDown") (e.preventDefault(), move(1));
-    else if (e.key === "ArrowUp") (e.preventDefault(), move(-1));
-    else if (e.key === "Home") (e.preventDefault(), setActive(enabled[0] ?? -1));
-    else if (e.key === "End") (e.preventDefault(), setActive(enabled[enabled.length - 1] ?? -1));
-    else if (e.key === "PageDown") (e.preventDefault(), move(8));
-    else if (e.key === "PageUp") (e.preventDefault(), move(-8));
-    else if (e.key === "Enter" || e.key === " ") (e.preventDefault(), pick(active));
-    else if (e.key === "Escape") (e.preventDefault(), close());
-    else if (e.key === "Tab") close(false);
+    const keys: Record<string, () => void> = {
+      ArrowDown: () => move(1),
+      ArrowUp: () => move(-1),
+      Home: () => setActive(enabled[0] ?? -1),
+      End: () => setActive(enabled[enabled.length - 1] ?? -1),
+      PageDown: () => move(8),
+      PageUp: () => move(-8),
+      Enter: () => pick(active),
+      " ": () => pick(active),
+      Escape: () => close(),
+    };
+    const run = keys[e.key];
+    if (run) {
+      e.preventDefault();
+      run();
+    } else if (e.key === "Tab") close(false);
     else if (e.key.length === 1 && !e.metaKey && !e.ctrlKey) jump(e.key);
   };
 

@@ -22,7 +22,9 @@ export default function TopBar() {
     <header className="topbar">
       <div className="crumb">
         <ProjectSwitcher />
-        <span className="crumbSep" aria-hidden="true">/</span>
+        <span className="crumbSep" aria-hidden="true">
+          /
+        </span>
         <span className="crumbPage">{page?.label ?? "Garry"}</span>
       </div>
       <nav className="gauges" aria-label="Garry at a glance">

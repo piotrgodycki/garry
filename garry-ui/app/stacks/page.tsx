@@ -21,7 +21,19 @@ function Issues({ issues }: { issues: StackIssue[] }) {
 }
 
 /** Build or change a stack: pick technologies from the catalog, pin versions, see what does not fit. */
-function Composer({ data, initial, template, onSaved, onCancel }: { data: StacksData; initial: Stack | null; template?: StackTemplate; onSaved: () => void; onCancel: () => void }) {
+function Composer({
+  data,
+  initial,
+  template,
+  onSaved,
+  onCancel,
+}: {
+  data: StacksData;
+  initial: Stack | null;
+  template?: StackTemplate;
+  onSaved: () => void;
+  onCancel: () => void;
+}) {
   const start = initial ?? (template ? { name: template.name, description: template.description, technologies: template.technologies } : null);
   const [name, setName] = useState(start?.name ?? "");
   const [description, setDescription] = useState(start?.description ?? "");
@@ -65,11 +77,23 @@ function Composer({ data, initial, template, onSaved, onCancel }: { data: Stacks
       <div className={styles.head}>
         <label className={styles.field}>
           <span className="fieldLabel">Name</span>
-          <input className="input mono" placeholder="e.g. web-frontend" value={name} disabled={Boolean(initial)} onChange={(e) => setName(e.target.value.toLowerCase())} autoFocus={!initial} />
+          <input
+            className="input mono"
+            placeholder="e.g. web-frontend"
+            value={name}
+            disabled={Boolean(initial)}
+            onChange={(e) => setName(e.target.value.toLowerCase())}
+            autoFocus={!initial}
+          />
         </label>
         <label className={`${styles.field} ${styles.grow}`}>
           <span className="fieldLabel">What it is for</span>
-          <input className="input" placeholder="e.g. Our microfrontends: React, Vite and Module Federation" value={description} onChange={(e) => setDescription(e.target.value)} />
+          <input
+            className="input"
+            placeholder="e.g. Our microfrontends: React, Vite and Module Federation"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
         </label>
       </div>
 
@@ -100,7 +124,13 @@ function Composer({ data, initial, template, onSaved, onCancel }: { data: Stacks
         <Issues issues={issues} />
       </div>
 
-      <input className="input" aria-label="search the catalog" placeholder="Search the catalog, e.g. postgres, workers or tailwind" value={query} onChange={(e) => setQuery(e.target.value)} />
+      <input
+        className="input"
+        aria-label="search the catalog"
+        placeholder="Search the catalog, e.g. postgres, workers or tailwind"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
       <div className={styles.catalog}>
         {data.categories.map((c) => {
           const techs = data.catalog.filter((t) => t.category === c.id && (!q || t.name.toLowerCase().includes(q) || t.id.includes(q)));

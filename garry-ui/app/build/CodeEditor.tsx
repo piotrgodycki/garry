@@ -36,7 +36,19 @@ const theme = EditorView.theme({
 });
 
 /** A code editor for one file. Cmd/Ctrl+S calls onSave. */
-export default function CodeEditor({ path, value, readOnly, onChange, onSave }: { path: string; value: string; readOnly: boolean; onChange: (v: string) => void; onSave: () => void }) {
+export default function CodeEditor({
+  path,
+  value,
+  readOnly,
+  onChange,
+  onSave,
+}: {
+  path: string;
+  value: string;
+  readOnly: boolean;
+  onChange: (v: string) => void;
+  onSave: () => void;
+}) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const editable = useRef(new Compartment());

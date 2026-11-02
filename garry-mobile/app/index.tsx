@@ -68,14 +68,26 @@ export default function Home() {
       />
       <ScrollView
         contentContainerStyle={s.page}
-        refreshControl={<RefreshControl refreshing={refreshing} tintColor={p.muted} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            tintColor={p.muted}
+            onRefresh={async () => {
+              setRefreshing(true);
+              await load();
+              setRefreshing(false);
+            }}
+          />
+        }
       >
         <View style={s.actions}>
           <View style={{ flex: 1 }}>
             <Button onPress={() => router.push("/new")}>New work</Button>
           </View>
           <View style={{ flex: 1 }}>
-            <Button kind="ghost" onPress={() => router.push("/feature/new")}>New feature</Button>
+            <Button kind="ghost" onPress={() => router.push("/feature/new")}>
+              New feature
+            </Button>
           </View>
         </View>
 
@@ -100,7 +112,9 @@ export default function Home() {
         <Title style={{ marginTop: 6 }}>Features</Title>
         {error ? (
           <Notice action={<Button onPress={() => (unpaired ? router.push("/connect") : void load())}>{unpaired ? "Pair again" : "Try again"}</Button>}>
-            {unpaired ? "This phone is no longer paired with Garry. Run garry pair on your computer and scan the new code." : `Garry cannot be reached at ${connection.baseUrl}. Is garry serve running with --host, and are you on the same network?`}
+            {unpaired
+              ? "This phone is no longer paired with Garry. Run garry pair on your computer and scan the new code."
+              : `Garry cannot be reached at ${connection.baseUrl}. Is garry serve running with --host, and are you on the same network?`}
           </Notice>
         ) : !features ? (
           <Loading />
@@ -169,7 +183,9 @@ function Ask({ ask, onDone }: { ask: LiveAsk; onDone: () => Promise<void> }) {
         </View>
       </View>
       <View style={[s.msg, { backgroundColor: p.surface2, borderColor: p.line }]}>
-        <Body>{question || ask.text !== "Stopped before finishing" ? ask.text : "It did not say why. Let it fix what went wrong, or open the work to look."}</Body>
+        <Body>
+          {question || ask.text !== "Stopped before finishing" ? ask.text : "It did not say why. Let it fix what went wrong, or open the work to look."}
+        </Body>
       </View>
       {question ? (
         <View style={s.answer}>
@@ -214,7 +230,7 @@ function Agent({ lane }: { lane: LiveLane }) {
           <View style={s.who}>
             <CrewFace state={state} />
             <View style={{ flex: 1 }}>
-              <Body style={{ fontWeight: "600" }} >{lane.title}</Body>
+              <Body style={{ fontWeight: "600" }}>{lane.title}</Body>
               <Body muted style={s.small}>
                 {lane.doing ?? lane.project}
               </Body>

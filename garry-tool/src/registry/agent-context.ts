@@ -19,8 +19,12 @@ export interface AgentContext extends Resolved {
 }
 
 const MAX_PROMPT = 12_000;
-const repoName = (r: string) => basename(r.replace(/\/+$/, "")).replace(/\.git$/, "").toLowerCase();
-const where = (f: From) => (f === "everywhere" ? "every project" : f === "project" ? "the project" : f.startsWith("repo:") ? "this repository" : `service ${f.slice(8)}`);
+const repoName = (r: string) =>
+  basename(r.replace(/\/+$/, ""))
+    .replace(/\.git$/, "")
+    .toLowerCase();
+const where = (f: From) =>
+  f === "everywhere" ? "every project" : f === "project" ? "the project" : f.startsWith("repo:") ? "this repository" : `service ${f.slice(8)}`;
 
 /** The services of the registry that live in a repository (named after it, or at its path). */
 export function servicesIn(registry: string, repo: { name: string; path: string }) {

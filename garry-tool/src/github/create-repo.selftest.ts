@@ -63,9 +63,16 @@ const expect = (name: string, ok: boolean, detail = "") => {
   console.log(`${ok ? "ok  " : "FAIL"} ${name}${ok || !detail ? "" : `: ${detail}`}`);
   if (!ok) failed++;
 };
-const err = (p: Promise<unknown>) => p.then(() => null, (e: { status?: number; message?: string }) => e);
+const err = (p: Promise<unknown>) =>
+  p.then(
+    () => null,
+    (e: { status?: number; message?: string }) => e,
+  );
 
-expect("GitHub gets the name as in Garry, with what it does not allow as dashes", githubName("My Shop!") === "My-Shop" && githubName("api.v2_x") === "api.v2_x" && githubName("...") === "repo" && githubName("ąę") === "repo");
+expect(
+  "GitHub gets the name as in Garry, with what it does not allow as dashes",
+  githubName("My Shop!") === "My-Shop" && githubName("api.v2_x") === "api.v2_x" && githubName("...") === "repo" && githubName("ąę") === "repo",
+);
 
 /** A repository with one commit on main and no remote; GitHub's urls lead to the local bare ones. */
 const newRepo = (dir: string) => {
@@ -96,18 +103,37 @@ const thread = (projectId: string, path: string, branch: string) => {
 
 const a = thread(shop.id, shopPath, "garry/work-a");
 const pv = await manager.pushPreview(a.id);
-expect("not on GitHub: the preview proposes your account and the name as in Garry", pv.remote === null && pv.create?.owner === "octo" && pv.create?.name === "My-Shop" && pv.refused === null && pv.base === "main", JSON.stringify(pv));
+expect(
+  "not on GitHub: the preview proposes your account and the name as in Garry",
+  pv.remote === null && pv.create?.owner === "octo" && pv.create?.name === "My-Shop" && pv.refused === null && pv.base === "main",
+  JSON.stringify(pv),
+);
 const noYes = await err(manager.openPr(a.id, undefined, undefined, true));
 expect("without a yes to creating it, nothing is made", !!noYes && made.length === 0);
 const notConfirmed = await err(manager.openPr(a.id, undefined, undefined, false, { name: "My-Shop" }));
 expect("asking first: a yes to the push too, before anything is made", notConfirmed?.status === 428 && made.length === 0);
 await manager.openPr(a.id, undefined, undefined, true, { name: "My-Shop" });
 const origin = git(shopPath, ["config", "--get", "remote.origin.url"]).trim();
-expect("with both yeses: created, private, under your account", made.length === 1 && made[0].path === "/user/repos" && made[0].name === "My-Shop" && made[0].private === true, JSON.stringify(made));
+expect(
+  "with both yeses: created, private, under your account",
+  made.length === 1 && made[0].path === "/user/repos" && made[0].name === "My-Shop" && made[0].private === true,
+  JSON.stringify(made),
+);
 expect("added as origin, with no token in the url", origin === "https://github.com/octo/My-Shop.git");
 const remoteHas = (owner: string, name: string, branch: string) => git(join(remotes, owner, `${name}.git`), ["branch", "--list", branch]).trim() !== "";
-expect("the base branch and the work are pushed, and the pull request goes into the base", remoteHas("octo", "My-Shop", "main") && remoteHas("octo", "My-Shop", "garry/work-a") && opened.at(-1)?.repo === "octo/My-Shop" && opened.at(-1)?.base === "main" && opened.at(-1)?.head === "garry/work-a", JSON.stringify(opened));
-expect("the work's log says the repository was created", store.events(a.id).some((e) => e.type === "git" && e.action === "repo" && e.detail === "https://github.com/octo/My-Shop"));
+expect(
+  "the base branch and the work are pushed, and the pull request goes into the base",
+  remoteHas("octo", "My-Shop", "main") &&
+    remoteHas("octo", "My-Shop", "garry/work-a") &&
+    opened.at(-1)?.repo === "octo/My-Shop" &&
+    opened.at(-1)?.base === "main" &&
+    opened.at(-1)?.head === "garry/work-a",
+  JSON.stringify(opened),
+);
+expect(
+  "the work's log says the repository was created",
+  store.events(a.id).some((e) => e.type === "git" && e.action === "repo" && e.detail === "https://github.com/octo/My-Shop"),
+);
 const b = thread(shop.id, shopPath, "garry/work-b");
 expect("once on GitHub there is nothing to create", (await manager.pushPreview(b.id)).create === null);
 
@@ -129,29 +155,57 @@ const c = thread(elsewhere.id, elsewherePath, "garry/work-c");
 const pc = await manager.pushPreview(c.id);
 expect("an origin elsewhere: no proposal, and the preview says why", pc.create === null && /not on GitHub/.test(pc.refused ?? ""), JSON.stringify(pc));
 const keep = await err(manager.openPr(c.id, undefined, undefined, true, { name: "elsewhere" }));
-expect("and it is never replaced", keep?.status === 409 && git(elsewherePath, ["config", "--get", "remote.origin.url"]).trim() === "https://gitlab.example/team/elsewhere.git");
+expect(
+  "and it is never replaced",
+  keep?.status === 409 && git(elsewherePath, ["config", "--get", "remote.origin.url"]).trim() === "https://gitlab.example/team/elsewhere.git",
+);
 
 // the server
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads: manager }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads: manager },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-const post = (path: string, body: unknown, headers: Record<string, string> = {}) => fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
+const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
+  fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
 const blogPath = newRepo("blog");
 const blog = store.addProject(blogPath, "Blog");
-const h = (await fetch(`${base}/api/projects/${blog.id}/github-repo`).then((r) => r.json())) as { remote: string | null; create: { owner: string; name: string } | null };
+const h = (await fetch(`${base}/api/projects/${blog.id}/github-repo`).then((r) => r.json())) as {
+  remote: string | null;
+  create: { owner: string; name: string } | null;
+};
 expect("GET: not on GitHub, and what Garry would create", h.remote === null && h.create?.owner === "octo" && h.create?.name === "Blog");
 const before = made.length;
-expect("a write from another site is refused", (await post(`/api/projects/${blog.id}/github-repo`, {}, { origin: "https://evil.example" })).status === 403 && made.length === before);
+expect(
+  "a write from another site is refused",
+  (await post(`/api/projects/${blog.id}/github-repo`, {}, { origin: "https://evil.example" })).status === 403 && made.length === before,
+);
 store.saveSettings(blog.id, { push: "never" });
 expect("a project that never pushes gets no repository", (await post(`/api/projects/${blog.id}/github-repo`, {})).status === 403 && made.length === before);
 store.saveSettings(blog.id, { push: "ask" });
 const taken = await post(`/api/projects/${blog.id}/github-repo`, { name: "taken" });
-expect("a name already taken is a 409 that says so", taken.status === 409 && /already exists/.test(((await taken.json()) as { error: string }).error) && !existsSync(join(remotes, "octo", "taken.git")));
+expect(
+  "a name already taken is a 409 that says so",
+  taken.status === 409 && /already exists/.test(((await taken.json()) as { error: string }).error) && !existsSync(join(remotes, "octo", "taken.git")),
+);
 expect("a bad name is a 400", (await post(`/api/projects/${blog.id}/github-repo`, { name: "a b/c" })).status === 400);
 const org = await post(`/api/projects/${blog.id}/github-repo`, { owner: "acme", private: false });
 const orgBody = (await org.json()) as { owner: string; name: string; pushed: string };
-expect("POST creates it for an organization, public when asked, and pushes the branch", org.status === 200 && made.at(-1)?.path === "/orgs/acme/repos" && made.at(-1)?.private === false && orgBody.owner === "acme" && orgBody.pushed === "main" && remoteHas("acme", "Blog", "main"), JSON.stringify(orgBody));
-expect("and then GET shows where it is", ((await fetch(`${base}/api/projects/${blog.id}/github-repo`).then((r) => r.json())) as { remote: string }).remote === "acme/Blog");
+expect(
+  "POST creates it for an organization, public when asked, and pushes the branch",
+  org.status === 200 &&
+    made.at(-1)?.path === "/orgs/acme/repos" &&
+    made.at(-1)?.private === false &&
+    orgBody.owner === "acme" &&
+    orgBody.pushed === "main" &&
+    remoteHas("acme", "Blog", "main"),
+  JSON.stringify(orgBody),
+);
+expect(
+  "and then GET shows where it is",
+  ((await fetch(`${base}/api/projects/${blog.id}/github-repo`).then((r) => r.json())) as { remote: string }).remote === "acme/Blog",
+);
 expect("a second create is a 409", (await post(`/api/projects/${blog.id}/github-repo`, {})).status === 409);
 server.close();
 github.close();

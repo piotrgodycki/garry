@@ -28,7 +28,10 @@ export function writeAllowed(req: IncomingMessage): boolean {
     `http://${req.headers.host}`,
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    ...(process.env.GARRY_UI_ORIGINS ?? "").split(",").map((o) => o.trim()).filter(Boolean),
+    ...(process.env.GARRY_UI_ORIGINS ?? "")
+      .split(",")
+      .map((o) => o.trim())
+      .filter(Boolean),
   ]);
   return allowed.has(origin);
 }

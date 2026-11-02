@@ -84,7 +84,10 @@ export default function Live() {
   const move = useCallback(
     (by: number) => {
       if (!lanes.length) return;
-      const at = Math.max(0, lanes.findIndex((l) => l.threadId === selected?.threadId));
+      const at = Math.max(
+        0,
+        lanes.findIndex((l) => l.threadId === selected?.threadId),
+      );
       setPicked(lanes[(at + by + lanes.length) % lanes.length].threadId);
     },
     [lanes, selected],
@@ -166,7 +169,15 @@ export default function Live() {
 
             {lanes.length === 0 ? (
               <div className={styles.timeline}>
-                <Illustrated art="plantFeature" title="No agent at work in this time" action={<Link className="btn btnPrimary" href="/build">Start work in Build</Link>}>
+                <Illustrated
+                  art="plantFeature"
+                  title="No agent at work in this time"
+                  action={
+                    <Link className="btn btnPrimary" href="/build">
+                      Start work in Build
+                    </Link>
+                  }
+                >
                   Tell Garry what to build with <kbd className="kbd">⌘K</kbd>, or start an agent in Build. Its lane shows up here as it works.
                 </Illustrated>
               </div>
@@ -232,9 +243,14 @@ function Timeline({
         tabIndex={0}
         aria-activedescendant={selected ? `lane-${selected}` : undefined}
         onKeyDown={(e) => {
-          if (e.key === "ArrowDown") (e.preventDefault(), onMove(1));
-          else if (e.key === "ArrowUp") (e.preventDefault(), onMove(-1));
-          else if (e.key === "Enter" && selected) (e.preventDefault(), onOpen(selected));
+          const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+          if (step) {
+            e.preventDefault();
+            onMove(step);
+          } else if (e.key === "Enter" && selected) {
+            e.preventDefault();
+            onOpen(selected);
+          }
         }}
       >
         {lanes.map((l) => (
@@ -257,7 +273,10 @@ function Timeline({
                 </span>
               </div>
             </div>
-            <div className={styles.track} style={{ backgroundSize: `${(win.step / span) * 100}% 100%`, backgroundPosition: `${pct(ticks[0] ?? win.start)}% 0` }}>
+            <div
+              className={styles.track}
+              style={{ backgroundSize: `${(win.step / span) * 100}% 100%`, backgroundPosition: `${pct(ticks[0] ?? win.start)}% 0` }}
+            >
               {l.segments.map((s, i) => {
                 const from = Math.max(new Date(s.from).getTime(), win.start);
                 const to = Math.min(s.to ? new Date(s.to).getTime() : now, win.end);
@@ -328,14 +347,26 @@ function Ask({ ask, now, onDone }: { ask: LiveAsk; now: number; onDone: () => vo
       )}
       {question ? (
         <form className={styles.answer} onSubmit={submit}>
-          <input className="input" aria-label={`answer ${ask.title}`} placeholder="Type your answer" value={text} onChange={(e) => setText(e.target.value)} disabled={busy} />
+          <input
+            className="input"
+            aria-label={`answer ${ask.title}`}
+            placeholder="Type your answer"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            disabled={busy}
+          />
           <button className="btn btnPrimary" type="submit" disabled={busy || !text.trim()}>
             Send
           </button>
         </form>
       ) : (
         <div className={styles.acts}>
-          <button className="btn btnPrimary" type="button" disabled={busy} onClick={() => void send("That stopped before finishing. Look at what went wrong, fix it, and finish the task.")}>
+          <button
+            className="btn btnPrimary"
+            type="button"
+            disabled={busy}
+            onClick={() => void send("That stopped before finishing. Look at what went wrong, fix it, and finish the task.")}
+          >
             Let it fix
           </button>
         </div>
@@ -456,7 +487,9 @@ function Agent({ lane, now, onChange }: { lane: LiveLane; now: number; onChange:
           </div>
           <div>
             <dt>Time</dt>
-            <dd>{ran < 3600_000 ? `${Math.max(1, Math.round(ran / 60_000))} min` : `${Math.floor(ran / 3600_000)} h ${Math.round((ran % 3600_000) / 60_000)} min`}</dd>
+            <dd>
+              {ran < 3600_000 ? `${Math.max(1, Math.round(ran / 60_000))} min` : `${Math.floor(ran / 3600_000)} h ${Math.round((ran % 3600_000) / 60_000)} min`}
+            </dd>
           </div>
         </dl>
       </div>

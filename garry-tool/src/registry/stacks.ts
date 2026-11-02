@@ -68,6 +68,10 @@ export function saveStack(registry: string, input: unknown, opts: { replace?: bo
 export function removeStack(registry: string, name: string): void {
   if (!readStack(registry, name)) throw new StackError(`no stack ${name}`, 404);
   const users = listManifests(registry).filter((m) => m.stackRef === name);
-  if (users.length) throw new StackError(`${users.map((u) => u.name).join(", ")} ${users.length > 1 ? "are" : "is"} built on ${name}; change ${users.length > 1 ? "their" : "its"} stack first`, 409);
+  if (users.length)
+    throw new StackError(
+      `${users.map((u) => u.name).join(", ")} ${users.length > 1 ? "are" : "is"} built on ${name}; change ${users.length > 1 ? "their" : "its"} stack first`,
+      409,
+    );
   unlinkSync(file(registry, name));
 }

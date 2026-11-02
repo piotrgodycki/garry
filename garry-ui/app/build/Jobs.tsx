@@ -20,11 +20,28 @@ const ago = (iso: string) => {
   const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
   return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : new Date(iso).toLocaleDateString();
 };
-const kindOf = (t: Thread): Kind => (t.running || t.status === "running" ? "working" : t.attention === "needs-you" ? "needs" : t.pr || t.commit ? "done" : "ready");
-const wordOf = (t: Thread, k: Kind) => (k === "needs" ? (t.status === "error" ? "Stopped, needs you" : "Needs your answer") : k === "working" ? "Working" : k === "ready" ? "Ready to review" : t.pr ? "Pull request open" : "Committed");
+const kindOf = (t: Thread): Kind =>
+  t.running || t.status === "running" ? "working" : t.attention === "needs-you" ? "needs" : t.pr || t.commit ? "done" : "ready";
+const wordOf = (t: Thread, k: Kind) =>
+  k === "needs"
+    ? t.status === "error"
+      ? "Stopped, needs you"
+      : "Needs your answer"
+    : k === "working"
+      ? "Working"
+      : k === "ready"
+        ? "Ready to review"
+        : t.pr
+          ? "Pull request open"
+          : "Committed";
 const pairKind: Record<Pair["status"], Kind> = { writing: "working", reviewing: "working", "needs-you": "needs", approved: "ready" };
 const chainKind: Record<Chain["status"], Kind> = { running: "working", "needs-you": "needs", done: "ready", stopped: "done" };
-const PAIR_WORD: Record<Pair["status"], string> = { writing: "Agent writing", reviewing: "Reviewer checking", "needs-you": "Needs you", approved: "Approved, ready to review" };
+const PAIR_WORD: Record<Pair["status"], string> = {
+  writing: "Agent writing",
+  reviewing: "Reviewer checking",
+  "needs-you": "Needs you",
+  approved: "Approved, ready to review",
+};
 const CHAIN_WORD: Record<Chain["status"], string> = { running: "Working", "needs-you": "Needs you", done: "All steps done", stopped: "Stopped" };
 const STEP_WORD = { waiting: "waiting", running: "working", done: "done", "needs-you": "needs you", dropped: "dropped" } as const;
 
@@ -35,12 +52,26 @@ type Job = { key: string; kind: Kind; at: string; node: ReactElement };
  * with a reviewer, and jobs in several steps. Filter by what it needs; what
  * needs you comes first. Waiting steps can be moved, dropped and added to.
  */
-export default function Jobs({ threads, teams, projects, onChange }: { threads: Thread[]; teams: { pairs: Pair[]; chains: Chain[] }; projects: Project[]; onChange: () => void }) {
+export default function Jobs({
+  threads,
+  teams,
+  projects,
+  onChange,
+}: {
+  threads: Thread[];
+  teams: { pairs: Pair[]; chains: Chain[] };
+  projects: Project[];
+  onChange: () => void;
+}) {
   const [filter, setFilter] = useState<Kind | "all">("all");
   const [adding, setAdding] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const names = new Map(projects.map((p) => [p.id, p.name]));
-  const act = (p: Promise<unknown>) => void p.then(() => (setError(null), onChange()), (e: Error) => setError(e.message));
+  const act = (p: Promise<unknown>) =>
+    void p.then(
+      () => (setError(null), onChange()),
+      (e: Error) => setError(e.message),
+    );
 
   // the agents of a pair or a job in steps show inside it, not on their own
   const grouped = new Set<string>();
@@ -143,13 +174,30 @@ export default function Jobs({ threads, teams, projects, onChange }: { threads: 
                       )}
                       {w >= 0 && (
                         <span className={styles.stepActs}>
-                          <button type="button" className="btn btnSm btnGhost" aria-label={`move up: ${s.prompt}`} disabled={w === 0} onClick={() => move(s.id, -1)}>
+                          <button
+                            type="button"
+                            className="btn btnSm btnGhost"
+                            aria-label={`move up: ${s.prompt}`}
+                            disabled={w === 0}
+                            onClick={() => move(s.id, -1)}
+                          >
                             ↑
                           </button>
-                          <button type="button" className="btn btnSm btnGhost" aria-label={`move down: ${s.prompt}`} disabled={w === waiting.length - 1} onClick={() => move(s.id, 1)}>
+                          <button
+                            type="button"
+                            className="btn btnSm btnGhost"
+                            aria-label={`move down: ${s.prompt}`}
+                            disabled={w === waiting.length - 1}
+                            onClick={() => move(s.id, 1)}
+                          >
                             ↓
                           </button>
-                          <button type="button" className="btn btnSm btnGhost" aria-label={`drop: ${s.prompt}`} onClick={() => act(client.dropChainStep(c.id, s.id))}>
+                          <button
+                            type="button"
+                            className="btn btnSm btnGhost"
+                            aria-label={`drop: ${s.prompt}`}
+                            onClick={() => act(client.dropChainStep(c.id, s.id))}
+                          >
                             {Icon.close}
                           </button>
                         </span>
@@ -167,7 +215,13 @@ export default function Jobs({ threads, teams, projects, onChange }: { threads: 
                     if (text) act(client.addChainStep(c.id, text).then(() => setAdding((a) => ({ ...a, [c.id]: "" }))));
                   }}
                 >
-                  <input className="input" aria-label={`add a step to ${c.name}`} placeholder="e.g. Then update the docs" value={adding[c.id] ?? ""} onChange={(e) => setAdding((a) => ({ ...a, [c.id]: e.target.value }))} />
+                  <input
+                    className="input"
+                    aria-label={`add a step to ${c.name}`}
+                    placeholder="e.g. Then update the docs"
+                    value={adding[c.id] ?? ""}
+                    onChange={(e) => setAdding((a) => ({ ...a, [c.id]: e.target.value }))}
+                  />
                   <button className="btn btnSm" type="submit" disabled={!adding[c.id]?.trim()}>
                     Add a step
                   </button>

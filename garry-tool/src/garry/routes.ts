@@ -17,7 +17,14 @@ export async function queueRoutes(
   req: IncomingMessage,
   res: ServerResponse,
   path: string,
-  ctx: { queue: GarryQueue; threads: ThreadManager; teams: Teams; registry: string; json: (res: ServerResponse, code: number, body: unknown) => void; readBody: (req: IncomingMessage) => Promise<unknown> },
+  ctx: {
+    queue: GarryQueue;
+    threads: ThreadManager;
+    teams: Teams;
+    registry: string;
+    json: (res: ServerResponse, code: number, body: unknown) => void;
+    readBody: (req: IncomingMessage) => Promise<unknown>;
+  },
 ): Promise<boolean> {
   const { queue, threads, json } = ctx;
   const fail = (e: unknown) => {

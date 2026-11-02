@@ -17,7 +17,14 @@ export default function Memory() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(() => client.garryMemory().then((e) => (setEntries(e), setOffline(false)), () => setOffline(true)), []);
+  const load = useCallback(
+    () =>
+      client.garryMemory().then(
+        (e) => (setEntries(e), setOffline(false)),
+        () => setOffline(true),
+      ),
+    [],
+  );
   useEffect(() => void load(), [load]);
 
   const act = async (p: Promise<unknown>) => {
@@ -37,7 +44,10 @@ export default function Memory() {
 
   return (
     <main className="page">
-      <PageHeader title="Memory" lede="What Garry keeps in mind about this project. Every agent working in it reads this before it starts. Add here, or type /remember in Garry's field; /forget drops one." />
+      <PageHeader
+        title="Memory"
+        lede="What Garry keeps in mind about this project. Every agent working in it reads this before it starts. Add here, or type /remember in Garry's field; /forget drops one."
+      />
       {offline && <ServerNotice />}
       <form
         className={`card ${styles.add}`}
@@ -50,7 +60,14 @@ export default function Memory() {
           Something to remember
         </label>
         <div className={styles.addRow}>
-          <input id="memory-new" className="input" placeholder="e.g. We deploy on Fridays, so keep changes small then" value={text} maxLength={500} onChange={(e) => setText(e.target.value)} />
+          <input
+            id="memory-new"
+            className="input"
+            placeholder="e.g. We deploy on Fridays, so keep changes small then"
+            value={text}
+            maxLength={500}
+            onChange={(e) => setText(e.target.value)}
+          />
           <button className="btn btnPrimary" disabled={busy || !text.trim()}>
             Remember
           </button>

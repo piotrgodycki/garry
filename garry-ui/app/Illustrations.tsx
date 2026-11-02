@@ -23,7 +23,10 @@ const ART: Record<Art, { label: string; draw: ReactNode }> = {
         <path d="M70 104V80" className={styles.stem} />
         <path d="M70 88c-9 0-14-6-14-14 9 0 14 6 14 14zM70 84c0-8 5-14 14-14 0 8-5 14-14 14z" className={styles.leaf} />
         <path d="M118 102V72" className={styles.stem} />
-        <path d="M118 84c-11 0-17-7-17-17 11 0 17 7 17 17zM118 78c0-10 6-17 17-17 0 10-6 17-17 17zM118 94c-8 0-13-5-13-12 8 0 13 5 13 12z" className={styles.leaf} />
+        <path
+          d="M118 84c-11 0-17-7-17-17 11 0 17 7 17 17zM118 78c0-10 6-17 17-17 0 10-6 17-17 17zM118 94c-8 0-13-5-13-12 8 0 13 5 13 12z"
+          className={styles.leaf}
+        />
         <path d="M160 104V90" className={styles.stem} />
         <path d="M160 94c-6 0-9-4-9-9 6 0 9 4 9 9zM160 92c0-5 3-9 9-9 0 5-3 9-9 9z" className={styles.leaf} />
       </>
@@ -55,7 +58,10 @@ const ART: Record<Art, { label: string; draw: ReactNode }> = {
         <ellipse cx="96" cy="114" rx="14" ry="4" className={styles.pebble} />
         <circle cx="70" cy="122" r="2.4" className={styles.pebble} />
         <path d="M156 108V64" className={styles.stem} />
-        <path d="M156 80c-12 0-18-7-18-18 12 0 18 7 18 18zM156 72c0-11 6-18 18-18 0 11-6 18-18 18zM156 94c-9 0-14-5-14-13 9 0 14 5 14 13z" className={styles.leaf} />
+        <path
+          d="M156 80c-12 0-18-7-18-18 12 0 18 7 18 18zM156 72c0-11 6-18 18-18 0 11-6 18-18 18zM156 94c-9 0-14-5-14-13 9 0 14 5 14 13z"
+          className={styles.leaf}
+        />
         <path d="M168 104v-26" className={styles.cable} />
         <rect x="164" y="80" width="44" height="18" rx="4" className={styles.tag} />
         <text x="171" y="92.5" className={styles.tagText}>

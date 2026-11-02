@@ -36,7 +36,9 @@ const build = (t: Spec): ArchitectureTemplate => ({
   summary: t.summary,
   goodFor: t.goodFor,
   architecture: {
-    nodes: t.columns.flatMap((col, x) => col.map(([id, block, label], y) => ({ id, block, ...(label ? { label } : {}), x: x * COL, y: y * ROW - ((col.length - 1) * ROW) / 2 }))),
+    nodes: t.columns.flatMap((col, x) =>
+      col.map(([id, block, label], y) => ({ id, block, ...(label ? { label } : {}), x: x * COL, y: y * ROW - ((col.length - 1) * ROW) / 2 })),
+    ),
     edges: t.links.map(([from, to, capability]) => ({ from, to, capability })),
   },
 });
@@ -125,11 +127,7 @@ export const ARCHITECTURE_TEMPLATES: ArchitectureTemplate[] = [
     name: "Edge Delivery from documents",
     summary: "A fast site written as documents (Document Authoring, SharePoint or Google Drive) and served by Edge Delivery Services.",
     goodFor: "content sites that authors run on their own, top Core Web Vitals",
-    columns: [
-      [["browser", "browser", "Visitors"]],
-      [["site", "aem-eds", "Website"]],
-      [["docs", "aem-da", "Pages as documents"]],
-    ],
+    columns: [[["browser", "browser", "Visitors"]], [["site", "aem-eds", "Website"]], [["docs", "aem-da", "Pages as documents"]]],
     links: [
       ["browser", "site", "web"],
       ["site", "docs", "content"],

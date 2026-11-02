@@ -13,7 +13,17 @@ const STEPS: Step[] = ["clients", "platform", "data", "extras", "review"];
  * by hand; they are kept with the board, so the wizard opens with them again
  * and a change rebuilds it.
  */
-export default function Wizard({ state, boardName, onBuilt, onClose }: { state: ArchitectureState; boardName: string; onBuilt: (a: Architecture) => Promise<void>; onClose?: () => void }) {
+export default function Wizard({
+  state,
+  boardName,
+  onBuilt,
+  onClose,
+}: {
+  state: ArchitectureState;
+  boardName: string;
+  onBuilt: (a: Architecture) => Promise<void>;
+  onClose?: () => void;
+}) {
   const [answers, setAnswers] = useState<WizardAnswers>(state.architecture.wizard ?? DEFAULTS);
   const [step, setStep] = useState<Step>("clients");
   const [preview, setPreview] = useState<{ architecture: Architecture; issues: ArchIssue[] } | null>(null);
@@ -68,7 +78,9 @@ export default function Wizard({ state, boardName, onBuilt, onClose }: { state: 
               className={`${styles.choice} ${on ? styles.on : ""}`}
               onClick={() => (multi ? toggle(key as "clients" | "extras", c.id as never) : setAnswers((a) => ({ ...a, [key]: c.id })))}
             >
-              <span className={styles.check} aria-hidden="true">{on ? "✓" : ""}</span>
+              <span className={styles.check} aria-hidden="true">
+                {on ? "✓" : ""}
+              </span>
               <span className={styles.choiceText}>
                 <span className={styles.choiceLabel}>{c.label}</span>
                 <span className={styles.choiceHint}>{c.hint}</span>
@@ -86,7 +98,12 @@ export default function Wizard({ state, boardName, onBuilt, onClose }: { state: 
         <ol className={styles.steps}>
           {STEPS.map((s, i) => (
             <li key={s}>
-              <button type="button" className={`${styles.stepDot} ${s === step ? styles.stepOn : ""} ${i < at ? styles.stepDone : ""}`} onClick={() => (i <= at || answers.clients.length ? setStep(s) : undefined)} aria-current={s === step ? "step" : undefined}>
+              <button
+                type="button"
+                className={`${styles.stepDot} ${s === step ? styles.stepOn : ""} ${i < at ? styles.stepDone : ""}`}
+                onClick={() => (i <= at || answers.clients.length ? setStep(s) : undefined)}
+                aria-current={s === step ? "step" : undefined}
+              >
                 <span>{i + 1}</span>
                 {s === "review" ? "Review" : q[s].title.replace("?", "")}
               </button>
@@ -129,7 +146,9 @@ export default function Wizard({ state, boardName, onBuilt, onClose }: { state: 
               </ul>
               <p className={styles.sub}>
                 {preview.architecture.nodes.length} blocks, {preview.architecture.edges.length} links
-                {preview.issues.some((i) => i.level === "error") ? ". Something does not fit; it shows on the board." : ". Everything fits. You can change the board by hand afterwards, or come back here."}
+                {preview.issues.some((i) => i.level === "error")
+                  ? ". Something does not fit; it shows on the board."
+                  : ". Everything fits. You can change the board by hand afterwards, or come back here."}
               </p>
             </>
           )}

@@ -53,12 +53,16 @@ export function AuditFindings({ audit }: { audit: AuditReport }) {
       <div className={styles.reportHead}>
         {audit.verdict === "pass" ? Icon.check : Icon.alert}
         <b>{LABEL[audit.verdict]}</b>
-        {audit.files !== undefined && <span className={styles.reportMeta}>{audit.files} {audit.files === 1 ? "file" : "files"} scanned</span>}
+        {audit.files !== undefined && (
+          <span className={styles.reportMeta}>
+            {audit.files} {audit.files === 1 ? "file" : "files"} scanned
+          </span>
+        )}
       </div>
       {audit.verdict === "pass" && (
         <p className={styles.reportNote}>
-          No prompt injection, hidden text, remote code, destructive commands, secret exfiltration, persistence, safety
-          bypasses, obfuscation or supply chain risk found.
+          No prompt injection, hidden text, remote code, destructive commands, secret exfiltration, persistence, safety bypasses, obfuscation or supply chain
+          risk found.
         </p>
       )}
       {findings.length > 0 && (
@@ -68,7 +72,11 @@ export function AuditFindings({ audit }: { audit: AuditReport }) {
               <span className={`${styles.sev} ${styles[`sev_${f.severity}`]}`}>{f.severity}</span>
               <div className={styles.findingText}>
                 <span className={styles.findingTitle}>
-                  {f.title} <code>{f.file}{f.line ? `:${f.line}` : ""}</code>
+                  {f.title}{" "}
+                  <code>
+                    {f.file}
+                    {f.line ? `:${f.line}` : ""}
+                  </code>
                 </span>
                 <span className={styles.findingWhy}>{f.why}</span>
                 {f.excerpt && <code className={styles.excerpt}>{f.excerpt}</code>}

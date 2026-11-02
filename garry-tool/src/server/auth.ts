@@ -149,7 +149,10 @@ export const DEVICE_COOKIE = "garry_device";
 export function requestToken(req: IncomingMessage, url: URL): string | null {
   const auth = req.headers.authorization;
   if (auth?.startsWith("Bearer ")) return auth.slice(7).trim() || null;
-  const cookie = (req.headers.cookie ?? "").split(";").map((c) => c.trim()).find((c) => c.startsWith(`${DEVICE_COOKIE}=`));
+  const cookie = (req.headers.cookie ?? "")
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${DEVICE_COOKIE}=`));
   if (cookie) return cookie.slice(DEVICE_COOKIE.length + 1) || null;
   if (req.method === "GET") return url.searchParams.get("access_token");
   return null;

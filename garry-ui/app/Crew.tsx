@@ -55,14 +55,35 @@ export default function CrewFace({ role, state, size = 30, title }: { role: Crew
       {role === "garry" ? (
         <GarryMark size={Math.round(size * 0.72)} busy={state === "work"} />
       ) : (
-        <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width={size * 0.6}
+          height={size * 0.6}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           {TOOL[role].draw}
         </svg>
       )}
       {state === "fail" && (
         <span
           data-badge="fail"
-          style={{ position: "absolute", top: -3, right: -3, width: 11, height: 11, borderRadius: "50%", background: "var(--state-fail)", border: "2px solid var(--surface)", color: "#fff", font: "700 7px/7px var(--font-family-sans)", textAlign: "center" }}
+          style={{
+            position: "absolute",
+            top: -3,
+            right: -3,
+            width: 11,
+            height: 11,
+            borderRadius: "50%",
+            background: "var(--state-fail)",
+            border: "2px solid var(--surface)",
+            color: "#fff",
+            font: "700 7px/7px var(--font-family-sans)",
+            textAlign: "center",
+          }}
         >
           !
         </span>

@@ -5,7 +5,15 @@ import { fileRoute } from "../threads/files.js";
 import { listManifests, readContracts } from "../sync/registryIO.js";
 import { ServiceError, addService, removeService, type ServiceInput } from "../registry/services.js";
 import { StackError, listStacks, removeStack, saveStack } from "../registry/stacks.js";
-import { ArchitectureError, architectureState, checkDraft, listBoards, readArchitecture, resetArchitecture, saveArchitecture } from "../registry/architecture.js";
+import {
+  ArchitectureError,
+  architectureState,
+  checkDraft,
+  listBoards,
+  readArchitecture,
+  resetArchitecture,
+  saveArchitecture,
+} from "../registry/architecture.js";
 import { WIZARD_QUESTIONS, buildFromWizard } from "../architecture/wizard.js";
 import { ArchitectureSchema, CAPABILITIES, COMPONENTS, PROVIDERS } from "../registry/schema/architecture.js";
 import { ARCHITECTURE_TEMPLATES } from "../registry/schema/templates.js";
@@ -13,7 +21,17 @@ import { STACK_TEMPLATES } from "../registry/schema/stack-templates.js";
 import { CATALOG, CATEGORIES, checkStack } from "../registry/schema/stacks.js";
 import { aiSuggestions, quickFixes } from "../architecture/suggest.js";
 import { resolveRouting, routeFor } from "../orchestrate/routing.js";
-import { RoutingError, activeProfileName, defaultProfile, listProfiles, readProfile, removeProfile, saveProfile, setActiveProfile, setStageRoute } from "../orchestrate/profiles.js";
+import {
+  RoutingError,
+  activeProfileName,
+  defaultProfile,
+  listProfiles,
+  readProfile,
+  removeProfile,
+  saveProfile,
+  setActiveProfile,
+  setStageRoute,
+} from "../orchestrate/profiles.js";
 import { activeGarryProject } from "../project/store.js";
 import { json, readBody, type RouteCtx } from "./http.js";
 
@@ -166,7 +184,16 @@ export async function registryRoutes(req: IncomingMessage, res: ServerResponse, 
     const board = url.searchParams.get("board") ?? "";
     const repos = cfg.threads!.store.projectsOf(activeGarryProject().id).map((r) => r.name);
     try {
-      return json(res, 200, { ...architectureState(cfg.registry, board), board, boards: listBoards(cfg.registry, repos), components: COMPONENTS, capabilities: CAPABILITIES, providers: PROVIDERS, templates: ARCHITECTURE_TEMPLATES, wizard: WIZARD_QUESTIONS });
+      return json(res, 200, {
+        ...architectureState(cfg.registry, board),
+        board,
+        boards: listBoards(cfg.registry, repos),
+        components: COMPONENTS,
+        capabilities: CAPABILITIES,
+        providers: PROVIDERS,
+        templates: ARCHITECTURE_TEMPLATES,
+        wizard: WIZARD_QUESTIONS,
+      });
     } catch (e) {
       if (e instanceof ArchitectureError) return json(res, e.status, { error: e.message });
       throw e;

@@ -23,7 +23,12 @@ export default function Terminal({ id, active, onExit }: { id: string; active: b
       cursorBlink: true,
       scrollback: 5000,
       allowProposedApi: false,
-      theme: { background: css("--surface") || undefined, foreground: css("--color-text-default") || undefined, cursor: css("--accent") || undefined, selectionBackground: "rgba(127,127,127,0.35)" },
+      theme: {
+        background: css("--surface") || undefined,
+        foreground: css("--color-text-default") || undefined,
+        cursor: css("--accent") || undefined,
+        selectionBackground: "rgba(127,127,127,0.35)",
+      },
     });
     const f = new FitAddon();
     t.loadAddon(f);

@@ -4,13 +4,7 @@ import { homedir } from "node:os";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { renderBanner, tagline } from "../ui/banner.js";
-import {
-  createWorkspace,
-  loadWorkspace,
-  repoStatus,
-  repoUrl,
-  type WorkspaceState,
-} from "../workspace/workspace.js";
+import { createWorkspace, loadWorkspace, repoStatus, repoUrl } from "../workspace/workspace.js";
 import { gitTry } from "../workspace/git.js";
 import { syncService } from "../sync/core.js";
 import { githubToken } from "../github/env.js";
@@ -168,9 +162,7 @@ async function wsPr(args: WsArgs): Promise<void> {
   if (!token) {
     console.log(`Pull requests for ${state.id} (${state.branch} into the default branch):`);
     for (const r of state.repos) console.log(`  ${r.service}: ${state.branch} -> default`);
-    console.log(
-      "\nNo GARRY_GITHUB_TOKEN set. Add a fine grained token to .env to open real pull requests.",
-    );
+    console.log("\nNo GARRY_GITHUB_TOKEN set. Add a fine grained token to .env to open real pull requests.");
     return;
   }
 
@@ -184,14 +176,7 @@ async function wsPr(args: WsArgs): Promise<void> {
     }
     try {
       const base = await gh.defaultBranch(slug.owner, slug.name);
-      const pr = await gh.ensurePr(
-        slug.owner,
-        slug.name,
-        state.branch,
-        base,
-        `${state.id}: ${r.service}`,
-        `Part of ${state.id}. Opened by Garry.`,
-      );
+      const pr = await gh.ensurePr(slug.owner, slug.name, state.branch, base, `${state.id}: ${r.service}`, `Part of ${state.id}. Opened by Garry.`);
       console.log(`  ${r.service}: ${pc.green(`#${pr.number}`)} ${pr.url} (checks: ${pr.checks})`);
     } catch (e) {
       console.log(`  ${r.service}: ${pc.red("failed")} ${(e as Error).message}`);

@@ -42,8 +42,14 @@ expect("exposes trimmed", JSON.stringify(written.exposes) === JSON.stringify([".
 expect("no missing-contract noise", cart.issues.length === 0, JSON.stringify(cart.issues));
 
 expect("duplicate refused", status(() => addService(registry, { name: "cart", kind: "mfe-remote", repo: "r" })) === 409);
-expect("replace allowed", status(() => addService(registry, { name: "cart", kind: "mfe-remote", repo: "r", exposes: ["./Cart", "./MiniCart"] }, { replace: true })) === 200);
-expect("unknown consumed service", status(() => addService(registry, { name: "shell", kind: "mfe-shell", repo: "r", consumes: { search: ["./Box"] } })) === 400);
+expect(
+  "replace allowed",
+  status(() => addService(registry, { name: "cart", kind: "mfe-remote", repo: "r", exposes: ["./Cart", "./MiniCart"] }, { replace: true })) === 200,
+);
+expect(
+  "unknown consumed service",
+  status(() => addService(registry, { name: "shell", kind: "mfe-shell", repo: "r", consumes: { search: ["./Box"] } })) === 400,
+);
 expect("unexposed module", status(() => addService(registry, { name: "shell", kind: "mfe-shell", repo: "r", consumes: { cart: ["./Nope"] } })) === 400);
 addService(registry, { name: "shell", kind: "mfe-shell", repo: "r", exposes: ["./Ignored"], consumes: { cart: ["./MiniCart"] } });
 const shell = parseYaml(readFileSync(join(registry, "catalog", "shell.yaml"), "utf8")) as { exposes: string[]; consumes: Record<string, string[]> };
@@ -61,7 +67,11 @@ const kinds = mkdtempSync(join(tmpdir(), "garry-kinds-"));
 const db = { engine: "postgres" };
 const made = (name: string, kind: string, extra: object = {}) => addService(kinds, { name, kind, repo: `git@github.com:acme/${name}.git`, ...extra }).service;
 const site = made("site", "ssg", { exposes: ["./Nope"], db });
-expect("a static site starts on Astro, exposes nothing, keeps no database", site.stack === "astro" && site.exposes.length === 0 && site.db === null, JSON.stringify(site));
+expect(
+  "a static site starts on Astro, exposes nothing, keeps no database",
+  site.stack === "astro" && site.exposes.length === 0 && site.db === null,
+  JSON.stringify(site),
+);
 const web = made("web", "spa", { db });
 expect("a single-page app keeps no database", web.kind === "spa" && web.stack === "react + vite" && web.db === null);
 const store = made("store", "ssr", { db });
@@ -71,10 +81,17 @@ expect("a mobile app starts on Expo", made("app", "mobile").stack === "expo + re
 const bff = made("web-bff", "bff", { exposes: ["GET /home"], db });
 expect("a BFF offers endpoints and keeps no database", bff.exposes[0] === "GET /home" && bff.db === null);
 const jobs = made("jobs", "worker", { exposes: ["send-receipt"], db });
-expect("a worker names its jobs and may own a database", jobs.exposes[0] === "send-receipt" && jobs.db?.engine === "postgres" && jobs.stack === "node + bullmq");
+expect(
+  "a worker names its jobs and may own a database",
+  jobs.exposes[0] === "send-receipt" && jobs.db?.engine === "postgres" && jobs.stack === "node + bullmq",
+);
 expect("a serverless function is a kind", made("resize", "function", { exposes: ["POST /resize"] }).kind === "function");
 made("orders", "backend", { exposes: ["POST /orders"], db });
-expect("a registry of every kind passes the registry check", validateRegistry(kinds).filter((i) => i.level === "error" && i.message !== "contract file is missing").length === 0, JSON.stringify(validateRegistry(kinds)));
+expect(
+  "a registry of every kind passes the registry check",
+  validateRegistry(kinds).filter((i) => i.level === "error" && i.message !== "contract file is missing").length === 0,
+  JSON.stringify(validateRegistry(kinds)),
+);
 
 // on the architecture board each kind needs what it cannot work without
 const svcs = ["site", "web", "store", "web-bff", "jobs", "orders", "app"].map((name) => {
@@ -115,8 +132,15 @@ const post = await fetch(`${base}/api/registry/services`, {
 });
 expect("POST adds", post.status === 200 && existsSync(join(registry, "catalog", "orders.yaml")), String(post.status));
 const listed = (await fetch(`${base}/api/registry`).then((r) => r.json())) as { services: { name: string }[] };
-expect("listed", listed.services.some((s) => s.name === "orders"));
-const dup = await fetch(`${base}/api/registry/services`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "orders", kind: "backend", repo: "r" }) });
+expect(
+  "listed",
+  listed.services.some((s) => s.name === "orders"),
+);
+const dup = await fetch(`${base}/api/registry/services`, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ name: "orders", kind: "backend", repo: "r" }),
+});
 expect("POST duplicate is 409", dup.status === 409);
 const cross = await fetch(`${base}/api/registry/services`, {
   method: "POST",
@@ -127,7 +151,12 @@ expect("POST from another site refused", cross.status === 403 && !existsSync(joi
 const del = await fetch(`${base}/api/registry/services/orders`, { method: "DELETE" });
 expect("DELETE removes", del.status === 200 && !existsSync(join(registry, "catalog", "orders.yaml")));
 const served = (await (await fetch(`${base}/api/service-kinds`)).json()) as { kinds: { id: string; label: string; group: string; hint: string }[] };
-expect("the kinds are served with a label and a hint", served.kinds.length === 11 && served.kinds.every((k) => k.label && k.hint && (k.group === "Frontend" || k.group === "Backend")) && served.kinds.some((k) => k.id === "bff"));
+expect(
+  "the kinds are served with a label and a hint",
+  served.kinds.length === 11 &&
+    served.kinds.every((k) => k.label && k.hint && (k.group === "Frontend" || k.group === "Backend")) &&
+    served.kinds.some((k) => k.id === "bff"),
+);
 server.close();
 
 if (failed) {

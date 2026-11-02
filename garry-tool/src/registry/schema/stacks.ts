@@ -101,7 +101,14 @@ export const CATALOG: Tech[] = [
   { id: "tanstack-router", name: "TanStack Router", category: "state", requires: [["react", "solid"]], note: "type-safe routing" },
   { id: "swr", name: "SWR", category: "state", requires: [["react", "preact"]] },
   // app frameworks
-  { id: "nextjs", name: "Next.js", category: "meta", requires: [["react"]], conflicts: ["vite", "module-federation"], note: "brings its own bundler; Module Federation is not supported" },
+  {
+    id: "nextjs",
+    name: "Next.js",
+    category: "meta",
+    requires: [["react"]],
+    conflicts: ["vite", "module-federation"],
+    note: "brings its own bundler; Module Federation is not supported",
+  },
   { id: "react-router", name: "React Router (framework)", category: "meta", requires: [["react"]] },
   { id: "nuxt", name: "Nuxt", category: "meta", requires: [["vue"]] },
   { id: "sveltekit", name: "SvelteKit", category: "meta", requires: [["svelte"]] },
@@ -176,7 +183,15 @@ export const CATALOG: Tech[] = [
   { id: "sqs", name: "Amazon SQS", category: "queue" },
   { id: "kafka", name: "Kafka", category: "queue" },
   { id: "rabbitmq", name: "RabbitMQ", category: "queue" },
-  { id: "bullmq", name: "BullMQ", category: "queue", requires: [["redis", "valkey", "upstash"], ["node", "bun"]] },
+  {
+    id: "bullmq",
+    name: "BullMQ",
+    category: "queue",
+    requires: [
+      ["redis", "valkey", "upstash"],
+      ["node", "bun"],
+    ],
+  },
   { id: "cf-queues", name: "Cloudflare Queues", category: "queue", requires: [["workers"]] },
   { id: "celery", name: "Celery", category: "queue", requires: [["python"], ["redis", "valkey", "rabbitmq"]] },
   { id: "sidekiq", name: "Sidekiq", category: "queue", requires: [["ruby"], ["redis", "valkey"]] },
@@ -197,14 +212,32 @@ export const CATALOG: Tech[] = [
   { id: "supabase-auth", name: "Supabase Auth", category: "auth" },
   { id: "keycloak", name: "Keycloak", category: "auth" },
   // CMS
-  { id: "wordpress", name: "WordPress", category: "cms", requires: [["php"], ["mysql", "mariadb"]], conflicts: ["vercel", "workers"], note: "needs PHP and MySQL hosting; Vercel and Workers do not run it" },
+  {
+    id: "wordpress",
+    name: "WordPress",
+    category: "cms",
+    requires: [["php"], ["mysql", "mariadb"]],
+    conflicts: ["vercel", "workers"],
+    note: "needs PHP and MySQL hosting; Vercel and Workers do not run it",
+  },
   { id: "strapi", name: "Strapi", category: "cms", requires: [["node"]] },
   { id: "payload", name: "Payload", category: "cms", requires: [["node"]] },
   { id: "sanity", name: "Sanity", category: "cms" },
   { id: "contentful", name: "Contentful", category: "cms" },
   { id: "hygraph", name: "Hygraph", category: "cms", note: "headless, GraphQL first" },
-  { id: "aem", name: "Adobe Experience Manager", category: "cms", requires: [["java"]], note: "AEM as a Cloud Service or on premise; Java (Sling, OSGi) components" },
-  { id: "eds", name: "Adobe Edge Delivery Services", category: "hosting", note: "pages served from Adobe's edge, its CDN included; content from AEM or documents (Document Authoring, SharePoint, Google Drive); plain JS and CSS blocks" },
+  {
+    id: "aem",
+    name: "Adobe Experience Manager",
+    category: "cms",
+    requires: [["java"]],
+    note: "AEM as a Cloud Service or on premise; Java (Sling, OSGi) components",
+  },
+  {
+    id: "eds",
+    name: "Adobe Edge Delivery Services",
+    category: "hosting",
+    note: "pages served from Adobe's edge, its CDN included; content from AEM or documents (Document Authoring, SharePoint, Google Drive); plain JS and CSS blocks",
+  },
   // hosting
   { id: "vercel", name: "Vercel", category: "hosting" },
   { id: "cloudflare", name: "Cloudflare Pages", category: "hosting" },
@@ -307,8 +340,7 @@ export function checkStack(ids: string[]): StackIssue[] {
         issues.push({ level: "error", tech: id, message: `${t.name} and ${nameOf(c)} do not work together${t.note ? `: ${t.note}` : ""}` });
     }
     for (const group of t.requires ?? []) {
-      if (!group.some((g) => have.has(g)))
-        issues.push({ level: "warn", tech: id, message: `${t.name} needs ${group.map(nameOf).join(" or ")}` });
+      if (!group.some((g) => have.has(g))) issues.push({ level: "warn", tech: id, message: `${t.name} needs ${group.map(nameOf).join(" or ")}` });
     }
   }
   for (const cat of CATEGORIES.filter((c) => c.single)) {

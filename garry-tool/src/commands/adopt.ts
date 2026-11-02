@@ -68,8 +68,7 @@ function report(r: AdoptResult, known: Set<string>): void {
   console.log(`  exposes:    ${r.mf.exposes.join(", ") || "(none)"}`);
   console.log(`  remotes:    ${r.mf.remotes.join(", ") || "(none)"}`);
   console.log(`  shared:     ${r.mf.shared.join(", ") || "(none)"}`);
-  if (r.stack.federation === "unknown")
-    console.log(pc.yellow("  warning:    federation not detected; this may not be a microfrontend"));
+  if (r.stack.federation === "unknown") console.log(pc.yellow("  warning:    federation not detected; this may not be a microfrontend"));
 }
 
 export async function runAdopt(argv: string[]): Promise<void> {

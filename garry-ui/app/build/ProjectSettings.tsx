@@ -33,13 +33,20 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
 
   if (!draft || !saved) return note ? <span className="badge danger">{note.text}</span> : null;
   const set = (patch: Partial<ProjectSettings>) => setDraft({ ...draft, ...patch });
-  const changed = JSON.stringify({ ...draft, protectedBranches: protectedText }) !== JSON.stringify({ ...saved, protectedBranches: saved.protectedBranches.join(", ") });
+  const changed =
+    JSON.stringify({ ...draft, protectedBranches: protectedText }) !== JSON.stringify({ ...saved, protectedBranches: saved.protectedBranches.join(", ") });
 
   const save = async () => {
     setBusy(true);
     setNote(null);
     try {
-      const s = await client.saveProjectSettings(projectId, { ...draft, protectedBranches: protectedText.split(",").map((x) => x.trim()).filter(Boolean) });
+      const s = await client.saveProjectSettings(projectId, {
+        ...draft,
+        protectedBranches: protectedText
+          .split(",")
+          .map((x) => x.trim())
+          .filter(Boolean),
+      });
       setSaved(s);
       setDraft(s);
       setProtectedText(s.protectedBranches.join(", "));
@@ -59,7 +66,13 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
         <legend className="fieldLabel">Pushing</legend>
         <div className={styles.segmented} role="radiogroup" aria-label="Pushing">
           {MODES.map((m) => (
-            <button key={m.id} role="radio" aria-checked={draft.push === m.id} className={draft.push === m.id ? styles.segOn : ""} onClick={() => set({ push: m.id })}>
+            <button
+              key={m.id}
+              role="radio"
+              aria-checked={draft.push === m.id}
+              className={draft.push === m.id ? styles.segOn : ""}
+              onClick={() => set({ push: m.id })}
+            >
               {m.label}
             </button>
           ))}
@@ -68,14 +81,18 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
       </fieldset>
       <label className={styles.field}>
         <span className="fieldLabel">Pull requests into</span>
-        <input className="input" disabled={readOnly} placeholder="Empty: the repository's default branch" value={draft.baseBranch} onChange={(e) => set({ baseBranch: e.target.value })} />
+        <input
+          className="input"
+          disabled={readOnly}
+          placeholder="Empty: the repository's default branch"
+          value={draft.baseBranch}
+          onChange={(e) => set({ baseBranch: e.target.value })}
+        />
       </label>
       <label className={styles.field}>
         <span className="fieldLabel">Branch prefix</span>
         <input className="input" disabled={readOnly} value={draft.branchPrefix} onChange={(e) => set({ branchPrefix: e.target.value })} />
-        <span className={styles.meta}>
-          New work: {draft.branchPrefix}add-dark-mode-x1y2
-        </span>
+        <span className={styles.meta}>New work: {draft.branchPrefix}add-dark-mode-x1y2</span>
       </label>
       <label className={styles.field}>
         <span className="fieldLabel">Protected branches</span>
@@ -98,7 +115,9 @@ export default function ProjectSettingsPanel({ projectId }: { projectId: string 
           value={draft.maxFileTokens ?? 5000}
           onChange={(e) => set({ maxFileTokens: Number(e.target.value) })}
         />
-        <span className={styles.meta}>In tokens (bytes / 4). A commit with a bigger file is refused with how to split it, so agents can read every file whole. 0 turns it off.</span>
+        <span className={styles.meta}>
+          In tokens (bytes / 4). A commit with a bigger file is refused with how to split it, so agents can read every file whole. 0 turns it off.
+        </span>
       </label>
       <div className={styles.row}>
         {!readOnly && (

@@ -46,34 +46,37 @@ export default function ProjectsPanel() {
     });
 
   const importFile = (f: File) =>
-    run(
-      "import",
-      async () => {
-        let bundle: unknown;
-        try {
-          bundle = JSON.parse(await f.text());
-        } catch {
-          throw new Error("that file is not a Garry project (.garry.json)");
-        }
-        const p = await client.importGarryProject(bundle);
-        setNote({ ok: true, text: `Imported ${p.name}` });
-      },
-    ).finally(() => file.current && (file.current.value = ""));
+    run("import", async () => {
+      let bundle: unknown;
+      try {
+        bundle = JSON.parse(await f.text());
+      } catch {
+        throw new Error("that file is not a Garry project (.garry.json)");
+      }
+      const p = await client.importGarryProject(bundle);
+      setNote({ ok: true, text: `Imported ${p.name}` });
+    }).finally(() => file.current && (file.current.value = ""));
 
   const remove = (id: string, name: string, wasActive: boolean) =>
-    run(`rm:${id}`, async () => {
-      await client.removeGarryProject(id);
-      setRemoving(null);
-      // everything on screen belonged to the project that is gone
-      if (wasActive) window.location.reload();
-    }, `Removed ${name}`);
+    run(
+      `rm:${id}`,
+      async () => {
+        await client.removeGarryProject(id);
+        setRemoving(null);
+        // everything on screen belonged to the project that is gone
+        if (wasActive) window.location.reload();
+      },
+      `Removed ${name}`,
+    );
 
   if (!data) return <p className={styles.note}>Loading projects…</p>;
   const only = data.projects.length === 1;
   return (
     <div className={styles.list}>
       <p className={styles.note}>
-        A project holds everything one product is made of: its services and contracts, features, stacks, routing, the architecture board, and the repositories agents work on with their push settings. Export one to a single .garry.json file (no tokens, no code; repositories as remotes) and import it on another computer.
+        A project holds everything one product is made of: its services and contracts, features, stacks, routing, the architecture board, and the repositories
+        agents work on with their push settings. Export one to a single .garry.json file (no tokens, no code; repositories as remotes) and import it on another
+        computer.
       </p>
       {data.projects.map((p) => (
         <div key={p.id} className={styles.row} role="group" aria-label={`project ${p.name}`}>
@@ -92,7 +95,11 @@ export default function ProjectsPanel() {
           </span>
           <span className={styles.rowActions}>
             {p.id !== data.active && !readOnly && (
-              <button className="btn btnSm" disabled={!!busy} onClick={() => void run(`use:${p.id}`, () => client.useGarryProject(p.id).then(() => window.location.reload()))}>
+              <button
+                className="btn btnSm"
+                disabled={!!busy}
+                onClick={() => void run(`use:${p.id}`, () => client.useGarryProject(p.id).then(() => window.location.reload()))}
+              >
                 Use
               </button>
             )}
@@ -116,8 +123,13 @@ export default function ProjectsPanel() {
           {removing === p.id && (
             <div className={styles.confirm} role="alertdialog" aria-label={`remove ${p.name}`}>
               <p className={styles.note}>
-                <strong>Remove {p.name}?</strong> Its services and contracts, features, stacks, routing and architecture boards are deleted. {p.repos?.length ? `Its ${p.repos.length} repositor${p.repos.length === 1 ? "y leaves Build and stays" : "ies leave Build and stay"} on disk.` : "It has no repositories in Build."}
-                {p.id === data.active && ` Garry switches to ${(data.projects.find((x) => x.id !== p.id && x.id === "default") ?? data.projects.find((x) => x.id !== p.id))?.name}.`} Export it first to keep a copy.
+                <strong>Remove {p.name}?</strong> Its services and contracts, features, stacks, routing and architecture boards are deleted.{" "}
+                {p.repos?.length
+                  ? `Its ${p.repos.length} repositor${p.repos.length === 1 ? "y leaves Build and stays" : "ies leave Build and stay"} on disk.`
+                  : "It has no repositories in Build."}
+                {p.id === data.active &&
+                  ` Garry switches to ${(data.projects.find((x) => x.id !== p.id && x.id === "default") ?? data.projects.find((x) => x.id !== p.id))?.name}.`}{" "}
+                Export it first to keep a copy.
               </p>
               <span className={styles.rowActions}>
                 <button className="btn btnSm btnDanger" disabled={!!busy} onClick={() => void remove(p.id, p.name, p.id === data.active)}>
@@ -135,8 +147,22 @@ export default function ProjectsPanel() {
         <p className={styles.note}>Projects are made, imported and exported on the computer running Garry.</p>
       ) : (
         <div className={styles.tools}>
-          <input className="input" style={{ flex: 1, minWidth: 200 }} placeholder="Name of a new project, e.g. Shop" aria-label="new project name" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && name.trim() && void run("new", () => client.createGarryProject(name.trim()).then(() => setName("")), "Created")} />
-          <button className="btn btnPrimary" disabled={!name.trim() || !!busy} onClick={() => void run("new", () => client.createGarryProject(name.trim()).then(() => setName("")), "Created")}>
+          <input
+            className="input"
+            style={{ flex: 1, minWidth: 200 }}
+            placeholder="Name of a new project, e.g. Shop"
+            aria-label="new project name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === "Enter" && name.trim() && void run("new", () => client.createGarryProject(name.trim()).then(() => setName("")), "Created")
+            }
+          />
+          <button
+            className="btn btnPrimary"
+            disabled={!name.trim() || !!busy}
+            onClick={() => void run("new", () => client.createGarryProject(name.trim()).then(() => setName("")), "Created")}
+          >
             New project
           </button>
           <button className="btn" disabled={!!busy} onClick={() => file.current?.click()}>

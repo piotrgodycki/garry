@@ -3,7 +3,17 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadBuiltinSkills, loadSkills } from "../orchestrate/skillsManifest.js";
 import { LayerError, addSkillTo, parseScope } from "../registry/layers.js";
-import { SkillError, setEverywhere, installSkill, listLocalSkills, localSkillsDir, readLocalSkillMd, removeSkill, skillsPolicy, type InstallRequest } from "../skills/local.js";
+import {
+  SkillError,
+  setEverywhere,
+  installSkill,
+  listLocalSkills,
+  localSkillsDir,
+  readLocalSkillMd,
+  removeSkill,
+  skillsPolicy,
+  type InstallRequest,
+} from "../skills/local.js";
 import { AUDIT_RULES, auditFiles, readSkillFolder } from "../skills/audit.js";
 import { proposeSkill, skillsRepo } from "../skills/propose.js";
 import { githubToken } from "../github/env.js";

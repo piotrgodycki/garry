@@ -17,7 +17,17 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 }
 
 /** Creates a feature at the spec stage: what it is, why, and which services it touches. */
-export default function NewFeature({ title: initial = "", goal: initialGoal = "", onCreated, onCancel }: { title?: string; goal?: string; onCreated: (f: Feature) => void; onCancel: () => void }) {
+export default function NewFeature({
+  title: initial = "",
+  goal: initialGoal = "",
+  onCreated,
+  onCancel,
+}: {
+  title?: string;
+  goal?: string;
+  onCreated: (f: Feature) => void;
+  onCancel: () => void;
+}) {
   const [services, setServices] = useState<RegistryService[] | null>(null);
   const [title, setTitle] = useState(initial);
   const [goal, setGoal] = useState(initialGoal);
@@ -29,7 +39,10 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    client.registry().then((r) => setServices(r.services), () => setServices([]));
+    client.registry().then(
+      (r) => setServices(r.services),
+      () => setServices([]),
+    );
     client.routingProfiles().then(setProfiles, () => undefined);
   }, []);
   useEffect(() => {
@@ -49,7 +62,15 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
     setBusy(true);
     setError(null);
     try {
-      onCreated(await client.createFeature({ title: title.trim(), goal: goal.trim() || undefined, services: [...picked], contractChanges: [...contracts], routing: routing || undefined }));
+      onCreated(
+        await client.createFeature({
+          title: title.trim(),
+          goal: goal.trim() || undefined,
+          services: [...picked],
+          contractChanges: [...contracts],
+          routing: routing || undefined,
+        }),
+      );
     } catch (e) {
       setError(String((e as Error).message ?? e));
     } finally {
@@ -67,7 +88,14 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
     >
       <label className={styles.field}>
         <span className="fieldLabel">Feature</span>
-        <input className="input" placeholder="e.g. A quick cart in the header" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} autoFocus />
+        <input
+          className="input"
+          placeholder="e.g. A quick cart in the header"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          maxLength={120}
+          autoFocus
+        />
       </label>
       <label className={styles.field}>
         <span className="fieldLabel">Goal</span>
@@ -102,7 +130,10 @@ export default function NewFeature({ title: initial = "", goal: initialGoal = ""
           ariaLabel="routing profile"
           value={routing}
           onChange={setRouting}
-          options={[{ value: "", label: `The active profile${profiles ? ` (${profiles.active})` : ""}` }, ...(profiles?.profiles ?? []).map((p) => ({ value: p.name, label: p.name }))]}
+          options={[
+            { value: "", label: `The active profile${profiles ? ` (${profiles.active})` : ""}` },
+            ...(profiles?.profiles ?? []).map((p) => ({ value: p.name, label: p.name })),
+          ]}
         />
       </div>
       <div className={styles.field}>

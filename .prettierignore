@@ -1,0 +1,16 @@
+node_modules
+dist
+pnpm-lock.yaml
+docs
+assets
+*.md
+garry-tool/skills
+garry-tool/testdata
+garry-mobile/.expo
+garry-mobile/ios
+garry-mobile/android
+garry-ui/public
+garry-ui/design-tokens.json
+garry-tool/ui
+garry-desktop/ui
+garry-desktop/release
