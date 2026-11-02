@@ -5,6 +5,7 @@ import { Icon } from "../icons";
 import { AuditFindings, type AuditReport } from "./AuditView";
 import Select from "../Select";
 import { client } from "../lib/client";
+import { useLatest } from "../lib/useLatest";
 
 const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"];
 
@@ -122,14 +123,14 @@ export default function InstallSkill({
   };
 
   // re-check whenever the source or the stage changes, so the preview never goes stale
+  const latestCall = useLatest(call);
   useEffect(() => {
     setPreview(null);
     setAck(false);
     if (!ready) return;
-    const t = setTimeout(() => void call(true), 250);
+    const t = setTimeout(() => void latestCall.current(true), 250);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content, path, stage, replace, mode]);
+  }, [content, path, stage, replace, mode, ready, latestCall]);
 
   const readFile = (f: File | undefined) => {
     if (!f) return;

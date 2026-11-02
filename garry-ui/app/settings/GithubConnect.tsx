@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GarryError, type GithubDeviceCode, type GithubStatus } from "garry-client";
 import { client } from "../lib/client";
 import styles from "./settings.module.css";
+import { useLatest } from "../lib/useLatest";
 
 const SOURCE: Record<string, string> = { env: "GARRY_GITHUB_TOKEN in .env.local", garry: "the token saved in Garry", gh: "the GitHub CLI (gh auth login)" };
 const NEW_TOKEN = "https://github.com/settings/personal-access-tokens/new";
@@ -17,20 +18,23 @@ export default function GithubConnect({ onChange }: { onChange?: (s: GithubStatu
   const [error, setError] = useState<string | null>(null);
   const polling = useRef(0);
 
-  const fail = (e: unknown) => {
+  const fail = useCallback((e: unknown) => {
     if (e instanceof GarryError && e.status === 403) setBlocked(true);
     else setError(String((e as Error).message ?? e));
-  };
-  const refresh = () =>
-    client.githubStatus().then((s) => {
-      setStatus(s);
-      onChange?.(s);
-    }, fail);
+  }, []);
+  const changed = useLatest(onChange);
+  const refresh = useCallback(
+    () =>
+      client.githubStatus().then((s) => {
+        setStatus(s);
+        changed.current?.(s);
+      }, fail),
+    [changed, fail],
+  );
   useEffect(() => {
     void refresh();
     return () => void (polling.current = 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refresh]);
 
   const run = async (what: string, f: () => Promise<unknown>) => {
     setBusy(what);
