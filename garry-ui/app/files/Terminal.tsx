@@ -3,6 +3,7 @@ import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 import { client } from "../lib/client";
+import { useLatest } from "../lib/useLatest";
 
 const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -11,6 +12,7 @@ export default function Terminal({ id, active, onExit }: { id: string; active: b
   const box = useRef<HTMLDivElement>(null);
   const term = useRef<XTerm | null>(null);
   const fit = useRef<FitAddon | null>(null);
+  const exited = useLatest(onExit);
 
   useEffect(() => {
     const t = new XTerm({
@@ -53,7 +55,7 @@ export default function Terminal({ id, active, onExit }: { id: string; active: b
       .then((end) => {
         if (end) {
           t.write(`\r\n\x1b[2m[the shell ended${end.code ? ` with code ${end.code}` : ""}]\x1b[0m\r\n`);
-          onExit();
+          exited.current();
         }
       })
       .catch(() => undefined);
@@ -83,9 +85,7 @@ export default function Terminal({ id, active, onExit }: { id: string; active: b
       if (timer !== null) window.clearTimeout(timer);
       t.dispose();
     };
-    // the terminal is made once per shell
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, exited]);
 
   useEffect(() => {
     if (!active) return;

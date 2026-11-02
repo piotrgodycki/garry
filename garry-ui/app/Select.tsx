@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 export interface SelectOption {
@@ -51,10 +51,10 @@ export default function Select({
     setActive(i >= 0 && !options[i].disabled ? i : (enabled[0] ?? -1));
     setOpen(true);
   };
-  const close = (focus = true) => {
+  const close = useCallback((focus = true) => {
     setOpen(false);
     if (focus) button.current?.focus();
-  };
+  }, []);
   const pick = (i: number) => {
     const o = options[i];
     if (!o || o.disabled) return;
@@ -76,7 +76,7 @@ export default function Select({
   };
 
   // Opens upward when there is little room below; closes once the button scrolls off screen.
-  const measure = () => {
+  const measure = useCallback(() => {
     if (!button.current) return;
     const r = button.current.getBoundingClientRect();
     if (r.bottom < 0 || r.top > window.innerHeight) return close(false);
@@ -90,11 +90,10 @@ export default function Select({
       up,
       maxHeight: Math.min(340, up ? above : below),
     });
-  };
+  }, [close]);
   useLayoutEffect(() => {
     if (open) measure();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, measure]);
 
   useEffect(() => {
     if (!open) return;
@@ -113,8 +112,7 @@ export default function Select({
       window.removeEventListener("scroll", follow, true);
       window.removeEventListener("resize", follow);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, measure, close]);
 
   useEffect(() => {
     if (open && active >= 0) list.current?.querySelector(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" });

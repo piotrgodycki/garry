@@ -48,12 +48,12 @@ function Composer({
   const has = new Set(ids);
 
   // the server holds the rules; ask it whenever the picks change
+  const picks = ids.join();
   useEffect(() => {
-    if (!ids.length) return setIssues([]);
-    const timer = setTimeout(() => void client.checkStack(ids).then(setIssues, () => undefined), 150);
+    if (!picks) return setIssues([]);
+    const timer = setTimeout(() => void client.checkStack(picks.split(",")).then(setIssues, () => undefined), 150);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ids.join()]);
+  }, [picks]);
 
   const clashes = (t: CatalogTech) => !has.has(t.id) && ids.some((id) => t.conflicts?.includes(id) || byId.get(id)?.conflicts?.includes(t.id));
   const toggle = (t: CatalogTech) => setPicked((cur) => (cur.some((p) => p.id === t.id) ? cur.filter((p) => p.id !== t.id) : [...cur, { id: t.id }]));

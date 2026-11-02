@@ -11,6 +11,7 @@ import { markdown } from "@codemirror/lang-markdown";
 import { yaml } from "@codemirror/lang-yaml";
 import { syntaxHighlighting } from "@codemirror/language";
 import { classHighlighter } from "@lezer/highlight";
+import { useLatest } from "../lib/useLatest";
 
 function language(path: string): Extension {
   const ext = path.split(".").pop()?.toLowerCase() ?? "";
@@ -52,16 +53,17 @@ export default function CodeEditor({
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const editable = useRef(new Compartment());
-  // the latest callbacks, so the editor is not rebuilt on every render
-  const cb = useRef({ onChange, onSave });
-  cb.current = { onChange, onSave };
+  // the editor is built once per file; later values and callbacks are read from these
+  const cb = useLatest({ onChange, onSave });
+  const opening = useLatest({ value, readOnly });
 
   useEffect(() => {
     if (!host.current) return;
+    const { value: doc, readOnly: locked } = opening.current;
     const v = new EditorView({
       parent: host.current,
       state: EditorState.create({
-        doc: value,
+        doc,
         extensions: [
           basicSetup,
           keymap.of([indentWithTab, { key: "Mod-s", preventDefault: true, run: () => (cb.current.onSave(), true) }]),
@@ -69,16 +71,14 @@ export default function CodeEditor({
           // tok-* classes, coloured in globals.css for light and dark
           syntaxHighlighting(classHighlighter),
           theme,
-          editable.current.of([EditorState.readOnly.of(readOnly), EditorView.editable.of(!readOnly)]),
+          editable.current.of([EditorState.readOnly.of(locked), EditorView.editable.of(!locked)]),
           EditorView.updateListener.of((u) => u.docChanged && cb.current.onChange(u.state.doc.toString())),
         ],
       }),
     });
     view.current = v;
     return () => v.destroy();
-    // a new file is a new editor; value changes from outside are handled below
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [path]);
+  }, [path, cb, opening]);
 
   useEffect(() => {
     const v = view.current;

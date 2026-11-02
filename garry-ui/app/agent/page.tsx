@@ -11,6 +11,7 @@ import { PageHeader } from "../ui";
 import Select from "../Select";
 import CrewFace, { roleOf } from "../Crew";
 import WorkLog, { type TaskLogEntry } from "./WorkLog";
+import { useLatest } from "../lib/useLatest";
 
 interface Task {
   stage: string;
@@ -96,8 +97,11 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
     loadPlan();
   }, [loadPlan]);
 
+  const hasPlan = plan !== null;
+  // read when the run ends, without restarting the stream when the plan is reloaded
+  const taskCount = useLatest(plan?.tasks.length ?? 0);
   useEffect(() => {
-    if (!plan) return;
+    if (!hasPlan) return;
     setCurrent(null);
     setDone(0);
     setFinished(false);
@@ -120,13 +124,12 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
     es.addEventListener("done", () => {
       setCurrent(null);
       setFinished(true);
-      setDone(plan.tasks.length);
+      setDone(taskCount.current);
       es.close();
     });
     es.onerror = () => es.close();
     return () => es.close();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, plan !== null]);
+  }, [selected, hasPlan, taskCount]);
 
   // Best effort POST so the backend can abort delegation once that endpoint exists.
   const stopAll = () => {

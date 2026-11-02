@@ -39,6 +39,6 @@ export default tseslint.config(
   {
     files: ["garry-ui/**/*.tsx", "garry-ui/**/*.ts", "garry-mobile/**/*.tsx", "garry-mobile/**/*.ts"],
     plugins: { "react-hooks": reactHooks },
-    rules: reactHooks.configs.recommended.rules,
+    rules: { ...reactHooks.configs.recommended.rules, "react-hooks/exhaustive-deps": "error" },
   },
 );

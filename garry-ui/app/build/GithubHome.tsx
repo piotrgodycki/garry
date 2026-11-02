@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { client } from "../lib/client";
 import { confirmAction } from "../lib/desktop";
 import Link from "../lib/router";
@@ -17,16 +17,19 @@ export default function GithubHome({ projectId }: { projectId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = () =>
-    client.githubRepo(projectId).then(
-      (h) => {
-        setHome(h);
-        setOwner(h.create?.owner ?? "");
-        setName(h.create?.name ?? "");
-      },
-      () => setHome(null),
-    );
-  useEffect(() => void load(), [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const load = useCallback(
+    () =>
+      client.githubRepo(projectId).then(
+        (h) => {
+          setHome(h);
+          setOwner(h.create?.owner ?? "");
+          setName(h.create?.name ?? "");
+        },
+        () => setHome(null),
+      ),
+    [projectId],
+  );
+  useEffect(() => void load(), [load]);
 
   if (!home) return null;
   if (home.remote)

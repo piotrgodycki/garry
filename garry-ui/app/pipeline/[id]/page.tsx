@@ -54,8 +54,9 @@ export default function Activity() {
   }, [loadPlan]);
 
   // Live delegation stream. Restarts when runKey changes (after a model switch).
+  const hasPlan = plan !== null;
   useEffect(() => {
-    if (!plan) return;
+    if (!hasPlan) return;
     setRunning(null);
     setDoneCount(0);
     setFinished(false);
@@ -73,8 +74,7 @@ export default function Activity() {
     });
     es.onerror = () => es.close();
     return () => es.close();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, runKey, plan !== null]);
+  }, [id, runKey, hasPlan]);
 
   const changeModel = (service: string, model: string) => {
     fetch(`${apiBase}/api/features/${id}/service-models`, {
