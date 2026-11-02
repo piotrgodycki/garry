@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+import type { ServerResponse } from "node:http";
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { buildPlan, listFeatures, loadFeature } from "../orchestrate/plan.js";
@@ -9,8 +9,9 @@ import { listManifests } from "../sync/registryIO.js";
 import { FeatureError, createFeature, removeFeature, type FeatureInput } from "../registry/features.js";
 import { githubToken } from "../github/env.js";
 import { GitHub, parseSlug } from "../github/client.js";
-import { CORS, json, readBody, type RouteCtx } from "./http.js";
+import { CORS, json, readBody } from "./http.js";
 import type { ServerConfig } from "./server.js";
+import type { RouteGroup } from "./context.js";
 
 /** Updates the status: field in a feature's frontmatter. Returns false if not found. */
 function setFeatureStatus(registry: string, id: string, status: string): boolean {
@@ -165,7 +166,7 @@ function streamPlan(res: ServerResponse, cfg: ServerConfig, id: string): void {
   runTask();
 }
 
-export async function featureRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
+export const featureRoutes: RouteGroup = async (req, res, path, ctx) => {
   const { cfg, local } = ctx;
   // Creating is open to paired devices; removing is this machine only.
   if (req.method === "POST" && path === "/api/features") {
@@ -225,4 +226,4 @@ export async function featureRoutes(req: IncomingMessage, res: ServerResponse, p
   const stream = /^\/api\/features\/([^/]+)\/stream$/.exec(path);
   if (stream) return streamPlan(res, cfg, decodeURIComponent(stream[1]));
   return false;
-}
+};

@@ -1,4 +1,3 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
 import { mkdirSync } from "node:fs";
 import { ZodError } from "zod";
 import { fileRoute } from "../threads/files.js";
@@ -32,14 +31,14 @@ import {
   setActiveProfile,
   setStageRoute,
 } from "../orchestrate/profiles.js";
-import { activeGarryProject } from "../project/store.js";
-import { json, readBody, type RouteCtx } from "./http.js";
+import { json, readBody } from "./http.js";
+import type { RouteGroup } from "./context.js";
 
 /**
  * Registry files, services, architecture boards, stacks and routing profiles.
  * Returns false when the request is about none of them.
  */
-export async function registryRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
+export const registryRoutes: RouteGroup = async (req, res, path, ctx) => {
   const { cfg, local, url } = ctx;
   // Hand-editing the registry's own files is this machine only.
   const regFiles = /^\/api\/registry(\/files|\/file)$/.exec(path);
@@ -179,7 +178,7 @@ export async function registryRoutes(req: IncomingMessage, res: ServerResponse, 
   if (req.method !== "GET") return false;
   if (path === "/api/architecture") {
     const board = url.searchParams.get("board") ?? "";
-    const repos = cfg.threads!.store.projectsOf(activeGarryProject().id).map((r) => r.name);
+    const repos = ctx.repos().map((r) => r.name);
     try {
       return json(res, 200, {
         ...architectureState(cfg.registry, board),
@@ -206,4 +205,4 @@ export async function registryRoutes(req: IncomingMessage, res: ServerResponse, 
   }
   if (path === "/api/routings") return json(res, 200, listProfiles(cfg.registry, cfg.routing));
   return false;
-}
+};

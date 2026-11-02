@@ -1,11 +1,4 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { ServerConfig } from "./server.js";
-
-export interface RouteCtx {
-  cfg: ServerConfig;
-  local: boolean;
-  url: URL;
-}
 
 export const CORS = {
   "access-control-allow-origin": "*",
