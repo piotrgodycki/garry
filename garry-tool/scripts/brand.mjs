@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const source = readFileSync(join(root, "garry-ui/app/GarryMark.tsx"), "utf8");
 const geometry = (name) => {
-  const m = new RegExp(`const ${name} = "([^"]+)"`).exec(source);
+  const m = new RegExp(`const ${name} =\\s*"([^"]+)"`).exec(source);
   if (!m) throw new Error(`GarryMark.tsx has no ${name}`);
   return m[1];
 };
