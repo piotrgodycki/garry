@@ -4,7 +4,8 @@ import { client } from "../lib/client";
 import Select from "../Select";
 import styles from "./layers.module.css";
 
-const where = (f: string) => (f === "everywhere" ? "every project" : f === "project" ? "project" : f.startsWith("repo:") ? "repository" : `service ${f.slice(8)}`);
+const where = (f: string) =>
+  f === "everywhere" ? "every project" : f === "project" ? "project" : f.startsWith("repo:") ? "repository" : `service ${f.slice(8)}`;
 
 /** What an agent in one repository ends up with, every layer added up. */
 export default function AgentGets({ repos, prefer, version }: { repos: { id: string; name: string }[]; prefer: string | null; version: number }) {
@@ -36,7 +37,12 @@ export default function AgentGets({ repos, prefer, version }: { repos: { id: str
         <>
           <label className={styles.inline}>
             <span className={styles.help}>Working in</span>
-            <Select ariaLabel="repository the agent works in" value={repoId} onChange={setRepoId} options={repos.map((r) => ({ value: r.id, label: r.name }))} />
+            <Select
+              ariaLabel="repository the agent works in"
+              value={repoId}
+              onChange={setRepoId}
+              options={repos.map((r) => ({ value: r.id, label: r.name }))}
+            />
           </label>
           {error && <span className="badge danger">{error}</span>}
           {ctx && (

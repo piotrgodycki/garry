@@ -69,7 +69,11 @@ export function saveArchitecture(registry: string, input: unknown, board = ""): 
     return true;
   });
   const wizard = r.data.wizard === undefined ? readArchitecture(registry, board).wizard : r.data.wizard;
-  const architecture: Architecture = { nodes: r.data.nodes.map((n) => ({ ...n, x: Math.round(n.x), y: Math.round(n.y) })), edges, ...(wizard ? { wizard } : {}) };
+  const architecture: Architecture = {
+    nodes: r.data.nodes.map((n) => ({ ...n, x: Math.round(n.x), y: Math.round(n.y) })),
+    edges,
+    ...(wizard ? { wizard } : {}),
+  };
   const f = file(registry, board);
   mkdirSync(join(f, ".."), { recursive: true });
   writeFileSync(f, JSON.stringify(architecture, null, 2) + "\n");
@@ -84,5 +88,8 @@ export function resetArchitecture(registry: string, board = ""): void {
 /** The boards there are: the whole project's, and one per repository named. */
 export function listBoards(registry: string, repos: string[]): { id: string; name: string; blocks: number }[] {
   const names = [...new Set(repos.filter((r) => BOARD_NAME.test(r) && !r.includes("..")))];
-  return [{ id: "", name: "Whole project" }, ...names.map((n) => ({ id: n, name: n }))].map((b) => ({ ...b, blocks: readArchitecture(registry, b.id).nodes.length }));
+  return [{ id: "", name: "Whole project" }, ...names.map((n) => ({ id: n, name: n }))].map((b) => ({
+    ...b,
+    blocks: readArchitecture(registry, b.id).nodes.length,
+  }));
 }

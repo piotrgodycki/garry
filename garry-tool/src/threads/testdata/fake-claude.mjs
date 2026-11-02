@@ -32,7 +32,13 @@ const review = () => {
   const fixes = (notes.match(/The reviewer asks for these changes/g) ?? []).length;
   return fixes >= needed - 1 ? "APPROVED\nLooks complete." : `CHANGES\n- rename the button (round ${fixes + 1})`;
 };
-const text = prompt.startsWith("[review]") ? review() : prompt.includes("ASK") ? "I added the button.\nShould it be red or blue?" : resume ? `resumed ${resume}` : "wrote NOTES.md";
+const text = prompt.startsWith("[review]")
+  ? review()
+  : prompt.includes("ASK")
+    ? "I added the button.\nShould it be red or blue?"
+    : resume
+      ? `resumed ${resume}`
+      : "wrote NOTES.md";
 out({ type: "assistant", message: { content: [{ type: "text", text }] } });
 const failed = prompt.includes("FAIL");
 out({ type: "result", subtype: failed ? "error_during_execution" : "success", is_error: failed, total_cost_usd: 0.01, session_id: resume ?? "fake-session-1" });

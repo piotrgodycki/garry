@@ -42,7 +42,9 @@ export default function LayerEditor(props: {
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [more, setMore] = useState(() => props.skills.some((s) => s.source !== "local" && (props.layer.skills.includes(s.name) || props.inherited.has(s.name))));
+  const [more, setMore] = useState(() =>
+    props.skills.some((s) => s.source !== "local" && (props.layer.skills.includes(s.name) || props.inherited.has(s.name))),
+  );
   const dirty = JSON.stringify(layer) !== JSON.stringify(props.layer);
   const name = scope.level === "project" ? "" : scope.name;
 
@@ -85,7 +87,9 @@ export default function LayerEditor(props: {
               <b>{s.name}</b>
               <span>{s.summary}</span>
             </span>
-            <span className={styles.from}>{inherited.has(s.name) ? (isOn(s.name) ? `from ${inherited.get(s.name)}` : "turned off here") : isOn(s.name) ? "on here" : ""}</span>
+            <span className={styles.from}>
+              {inherited.has(s.name) ? (isOn(s.name) ? `from ${inherited.get(s.name)}` : "turned off here") : isOn(s.name) ? "on here" : ""}
+            </span>
           </label>
         </li>
       ))}
@@ -119,7 +123,13 @@ export default function LayerEditor(props: {
           </p>
         ) : (
           <>
-            {mine.length > 0 ? list(mine) : <p className={styles.help}>No skills of your own yet. <Link href="/skills">Install one in Skills</Link>.</p>}
+            {mine.length > 0 ? (
+              list(mine)
+            ) : (
+              <p className={styles.help}>
+                No skills of your own yet. <Link href="/skills">Install one in Skills</Link>.
+              </p>
+            )}
             {pipeline.length > 0 && (
               <details className={styles.more} open={more} onToggle={(e) => setMore(e.currentTarget.open)}>
                 <summary>Garry&apos;s pipeline skills ({pipeline.length})</summary>

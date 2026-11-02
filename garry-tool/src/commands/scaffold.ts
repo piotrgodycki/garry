@@ -2,13 +2,7 @@ import { resolve } from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { renderBanner, tagline, stepper } from "../ui/banner.js";
-import {
-  parseArgs,
-  applyDefaults,
-  stackString,
-  type ScaffoldOptions,
-  type ServiceKind,
-} from "../scaffold/options.js";
+import { parseArgs, applyDefaults, stackString, type ScaffoldOptions, type ServiceKind } from "../scaffold/options.js";
 import { renderService } from "../scaffold/templates.js";
 import { writeFiles, writeCatalogEntry } from "../scaffold/writer.js";
 
@@ -53,12 +47,7 @@ export async function runScaffold(argv: string[]): Promise<void> {
     const catalogFile = writeCatalogEntry(opts);
     s.stop(`Scaffolded ${opts.name}`);
     p.note(
-      [
-        `kind:     ${opts.kind}`,
-        `stack:    ${stackString(opts)}`,
-        `files:    ${files.length} in ${outRoot}`,
-        `catalog:  ${catalogFile}`,
-      ].join("\n"),
+      [`kind:     ${opts.kind}`, `stack:    ${stackString(opts)}`, `files:    ${files.length} in ${outRoot}`, `catalog:  ${catalogFile}`].join("\n"),
       "Done",
     );
     p.outro(pc.green("Next: run garry sync in the new repo to inject contracts."));
@@ -83,12 +72,7 @@ async function promptWizard(v: Partial<ScaffoldOptions>): Promise<ScaffoldOption
       p.text({
         message: "Service name",
         placeholder: "my-service",
-        validate: (x) =>
-          !x
-            ? "required"
-            : /^[a-z0-9-]+$/.test(x)
-              ? undefined
-              : "use lowercase letters, digits and hyphens",
+        validate: (x) => (!x ? "required" : /^[a-z0-9-]+$/.test(x) ? undefined : "use lowercase letters, digits and hyphens"),
       }),
     ));
 
@@ -131,11 +115,8 @@ async function promptWizard(v: Partial<ScaffoldOptions>): Promise<ScaffoldOption
     ));
 
   console.log(stepper(4, 4));
-  const owner =
-    v.owner ??
-    (await ask(p.text({ message: "Owner team", placeholder: "team-payments", defaultValue: "team-unknown" })));
-  const out =
-    v.out ?? (await ask(p.text({ message: "Output directory", defaultValue: `./${name}`, placeholder: `./${name}` })));
+  const owner = v.owner ?? (await ask(p.text({ message: "Owner team", placeholder: "team-payments", defaultValue: "team-unknown" })));
+  const out = v.out ?? (await ask(p.text({ message: "Output directory", defaultValue: `./${name}`, placeholder: `./${name}` })));
 
   return {
     name: name as string,
@@ -167,10 +148,7 @@ function resolveHeadless(v: Partial<ScaffoldOptions>): ScaffoldOptions {
     throw new Error(`kind must be shell or remote, got ${v.kind}`);
   }
   if (missing.length) {
-    throw new Error(
-      `Missing required options in non interactive mode: ${missing.join(", ")}. ` +
-        "Pass --name and --kind, or run in a terminal for the wizard.",
-    );
+    throw new Error(`Missing required options in non interactive mode: ${missing.join(", ")}. Pass --name and --kind, or run in a terminal for the wizard.`);
   }
   return {
     name: v.name as string,

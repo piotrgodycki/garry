@@ -63,9 +63,17 @@ export default function Routing() {
 
   const row = (stage: string, r: RoutingProfile["defaults"]) => (
     <tr key={stage}>
-      <td className={`strong ${styles.cap}`} data-label="Stage">{stage === "defaults" ? "Everything else" : stage}</td>
+      <td className={`strong ${styles.cap}`} data-label="Stage">
+        {stage === "defaults" ? "Everything else" : stage}
+      </td>
       <td data-label="Agent">
-        <Select className={own.agentSelect} ariaLabel={`agent for ${stage}`} value={r.agent} onChange={(agent) => void change(stage, { agent })} options={[...new Set([r.agent, ...AGENTS])].map((a) => ({ value: a, label: a }))} />
+        <Select
+          className={own.agentSelect}
+          ariaLabel={`agent for ${stage}`}
+          value={r.agent}
+          onChange={(agent) => void change(stage, { agent })}
+          options={[...new Set([r.agent, ...AGENTS])].map((a) => ({ value: a, label: a }))}
+        />
       </td>
       <td data-label="Model">
         <>
@@ -73,7 +81,12 @@ export default function Routing() {
             ariaLabel={`model for ${stage}`}
             value={r.model}
             onChange={(model) => void change(stage, { model })}
-            options={offered(models, r.model).map((m) => ({ value: m.id, label: m.label, icon: <span className={`tier ${tierOf(m.id)}`} />, group: m.previous ? "Earlier models" : undefined }))}
+            options={offered(models, r.model).map((m) => ({
+              value: m.id,
+              label: m.label,
+              icon: <span className={`tier ${tierOf(m.id)}`} />,
+              group: m.previous ? "Earlier models" : undefined,
+            }))}
           />
         </>
       </td>
@@ -111,7 +124,15 @@ export default function Routing() {
             ))}
             {creating ? (
               <div className={`card ${own.profile} ${own.newProfile}`}>
-                <input className="input mono" placeholder="e.g. fast-and-cheap" aria-label="new profile name" value={newName} autoFocus onChange={(e) => setNewName(e.target.value.toLowerCase())} onKeyDown={(e) => e.key === "Enter" && newName.trim() && void create()} />
+                <input
+                  className="input mono"
+                  placeholder="e.g. fast-and-cheap"
+                  aria-label="new profile name"
+                  value={newName}
+                  autoFocus
+                  onChange={(e) => setNewName(e.target.value.toLowerCase())}
+                  onKeyDown={(e) => e.key === "Enter" && newName.trim() && void create()}
+                />
                 <span className={own.profileDesc}>Starts as a copy of {selected || "default"}.</span>
                 <span className={own.row}>
                   <button className="btn btnSm btnPrimary" disabled={!newName.trim()} onClick={() => void create()}>
@@ -144,14 +165,23 @@ export default function Routing() {
                     </button>
                   )}
                   {profile.name === "default" && !profile.builtin && (
-                    <button className="btn btnSm btnGhost" onClick={() => window.confirm("Put Garry's suggested models back in the default profile?") && void run(() => client.removeRoutingProfile("default"), data.active)}>
+                    <button
+                      className="btn btnSm btnGhost"
+                      onClick={() =>
+                        window.confirm("Put Garry's suggested models back in the default profile?") &&
+                        void run(() => client.removeRoutingProfile("default"), data.active)
+                      }
+                    >
                       Reset to Garry&apos;s setup
                     </button>
                   )}
                   {profile.name !== "default" && (
                     <button
                       className="btn btnSm btnGhost"
-                      onClick={() => window.confirm(`Remove the profile ${profile.name}?`) && void run(() => client.removeRoutingProfile(profile.name), data.active === profile.name ? "default" : data.active)}
+                      onClick={() =>
+                        window.confirm(`Remove the profile ${profile.name}?`) &&
+                        void run(() => client.removeRoutingProfile(profile.name), data.active === profile.name ? "default" : data.active)
+                      }
                     >
                       Remove
                     </button>

@@ -1,4 +1,28 @@
-import type { FileContent, FileEntry, GarryBundle, GarryStatus, GarryProject, GarryMessage, GarryQueue, LiveView, Pair, Chain, GarryProjects, GithubDeviceCode, GithubRepo, GithubStatus, Project, ProjectSettings, PushPreview, GarryCommand, MemoryEntry, Thread, TerminalInfo, ThreadDiff, ThreadEvent } from "./types";
+import type {
+  FileContent,
+  FileEntry,
+  GarryBundle,
+  GarryStatus,
+  GarryProject,
+  GarryMessage,
+  GarryQueue,
+  LiveView,
+  Pair,
+  Chain,
+  GarryProjects,
+  GithubDeviceCode,
+  GithubRepo,
+  GithubStatus,
+  Project,
+  ProjectSettings,
+  PushPreview,
+  GarryCommand,
+  MemoryEntry,
+  Thread,
+  TerminalInfo,
+  ThreadDiff,
+  ThreadEvent,
+} from "./types";
 import { GarryError } from "./connect";
 import { RegistryClient } from "./registry-client";
 /** A typed client for one Garry server: the registry (RegistryClient), and the work: projects, agents, Garry, GitHub, files, terminals. */
@@ -26,7 +50,8 @@ export class GarryClient extends RegistryClient {
   createGarryProject = (name: string, description?: string) => this.post<GarryProject>("/api/garry-projects", { name, description });
   /** Switches the project in use; the registry and the repositories follow. */
   useGarryProject = (id: string) => this.post<GarryProjects>("/api/garry-projects/active", { id });
-  updateGarryProject = (id: string, patch: { name?: string; description?: string }) => this.post<GarryProject>(`/api/garry-projects/${encodeURIComponent(id)}`, patch);
+  updateGarryProject = (id: string, patch: { name?: string; description?: string }) =>
+    this.post<GarryProject>(`/api/garry-projects/${encodeURIComponent(id)}`, patch);
   removeGarryProject = (id: string) => this.request<GarryProjects>(`/api/garry-projects/${encodeURIComponent(id)}`, { method: "DELETE" });
   /** The project as one .garry.json file (registry files, repositories as remotes; never tokens). */
   exportGarryProject = (id: string) => this.request<GarryBundle>(`/api/garry-projects/${encodeURIComponent(id)}/export`);
@@ -40,7 +65,8 @@ export class GarryClient extends RegistryClient {
   connectGithubToken = (token: string) => this.post<{ login: string }>("/api/github/token", { token });
   /** Starts signing in with a code (needs GARRY_GITHUB_CLIENT_ID). */
   startGithubDevice = () => this.post<GithubDeviceCode>("/api/github/device", {});
-  pollGithubDevice = (deviceCode: string) => this.post<{ status: "pending" | "slow_down" | "done" | "expired" | "denied"; login?: string }>("/api/github/device/poll", { deviceCode });
+  pollGithubDevice = (deviceCode: string) =>
+    this.post<{ status: "pending" | "slow_down" | "done" | "expired" | "denied"; login?: string }>("/api/github/device/poll", { deviceCode });
   disconnectGithub = () => this.request<{ ok: true }>("/api/github", { method: "DELETE" });
   githubRepos = (query = "") => this.request<{ repos: GithubRepo[] }>(`/api/github/repos?q=${encodeURIComponent(query)}`).then((r) => r.repos);
   /** Agents working together in the active project: pairs (writer and reviewer) and chains (steps in order). */
@@ -61,7 +87,8 @@ export class GarryClient extends RegistryClient {
   dropMessage = (id: string) => this.request<{ cancelled: boolean }>(`/api/garry/queue/${id}`, { method: "DELETE" });
   /** Live: every agent of the active project as a lane; finished ones from the last `hours`. */
   live = (hours = 24) => this.request<LiveView>(`/api/live?hours=${hours}`);
-  threads = (projectId?: string) => this.request<{ threads: Thread[] }>(`/api/threads${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`).then((r) => r.threads);
+  threads = (projectId?: string) =>
+    this.request<{ threads: Thread[] }>(`/api/threads${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`).then((r) => r.threads);
   thread = (id: string) => this.request<{ thread: Thread; events: ThreadEvent[] }>(`/api/threads/${id}`);
   /** Starts work: a new branch and worktree in the project, and the agent's first turn. */
   createThread = (projectId: string, prompt: string, title?: string) => this.post<Thread>("/api/threads", { projectId, prompt, title });
@@ -71,11 +98,14 @@ export class GarryClient extends RegistryClient {
   commitThread = (id: string, message: string) => this.post<Thread>(`/api/threads/${id}/commit`, { message });
   /** Pushes and opens the PR. When the project asks before pushing, confirmed must be true (show pushPreview first), else 428. */
   /** A repository's home on GitHub: where it is, or what Garry would create (named as in Garry). */
-  githubRepo = (projectId: string) => this.request<{ remote: string | null; create: { owner: string; name: string } | null }>(`/api/projects/${projectId}/github-repo`);
+  githubRepo = (projectId: string) =>
+    this.request<{ remote: string | null; create: { owner: string; name: string } | null }>(`/api/projects/${projectId}/github-repo`);
   /** Creates the repository on GitHub, adds it as origin and pushes the current branch (this computer only). */
-  createGithubRepo = (projectId: string, opts: { owner?: string; name?: string; private?: boolean } = {}) => this.post<{ owner: string; name: string; url: string; pushed: string | null }>(`/api/projects/${projectId}/github-repo`, opts);
+  createGithubRepo = (projectId: string, opts: { owner?: string; name?: string; private?: boolean } = {}) =>
+    this.post<{ owner: string; name: string; url: string; pushed: string | null }>(`/api/projects/${projectId}/github-repo`, opts);
   /** create: the GitHub repository to make first, named as in Garry, when the project has none (your yes to it) */
-  openPullRequest = (id: string, title?: string, body?: string, confirmed = false, create?: { owner?: string; name?: string; private?: boolean }) => this.post<Thread>(`/api/threads/${id}/pr`, { title, body, confirmed, create });
+  openPullRequest = (id: string, title?: string, body?: string, confirmed = false, create?: { owner?: string; name?: string; private?: boolean }) =>
+    this.post<Thread>(`/api/threads/${id}/pr`, { title, body, confirmed, create });
   /** What a push would do: branch, remote, base, commits, and whether the project allows it. */
   pushPreview = (id: string) => this.request<PushPreview>(`/api/threads/${id}/push`);
   projectSettings = (projectId: string) => this.request<ProjectSettings>(`/api/projects/${projectId}/settings`);
@@ -86,7 +116,8 @@ export class GarryClient extends RegistryClient {
    * (/api/threads/:id), a project's checkout (/api/projects/:id) or the
    * registry (/api/registry). One folder at a time.
    */
-  listFiles = (root: string, path = "") => this.request<{ path: string; entries: FileEntry[] }>(`${root}/files?path=${encodeURIComponent(path)}`).then((r) => r.entries);
+  listFiles = (root: string, path = "") =>
+    this.request<{ path: string; entries: FileEntry[] }>(`${root}/files?path=${encodeURIComponent(path)}`).then((r) => r.entries);
   readFile = (root: string, path: string) => this.request<FileContent>(`${root}/file?path=${encodeURIComponent(path)}`);
   /** Saves a file by hand; with sha, refused (409) when the file changed since it was read. */
   writeFile = (root: string, path: string, content: string, sha?: string) => this.post<FileContent>(`${root}/file`, { path, content, sha });
@@ -117,7 +148,11 @@ export class GarryClient extends RegistryClient {
       const blocks = buffer.split("\n\n");
       buffer = blocks.pop() ?? "";
       for (const b of blocks) {
-        const data = b.split("\n").find((l) => l.startsWith("data:"))?.slice(5).trim();
+        const data = b
+          .split("\n")
+          .find((l) => l.startsWith("data:"))
+          ?.slice(5)
+          .trim();
         if (!data) continue;
         if (b.startsWith("event: exit")) return JSON.parse(data) as { code: number | null };
         onData(JSON.parse(data) as string);

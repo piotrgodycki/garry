@@ -70,7 +70,13 @@ export default function ProjectSwitcher() {
       {open && (
         <div className={styles.menu} role="listbox" aria-label="projects">
           {data.projects.map((p) => (
-            <button key={p.id} role="option" aria-selected={p.id === data.active} className={`${styles.option} ${p.id === data.active ? styles.optionOn : ""}`} onClick={() => void pick(p.id)}>
+            <button
+              key={p.id}
+              role="option"
+              aria-selected={p.id === data.active}
+              className={`${styles.option} ${p.id === data.active ? styles.optionOn : ""}`}
+              onClick={() => void pick(p.id)}
+            >
               <span className={styles.avatar} aria-hidden="true">
                 <ProjectMark project={p} />
               </span>

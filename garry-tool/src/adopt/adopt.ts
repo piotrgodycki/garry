@@ -39,10 +39,7 @@ export function analyzeRepo(root: string): AdoptResult {
     db: null,
   };
 
-  const remoteEntry =
-    mf.exposes.length > 0
-      ? { name: service, entry: `https://cdn.example.com/${service}/mf-manifest.json`, exposes: mf.exposes }
-      : null;
+  const remoteEntry = mf.exposes.length > 0 ? { name: service, entry: `https://cdn.example.com/${service}/mf-manifest.json`, exposes: mf.exposes } : null;
 
   return { service, stack, mf, manifest, remoteEntry };
 }
@@ -64,9 +61,7 @@ export function writeAdoption(registry: string, result: AdoptResult): string[] {
     const contractsDir = join(registry, "contracts");
     mkdirSync(contractsDir, { recursive: true });
     const remotesFile = join(contractsDir, "remotes.json");
-    const remotes: Record<string, unknown> = existsSync(remotesFile)
-      ? JSON.parse(readFileSync(remotesFile, "utf8"))
-      : {};
+    const remotes: Record<string, unknown> = existsSync(remotesFile) ? JSON.parse(readFileSync(remotesFile, "utf8")) : {};
     remotes[result.remoteEntry.name] = {
       entry: result.remoteEntry.entry,
       exposes: result.remoteEntry.exposes,

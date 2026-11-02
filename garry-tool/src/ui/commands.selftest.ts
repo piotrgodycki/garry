@@ -45,7 +45,10 @@ execFileSync("git", ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@t", "c
 const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
 threads.store.addProject(repo, "shop");
 const registry = join(home, "registry");
-const server = createGarryServer({ registry, skills: join(home, "none"), routing: join(home, "none.json"), threads, ui }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry, skills: join(home, "none"), routing: join(home, "none.json"), threads, ui },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
@@ -62,16 +65,32 @@ try {
   await field.fill("/");
   await list.getByRole("option").first().waitFor();
   const all = await list.getByRole("option").allInnerTexts();
-  expect("a slash suggests every command, with what each does", ["/remember", "/forget", "/memory", "/new", "/pair", "/stop", "/help"].every((c) => all.some((o) => o.startsWith(c))) && all.some((o) => o.includes("keep it in mind")), all.join(" | "));
+  expect(
+    "a slash suggests every command, with what each does",
+    ["/remember", "/forget", "/memory", "/new", "/pair", "/stop", "/help"].every((c) => all.some((o) => o.startsWith(c))) &&
+      all.some((o) => o.includes("keep it in mind")),
+    all.join(" | "),
+  );
   await field.fill("/rem");
-  expect("a few letters narrow them", (await list.getByRole("option").count()) === 1 && (await list.getByRole("option").innerText()).includes("<what to keep in mind>"));
+  expect(
+    "a few letters narrow them",
+    (await list.getByRole("option").count()) === 1 && (await list.getByRole("option").innerText()).includes("<what to keep in mind>"),
+  );
   await field.press("Enter");
   expect("a command that needs words waits for them", (await field.inputValue()) === "/remember " && readMemory(registry).length === 0);
   await field.pressSequentially("We deploy on Fridays");
   await field.press("Enter");
   await said.waitFor();
-  expect("Enter runs it, and Garry answers above the field", (await said.innerText()) === "I will remember: We deploy on Fridays" && readMemory(registry)[0]?.text === "We deploy on Fridays" && (await field.inputValue()) === "");
-  expect("a command is not put in line as a message", ((await fetch(`${base}/api/garry/queue`).then((r) => r.json())) as { items: unknown[] }).items.length === 0);
+  expect(
+    "Enter runs it, and Garry answers above the field",
+    (await said.innerText()) === "I will remember: We deploy on Fridays" &&
+      readMemory(registry)[0]?.text === "We deploy on Fridays" &&
+      (await field.inputValue()) === "",
+  );
+  expect(
+    "a command is not put in line as a message",
+    ((await fetch(`${base}/api/garry/queue`).then((r) => r.json())) as { items: unknown[] }).items.length === 0,
+  );
 
   await field.fill("/nope");
   await field.press("Enter");
@@ -88,14 +107,26 @@ try {
   await page.waitForURL("**/memory");
   const remembered = page.getByRole("list", { name: "what Garry remembers" });
   await remembered.getByRole("listitem").first().waitFor();
-  expect("/memory opens Memory, with what Garry remembers", (await remembered.innerText()).includes("We deploy on Fridays") && (await page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Memory" }).getAttribute("aria-current")) === "page");
+  expect(
+    "/memory opens Memory, with what Garry remembers",
+    (await remembered.innerText()).includes("We deploy on Fridays") &&
+      (await page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Memory" }).getAttribute("aria-current")) === "page",
+  );
   await page.getByRole("textbox", { name: "Something to remember" }).fill("Prices are in euros");
   await page.getByRole("button", { name: "Remember" }).click();
   await remembered.getByText("Prices are in euros").waitFor();
-  expect("Memory adds one, numbered after the others", (await remembered.getByRole("listitem").nth(1).innerText()).startsWith("2") && readMemory(registry).length === 2);
+  expect(
+    "Memory adds one, numbered after the others",
+    (await remembered.getByRole("listitem").nth(1).innerText()).startsWith("2") && readMemory(registry).length === 2,
+  );
   await page.getByRole("button", { name: "forget: We deploy on Fridays" }).click();
   await remembered.getByText("We deploy on Fridays").waitFor({ state: "detached" });
-  expect("and forgets one", readMemory(registry).map((e) => e.text).join() === "Prices are in euros");
+  expect(
+    "and forgets one",
+    readMemory(registry)
+      .map((e) => e.text)
+      .join() === "Prices are in euros",
+  );
 
   await field.fill("/new add a footer");
   await field.press("Enter");

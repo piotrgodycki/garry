@@ -146,7 +146,8 @@ export function removeGarryProject(id: string): GarryProject {
   const active = index.active === id ? (rest.find((x) => x.id === "default") ?? rest[0]).id : index.active;
   // only folders Garry made: its own one, or the registry it always used
   const folder = resolve(p.path);
-  if ((folder === resolve(join(garryHome(), "garry-projects", id)) || (id === "default" && folder === resolve(legacyRegistry()))) && existsSync(folder)) rmSync(folder, { recursive: true, force: true });
+  if ((folder === resolve(join(garryHome(), "garry-projects", id)) || (id === "default" && folder === resolve(legacyRegistry()))) && existsSync(folder))
+    rmSync(folder, { recursive: true, force: true });
   write({ active, projects: rest });
   return rest.find((x) => x.id === active)!;
 }

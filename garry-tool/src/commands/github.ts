@@ -18,7 +18,11 @@ export async function runGithub(argv: string[]): Promise<void> {
   if (sub === "--help" || sub === "-h") return void console.log(HELP);
   if (sub === "status") {
     const s = await githubStatus();
-    console.log(s.connected ? pc.green(`Connected as ${s.login} (${s.source === "env" ? "GARRY_GITHUB_TOKEN" : s.source === "gh" ? "GitHub CLI" : "Garry"})`) : pc.yellow(s.error ?? "Not connected. garry github login"));
+    console.log(
+      s.connected
+        ? pc.green(`Connected as ${s.login} (${s.source === "env" ? "GARRY_GITHUB_TOKEN" : s.source === "gh" ? "GitHub CLI" : "Garry"})`)
+        : pc.yellow(s.error ?? "Not connected. garry github login"),
+    );
     return;
   }
   if (sub === "logout") {
@@ -29,7 +33,8 @@ export async function runGithub(argv: string[]): Promise<void> {
   if (sub === "repos") {
     const token = githubToken();
     if (!token) throw new Error("connect first: garry github login");
-    for (const r of await listRepos(token, arg ?? "")) console.log(`${r.fullName.padEnd(40)} ${r.private ? pc.dim("private") : "public "} ${pc.dim(r.description ?? "")}`);
+    for (const r of await listRepos(token, arg ?? ""))
+      console.log(`${r.fullName.padEnd(40)} ${r.private ? pc.dim("private") : "public "} ${pc.dim(r.description ?? "")}`);
     return;
   }
   if (sub === "login") {
@@ -39,7 +44,7 @@ export async function runGithub(argv: string[]): Promise<void> {
       const d = await startDeviceFlow();
       console.log(`Open ${pc.bold(d.verificationUri)} and enter ${pc.bold(d.userCode)}`);
       let wait = d.interval;
-      for (const end = Date.now() + d.expiresIn * 1000; Date.now() < end; ) {
+      for (const end = Date.now() + d.expiresIn * 1000; Date.now() < end;) {
         await new Promise((r) => setTimeout(r, wait * 1000));
         const r = await pollDeviceFlow(d.deviceCode);
         if (r.status === "done") return void console.log(pc.green(`Connected as ${r.login}`));

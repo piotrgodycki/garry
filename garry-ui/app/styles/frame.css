@@ -78,7 +78,9 @@
   background: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 .railItem svg {
   width: 20px;
@@ -240,9 +242,18 @@
   color: var(--color-text-default);
   font-variant-numeric: tabular-nums;
 }
-.gauge.warn svg, .gauge.warn.lit b { color: var(--warn); }
-.gauge.run svg, .gauge.run.lit b { color: var(--run); }
-.gauge.ok svg, .gauge.ok.lit b { color: var(--ok); }
+.gauge.warn svg,
+.gauge.warn.lit b {
+  color: var(--warn);
+}
+.gauge.run svg,
+.gauge.run.lit b {
+  color: var(--run);
+}
+.gauge.ok svg,
+.gauge.ok.lit b {
+  color: var(--ok);
+}
 
 /* a project's mark from GitHub fills its tile, keeping the tile's corners */
 .projectAvatar {

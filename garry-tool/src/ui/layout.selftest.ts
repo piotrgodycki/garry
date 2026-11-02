@@ -140,13 +140,15 @@ const problems = (page: Page) =>
       const named = (f.labels?.length ?? 0) > 0 || f.getAttribute("aria-label")?.trim() || f.getAttribute("aria-labelledby") || f.getAttribute("title");
       if (!named) out.push(`a field has no name (${f.tagName.toLowerCase()} "${f.getAttribute("placeholder") ?? ""}")`);
     }
-    if (document.documentElement.scrollWidth > vw + 1) out.push(`the page scrolls sideways (${document.documentElement.scrollWidth}px wide on a ${vw}px screen)`);
+    if (document.documentElement.scrollWidth > vw + 1)
+      out.push(`the page scrolls sideways (${document.documentElement.scrollWidth}px wide on a ${vw}px screen)`);
 
     /** the part of an element that can be seen: its box cut down by every ancestor that clips it */
     const seen = (el: Element) => {
       const r = el.getBoundingClientRect();
       let box = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
-      for (const c of clips(el)) box = { left: Math.max(box.left, c.left), top: Math.max(box.top, c.top), right: Math.min(box.right, c.right), bottom: Math.min(box.bottom, c.bottom) };
+      for (const c of clips(el))
+        box = { left: Math.max(box.left, c.left), top: Math.max(box.top, c.top), right: Math.min(box.right, c.right), bottom: Math.min(box.bottom, c.bottom) };
       return box.right - box.left > 1 && box.bottom - box.top > 1 ? box : null;
     };
     /** a drawer, a dock, a scrim, or a bar pinned to an edge (the top bar, the command line) lies over the page on purpose */
@@ -161,7 +163,8 @@ const problems = (page: Page) =>
     const controls = [...document.querySelectorAll("a[href], button, input, textarea, [role=tab], [role=combobox], [role=switch]")].filter(shown);
     for (const el of controls) {
       const r = el.getBoundingClientRect();
-      if ((r.right > vw + 1 || r.left < -1) && !scrollsSideways(el)) out.push(`${name(el)} sticks out past the screen (${Math.round(r.left)}..${Math.round(r.right)} of ${vw})`);
+      if ((r.right > vw + 1 || r.left < -1) && !scrollsSideways(el))
+        out.push(`${name(el)} sticks out past the screen (${Math.round(r.left)}..${Math.round(r.right)} of ${vw})`);
     }
     // what is under the middle of each control that can be seen: it, or something inside it
     const visible = controls.map((el) => ({ el, box: seen(el) })).filter((c) => c.box);
@@ -214,7 +217,11 @@ try {
     page.on("pageerror", (e) => errors.push(String(e)));
     for (const [label, path] of PAGES) {
       await page.goto(`${base}${path}`);
-      await page.locator(".content > *").first().waitFor({ timeout: 10_000 }).catch(() => undefined);
+      await page
+        .locator(".content > *")
+        .first()
+        .waitFor({ timeout: 10_000 })
+        .catch(() => undefined);
       await page.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => undefined);
       await page.waitForTimeout(300);
       if (shots) await page.screenshot({ path: join(shots, `${label}-${size.name}.png`), fullPage: true });
@@ -251,13 +258,19 @@ try {
     if (!drawer) {
       const foot = await page.locator(".railFoot").boundingBox();
       expect(`at ${size.name} the rail's foot (theme, server) is in view`, Boolean(foot && foot.y + foot.height <= size.height), JSON.stringify(foot));
-      expect(`at ${size.name} there is no menu button`, (await page.getByRole("button", { name: "open menu" }).count()) === 0 || !(await page.getByRole("button", { name: "open menu" }).isVisible()));
+      expect(
+        `at ${size.name} there is no menu button`,
+        (await page.getByRole("button", { name: "open menu" }).count()) === 0 || !(await page.getByRole("button", { name: "open menu" }).isVisible()),
+      );
     } else {
       await page.goto(`${base}/`);
       const nav = page.getByRole("navigation", { name: "main" });
       expect(`at ${size.name} the menu starts put away`, !(await nav.getByRole("link", { name: "Stacks" }).isVisible()));
       await page.getByRole("button", { name: "open menu" }).click();
-      await nav.getByRole("link", { name: "Stacks" }).waitFor({ state: "visible", timeout: 3000 }).catch(() => undefined);
+      await nav
+        .getByRole("link", { name: "Stacks" })
+        .waitFor({ state: "visible", timeout: 3000 })
+        .catch(() => undefined);
       expect(`at ${size.name} the menu button opens every page`, await nav.getByRole("link", { name: "Stacks" }).isVisible());
       const groups = await nav.locator(".navLabel").allInnerTexts();
       await page.waitForTimeout(400);
@@ -267,7 +280,10 @@ try {
       await nav.getByRole("link", { name: "Stacks" }).click();
       await page.waitForURL("**/stacks");
       await page.waitForTimeout(400);
-      expect(`at ${size.name} picking a page goes there and puts the menu away`, page.url().endsWith("/stacks") && !(await nav.getByRole("link", { name: "Stacks" }).isVisible()));
+      expect(
+        `at ${size.name} picking a page goes there and puts the menu away`,
+        page.url().endsWith("/stacks") && !(await nav.getByRole("link", { name: "Stacks" }).isVisible()),
+      );
       await page.getByRole("button", { name: "open menu" }).click();
       await page.waitForTimeout(300);
       await page.keyboard.press("Escape");
@@ -279,12 +295,20 @@ try {
   }
 
   // what you told Garry, showing above the field, lies over the page cleanly
-  for (const text of ["BUSY tidy the cart", "then rename the buttons"]) await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
+  for (const text of ["BUSY tidy the cart", "then rename the buttons"])
+    await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
   for (const size of [ALL_SIZES[0], ALL_SIZES[ALL_SIZES.length - 1]]) {
     const page = await newPage({ width: size.width, height: size.height });
     await page.goto(`${base}/`);
-    await page.getByRole("button", { name: "show what you told Garry" }).click({ timeout: 8000 }).catch(() => undefined);
-    await page.getByRole("list", { name: "what you told Garry" }).getByText("then rename the buttons").waitFor({ timeout: 8000 }).catch(() => undefined);
+    await page
+      .getByRole("button", { name: "show what you told Garry" })
+      .click({ timeout: 8000 })
+      .catch(() => undefined);
+    await page
+      .getByRole("list", { name: "what you told Garry" })
+      .getByText("then rename the buttons")
+      .waitFor({ timeout: 8000 })
+      .catch(() => undefined);
     const shown = (await page.getByRole("list", { name: "what you told Garry" }).count()) === 1;
     const found = await problems(page);
     expect(`at ${size.name} Garry's line of messages shows and the page lays out cleanly`, shown && found.length === 0, `\n    ${found.join("\n    ")}`);

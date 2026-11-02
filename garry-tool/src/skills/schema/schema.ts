@@ -6,15 +6,7 @@ import { z } from "zod";
  * the index the supervisor uses to compose a pipeline for a given feature.
  */
 
-export const SDLC_STAGES = [
-  "spec",
-  "plan",
-  "design",
-  "implement",
-  "review",
-  "test",
-  "integrate",
-] as const;
+export const SDLC_STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"] as const;
 export type SdlcStage = (typeof SDLC_STAGES)[number];
 
 /** One entry in manifest.json, that is one atomic skill. */

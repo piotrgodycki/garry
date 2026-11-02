@@ -13,10 +13,22 @@ const DATABASES = [
   { engine: "sqlite", label: "SQLite" },
 ];
 
-const csv = (v: string) => v.split(",").map((s) => s.trim()).filter(Boolean);
+const csv = (v: string) =>
+  v
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 /** Adds a service to the registry: catalog/<name>.yaml, which the agents read before they touch its repository. */
-export default function AddService({ services, onAdded, onCancel }: { services: RegistryService[]; onAdded: (issues: RegistryIssue[]) => void; onCancel?: () => void }) {
+export default function AddService({
+  services,
+  onAdded,
+  onCancel,
+}: {
+  services: RegistryService[];
+  onAdded: (issues: RegistryIssue[]) => void;
+  onCancel?: () => void;
+}) {
   const [name, setName] = useState("");
   const [kind, setKind] = useState<ServiceKind>("mfe-remote");
   const [repo, setRepo] = useState("");
@@ -148,10 +160,22 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
             options={[
               ...stacks.map((x) => ({ value: x.name, label: x.name, hint: x.description, group: "Our stacks" })),
               ...fitting.map((t) => ({ value: `template:${t.name}`, label: t.title, hint: t.description, group: "Ready-made for this kind" })),
-              { value: "", label: stack.trim() ? `Another: ${stack.trim()}` : `Garry's default for this kind: ${current?.stack ?? "…"}`, group: stacks.length || fitting.length ? "Other" : undefined },
+              {
+                value: "",
+                label: stack.trim() ? `Another: ${stack.trim()}` : `Garry's default for this kind: ${current?.stack ?? "…"}`,
+                group: stacks.length || fitting.length ? "Other" : undefined,
+              },
             ]}
           />
-          {!stackRef && <input className="input" placeholder={`or type one, e.g. ${current?.stack ?? ""}`} value={stack} onChange={(e) => setStack(e.target.value)} aria-label="another stack" />}
+          {!stackRef && (
+            <input
+              className="input"
+              placeholder={`or type one, e.g. ${current?.stack ?? ""}`}
+              value={stack}
+              onChange={(e) => setStack(e.target.value)}
+              aria-label="another stack"
+            />
+          )}
           {stacks.length === 0 && (
             <span className={styles.kindHint}>
               Your own stacks live in <Link href="/stacks">Stacks</Link>.
@@ -177,7 +201,13 @@ export default function AddService({ services, onAdded, onCancel }: { services: 
           <span className="eyebrow">Uses from other services</span>
           <div className={styles.chips}>
             {offered.map((k) => (
-              <button key={k} type="button" className={`chip mono ${styles.useChip} ${uses.has(k) ? styles.useOn : ""}`} aria-pressed={uses.has(k)} onClick={() => toggle(k)}>
+              <button
+                key={k}
+                type="button"
+                className={`chip mono ${styles.useChip} ${uses.has(k) ? styles.useOn : ""}`}
+                aria-pressed={uses.has(k)}
+                onClick={() => toggle(k)}
+              >
                 {k.replace(":", " ")}
               </button>
             ))}

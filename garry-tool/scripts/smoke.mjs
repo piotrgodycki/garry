@@ -44,7 +44,9 @@ try {
   let html = "";
   for (let i = 0; i < 40 && !html.includes('id="root"'); i++) {
     await new Promise((r) => setTimeout(r, 250));
-    html = await fetch(`http://127.0.0.1:${port}/`).then((r) => r.text()).catch(() => "");
+    html = await fetch(`http://127.0.0.1:${port}/`)
+      .then((r) => r.text())
+      .catch(() => "");
   }
   if (!html.includes('id="root"')) throw new Error("garry serve did not serve the dashboard");
   const api = await fetch(`http://127.0.0.1:${port}/api/features`).then((r) => r.json());

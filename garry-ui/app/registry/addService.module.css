@@ -22,7 +22,9 @@
   border: 1px solid var(--border);
   cursor: pointer;
   font: inherit;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 .kind:hover {
   border-color: var(--color-text-muted);

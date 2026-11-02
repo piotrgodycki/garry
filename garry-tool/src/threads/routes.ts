@@ -77,7 +77,11 @@ export async function threadRoutes(
       if (store.settings(p.id).push === "never") return (json(res, 403, { error: "this project never pushes (its settings)" }), true);
       const body = (await readBody(req)) as { owner?: unknown; name?: unknown; private?: unknown };
       try {
-        const made = await createRepo(p, githubToken(), { owner: typeof body.owner === "string" ? body.owner : undefined, name: typeof body.name === "string" ? body.name : undefined, private: body.private !== false });
+        const made = await createRepo(p, githubToken(), {
+          owner: typeof body.owner === "string" ? body.owner : undefined,
+          name: typeof body.name === "string" ? body.name : undefined,
+          private: body.private !== false,
+        });
         return (json(res, 200, made), true);
       } catch (e) {
         return (fail(e, e instanceof CreateRepoError ? e.status : 400), true);
@@ -146,7 +150,15 @@ export async function threadRoutes(
       return true;
     }
     if (m === "GET" && action === "/diff") return (json(res, 200, threads.diff(id)), true);
-    if (await fileRoute(req, res, action, t.worktree, { local, json, readBody, busy: threads.isRunning(id) ? "the agent is still working; stop it or wait before editing" : undefined })) return true;
+    if (
+      await fileRoute(req, res, action, t.worktree, {
+        local,
+        json,
+        readBody,
+        busy: threads.isRunning(id) ? "the agent is still working; stop it or wait before editing" : undefined,
+      })
+    )
+      return true;
     if (m === "POST" && action === "/messages") {
       const body = (await readBody(req)) as { text?: string };
       threads.send(id, String(body.text ?? ""));
@@ -159,8 +171,20 @@ export async function threadRoutes(
     }
     if (m === "GET" && action === "/push") return (json(res, 200, await threads.pushPreview(id)), true);
     if (m === "POST" && action === "/pr") {
-      const body = (await readBody(req)) as { title?: string; body?: string; confirmed?: boolean; create?: { owner?: string; name?: string; private?: boolean } };
-      const create = body.create && typeof body.create === "object" ? { owner: body.create.owner === undefined ? undefined : String(body.create.owner), name: body.create.name === undefined ? undefined : String(body.create.name), private: body.create.private !== false } : undefined;
+      const body = (await readBody(req)) as {
+        title?: string;
+        body?: string;
+        confirmed?: boolean;
+        create?: { owner?: string; name?: string; private?: boolean };
+      };
+      const create =
+        body.create && typeof body.create === "object"
+          ? {
+              owner: body.create.owner === undefined ? undefined : String(body.create.owner),
+              name: body.create.name === undefined ? undefined : String(body.create.name),
+              private: body.create.private !== false,
+            }
+          : undefined;
       return (json(res, 200, await threads.openPr(id, body.title, body.body, body.confirmed === true, create)), true);
     }
     if (m === "DELETE" && action === "") {
@@ -169,7 +193,17 @@ export async function threadRoutes(
       return (json(res, 200, { ok: true }), true);
     }
   } catch (e) {
-    return (fail(e, e instanceof PushError || e instanceof FileSizeError || e instanceof CreateRepoError ? e.status : /still working|wait for the agent/.test(String(e)) ? 409 : 400), true);
+    return (
+      fail(
+        e,
+        e instanceof PushError || e instanceof FileSizeError || e instanceof CreateRepoError
+          ? e.status
+          : /still working|wait for the agent/.test(String(e))
+            ? 409
+            : 400,
+      ),
+      true
+    );
   }
   return (json(res, 405, { error: "method not allowed" }), true);
 }

@@ -108,21 +108,9 @@ export type EventsContract = z.infer<typeof EventsContractSchema>;
 
 // features/ : living feature state (frontmatter)
 
-export const SDLC_STAGES = [
-  "spec",
-  "plan",
-  "design",
-  "implement",
-  "review",
-  "test",
-  "integrate",
-  "done",
-] as const;
+export const SDLC_STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate", "done"] as const;
 
-export const RoutingOverrideSchema = z.record(
-  z.string(),
-  z.object({ agent: z.string(), model: z.string() }),
-);
+export const RoutingOverrideSchema = z.record(z.string(), z.object({ agent: z.string(), model: z.string() }));
 
 export const FeatureFrontmatterSchema = z.object({
   id: z.string(),

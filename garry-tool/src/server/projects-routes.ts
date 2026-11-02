@@ -1,7 +1,16 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { cloneRepo, forgetToken, githubStatus, listRepos, pollDeviceFlow, saveToken, startDeviceFlow } from "../github/connect.js";
 import { githubToken } from "../github/env.js";
-import { GarryProjectError, createGarryProject, garryProject, listGarryProjects, removeGarryProject, updateGarryProject, useGarryProject, activeGarryProject } from "../project/store.js";
+import {
+  GarryProjectError,
+  createGarryProject,
+  garryProject,
+  listGarryProjects,
+  removeGarryProject,
+  updateGarryProject,
+  useGarryProject,
+  activeGarryProject,
+} from "../project/store.js";
 import { exportGarryProject, importGarryProject, originOf } from "../project/bundle.js";
 import { avatarUrl, projectOwner } from "../project/avatar.js";
 import { json, readBody, type RouteCtx } from "./http.js";
@@ -18,9 +27,11 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
     if (!local) return json(res, 403, { error: "GitHub is connected on the computer running Garry" });
     try {
       if (req.method === "GET" && path === "/api/github") return json(res, 200, await githubStatus());
-      if (req.method === "POST" && path === "/api/github/token") return json(res, 200, await saveToken(String(((await readBody(req)) as { token?: string }).token ?? "")));
+      if (req.method === "POST" && path === "/api/github/token")
+        return json(res, 200, await saveToken(String(((await readBody(req)) as { token?: string }).token ?? "")));
       if (req.method === "POST" && path === "/api/github/device") return json(res, 200, await startDeviceFlow());
-      if (req.method === "POST" && path === "/api/github/device/poll") return json(res, 200, await pollDeviceFlow(String(((await readBody(req)) as { deviceCode?: string }).deviceCode ?? "")));
+      if (req.method === "POST" && path === "/api/github/device/poll")
+        return json(res, 200, await pollDeviceFlow(String(((await readBody(req)) as { deviceCode?: string }).deviceCode ?? "")));
       if (req.method === "DELETE" && path === "/api/github") {
         forgetToken();
         return json(res, 200, await githubStatus());
@@ -80,7 +91,12 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
         const [, id, action] = one;
         if (req.method === "GET" && action === "/export") {
           const store = cfg.threads?.store;
-          const repos = store ? store.projectsOf(id).map((r) => ({ name: r.name, remote: originOf(r.path), ...(r.settings ? { settings: r.settings } : {}) })).filter((r) => r.remote) : [];
+          const repos = store
+            ? store
+                .projectsOf(id)
+                .map((r) => ({ name: r.name, remote: originOf(r.path), ...(r.settings ? { settings: r.settings } : {}) }))
+                .filter((r) => r.remote)
+            : [];
           const bundle = exportGarryProject(id, repos as { name: string; remote: string }[]);
           res.setHeader("content-disposition", `attachment; filename="${id}.garry.json"`);
           return json(res, 200, bundle);
@@ -105,8 +121,16 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
         if (req.method === "DELETE" && !action) {
           const store = cfg.threads?.store;
           // agents at work in it are stopped first, by the human
-          const busy = store ? store.projectsOf(id).flatMap((r) => store.threads(r.id)).filter((t) => cfg.threads!.isRunning(t.id)) : [];
-          if (busy.length) return json(res, 409, { error: `${busy.length} agent${busy.length === 1 ? " is" : "s are"} at work in this project: stop ${busy.length === 1 ? "it" : "them"} first` });
+          const busy = store
+            ? store
+                .projectsOf(id)
+                .flatMap((r) => store.threads(r.id))
+                .filter((t) => cfg.threads!.isRunning(t.id))
+            : [];
+          if (busy.length)
+            return json(res, 409, {
+              error: `${busy.length} agent${busy.length === 1 ? " is" : "s are"} at work in this project: stop ${busy.length === 1 ? "it" : "them"} first`,
+            });
           const now = removeGarryProject(id);
           store?.forgetProjectsOf(id);
           cfg.registry = now.path;

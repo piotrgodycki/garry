@@ -47,7 +47,14 @@ const until = async (f: () => boolean, ms = 10_000) => {
 };
 
 // the app, served the way a static host would: files, and index.html for every route
-const TYPES: Record<string, string> = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".json": "application/json", ".ttf": "font/ttf" };
+const TYPES: Record<string, string> = {
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".png": "image/png",
+  ".json": "application/json",
+  ".ttf": "font/ttf",
+};
 const appServer = createServer((req, res) => {
   const path = normalize(decodeURIComponent(new URL(req.url ?? "/", "http://x").pathname)).replace(/^(\.\.[/\\])+/, "");
   const file = join(app, path);
@@ -81,7 +88,10 @@ await until(() => threads.store.events(busy.id).some((e) => e.type === "tool"));
 const registry = join(home, "registry");
 cpSync(fileURLToPath(new URL("../../testdata/registry/frontend", import.meta.url)), registry, { recursive: true });
 const devices = new DeviceStore(join(home, "devices.json"));
-const server = createGarryServer({ registry, skills: fileURLToPath(new URL("../../skills", import.meta.url)), routing: join(home, "none.json"), threads }, devices);
+const server = createGarryServer(
+  { registry, skills: fileURLToPath(new URL("../../skills", import.meta.url)), routing: join(home, "none.json"), threads },
+  devices,
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 // paired the way a phone pairs: a code from the computer, a token for the device
@@ -111,7 +121,11 @@ try {
       return { all: [...all], bg: getComputedStyle(document.querySelector("#root > div") ?? document.body).backgroundColor };
     });
     expect(`${scheme}: the old signal red is gone`, !colours.all.includes("rgb(255, 34, 0)"));
-    expect(`${scheme}: the page is ${scheme === "light" ? "paper" : "graphite"}`, colours.all.includes(scheme === "light" ? "rgb(243, 244, 246)" : "rgb(17, 18, 20)"), colours.all.slice(0, 12).join(" "));
+    expect(
+      `${scheme}: the page is ${scheme === "light" ? "paper" : "graphite"}`,
+      colours.all.includes(scheme === "light" ? "rgb(243, 244, 246)" : "rgb(17, 18, 20)"),
+      colours.all.slice(0, 12).join(" "),
+    );
     if (scheme === "dark") {
       expect("no errors in the dark", errors.length === 0, errors.join("; "));
       await page.close();
@@ -120,12 +134,23 @@ try {
 
     // what needs you comes first, in the agent's words
     const text = await page.locator("body").innerText();
-    expect("what needs you comes before the agents and the features", text.indexOf("Needs you") >= 0 && text.indexOf("Needs you") < text.indexOf("Agents") && text.indexOf("Agents") < text.indexOf("Features"), text.slice(0, 300));
+    expect(
+      "what needs you comes before the agents and the features",
+      text.indexOf("Needs you") >= 0 && text.indexOf("Needs you") < text.indexOf("Agents") && text.indexOf("Agents") < text.indexOf("Features"),
+      text.slice(0, 300),
+    );
     expect("the question is in the agent's own words", text.includes("Should it be red or blue?"));
-    expect("the stopped agent is there, with Let it fix", text.includes("Stopped before finishing") && (await page.getByRole("button", { name: "Let it fix" }).count()) === 1);
+    expect(
+      "the stopped agent is there, with Let it fix",
+      text.includes("Stopped before finishing") && (await page.getByRole("button", { name: "Let it fix" }).count()) === 1,
+    );
     // the crew: each face in its state
     const faces = await page.locator('[data-testid^="crew-"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")));
-    expect("the crew shows each agent's state on its face", ["crew-dev-wait", "crew-dev-fail", "crew-dev-work", "crew-dev-done"].every((f) => faces.includes(f)), faces.join(", "));
+    expect(
+      "the crew shows each agent's state on its face",
+      ["crew-dev-wait", "crew-dev-fail", "crew-dev-work", "crew-dev-done"].every((f) => faces.includes(f)),
+      faces.join(", "),
+    );
     expect("the working agent says what it does", text.includes("Write NOTES.md"));
     expect("the features follow", text.includes("FEAT-123") && text.includes("New checkout flow with a quick cart"));
 
@@ -133,15 +158,27 @@ try {
     await answer.fill("Blue, like the other actions");
     await page.getByRole("button", { name: "Send" }).click();
     await until(() => threads.store.events(asks).some((e) => e.type === "user" && e.text === "Blue, like the other actions"), 5000);
-    expect("an answer from the phone reaches the agent as your next message", threads.store.events(asks).some((e) => e.type === "user" && e.text === "Blue, like the other actions"));
+    expect(
+      "an answer from the phone reaches the agent as your next message",
+      threads.store.events(asks).some((e) => e.type === "user" && e.text === "Blue, like the other actions"),
+    );
     await until(() => !threads.isRunning(asks));
     await page.getByRole("button", { name: "Let it fix" }).click();
     await until(() => threads.store.events(broke).filter((e) => e.type === "user").length === 2, 5000);
-    expect("Let it fix sends the stopped agent back to work", /fix it/.test((threads.store.events(broke).filter((e) => e.type === "user")[1] as { text: string } | undefined)?.text ?? ""));
+    expect(
+      "Let it fix sends the stopped agent back to work",
+      /fix it/.test((threads.store.events(broke).filter((e) => e.type === "user")[1] as { text: string } | undefined)?.text ?? ""),
+    );
     await until(() => !threads.isRunning(broke));
     // nothing waits now: caught up
-    await page.getByText("Nothing needs you").waitFor({ timeout: 10_000 }).catch(() => undefined);
-    expect("with nothing waiting, one quiet line instead of a card", (await page.getByText("Nothing needs you").count()) === 1 && (await page.getByText("Should it be red or blue?").count()) === 0);
+    await page
+      .getByText("Nothing needs you")
+      .waitFor({ timeout: 10_000 })
+      .catch(() => undefined);
+    expect(
+      "with nothing waiting, one quiet line instead of a card",
+      (await page.getByText("Nothing needs you").count()) === 1 && (await page.getByText("Should it be red or blue?").count()) === 0,
+    );
     if (shots) await page.screenshot({ path: join(shots, "mobile-caught-up.png"), fullPage: true });
     const wide = await page.evaluate(() => document.documentElement.scrollWidth);
     expect("nothing is wider than the phone", wide <= 390, String(wide));

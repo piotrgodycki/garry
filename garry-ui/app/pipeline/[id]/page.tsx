@@ -118,7 +118,10 @@ export default function Activity() {
           <>
             Delegation order:{" "}
             {plan.order.map((s, i) => (
-              <span key={s}>{i > 0 && " → "}<code>{s}</code></span>
+              <span key={s}>
+                {i > 0 && " → "}
+                <code>{s}</code>
+              </span>
             ))}
           </>
         }
@@ -126,7 +129,10 @@ export default function Activity() {
           finished ? (
             <span className="badge ok">Shipped (dry run)</span>
           ) : running !== null ? (
-            <span className="badge run"><span className="dot run" />Task {running} of {plan.tasks.length}</span>
+            <span className="badge run">
+              <span className="dot run" />
+              Task {running} of {plan.tasks.length}
+            </span>
           ) : (
             <span className="badge">Waiting for the agents</span>
           )
@@ -156,7 +162,9 @@ export default function Activity() {
       <section className="section">
         <div className="sectionHead">
           <h2>Services</h2>
-          <span className="count">{plan.order.length} lanes · {plan.tasks.length} tasks</span>
+          <span className="count">
+            {plan.order.length} lanes · {plan.tasks.length} tasks
+          </span>
         </div>
         <div className={styles.lanes}>
           {plan.order.map((svc) => {
@@ -171,7 +179,12 @@ export default function Activity() {
                       ariaLabel={`model for ${svc}`}
                       value={model}
                       onChange={(m) => changeModel(svc, m)}
-                      options={offered(models, model).map((m) => ({ value: m.id, label: m.label, icon: <span className={`tier ${tierOf(m.id)}`} />, group: m.previous ? "Earlier models" : undefined }))}
+                      options={offered(models, model).map((m) => ({
+                        value: m.id,
+                        label: m.label,
+                        icon: <span className={`tier ${tierOf(m.id)}`} />,
+                        group: m.previous ? "Earlier models" : undefined,
+                      }))}
                     />
                   </>
                 </div>
@@ -184,8 +197,12 @@ export default function Activity() {
                           <span className={`dot ${dotOf(st)}`} />
                           {t.stage}
                         </div>
-                        <div className={styles.stageMeta}>{t.agent} · {label(t.model)}</div>
-                        <div className={styles.skills} title={t.skills.join(", ")}>{t.skills.join(", ")}</div>
+                        <div className={styles.stageMeta}>
+                          {t.agent} · {label(t.model)}
+                        </div>
+                        <div className={styles.skills} title={t.skills.join(", ")}>
+                          {t.skills.join(", ")}
+                        </div>
                       </div>
                     );
                   })}

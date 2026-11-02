@@ -161,8 +161,12 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   color: var(--color-text-default);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 18px -8px rgba(0, 0, 0, 0.18);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 6px 18px -8px rgba(0, 0, 0, 0.18);
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 .block::before {
   /* a strip of the block's colour along the top */
@@ -174,11 +178,15 @@
   background: var(--tone);
 }
 .block:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 10px 24px -8px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 10px 24px -8px rgba(0, 0, 0, 0.25);
 }
 .blockSelected {
   border-color: var(--tone);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--tone) 35%, transparent), 0 10px 24px -8px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--tone) 35%, transparent),
+    0 10px 24px -8px rgba(0, 0, 0, 0.25);
 }
 .error {
   border-color: var(--accent);
@@ -187,16 +195,36 @@
 .warn {
   border-color: #d97706;
 }
-.g_client { --tone: #6366f1; }
-.g_service { --tone: var(--accent); }
-.g_edge { --tone: #0ea5e9; }
-.g_compute { --tone: #f59e0b; }
-.g_data { --tone: #10b981; }
-.g_storage { --tone: #14b8a6; }
-.g_messaging { --tone: #ec4899; }
-.g_identity { --tone: #8b5cf6; }
-.g_content { --tone: #f97316; }
-.g_external { --tone: #64748b; }
+.g_client {
+  --tone: #6366f1;
+}
+.g_service {
+  --tone: var(--accent);
+}
+.g_edge {
+  --tone: #0ea5e9;
+}
+.g_compute {
+  --tone: #f59e0b;
+}
+.g_data {
+  --tone: #10b981;
+}
+.g_storage {
+  --tone: #14b8a6;
+}
+.g_messaging {
+  --tone: #ec4899;
+}
+.g_identity {
+  --tone: #8b5cf6;
+}
+.g_content {
+  --tone: #f97316;
+}
+.g_external {
+  --tone: #64748b;
+}
 .blockHead {
   display: flex;
   align-items: center;
@@ -386,7 +414,9 @@
 .relationPath {
   stroke: var(--color-text-muted) !important;
   stroke-width: 1.8px !important;
-  transition: opacity 0.15s, stroke 0.15s;
+  transition:
+    opacity 0.15s,
+    stroke 0.15s;
 }
 .relation {
   position: absolute;
@@ -402,7 +432,10 @@
   font-weight: 550;
   white-space: nowrap;
   pointer-events: all;
-  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 .relationProxy {
   border-style: dashed;

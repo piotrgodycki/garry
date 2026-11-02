@@ -1,4 +1,10 @@
 #!/bin/sh
-# Garry's own repository: refuse staged files over 5,000 tokens (bytes / 4).
-# Switched on by `pnpm install` (core.hooksPath = .githooks); see garry-tool/src/hooks/filesize.ts.
-exec node --import tsx garry-tool/src/cli.ts hooks check
+# Switched on by `pnpm install` (core.hooksPath = .githooks).
+set -e
+node --import tsx garry-tool/src/cli.ts hooks check
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+echo "$staged" | xargs npx --no-install prettier --check --ignore-unknown
+code=$(echo "$staged" | grep -E '\.(ts|tsx|js|mjs)$' || true)
+[ -z "$code" ] || echo "$code" | xargs npx --no-install eslint --no-warn-ignored

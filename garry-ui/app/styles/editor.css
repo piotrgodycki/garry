@@ -32,18 +32,56 @@
     --syn-invalid: #ff8a8a;
   }
 }
-.tok-keyword, .tok-operatorKeyword, .tok-modifier { color: var(--syn-keyword); }
-.tok-variableName.tok-definition, .tok-propertyName.tok-definition, .tok-function, .tok-labelName { color: var(--syn-name); }
-.tok-typeName, .tok-className, .tok-namespace { color: var(--syn-type); }
-.tok-string, .tok-string2, .tok-url { color: var(--syn-string); }
-.tok-number, .tok-bool, .tok-atom { color: var(--syn-number); }
-.tok-comment { color: var(--syn-comment); font-style: italic; }
-.tok-meta, .tok-processingInstruction { color: var(--syn-meta); }
-.tok-heading { font-weight: 700; color: var(--syn-name); }
-.tok-link { text-decoration: underline; }
-.tok-emphasis { font-style: italic; }
-.tok-strong { font-weight: 700; }
-.tok-invalid { color: var(--syn-invalid); }
+.tok-keyword,
+.tok-operatorKeyword,
+.tok-modifier {
+  color: var(--syn-keyword);
+}
+.tok-variableName.tok-definition,
+.tok-propertyName.tok-definition,
+.tok-function,
+.tok-labelName {
+  color: var(--syn-name);
+}
+.tok-typeName,
+.tok-className,
+.tok-namespace {
+  color: var(--syn-type);
+}
+.tok-string,
+.tok-string2,
+.tok-url {
+  color: var(--syn-string);
+}
+.tok-number,
+.tok-bool,
+.tok-atom {
+  color: var(--syn-number);
+}
+.tok-comment {
+  color: var(--syn-comment);
+  font-style: italic;
+}
+.tok-meta,
+.tok-processingInstruction {
+  color: var(--syn-meta);
+}
+.tok-heading {
+  font-weight: 700;
+  color: var(--syn-name);
+}
+.tok-link {
+  text-decoration: underline;
+}
+.tok-emphasis {
+  font-style: italic;
+}
+.tok-strong {
+  font-weight: 700;
+}
+.tok-invalid {
+  color: var(--syn-invalid);
+}
 
 /* ---- dropdowns (Select.tsx): the dashboard's own, in place of the browser's -- */
 .gselect {

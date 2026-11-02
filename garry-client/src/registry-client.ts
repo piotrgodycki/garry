@@ -1,4 +1,32 @@
-import type { ArchIssue, ArchSuggestion, Architecture, ArchitectureState, Feature, RoutingProfile, RoutingProfiles, Stack, StackIssue, Stacks, Model, NewFeature, NewService, Plan, PullRequest, Registry, RegistryIssue, RegistryService, Routing, SkillSummary, Layer, Layers, LayerScope, AgentContext, StreamEvent, ServiceKindInfo, WizardAnswers } from "./types";
+import type {
+  ArchIssue,
+  ArchSuggestion,
+  Architecture,
+  ArchitectureState,
+  Feature,
+  RoutingProfile,
+  RoutingProfiles,
+  Stack,
+  StackIssue,
+  Stacks,
+  Model,
+  NewFeature,
+  NewService,
+  Plan,
+  PullRequest,
+  Registry,
+  RegistryIssue,
+  RegistryService,
+  Routing,
+  SkillSummary,
+  Layer,
+  Layers,
+  LayerScope,
+  AgentContext,
+  StreamEvent,
+  ServiceKindInfo,
+  WizardAnswers,
+} from "./types";
 import { GarryError, parseStream } from "./connect";
 import { HttpClient } from "./http";
 
@@ -14,14 +42,20 @@ export class RegistryClient extends HttpClient {
   registry = () => this.request<Registry>("/api/registry");
   /** The architecture board, every block Garry offers, your services as blocks, and what does not fit. */
   architecture = (board = "") => this.request<ArchitectureState>(`/api/architecture${board ? `?board=${encodeURIComponent(board)}` : ""}`);
-  saveArchitecture = (a: Architecture, board = "") => this.post<{ architecture: Architecture; issues: ArchIssue[] }>(`/api/architecture${board ? `?board=${encodeURIComponent(board)}` : ""}`, a);
+  saveArchitecture = (a: Architecture, board = "") =>
+    this.post<{ architecture: Architecture; issues: ArchIssue[] }>(`/api/architecture${board ? `?board=${encodeURIComponent(board)}` : ""}`, a);
   /** Empties a board (this computer only). */
-  resetArchitecture = (board = "") => this.request<{ ok: true }>(`/api/architecture${board ? `?board=${encodeURIComponent(board)}` : ""}`, { method: "DELETE" });
+  resetArchitecture = (board = "") =>
+    this.request<{ ok: true }>(`/api/architecture${board ? `?board=${encodeURIComponent(board)}` : ""}`, { method: "DELETE" });
   /** The board the wizard's answers make (nothing is saved). */
   wizardArchitecture = (answers: WizardAnswers) => this.post<{ architecture: Architecture; issues: ArchIssue[] }>("/api/architecture/wizard", { answers });
   /** Quick fixes from the rules; with ai, Garry's own suggestions too (Claude Code on the computer running Garry; can take a minute). */
   suggestArchitecture = (board: Architecture, goal = "", ai = false) =>
-    this.post<{ quickFixes: ArchSuggestion[]; summary?: string; suggestions?: ArchSuggestion[]; error?: string }>("/api/architecture/suggest", { board, goal, ai });
+    this.post<{ quickFixes: ArchSuggestion[]; summary?: string; suggestions?: ArchSuggestion[]; error?: string }>("/api/architecture/suggest", {
+      board,
+      goal,
+      ai,
+    });
   checkArchitecture = (a: Architecture) => this.post<{ issues: ArchIssue[] }>("/api/architecture/check", a).then((r) => r.issues);
   /** The stacks, Garry's technology catalog and its categories. */
   stacks = () => this.request<Stacks>("/api/stacks");
@@ -40,7 +74,12 @@ export class RegistryClient extends HttpClient {
   /** Gives a local skill to every project's agents, or only where a layer turns it on. */
   setSkillEverywhere = (name: string, on: boolean) => this.post<{ ok: true }>(`/api/skills/${encodeURIComponent(name)}/everywhere`, { on });
   /** The layers of the active project, with its repositories and services to set them for. */
-  layers = () => this.request<{ layers: Layers; repos: { id: string; name: string }[]; services: { name: string; repo: string; inRepo: string | null; stackRef: string | null }[] }>("/api/layers");
+  layers = () =>
+    this.request<{
+      layers: Layers;
+      repos: { id: string; name: string }[];
+      services: { name: string; repo: string; inRepo: string | null; stackRef: string | null }[];
+    }>("/api/layers");
   saveLayer = (scope: LayerScope, layer: Layer) => this.post<{ layers: Layers; layer: Layer }>("/api/layers", { scope, layer });
   /** What an agent in one repository gets, all layers added up. */
   agentContext = (repoId: string) => this.request<AgentContext>(`/api/layers/agent?repo=${encodeURIComponent(repoId)}`);
@@ -52,7 +91,8 @@ export class RegistryClient extends HttpClient {
   /** Creates a profile, starting as a copy of `from` (default: Garry's example). */
   createRoutingProfile = (name: string, from = "default", description?: string) => this.post<RoutingProfile>("/api/routings", { name, from, description });
   /** Changes one stage (or "defaults") of a profile of your own. */
-  setProfileRoute = (profile: string, stage: string, route: { model?: string; agent?: string }) => this.post<RoutingProfile>("/api/routing", { profile, stage, ...route });
+  setProfileRoute = (profile: string, stage: string, route: { model?: string; agent?: string }) =>
+    this.post<RoutingProfile>("/api/routing", { profile, stage, ...route });
   useRoutingProfile = (name: string) => this.post<RoutingProfiles>("/api/routings/active", { name });
   /** Removes a profile (this computer only). */
   removeRoutingProfile = (name: string) => this.request<RoutingProfiles>(`/api/routings/${encodeURIComponent(name)}`, { method: "DELETE" });

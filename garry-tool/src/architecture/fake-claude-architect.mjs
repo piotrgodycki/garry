@@ -9,7 +9,12 @@ const first = board.nodes[0]?.id ?? "x";
 const answer = {
   summary: "Add a database next to the API.",
   suggestions: [
-    { title: "Use Neon for SQL", why: "Serverless Postgres that scales to zero.", add: [{ block: "neon" }], links: [{ from: first, to: "new:0", capability: "sql" }] },
+    {
+      title: "Use Neon for SQL",
+      why: "Serverless Postgres that scales to zero.",
+      add: [{ block: "neon" }],
+      links: [{ from: first, to: "new:0", capability: "sql" }],
+    },
     { title: "Made up", why: "Not a real block.", add: [{ block: "quantum-db" }], links: [{ from: first, to: "new:0", capability: "sql" }] },
   ],
 };

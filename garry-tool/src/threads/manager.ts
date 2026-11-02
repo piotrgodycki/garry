@@ -131,7 +131,19 @@ export class ThreadManager {
     const owner = this.mustGet(threadId);
     const root = owner.sharesWith ? this.mustGet(owner.sharesWith) : owner;
     if (!prompt.trim()) throw new Error("the prompt is empty");
-    const t = this.store.save({ ...root, id: this.store.newId(), title: title.trim().slice(0, 80), status: "idle", sessionId: null, createdAt: now(), updatedAt: now(), commit: undefined, pr: undefined, sharesWith: root.id, role });
+    const t = this.store.save({
+      ...root,
+      id: this.store.newId(),
+      title: title.trim().slice(0, 80),
+      status: "idle",
+      sessionId: null,
+      createdAt: now(),
+      updatedAt: now(),
+      commit: undefined,
+      pr: undefined,
+      sharesWith: root.id,
+      role,
+    });
     this.send(t.id, prompt);
     return this.store.get(t.id)!;
   }
@@ -199,13 +211,31 @@ export class ThreadManager {
     const slug = remoteSlug(project.path);
     const token = githubToken();
     const create = slug ? null : await proposeRepo(project, token);
-    const base = settings.baseBranch || (slug && token ? await new GitHub(token).defaultBranch(slug.owner, slug.name).catch(() => "") : "") || (create ? currentBranch(project.path) : "") || "the default branch";
+    const base =
+      settings.baseBranch ||
+      (slug && token ? await new GitHub(token).defaultBranch(slug.owner, slug.name).catch(() => "") : "") ||
+      (create ? currentBranch(project.path) : "") ||
+      "the default branch";
     const commits = git(t.worktree, ["log", "--format=%h%x09%s", `${t.baseSha}..HEAD`])
       .split("\n")
       .filter(Boolean)
       .map((l) => ({ sha: l.split("\t")[0], subject: l.split("\t").slice(1).join("\t") }));
-    const noHome = !slug && !create ? (token ? "this repository has an origin that is not on GitHub" : "this repository is not on GitHub: connect GitHub (Settings) and Garry offers to create it") : null;
-    return { branch: t.branch, remote: slug ? `${slug.owner}/${slug.name}` : null, base, commits, mode: settings.push, draft: settings.draftPr, refused: pushRefusal(settings, t.branch, base) ?? noHome, create };
+    const noHome =
+      !slug && !create
+        ? token
+          ? "this repository has an origin that is not on GitHub"
+          : "this repository is not on GitHub: connect GitHub (Settings) and Garry offers to create it"
+        : null;
+    return {
+      branch: t.branch,
+      remote: slug ? `${slug.owner}/${slug.name}` : null,
+      base,
+      commits,
+      mode: settings.push,
+      draft: settings.draftPr,
+      refused: pushRefusal(settings, t.branch, base) ?? noHome,
+      create,
+    };
   }
 
   /**
@@ -214,7 +244,13 @@ export class ThreadManager {
    * the person saw the preview), and never to a protected branch or the base.
    * Never forced: a push GitHub would have to overwrite fails.
    */
-  async openPr(threadId: string, title?: string, body?: string, confirmed = false, create?: { owner?: string; name?: string; private?: boolean }): Promise<Thread> {
+  async openPr(
+    threadId: string,
+    title?: string,
+    body?: string,
+    confirmed = false,
+    create?: { owner?: string; name?: string; private?: boolean },
+  ): Promise<Thread> {
     const t = this.mustGet(threadId);
     const project = this.store.project(t.projectId)!;
     const settings = this.store.settings(t.projectId);
@@ -244,7 +280,8 @@ export class ThreadManager {
     const qa = assessQa(parseDiff(git(t.worktree, ["diff", "--no-color", `${t.baseSha}...HEAD`])));
     const text = [body ?? `Built with Garry in thread ${t.id}.`, qaMarkdown(qa)].join("\n\n");
     t.pr = await gh.openPr(slug.owner, slug.name, t.branch, base, title?.trim() || t.title, text, settings.draftPr);
-    if (qa.needed) await gh.setLabel(slug.owner, slug.name, t.pr.number, QA_LABEL, true, "f97316", "Someone has to try this before it ships").catch(() => undefined);
+    if (qa.needed)
+      await gh.setLabel(slug.owner, slug.name, t.pr.number, QA_LABEL, true, "f97316", "Someone has to try this before it ships").catch(() => undefined);
     this.store.save(t);
     this.emit(t.id, { type: "git", action: "pr", detail: t.pr.url, at: now() });
     return t;

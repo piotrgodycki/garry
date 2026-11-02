@@ -29,10 +29,8 @@ export interface ValidationIssue {
  */
 export function validateRegistry(root: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
-  const err = (where: string, message: string) =>
-    issues.push({ level: "error", where, message });
-  const warn = (where: string, message: string) =>
-    issues.push({ level: "warn", where, message });
+  const err = (where: string, message: string) => issues.push({ level: "error", where, message });
+  const warn = (where: string, message: string) => issues.push({ level: "warn", where, message });
 
   const zodMsg = (e: { issues: { path: PropertyKey[]; message: string }[] }) =>
     e.issues.map((i) => `${i.path.map(String).join(".") || "<root>"}: ${i.message}`).join("; ");
@@ -58,8 +56,7 @@ export function validateRegistry(root: string): ValidationIssue[] {
       }
       services[r.data.name] = r.data;
       const stem = basename(f).replace(/\.ya?ml$/, "");
-      if (r.data.name !== stem)
-        warn(`catalog/${f}`, `file name (${stem}) does not match name (${r.data.name})`);
+      if (r.data.name !== stem) warn(`catalog/${f}`, `file name (${stem}) does not match name (${r.data.name})`);
     }
   }
 
@@ -81,8 +78,7 @@ export function validateRegistry(root: string): ValidationIssue[] {
         continue;
       }
       stacks.add(r.data.name);
-      for (const i of checkStack(r.data.technologies.map((t) => t.id)))
-        if (i.level !== "info") warn(`stacks/${f}`, i.message);
+      for (const i of checkStack(r.data.technologies.map((t) => t.id))) if (i.level !== "info") warn(`stacks/${f}`, i.message);
     }
   }
   for (const [name, svc] of Object.entries(services)) {
@@ -91,13 +87,23 @@ export function validateRegistry(root: string): ValidationIssue[] {
 
   // the architecture boards (optional): the whole project's architecture.json and one per
   // repository in architecture/; each parses, and nothing on it is broken
-  const boards = ["architecture.json", ...(existsSync(join(root, "architecture")) ? readdirSync(join(root, "architecture")).filter((f) => f.endsWith(".json")).map((f) => `architecture/${f}`) : [])];
+  const boards = [
+    "architecture.json",
+    ...(existsSync(join(root, "architecture"))
+      ? readdirSync(join(root, "architecture"))
+          .filter((f) => f.endsWith(".json"))
+          .map((f) => `architecture/${f}`)
+      : []),
+  ];
   for (const board of boards) {
     try {
       const r = ArchitectureSchema.safeParse(JSON.parse(readFileSync(join(root, board), "utf8")));
       if (!r.success) err(board, zodMsg(r.error));
       else
-        for (const i of checkArchitecture(r.data, Object.values(services).map((s) => ({ name: s.name, kind: s.kind, db: s.db }))))
+        for (const i of checkArchitecture(
+          r.data,
+          Object.values(services).map((s) => ({ name: s.name, kind: s.kind, db: s.db })),
+        ))
           if (i.level === "error") err(board, i.message);
     } catch (e) {
       if (existsSync(join(root, board))) err(board, `invalid JSON: ${(e as Error).message}`);
@@ -156,8 +162,7 @@ export function validateRegistry(root: string): ValidationIssue[] {
         continue;
       }
       for (const m of modules) {
-        if (!target.exposes.includes(m))
-          err(`catalog/${name}`, `consumes ${dep}:${m}, but ${dep} does not expose it`);
+        if (!target.exposes.includes(m)) err(`catalog/${name}`, `consumes ${dep}:${m}, but ${dep} does not expose it`);
       }
     }
   }
@@ -170,11 +175,7 @@ export function validateRegistry(root: string): ValidationIssue[] {
         continue;
       }
       for (const e of r.exposes) {
-        if (!svc.exposes.includes(e))
-          err(
-            "contracts/remotes.json",
-            `remote ${rname} declares expose ${e}, missing in catalog/${rname}`,
-          );
+        if (!svc.exposes.includes(e)) err("contracts/remotes.json", `remote ${rname} declares expose ${e}, missing in catalog/${rname}`);
       }
     }
   }
@@ -182,8 +183,7 @@ export function validateRegistry(root: string): ValidationIssue[] {
   if (events) {
     for (const [ename, ev] of Object.entries(events)) {
       for (const p of [...ev.producers, ...ev.consumers]) {
-        if (!services[p])
-          warn("contracts/events.json", `event ${ename} references an unknown service ${p}`);
+        if (!services[p]) warn("contracts/events.json", `event ${ename} references an unknown service ${p}`);
       }
     }
   }
@@ -195,8 +195,7 @@ export function validateRegistry(root: string): ValidationIssue[] {
       if (!services[svc]) warn("contracts/api.json", `api declares unknown service ${svc}`);
     }
     for (const [name, svc] of Object.entries(services)) {
-      if (svc.api && !api[name])
-        warn(`catalog/${name}`, `manifest declares an api but contracts/api.json has no entry for ${name}`);
+      if (svc.api && !api[name]) warn(`catalog/${name}`, `manifest declares an api but contracts/api.json has no entry for ${name}`);
     }
   }
 

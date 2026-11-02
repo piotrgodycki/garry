@@ -57,7 +57,11 @@ try {
   expect("the arrow key opens the list", await list.isVisible());
   expect("it says it is open", (await picker.getAttribute("aria-expanded")) === "true");
   const options = await list.getByRole("option").allInnerTexts();
-  expect("it lists the current models, not the earlier ones", options.join("|").includes("Sonnet 5.5") && !options.join("|").includes("Opus 4.8"), options.join("|"));
+  expect(
+    "it lists the current models, not the earlier ones",
+    options.join("|").includes("Sonnet 5.5") && !options.join("|").includes("Opus 4.8"),
+    options.join("|"),
+  );
   expect("the chosen one is marked", (await list.getByRole("option", { selected: true }).innerText()).includes("Opus 5.5"));
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter");
@@ -101,8 +105,16 @@ try {
   await page.mouse.wheel(0, 120);
   await page.waitForTimeout(300);
   const then = await at();
-  expect("it follows its picker when the page scrolls", (await stacks.isVisible()) && beside(first) && beside(then) && then.picker.y < first.picker.y, JSON.stringify({ first, then }));
-  await stacks.getByRole("option", { name: /Ready-made|PERN/ }).first().click().catch(() => undefined);
+  expect(
+    "it follows its picker when the page scrolls",
+    (await stacks.isVisible()) && beside(first) && beside(then) && then.picker.y < first.picker.y,
+    JSON.stringify({ first, then }),
+  );
+  await stacks
+    .getByRole("option", { name: /Ready-made|PERN/ })
+    .first()
+    .click()
+    .catch(() => undefined);
   await page.keyboard.press("Escape");
 
   // the Files explorer clips what overflows it; the folder list must still show whole

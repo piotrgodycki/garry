@@ -86,30 +86,64 @@ export default function ThreadScreen() {
       <Stack.Screen options={{ title: thread.title }} />
       <ScrollView ref={scroll} contentContainerStyle={s.page} onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}>
         {events.map((e, i) => {
-          if (e.type === "user") return <View key={i} style={[s.user, { borderLeftColor: p.plan, backgroundColor: p.surface3 }]}><Body style={{ fontWeight: "700" }}>{e.text}</Body></View>;
+          if (e.type === "user")
+            return (
+              <View key={i} style={[s.user, { borderLeftColor: p.plan, backgroundColor: p.surface3 }]}>
+                <Body style={{ fontWeight: "700" }}>{e.text}</Body>
+              </View>
+            );
           if (e.type === "text") return <Body key={i}>{e.text}</Body>;
-          if (e.type === "tool") return <Text key={i} style={[mono, s.tool, { color: p.muted }]}><Text style={{ color: p.text, fontWeight: "700" }}>{e.name}</Text> {e.summary}</Text>;
-          if (e.type === "tool_result" && !e.ok) return <Text key={i} style={[mono, s.tool, { color: p.fail }]}>{e.preview}</Text>;
+          if (e.type === "tool")
+            return (
+              <Text key={i} style={[mono, s.tool, { color: p.muted }]}>
+                <Text style={{ color: p.text, fontWeight: "700" }}>{e.name}</Text> {e.summary}
+              </Text>
+            );
+          if (e.type === "tool_result" && !e.ok)
+            return (
+              <Text key={i} style={[mono, s.tool, { color: p.fail }]}>
+                {e.preview}
+              </Text>
+            );
           if (e.type === "turn_end") return <Label key={i}>{e.ok ? "Turn done" : "Turn stopped"}</Label>;
-          if (e.type === "git") return <Label key={i}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : e.action === "repo" ? "Repository created on GitHub" : "Pull request opened"}</Label>;
-          if (e.type === "error") return <Body key={i} style={{ color: p.fail }}>{e.message}</Body>;
+          if (e.type === "git")
+            return (
+              <Label key={i}>
+                {e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : e.action === "repo" ? "Repository created on GitHub" : "Pull request opened"}
+              </Label>
+            );
+          if (e.type === "error")
+            return (
+              <Body key={i} style={{ color: p.fail }}>
+                {e.message}
+              </Body>
+            );
           return null;
         })}
         {running && <Label live>Working</Label>}
 
         <Card>
-          <Label>Changes · {diff?.files.length ?? 0} {diff?.files.length === 1 ? "file" : "files"}</Label>
+          <Label>
+            Changes · {diff?.files.length ?? 0} {diff?.files.length === 1 ? "file" : "files"}
+          </Label>
           {diff?.files.map((f) => (
             <Text key={f.path} style={[mono, { color: p.text, fontSize: 13 }]}>
-              {f.path}  <Text style={{ color: p.muted }}>+{f.additions} −{f.deletions}</Text>
+              {f.path}{" "}
+              <Text style={{ color: p.muted }}>
+                +{f.additions} −{f.deletions}
+              </Text>
             </Text>
           ))}
           {thread.pr ? (
             <Button onPress={() => void Linking.openURL(thread.pr!.url)}>Open pull request #{thread.pr.number}</Button>
           ) : (
             <View style={{ gap: 8 }}>
-              <Button disabled={running || !diff?.uncommitted} onPress={() => void act(() => client.commitThread(id, ""), "Commit these changes")}>Commit</Button>
-              <Button kind="ghost" disabled={running || !thread.commit || Boolean(diff?.uncommitted)} onPress={() => void openPr()}>Open pull request</Button>
+              <Button disabled={running || !diff?.uncommitted} onPress={() => void act(() => client.commitThread(id, ""), "Commit these changes")}>
+                Commit
+              </Button>
+              <Button kind="ghost" disabled={running || !thread.commit || Boolean(diff?.uncommitted)} onPress={() => void openPr()}>
+                Open pull request
+              </Button>
             </View>
           )}
         </Card>
@@ -127,9 +161,13 @@ export default function ThreadScreen() {
           style={[s.input, { color: p.text, borderColor: p.lineStrong, backgroundColor: p.surface }]}
         />
         {running ? (
-          <Button kind="danger" onPress={() => void act(() => client.stopThread(id))}>Stop</Button>
+          <Button kind="danger" onPress={() => void act(() => client.stopThread(id))}>
+            Stop
+          </Button>
         ) : (
-          <Button disabled={!message.trim()} onPress={() => void act(async () => (await client.sendMessage(id, message), setMessage("")))}>Send</Button>
+          <Button disabled={!message.trim()} onPress={() => void act(async () => (await client.sendMessage(id, message), setMessage("")))}>
+            Send
+          </Button>
         )}
       </View>
     </View>

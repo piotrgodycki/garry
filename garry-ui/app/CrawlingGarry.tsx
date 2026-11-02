@@ -19,7 +19,19 @@ const A = 0.24; // how much a segment stretches and squeezes
 const K = 1.35; // contraction waves along the body
 const HEIGHT = 92;
 
-type Paint = { worm: string; ring: string; clay: string; ink: string; soil: string; soil2: string; pebble: string; leaf: string; light: string; shade: string; trail: string };
+type Paint = {
+  worm: string;
+  ring: string;
+  clay: string;
+  ink: string;
+  soil: string;
+  soil2: string;
+  pebble: string;
+  leaf: string;
+  light: string;
+  shade: string;
+  trail: string;
+};
 
 const read = (el: Element): Paint => {
   const cs = getComputedStyle(el);
@@ -264,7 +276,8 @@ export default function CrawlingGarry({ busy = false }: { busy?: boolean }) {
         path.lineTo(top[N - 1][0], top[N - 1][1]);
         const tail = Math.atan2(ny[N - 1], nx[N - 1]);
         path.arc(xs[N - 1], ys[N - 1], w[N - 1] / 2, tail + Math.PI, tail + Math.PI * 2, true);
-        for (let i = N - 2; i > 0; i--) path.quadraticCurveTo(bottom[i][0], bottom[i][1], (bottom[i][0] + bottom[i - 1][0]) / 2, (bottom[i][1] + bottom[i - 1][1]) / 2);
+        for (let i = N - 2; i > 0; i--)
+          path.quadraticCurveTo(bottom[i][0], bottom[i][1], (bottom[i][0] + bottom[i - 1][0]) / 2, (bottom[i][1] + bottom[i - 1][1]) / 2);
         path.lineTo(bottom[0][0], bottom[0][1]);
         const head = Math.atan2(ny[0], nx[0]);
         path.arc(xs[0], ys[0], w[0] / 2, head, head + Math.PI, true);

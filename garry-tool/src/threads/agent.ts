@@ -60,7 +60,14 @@ export function toEvents(line: Record<string, unknown>): { events: ThreadEvent[]
     const events: ThreadEvent[] = [];
     for (const c of content) {
       if (c.type === "text" && typeof c.text === "string" && c.text.trim()) events.push({ type: "text", text: c.text, at });
-      if (c.type === "tool_use") events.push({ type: "tool", id: String(c.id), name: String(c.name), summary: summarize(String(c.name), (c.input ?? {}) as Record<string, unknown>), at });
+      if (c.type === "tool_use")
+        events.push({
+          type: "tool",
+          id: String(c.id),
+          name: String(c.name),
+          summary: summarize(String(c.name), (c.input ?? {}) as Record<string, unknown>),
+          at,
+        });
     }
     return { events };
   }
@@ -137,7 +144,11 @@ export function runTurn(opts: TurnOptions, onEvent: (e: ThreadEvent) => void): R
     });
     child.on("error", (e) => {
       const missing = (e as NodeJS.ErrnoException).code === "ENOENT";
-      onEvent({ type: "error", message: missing ? `${bin} not found: install Claude Code and sign in (claude), or set GARRY_CLAUDE_BIN` : String(e.message), at: now() });
+      onEvent({
+        type: "error",
+        message: missing ? `${bin} not found: install Claude Code and sign in (claude), or set GARRY_CLAUDE_BIN` : String(e.message),
+        at: now(),
+      });
       resolve({ ok: false, sessionId });
     });
     child.on("close", (code, signal) => {

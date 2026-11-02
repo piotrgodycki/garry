@@ -49,7 +49,12 @@ export class GitHub {
 
   /** A new repository: the token's own (org null) or an organization's. */
   async createRepo(org: string | null, name: string, priv: boolean, description: string): Promise<{ owner: string; name: string; url: string }> {
-    const r = await this.api<{ name: string; html_url: string; owner: { login: string } }>("POST", org ? `/orgs/${org}/repos` : "/user/repos", { name, private: priv, description, auto_init: false });
+    const r = await this.api<{ name: string; html_url: string; owner: { login: string } }>("POST", org ? `/orgs/${org}/repos` : "/user/repos", {
+      name,
+      private: priv,
+      description,
+      auto_init: false,
+    });
     return { owner: r.owner.login, name: r.name, url: r.html_url };
   }
 
@@ -159,10 +164,7 @@ export class GitHub {
 
   /** Rolls up the check runs for a commit into one status. */
   private async checks(owner: string, name: string, sha: string): Promise<PrState["checks"]> {
-    const runs = await this.api<{ check_runs: { conclusion: string | null }[] }>(
-      "GET",
-      `/repos/${owner}/${name}/commits/${sha}/check-runs`,
-    );
+    const runs = await this.api<{ check_runs: { conclusion: string | null }[] }>("GET", `/repos/${owner}/${name}/commits/${sha}/check-runs`);
     if (runs.check_runs.length === 0) return "none";
     if (runs.check_runs.some((r) => r.conclusion === "failure")) return "failing";
     if (runs.check_runs.some((r) => r.conclusion === null)) return "pending";

@@ -129,9 +129,18 @@ export async function listRepos(token: string, query = ""): Promise<RepoSummary[
   });
   if (!res.ok) throw new Error(`GitHub answered ${res.status}`);
   const q = query.trim().toLowerCase();
-  return ((await res.json()) as { full_name: string; description: string | null; private: boolean; default_branch: string; updated_at: string; clone_url: string }[])
+  return (
+    (await res.json()) as { full_name: string; description: string | null; private: boolean; default_branch: string; updated_at: string; clone_url: string }[]
+  )
     .filter((r) => !q || r.full_name.toLowerCase().includes(q))
-    .map((r) => ({ fullName: r.full_name, description: r.description, private: r.private, defaultBranch: r.default_branch, updatedAt: r.updated_at, cloneUrl: r.clone_url }));
+    .map((r) => ({
+      fullName: r.full_name,
+      description: r.description,
+      private: r.private,
+      defaultBranch: r.default_branch,
+      updatedAt: r.updated_at,
+      cloneUrl: r.clone_url,
+    }));
 }
 
 /** git -c options that authenticate HTTPS to GitHub for one command, without writing the token anywhere. */
@@ -147,6 +156,9 @@ export function cloneRepo(token: string, fullName: string): string {
   if (existsSync(join(dir, ".git"))) return dir;
   mkdirSync(dirname(dir), { recursive: true });
   const base = web() === "https://github.com" ? "https://github.com" : web();
-  execFileSync("git", [...gitAuthArgs(token), "clone", "--quiet", `${base}/${fullName}.git`, dir], { stdio: ["ignore", "ignore", "pipe"], timeout: 10 * 60_000 });
+  execFileSync("git", [...gitAuthArgs(token), "clone", "--quiet", `${base}/${fullName}.git`, dir], {
+    stdio: ["ignore", "ignore", "pipe"],
+    timeout: 10 * 60_000,
+  });
   return dir;
 }

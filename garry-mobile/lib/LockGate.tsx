@@ -4,6 +4,7 @@ import { useConnection } from "./connection";
 import { biometricLabel } from "./biometrics";
 import { usePalette } from "./theme";
 import { Body, Button, Title } from "./ui";
+import icon from "../assets/icon.png";
 
 /**
  * Nothing of Garry shows while the app is locked (iOS, Face ID on), and the
@@ -19,7 +20,7 @@ export function LockGate({ children }: { children: ReactNode }) {
   if (locked) {
     return (
       <View style={[s.fill, s.center, { backgroundColor: p.bg }]}>
-        <Image source={require("../assets/icon.png")} style={s.icon} accessibilityIgnoresInvertColors />
+        <Image source={icon} style={s.icon} accessibilityIgnoresInvertColors />
         <Title style={{ fontSize: 22 }}>Garry is locked</Title>
         <Body muted>Unlock with {method} to see your work.</Body>
         <View style={{ alignSelf: "stretch" }}>
@@ -31,7 +32,11 @@ export function LockGate({ children }: { children: ReactNode }) {
   return (
     <View style={s.fill}>
       {children}
-      {covered && <View style={[StyleSheet.absoluteFill, s.center, { backgroundColor: p.bg }]}><Image source={require("../assets/icon.png")} style={s.icon} /></View>}
+      {covered && (
+        <View style={[StyleSheet.absoluteFill, s.center, { backgroundColor: p.bg }]}>
+          <Image source={icon} style={s.icon} />
+        </View>
+      )}
     </View>
   );
 }

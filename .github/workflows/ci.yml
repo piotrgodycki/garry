@@ -23,6 +23,10 @@ jobs:
           cache: pnpm
       - name: Install
         run: pnpm install --frozen-lockfile
+      - name: Lint and format
+        run: |
+          pnpm lint
+          pnpm format:check
       - name: Typecheck (tool packages)
         run: |
           pnpm -C garry-tool typecheck

@@ -88,7 +88,9 @@ export default function ContractPanel({
     <div className={`card ${styles.panel}`}>
       <div className="cardHead">
         <h2>Contract first</h2>
-        <Link href="/registry#contracts" className={styles.more}>All contracts</Link>
+        <Link href="/registry#contracts" className={styles.more}>
+          All contracts
+        </Link>
       </div>
 
       <div className={styles.body}>
@@ -152,7 +154,9 @@ export default function ContractPanel({
                   {(e.producers ?? []).join(", ")} → {(e.consumers ?? []).join(", ")}
                 </span>
                 <span className={styles.fields}>
-                  {Object.entries(e.payload ?? {}).map(([k, t]) => `${k}: ${t}`).join(", ")}
+                  {Object.entries(e.payload ?? {})
+                    .map(([k, t]) => `${k}: ${t}`)
+                    .join(", ")}
                 </span>
               </div>
             ))}

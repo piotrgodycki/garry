@@ -25,7 +25,11 @@ function flag(argv: string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`);
   return i >= 0 ? argv[i + 1] : undefined;
 }
-const csv = (v?: string) => (v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+const csv = (v?: string) =>
+  (v ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 function print(issues: StackIssue[]): void {
   for (const i of issues) console.log(`${i.level === "error" ? pc.red("error") : i.level === "warn" ? pc.yellow("warn ") : pc.dim("info ")} ${i.message}`);
@@ -74,7 +78,11 @@ export function runStack(argv: string[]): void {
       return { id, version };
     });
     const technologies = [...(template?.technologies ?? []).filter((t) => !extra.some((e) => e.id === t.id)), ...extra];
-    const r = saveStack(registry, { name, description: flag(argv, "description") ?? template?.description, technologies }, { replace: argv.includes("--replace") });
+    const r = saveStack(
+      registry,
+      { name, description: flag(argv, "description") ?? template?.description, technologies },
+      { replace: argv.includes("--replace") },
+    );
     console.log(pc.green(`Saved ${r.stack.name}: ${stackLine(r.stack)}`));
     print(r.issues);
     return;

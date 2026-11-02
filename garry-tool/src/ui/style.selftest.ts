@@ -42,7 +42,10 @@ const contrast = (a: string, b: string) => {
   return (x + 0.05) / (y + 0.05);
 };
 
-for (const [theme, t] of [["light", light], ["dark", dark]] as const) {
+for (const [theme, t] of [
+  ["light", light],
+  ["dark", dark],
+] as const) {
   const value = (name: string) => {
     const v = t[name];
     if (!v || !v.startsWith("#")) throw new Error(`${theme}: ${name} is ${v}`);

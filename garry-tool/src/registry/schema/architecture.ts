@@ -57,7 +57,14 @@ export const COMPONENTS: Component[] = [
   { id: "aws-api-gateway", name: "API Gateway", provider: "AWS", group: "edge", provides: ["http"], needs: ["compute"] },
   { id: "aws-lambda", name: "Lambda", provider: "AWS", group: "compute", provides: ["compute", "http"] },
   { id: "aws-ecs", name: "ECS Fargate", provider: "AWS", group: "compute", provides: ["compute", "http", "web"] },
-  { id: "aws-rds-postgres", name: "RDS Postgres", provider: "AWS", group: "data", provides: ["sql"], note: "in a VPC: reach it from AWS compute, or through a proxy and pooling" },
+  {
+    id: "aws-rds-postgres",
+    name: "RDS Postgres",
+    provider: "AWS",
+    group: "data",
+    provides: ["sql"],
+    note: "in a VPC: reach it from AWS compute, or through a proxy and pooling",
+  },
   { id: "aws-aurora", name: "Aurora Serverless", provider: "AWS", group: "data", provides: ["sql"] },
   { id: "aws-dynamodb", name: "DynamoDB", provider: "AWS", group: "data", provides: ["kv", "document"] },
   { id: "aws-elasticache", name: "ElastiCache Redis", provider: "AWS", group: "data", provides: ["cache", "kv"], reachableFrom: ["AWS"], note: "VPC only" },
@@ -72,7 +79,16 @@ export const COMPONENTS: Component[] = [
   { id: "cf-workers", name: "Workers", provider: "Cloudflare", group: "compute", provides: ["compute", "http", "web"] },
   { id: "cf-d1", name: "D1", provider: "Cloudflare", group: "data", provides: ["sql"], reachableFrom: ["Cloudflare"], note: "a Workers binding" },
   { id: "cf-kv", name: "KV", provider: "Cloudflare", group: "data", provides: ["kv", "cache"], reachableFrom: ["Cloudflare"], note: "a Workers binding" },
-  { id: "cf-hyperdrive", name: "Hyperdrive", provider: "Cloudflare", group: "data", provides: ["sql"], needs: ["sql"], reachableFrom: ["Cloudflare"], note: "pools and caches a Postgres or MySQL for Workers" },
+  {
+    id: "cf-hyperdrive",
+    name: "Hyperdrive",
+    provider: "Cloudflare",
+    group: "data",
+    provides: ["sql"],
+    needs: ["sql"],
+    reachableFrom: ["Cloudflare"],
+    note: "pools and caches a Postgres or MySQL for Workers",
+  },
   { id: "cf-queues", name: "Queues", provider: "Cloudflare", group: "messaging", provides: ["queue"], reachableFrom: ["Cloudflare"] },
   { id: "cf-r2", name: "R2", provider: "Cloudflare", group: "storage", provides: ["blob"] },
   // Vercel
@@ -82,16 +98,83 @@ export const COMPONENTS: Component[] = [
   // Supabase
   { id: "supabase", name: "Supabase", provider: "Supabase", group: "data", provides: ["sql", "auth", "blob"] },
   // Adobe Experience Manager
-  { id: "aem-sites", name: "AEM Sites", provider: "Adobe", group: "content", provides: ["content", "web", "http"], note: "AEM as a Cloud Service in one block (Author, Publish, Dispatcher and Adobe's CDN); split it into those for detail" },
-  { id: "aem-author", name: "AEM Author", provider: "Adobe", group: "content", provides: ["content"], note: "where authors edit, review and publish, in the Universal Editor or the page editor; content goes to Publish or Edge Delivery" },
-  { id: "aem-publish", name: "AEM Publish", provider: "Adobe", group: "content", provides: ["web", "http", "content"], needs: ["content"], note: "serves the published pages and headless content (GraphQL, Content Fragments); takes what Author publishes" },
-  { id: "aem-dispatcher", name: "Dispatcher", provider: "Adobe", group: "edge", provides: ["web", "cache"], needs: ["web"], note: "Apache HTTP Server with the Dispatcher module in front of Publish: caches pages, filters requests, rewrites URLs" },
-  { id: "adobe-cdn", name: "Adobe CDN", provider: "Adobe", group: "edge", provides: ["cdn", "web"], needs: ["web"], note: "Fastly based, included with AEM as a Cloud Service; your own CDN (Akamai, Cloudflare, CloudFront) can sit in front" },
-  { id: "aem-eds", name: "Edge Delivery Services", provider: "Adobe", group: "edge", provides: ["web", "cdn"], needs: ["content"], note: "pages built from AEM or documents and served from the edge; your own CDN can sit in front" },
-  { id: "aem-da", name: "Document Authoring", provider: "Adobe", group: "content", provides: ["content"], note: "pages written as documents (da.live, or SharePoint and Google Drive) for Edge Delivery" },
+  {
+    id: "aem-sites",
+    name: "AEM Sites",
+    provider: "Adobe",
+    group: "content",
+    provides: ["content", "web", "http"],
+    note: "AEM as a Cloud Service in one block (Author, Publish, Dispatcher and Adobe's CDN); split it into those for detail",
+  },
+  {
+    id: "aem-author",
+    name: "AEM Author",
+    provider: "Adobe",
+    group: "content",
+    provides: ["content"],
+    note: "where authors edit, review and publish, in the Universal Editor or the page editor; content goes to Publish or Edge Delivery",
+  },
+  {
+    id: "aem-publish",
+    name: "AEM Publish",
+    provider: "Adobe",
+    group: "content",
+    provides: ["web", "http", "content"],
+    needs: ["content"],
+    note: "serves the published pages and headless content (GraphQL, Content Fragments); takes what Author publishes",
+  },
+  {
+    id: "aem-dispatcher",
+    name: "Dispatcher",
+    provider: "Adobe",
+    group: "edge",
+    provides: ["web", "cache"],
+    needs: ["web"],
+    note: "Apache HTTP Server with the Dispatcher module in front of Publish: caches pages, filters requests, rewrites URLs",
+  },
+  {
+    id: "adobe-cdn",
+    name: "Adobe CDN",
+    provider: "Adobe",
+    group: "edge",
+    provides: ["cdn", "web"],
+    needs: ["web"],
+    note: "Fastly based, included with AEM as a Cloud Service; your own CDN (Akamai, Cloudflare, CloudFront) can sit in front",
+  },
+  {
+    id: "aem-eds",
+    name: "Edge Delivery Services",
+    provider: "Adobe",
+    group: "edge",
+    provides: ["web", "cdn"],
+    needs: ["content"],
+    note: "pages built from AEM or documents and served from the edge; your own CDN can sit in front",
+  },
+  {
+    id: "aem-da",
+    name: "Document Authoring",
+    provider: "Adobe",
+    group: "content",
+    provides: ["content"],
+    note: "pages written as documents (da.live, or SharePoint and Google Drive) for Edge Delivery",
+  },
   { id: "aem-assets", name: "AEM Assets", provider: "Adobe", group: "storage", provides: ["blob"], note: "images and video with renditions and Dynamic Media" },
-  { id: "adobe-app-builder", name: "App Builder", provider: "Adobe", group: "compute", provides: ["compute", "http"], note: "serverless actions on Adobe I/O Runtime, for APIs and integrations" },
-  { id: "adobe-io-events", name: "I/O Events", provider: "Adobe", group: "messaging", provides: ["events"], note: "events from AEM and Adobe apps to your code" },
+  {
+    id: "adobe-app-builder",
+    name: "App Builder",
+    provider: "Adobe",
+    group: "compute",
+    provides: ["compute", "http"],
+    note: "serverless actions on Adobe I/O Runtime, for APIs and integrations",
+  },
+  {
+    id: "adobe-io-events",
+    name: "I/O Events",
+    provider: "Adobe",
+    group: "messaging",
+    provides: ["events"],
+    note: "events from AEM and Adobe apps to your code",
+  },
   // self-hosted, anywhere
   { id: "postgres", name: "PostgreSQL", provider: "Self-hosted", group: "data", provides: ["sql"] },
   { id: "mysql", name: "MySQL / MariaDB", provider: "Self-hosted", group: "data", provides: ["sql"] },
@@ -100,13 +183,37 @@ export const COMPONENTS: Component[] = [
   { id: "kafka", name: "Kafka", provider: "Self-hosted", group: "messaging", provides: ["events"] },
   { id: "rabbitmq", name: "RabbitMQ", provider: "Self-hosted", group: "messaging", provides: ["queue"] },
   { id: "keycloak", name: "Keycloak", provider: "Self-hosted", group: "identity", provides: ["auth"] },
-  { id: "wordpress", name: "WordPress", provider: "Self-hosted", group: "content", provides: ["content", "web"], needs: ["sql"], note: "PHP and MySQL hosting" },
+  {
+    id: "wordpress",
+    name: "WordPress",
+    provider: "Self-hosted",
+    group: "content",
+    provides: ["content", "web"],
+    needs: ["sql"],
+    note: "PHP and MySQL hosting",
+  },
   { id: "strapi", name: "Strapi", provider: "Self-hosted", group: "content", provides: ["content", "http"], needs: ["sql"] },
-  { id: "reverse-proxy", name: "Reverse proxy", provider: "Self-hosted", group: "edge", provides: ["web", "http"], needs: ["web"], note: "nginx, Apache, HAProxy or Traefik: routes requests, ends TLS, adds headers in front of your apps" },
+  {
+    id: "reverse-proxy",
+    name: "Reverse proxy",
+    provider: "Self-hosted",
+    group: "edge",
+    provides: ["web", "http"],
+    needs: ["web"],
+    note: "nginx, Apache, HAProxy or Traefik: routes requests, ends TLS, adds headers in front of your apps",
+  },
   { id: "vps", name: "VPS / Docker", provider: "Self-hosted", group: "compute", provides: ["compute", "http", "web"] },
   { id: "kubernetes", name: "Kubernetes", provider: "Self-hosted", group: "compute", provides: ["compute", "http", "web"] },
   // SaaS
-  { id: "akamai", name: "Akamai", provider: "SaaS", group: "edge", provides: ["cdn", "web"], needs: ["web"], note: "CDN and WAF, often in front of AEM as your own CDN" },
+  {
+    id: "akamai",
+    name: "Akamai",
+    provider: "SaaS",
+    group: "edge",
+    provides: ["cdn", "web"],
+    needs: ["web"],
+    note: "CDN and WAF, often in front of AEM as your own CDN",
+  },
   { id: "fastly", name: "Fastly", provider: "SaaS", group: "edge", provides: ["cdn", "web"], needs: ["web"] },
   { id: "upstash", name: "Upstash Redis", provider: "SaaS", group: "data", provides: ["cache", "kv", "queue"] },
   { id: "neon", name: "Neon Postgres", provider: "SaaS", group: "data", provides: ["sql"] },
@@ -129,7 +236,14 @@ export const componentById = (id: string): Component | undefined => BY_ID.get(id
 export function serviceBlock(service: { name: string; kind?: string; consumes?: Record<string, string[]>; db?: unknown }): Component {
   const k = kindInfo(service.kind);
   const needs: Capability[] = [...k.block.needs, ...(service.db && k.db ? (["sql"] as Capability[]) : [])];
-  return { id: `service:${service.name}`, name: service.name, provider: "Your services", group: k.block.group, provides: [...k.block.provides], ...(needs.length ? { needs } : {}) };
+  return {
+    id: `service:${service.name}`,
+    name: service.name,
+    provider: "Your services",
+    group: k.block.group,
+    provides: [...k.block.provides],
+    ...(needs.length ? { needs } : {}),
+  };
 }
 
 const NodeSchema = z.object({
@@ -182,17 +296,30 @@ export function checkArchitecture(arch: Architecture, services: { name: string; 
     const fb = block(from.block);
     const tb = block(to.block);
     if (!fb || !tb) return;
-    if (!tb.provides.includes(e.capability)) issues.push({ level: "error", edge: i, message: `${label(to.id)} does not provide ${lc(CAPABILITIES[e.capability])}` });
+    if (!tb.provides.includes(e.capability))
+      issues.push({ level: "error", edge: i, message: `${label(to.id)} does not provide ${lc(CAPABILITIES[e.capability])}` });
     if (tb.reachableFrom && !tb.reachableFrom.includes(fb.provider) && fb.provider !== "Your services")
-      issues.push({ level: "error", edge: i, message: `${label(to.id)} is only reachable from ${tb.reachableFrom.join(" or ")}${tb.note ? ` (${tb.note})` : ""}, not from ${label(from.id)}` });
+      issues.push({
+        level: "error",
+        edge: i,
+        message: `${label(to.id)} is only reachable from ${tb.reachableFrom.join(" or ")}${tb.note ? ` (${tb.note})` : ""}, not from ${label(from.id)}`,
+      });
     // a service reaching a binding-only block must run on that provider
     if (tb.reachableFrom && fb.provider === "Your services") {
       const hosts = arch.edges.filter((x) => x.from === from.id && x.capability === "compute").map((x) => block(nodes.get(x.to)?.block ?? ""));
       if (hosts.length && !hosts.some((h) => h && tb.reachableFrom!.includes(h.provider)))
-        issues.push({ level: "error", edge: i, message: `${label(to.id)} is only reachable from ${tb.reachableFrom.join(" or ")}, and ${label(from.id)} runs elsewhere` });
+        issues.push({
+          level: "error",
+          edge: i,
+          message: `${label(to.id)} is only reachable from ${tb.reachableFrom.join(" or ")}, and ${label(from.id)} runs elsewhere`,
+        });
     }
     if (e.capability === "sql" && tb.id === "aws-rds-postgres" && fb.provider !== "AWS" && fb.provider !== "Your services")
-      issues.push({ level: "warn", edge: i, message: `${label(from.id)} reaching RDS from outside AWS: add pooling (RDS Proxy, Hyperdrive) and keep it private` });
+      issues.push({
+        level: "warn",
+        edge: i,
+        message: `${label(from.id)} reaching RDS from outside AWS: add pooling (RDS Proxy, Hyperdrive) and keep it private`,
+      });
   });
 
   for (const n of arch.nodes) {
@@ -200,16 +327,23 @@ export function checkArchitecture(arch: Architecture, services: { name: string; 
     if (!b) continue;
     const linked = new Set(arch.edges.filter((e) => e.from === n.id).map((e) => e.capability));
     for (const need of b.needs ?? []) {
-      if (!linked.has(need)) issues.push({ level: "warn", node: n.id, message: `${label(n.id)} needs ${lc(CAPABILITIES[need])}: link it to a block that provides it` });
+      if (!linked.has(need))
+        issues.push({ level: "warn", node: n.id, message: `${label(n.id)} needs ${lc(CAPABILITIES[need])}: link it to a block that provides it` });
     }
-    if (!arch.edges.some((e) => e.from === n.id || e.to === n.id) && arch.nodes.length > 1) issues.push({ level: "info", node: n.id, message: `${label(n.id)} is not linked to anything` });
+    if (!arch.edges.some((e) => e.from === n.id || e.to === n.id) && arch.nodes.length > 1)
+      issues.push({ level: "info", node: n.id, message: `${label(n.id)} is not linked to anything` });
   }
 
   // one database for everything is a single point of failure only when nothing else is there; keep it a hint
   const sqlTargets = new Set(arch.edges.filter((e) => e.capability === "sql").map((e) => e.to));
   if (sqlTargets.size === 1 && arch.edges.filter((e) => e.capability === "sql").length >= 3)
-    issues.push({ level: "info", node: [...sqlTargets][0], message: `every service shares ${label([...sqlTargets][0])}: fine to start, a coupling point later` });
+    issues.push({
+      level: "info",
+      node: [...sqlTargets][0],
+      message: `every service shares ${label([...sqlTargets][0])}: fine to start, a coupling point later`,
+    });
 
-  for (const s of services) if (!arch.nodes.some((n) => n.block === `service:${s.name}`)) issues.push({ level: "info", message: `${s.name} is in the registry but not on the board` });
+  for (const s of services)
+    if (!arch.nodes.some((n) => n.block === `service:${s.name}`)) issues.push({ level: "info", message: `${s.name} is in the registry but not on the board` });
   return issues;
 }

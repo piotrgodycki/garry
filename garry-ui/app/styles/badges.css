@@ -155,10 +155,18 @@
   flex: none;
   background: var(--tier-sonnet);
 }
-.tier.opus { background: var(--tier-opus); }
-.tier.sonnet { background: var(--tier-sonnet); }
-.tier.haiku { background: var(--tier-haiku); }
-.tier.fable { background: var(--tier-fable); }
+.tier.opus {
+  background: var(--tier-opus);
+}
+.tier.sonnet {
+  background: var(--tier-sonnet);
+}
+.tier.haiku {
+  background: var(--tier-haiku);
+}
+.tier.fable {
+  background: var(--tier-fable);
+}
 
 /* ---- calm character -------------------------------------------------------- */
 /* Sentence case everywhere, quiet borders, soft shadows, one neutral primary. */

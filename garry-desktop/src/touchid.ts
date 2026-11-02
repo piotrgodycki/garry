@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, powerMonitor, systemPreferences, type IpcMainInvokeEvent } from "electron";
+import { type BrowserWindow, ipcMain, powerMonitor, systemPreferences, type IpcMainInvokeEvent } from "electron";
 
 /**
  * Touch ID on macOS: the app opens locked, locks again when the screen locks,
@@ -38,7 +38,13 @@ export interface TouchIdOptions {
 }
 
 /** Wires Touch ID into the app. Returns whether the first window should open locked. */
-export function setupTouchId(o: TouchIdOptions): { locked: () => boolean; lock: () => void; unlock: () => Promise<boolean>; confirm: (reason: string) => Promise<boolean>; page: () => string } {
+export function setupTouchId(o: TouchIdOptions): {
+  locked: () => boolean;
+  lock: () => void;
+  unlock: () => Promise<boolean>;
+  confirm: (reason: string) => Promise<boolean>;
+  page: () => string;
+} {
   let locked = touchIdAvailable() && o.enabled();
   const active = () => touchIdAvailable() && o.enabled();
 

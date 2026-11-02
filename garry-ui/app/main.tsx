@@ -58,7 +58,14 @@ const router = createBrowserRouter([
       { path: "/files", element: <Files /> },
       { path: "/pair", element: <Pair /> },
       { path: "/settings", element: <Settings /> },
-      { path: "*", element: <main className="page"><Empty>Page not found.</Empty></main> },
+      {
+        path: "*",
+        element: (
+          <main className="page">
+            <Empty>Page not found.</Empty>
+          </main>
+        ),
+      },
     ],
   },
 ]);

@@ -31,10 +31,8 @@ function extractYamlFrontmatter(src: string): string | null {
  */
 export function validateSkills(root: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
-  const err = (where: string, message: string) =>
-    issues.push({ level: "error", where, message });
-  const warn = (where: string, message: string) =>
-    issues.push({ level: "warn", where, message });
+  const err = (where: string, message: string) => issues.push({ level: "error", where, message });
+  const warn = (where: string, message: string) => issues.push({ level: "warn", where, message });
 
   const manifestPath = join(root, "manifest.json");
   if (!existsSync(manifestPath)) {
@@ -52,10 +50,7 @@ export function validateSkills(root: string): ValidationIssue[] {
 
   const parsed = SkillsManifestSchema.safeParse(rawManifest);
   if (!parsed.success) {
-    err(
-      "manifest.json",
-      parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
-    );
+    err("manifest.json", parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
     return issues;
   }
 
@@ -69,8 +64,7 @@ export function validateSkills(root: string): ValidationIssue[] {
 
   for (const skill of manifest.skills) {
     for (const dep of skill.dependsOn) {
-      if (!manifest.skills.some((s) => s.name === dep))
-        err(`skill:${skill.name}`, `dependsOn references an unknown skill: ${dep}`);
+      if (!manifest.skills.some((s) => s.name === dep)) err(`skill:${skill.name}`, `dependsOn references an unknown skill: ${dep}`);
     }
 
     // Path traversal protection: skill.path comes from the manifest (untrusted).
@@ -103,14 +97,10 @@ export function validateSkills(root: string): ValidationIssue[] {
     }
     const r = SkillFrontmatterSchema.safeParse(fm);
     if (!r.success) {
-      err(
-        `skill:${skill.name}`,
-        `invalid frontmatter: ${r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
-      );
+      err(`skill:${skill.name}`, `invalid frontmatter: ${r.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`);
       continue;
     }
-    if (r.data.name !== skill.name)
-      warn(`skill:${skill.name}`, `frontmatter name (${r.data.name}) does not match the manifest name`);
+    if (r.data.name !== skill.name) warn(`skill:${skill.name}`, `frontmatter name (${r.data.name}) does not match the manifest name`);
   }
 
   return issues;

@@ -40,7 +40,10 @@ const devices = new DeviceStore(join(home, "devices.json"));
 const phone = devices.pair(devices.createCode().code, "phone") as { token: string };
 const remote = reachableAddresses()[0];
 const terminals = new TerminalManager();
-const server = createGarryServer({ registry, skills: join(home, "none"), routing: join(home, "none.json"), threads, terminals, hosts: remote ? [remote] : [] }, devices);
+const server = createGarryServer(
+  { registry, skills: join(home, "none"), routing: join(home, "none.json"), threads, terminals, hosts: remote ? [remote] : [] },
+  devices,
+);
 await new Promise<void>((r) => server.listen(0, "0.0.0.0", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
@@ -96,7 +99,11 @@ await type(term.id, "sleep 30; echo slept-$((6*7))\n");
 await new Promise((r) => setTimeout(r, 400));
 await type(term.id, "\x03");
 await type(term.id, "echo after-interrupt\n");
-expect("Ctrl-C stops a running command", await until(() => view.seen.includes("after-interrupt"), 5000) && !view.seen.includes("slept-42"), JSON.stringify(view.seen.slice(-400)));
+expect(
+  "Ctrl-C stops a running command",
+  (await until(() => view.seen.includes("after-interrupt"), 5000)) && !view.seen.includes("slept-42"),
+  JSON.stringify(view.seen.slice(-400)),
+);
 
 // resizing reaches the shell
 expect("resize is accepted", (await post(`/api/terminals/${term.id}/resize`, { cols: 132, rows: 40 })).status === 200);
@@ -136,11 +143,18 @@ expect("a terminal opens in the registry", reg.cwd === registry);
 await fetch(`${base}/api/terminals/${reg.id}`, { method: "DELETE" });
 
 // refusals
-expect("an unknown folder is refused", (await post("/api/terminals", { root: "project:zzzzzz" })).status === 404 && (await post("/api/terminals", { root: "/etc" })).status === 404);
+expect(
+  "an unknown folder is refused",
+  (await post("/api/terminals", { root: "project:zzzzzz" })).status === 404 && (await post("/api/terminals", { root: "/etc" })).status === 404,
+);
 expect("another site cannot open one", (await post("/api/terminals", { root: "registry" }, { origin: "https://evil.example" })).status === 403);
 if (remote) {
   const remoteBase = `http://${remote}:${(server.address() as AddressInfo).port}`;
-  const asPhone = await fetch(`${remoteBase}/api/terminals`, { method: "POST", headers: { authorization: `Bearer ${phone.token}`, "content-type": "application/json" }, body: JSON.stringify({ root: "registry" }) });
+  const asPhone = await fetch(`${remoteBase}/api/terminals`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${phone.token}`, "content-type": "application/json" },
+    body: JSON.stringify({ root: "registry" }),
+  });
   const phoneList = await fetch(`${remoteBase}/api/terminals`, { headers: { authorization: `Bearer ${phone.token}` } });
   expect("a paired phone cannot open or see one", asPhone.status === 403 && phoneList.status === 403);
 } else console.log("skip the phone check: no network address to pair from");
@@ -174,7 +188,11 @@ let lastExited = false;
 terminals.attach(last.id, (e) => e.type === "exit" && (lastExited = true));
 server.close();
 server.closeAllConnections();
-expect("stopping the server ends its shells", (await until(() => lastExited)) && terminals.list().length === 0 && (await until(() => leftovers() === "", 3000)), leftovers());
+expect(
+  "stopping the server ends its shells",
+  (await until(() => lastExited)) && terminals.list().length === 0 && (await until(() => leftovers() === "", 3000)),
+  leftovers(),
+);
 
 if (failed) {
   console.error(`${failed} terminal check(s) failed`);

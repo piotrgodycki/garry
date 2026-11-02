@@ -115,7 +115,8 @@ export function laneOf(t: Thread, project: string, events: ThreadEvent[], runnin
   }
   // the thread itself ended in an error after a turn that looked fine
   const tail = open();
-  if (tail?.state === "done" && t.status === "error") Object.assign(tail, { state: "fail", label: clip(firstLine(failure) || "Stopped before finishing", 300) });
+  if (tail?.state === "done" && t.status === "error")
+    Object.assign(tail, { state: "fail", label: clip(firstLine(failure) || "Stopped before finishing", 300) });
   if (t.pr || t.commit) shipped = true;
   if (shipped) close(t.updatedAt);
   const now = open();
@@ -161,7 +162,14 @@ export function liveView(threads: ThreadManager, threadIds: Set<string>, since: 
     .filter((l) => l.state === "wait" || l.state === "fail")
     .map((l) => {
       const s = l.segments[l.segments.length - 1];
-      return { threadId: l.threadId, title: l.title, project: l.project, kind: l.state === "wait" ? "question" : "stopped", text: s.label, at: s.from } satisfies LiveAsk;
+      return {
+        threadId: l.threadId,
+        title: l.title,
+        project: l.project,
+        kind: l.state === "wait" ? "question" : "stopped",
+        text: s.label,
+        at: s.from,
+      } satisfies LiveAsk;
     })
     .sort((a, b) => a.at.localeCompare(b.at));
   return { now: now.toISOString(), lanes, needsYou, spentToday };

@@ -57,7 +57,10 @@ await until(() => !threads.isRunning(asks.id));
 const busy = threads.create(project.id, "BUSY add a checkout page");
 await until(() => threads.store.events(busy.id).some((e) => e.type === "tool"));
 
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
@@ -68,14 +71,33 @@ try {
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.goto(`${base}/build`);
   const now = page.getByRole("region", { name: "Your jobs" });
-  await now.getByText("Write NOTES.md").waitFor({ timeout: 10_000 }).catch(() => undefined);
+  await now
+    .getByText("Write NOTES.md")
+    .waitFor({ timeout: 10_000 })
+    .catch(() => undefined);
   const rows = await now.getByRole("listitem").allInnerTexts();
   expect("Your jobs lists every job, in one list", rows.length === 3, rows.join(" | "));
-  expect("the one that needs you comes first, with what it asks", /ASK add a buy button[\s\S]*Needs your answer[\s\S]*red or blue/.test(rows[0] ?? ""), rows[0]);
-  expect("a working agent says what it is doing", rows.some((r) => /BUSY add a checkout page[\s\S]*Working[\s\S]*Write NOTES\.md/.test(r)), rows.join(" | "));
-  expect("finished work reads ready to review", rows.some((r) => /write the release notes[\s\S]*Ready to review/.test(r)), rows.join(" | "));
+  expect(
+    "the one that needs you comes first, with what it asks",
+    /ASK add a buy button[\s\S]*Needs your answer[\s\S]*red or blue/.test(rows[0] ?? ""),
+    rows[0],
+  );
+  expect(
+    "a working agent says what it is doing",
+    rows.some((r) => /BUSY add a checkout page[\s\S]*Working[\s\S]*Write NOTES\.md/.test(r)),
+    rows.join(" | "),
+  );
+  expect(
+    "finished work reads ready to review",
+    rows.some((r) => /write the release notes[\s\S]*Ready to review/.test(r)),
+    rows.join(" | "),
+  );
   const filters = now.getByRole("radiogroup", { name: "show" });
-  expect("the filters count what is in them", /Needs you\s*1/.test(await filters.getByRole("radio", { name: /Needs you/ }).innerText()) && /Working\s*1/.test(await filters.getByRole("radio", { name: /Working/ }).innerText()));
+  expect(
+    "the filters count what is in them",
+    /Needs you\s*1/.test(await filters.getByRole("radio", { name: /Needs you/ }).innerText()) &&
+      /Working\s*1/.test(await filters.getByRole("radio", { name: /Working/ }).innerText()),
+  );
   await filters.getByRole("radio", { name: /Needs you/ }).click();
   const needing = await now.getByRole("listitem").allInnerTexts();
   expect("a filter shows only its jobs", needing.length === 1 && needing[0].includes("ASK add a buy button"), needing.join(" | "));
@@ -85,7 +107,10 @@ try {
   threads.stop(busy.id);
   const changed = await page
     .waitForFunction(() => !document.querySelector('[aria-labelledby="your-jobs"]')?.textContent?.includes("Write NOTES.md"), undefined, { timeout: 8000 })
-    .then(() => true, () => false);
+    .then(
+      () => true,
+      () => false,
+    );
   expect("the list follows the agents without a reload", changed);
 
   await now.getByRole("link", { name: /ASK add a buy button/ }).click();
@@ -103,12 +128,24 @@ try {
   // the feature pipeline is a view of Build, and old links land there
   await page.goto(`${base}/build`);
   await page.getByRole("link", { name: "Feature pipeline" }).click();
-  await page.getByRole("button", { name: "stop all agents" }).waitFor({ timeout: 8000 }).catch(() => undefined);
-  expect("the feature pipeline opens from Build, with a way back", page.url().endsWith("/build?view=pipeline") && (await page.getByRole("button", { name: "stop all agents" }).count()) === 1 && (await page.getByRole("link", { name: "Build" }).filter({ hasText: "Build" }).count()) >= 1);
+  await page
+    .getByRole("button", { name: "stop all agents" })
+    .waitFor({ timeout: 8000 })
+    .catch(() => undefined);
+  expect(
+    "the feature pipeline opens from Build, with a way back",
+    page.url().endsWith("/build?view=pipeline") &&
+      (await page.getByRole("button", { name: "stop all agents" }).count()) === 1 &&
+      (await page.getByRole("link", { name: "Build" }).filter({ hasText: "Build" }).count()) >= 1,
+  );
   await page.goto(`${base}/agent?feature=FEAT-1`);
   await page.waitForURL("**/build?view=pipeline&feature=FEAT-1");
   expect("an old Live agents link opens it, the feature kept", page.url().endsWith("/build?view=pipeline&feature=FEAT-1"));
-  expect("the menu has one place for agents", (await page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Live agents" }).count()) === 0 && (await page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Build" }).getAttribute("aria-current")) === "page");
+  expect(
+    "the menu has one place for agents",
+    (await page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Live agents" }).count()) === 0 &&
+      (await page.getByRole("navigation", { name: "main" }).getByRole("link", { name: "Build" }).getAttribute("aria-current")) === "page",
+  );
   expect("no errors in the page", errors.length === 0, errors.join("; "));
 } finally {
   await browser.close();

@@ -61,7 +61,10 @@ expect("a turn ending in a question needs you", byId(s, asks.id)?.state === "nee
 expect("a turn that failed needs you", byId(s, fails.id)?.state === "needs-you" && /Stopped/.test(byId(s, fails.id)!.detail));
 expect("a turn that ended well is ready for review", byId(s, fine.id)?.state === "done");
 expect("needs you wins overall and comes first", s.state === "needs-you" && s.counts.needsYou === 2 && s.counts.done === 1 && s.items[0].state === "needs-you");
-expect("the listener heard every thread", [asks.id, fails.id, fine.id].every((id) => seen.includes(`${id}:turn_end`)));
+expect(
+  "the listener heard every thread",
+  [asks.id, fails.id, fine.id].every((id) => seen.includes(`${id}:turn_end`)),
+);
 
 // notifications: what changed between two looks
 const before = garryStatus(threads);
@@ -90,14 +93,30 @@ await until(() => threads.store.events(busy.id).some((e) => e.type === "tool"));
 stop();
 
 // over HTTP: what the menu bar and the iPhone app read
-const server = createGarryServer({ registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const api = (await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}/api/status`).then((r) => r.json())) as ReturnType<typeof garryStatus>;
 const port = (server.address() as AddressInfo).port;
-const listed = (await fetch(`http://127.0.0.1:${port}/api/threads`).then((r) => r.json())) as { threads: { id: string; attention: string | null; activity: string | null }[] };
+const listed = (await fetch(`http://127.0.0.1:${port}/api/threads`).then((r) => r.json())) as {
+  threads: { id: string; attention: string | null; activity: string | null }[];
+};
 const activity = (id: string) => listed.threads.find((t) => t.id === id)?.activity;
-expect("each piece of work says what its agent is doing now", activity(slow.id) === "Working" && activity(busy.id) === "Write NOTES.md" && /Stopped/.test(activity(fails.id) ?? "") && activity(asks.id) === "Ready for your review" && activity(fine.id) == null, JSON.stringify(listed.threads.map((t) => [t.id, t.activity])));
-expect("the thread list carries the same reading", listed.threads.find((t) => t.id === slow.id)?.attention === "working" && listed.threads.find((t) => t.id === fails.id)?.attention === "needs-you");
+expect(
+  "each piece of work says what its agent is doing now",
+  activity(slow.id) === "Working" &&
+    activity(busy.id) === "Write NOTES.md" &&
+    /Stopped/.test(activity(fails.id) ?? "") &&
+    activity(asks.id) === "Ready for your review" &&
+    activity(fine.id) == null,
+  JSON.stringify(listed.threads.map((t) => [t.id, t.activity])),
+);
+expect(
+  "the thread list carries the same reading",
+  listed.threads.find((t) => t.id === slow.id)?.attention === "working" && listed.threads.find((t) => t.id === fails.id)?.attention === "needs-you",
+);
 const now = garryStatus(threads);
 expect("GET /api/status says the same", api.state === now.state && api.items.length === now.items.length && api.counts.working === 2);
 threads.stop(slow.id);

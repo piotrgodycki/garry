@@ -55,7 +55,15 @@ const two = queue.add("ASK add a buy button", shop.id);
 const three = queue.add("write the release notes", shop.id);
 await until(() => threads.store.events(one.threadId!).some((e) => e.type === "tool"));
 expect("the first message starts at once", status(one.id) === "running" && !!one.threadId && threads.isRunning(one.threadId!));
-expect("the others wait their turn, in order", status(two.id) === "queued" && status(three.id) === "queued" && queue.list().map((i) => i.id).join() === [one.id, two.id, three.id].join());
+expect(
+  "the others wait their turn, in order",
+  status(two.id) === "queued" &&
+    status(three.id) === "queued" &&
+    queue
+      .list()
+      .map((i) => i.id)
+      .join() === [one.id, two.id, three.id].join(),
+);
 expect("waiting does not touch the work in progress", threads.store.events(one.threadId!).filter((e) => e.type === "user").length === 1);
 
 // a waiting message can be dropped; a running one cannot
@@ -68,7 +76,16 @@ threads.stop(one.threadId!);
 await until(() => status(one.id) !== "running");
 expect("a stopped turn is failed, saying so", status(one.id) === "failed" && !!queue.get(one.id)?.error);
 await until(() => status(two.id) === "done", 15_000);
-expect("then the next runs, in the same conversation", queue.get(two.id)?.threadId === one.threadId && threads.store.events(one.threadId!).filter((e) => e.type === "user").map((e) => (e as { text: string }).text).slice(0, 2).join(" | ") === "BUSY add a checkout page | ASK add a buy button");
+expect(
+  "then the next runs, in the same conversation",
+  queue.get(two.id)?.threadId === one.threadId &&
+    threads.store
+      .events(one.threadId!)
+      .filter((e) => e.type === "user")
+      .map((e) => (e as { text: string }).text)
+      .slice(0, 2)
+      .join(" | ") === "BUSY add a checkout page | ASK add a buy button",
+);
 expect("Garry's answer is the agent's own words", queue.get(two.id)?.reply === "I added the button.\nShould it be red or blue?", queue.get(two.id)?.reply);
 await until(() => status(three.id) === "done", 15_000);
 expect("and the one after it, resuming the session (it remembers)", queue.get(three.id)?.reply === "resumed fake-session-1", queue.get(three.id)?.reply);
@@ -80,7 +97,10 @@ threads.send(garryThread, "BUSY you, directly in Build");
 await until(() => threads.store.events(garryThread).filter((e) => e.type === "tool").length >= 4);
 const five = queue.add("after you", shop.id);
 await new Promise((r) => setTimeout(r, 400));
-expect("a message waits while you talk to that agent yourself", status(five.id) === "queued" && threads.store.events(garryThread).filter((e) => e.type === "user").length === 4);
+expect(
+  "a message waits while you talk to that agent yourself",
+  status(five.id) === "queued" && threads.store.events(garryThread).filter((e) => e.type === "user").length === 4,
+);
 threads.stop(garryThread);
 await until(() => status(five.id) === "done", 15_000);
 expect("and goes once your turn ends", status(five.id) === "done");
@@ -98,26 +118,59 @@ await until(() => status(seven.id) === "running");
 queue.close();
 const fresh = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
 const again = new GarryQueue(fresh);
-expect("after a restart a cut off turn is failed, the waiting one goes on", again.get(seven.id)?.status === "failed" && ["running", "done"].includes(again.get(eight.id)?.status ?? ""), `${again.get(seven.id)?.status} ${again.get(eight.id)?.status}`);
+expect(
+  "after a restart a cut off turn is failed, the waiting one goes on",
+  again.get(seven.id)?.status === "failed" && ["running", "done"].includes(again.get(eight.id)?.status ?? ""),
+  `${again.get(seven.id)?.status} ${again.get(eight.id)?.status}`,
+);
 await until(() => again.get(eight.id)?.status === "done", 15_000);
 again.close();
 threads.stop(seven.threadId!);
-expect("an empty message is refused", (() => { try { queue.add("  ", shop.id); return false; } catch { return true; } })());
+expect(
+  "an empty message is refused",
+  (() => {
+    try {
+      queue.add("  ", shop.id);
+      return false;
+    } catch {
+      return true;
+    }
+  })(),
+);
 
 // over HTTP
-const server = createGarryServer({ registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const listed = (await fetch(`${base}/api/garry/queue`).then((r) => r.json())) as { items: { id: string }[]; repos: { id: string }[] };
 expect("GET lists what you said and where it can go", listed.items.length > 0 && listed.repos.some((r) => r.id === shop.id));
-const posted = (await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "BUSY over http" }) }).then((r) => r.json())) as { id: string; projectId: string };
+const posted = (await fetch(`${base}/api/garry/queue`, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ text: "BUSY over http" }),
+}).then((r) => r.json())) as { id: string; projectId: string };
 expect("POST puts it in line, for the first repository when none is named", posted.projectId === shop.id);
-const waiting = (await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "and then", projectId: blog.id }) }).then((r) => r.json())) as { id: string };
+const waiting = (await fetch(`${base}/api/garry/queue`, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ text: "and then", projectId: blog.id }),
+}).then((r) => r.json())) as { id: string };
 const del = await fetch(`${base}/api/garry/queue/${waiting.id}`, { method: "DELETE" });
 expect("DELETE drops one that waits", del.status === 200);
-const bad = await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "x", projectId: "nope1234" }) });
+const bad = await fetch(`${base}/api/garry/queue`, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({ text: "x", projectId: "nope1234" }),
+});
 expect("a repository outside the project is refused", bad.status === 400);
-const hostile = await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json", origin: "https://evil.example" }, body: JSON.stringify({ text: "rm -rf" }) });
+const hostile = await fetch(`${base}/api/garry/queue`, {
+  method: "POST",
+  headers: { "content-type": "application/json", origin: "https://evil.example" },
+  body: JSON.stringify({ text: "rm -rf" }),
+});
 expect("another website cannot tell Garry anything", hostile.status === 403);
 for (const t of threads.store.threads()) threads.stop(t.id);
 server.close();

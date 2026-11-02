@@ -103,10 +103,17 @@ export function importGarryProject(input: unknown): GarryProject {
   const repos = (Array.isArray(b.repos) ? b.repos : [])
     .filter((r): r is PendingRepo => !!r && typeof r.name === "string" && typeof r.remote === "string")
     .slice(0, 100)
-    .map((r) => ({ name: r.name.slice(0, 64), remote: cleanRemote(r.remote), ...(r.settings && typeof r.settings === "object" ? { settings: r.settings } : {}) }));
+    .map((r) => ({
+      name: r.name.slice(0, 64),
+      remote: cleanRemote(r.remote),
+      ...(r.settings && typeof r.settings === "object" ? { settings: r.settings } : {}),
+    }));
 
   const taken = new Set(listGarryProjects().projects.map((p) => p.name));
-  const base = String(b.name ?? "Imported project").trim().slice(0, 70) || "Imported project";
+  const base =
+    String(b.name ?? "Imported project")
+      .trim()
+      .slice(0, 70) || "Imported project";
   let name = base;
   for (let n = 2; taken.has(name); n++) name = `${base} (${n})`;
   const p = createGarryProject({ name, description: b.description }, repos.length ? { pendingRepos: repos } : {});
@@ -121,7 +128,9 @@ export function importGarryProject(input: unknown): GarryProject {
 /** A repository's origin as configured, without credentials; empty when it has none. */
 export function originOf(repo: string): string {
   try {
-    return cleanRemote(execFileSync("git", ["-C", repo, "config", "--get", "remote.origin.url"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim());
+    return cleanRemote(
+      execFileSync("git", ["-C", repo, "config", "--get", "remote.origin.url"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim(),
+    );
   } catch {
     return "";
   }

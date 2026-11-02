@@ -68,7 +68,13 @@ export function usePalette(): Palette {
 export function tint(hex: string, over: string, amount: number): string {
   const c = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
   const [a, b] = [c(hex), c(over)];
-  return `#${a.map((v, i) => Math.round(v * amount + b[i] * (1 - amount)).toString(16).padStart(2, "0")).join("")}`;
+  return `#${a
+    .map((v, i) =>
+      Math.round(v * amount + b[i] * (1 - amount))
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")}`;
 }
 
 export const monoFamily = Platform.select({ ios: "Menlo", android: "monospace", default: "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace" });

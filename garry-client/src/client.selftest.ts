@@ -41,11 +41,17 @@ const expect = (name: string, ok: boolean) => {
 try {
   const local = new GarryClient({ baseUrl: `http://127.0.0.1:${port}` });
   const features = await local.features();
-  expect("features", features.some((f) => f.id === "FEAT-123"));
+  expect(
+    "features",
+    features.some((f) => f.id === "FEAT-123"),
+  );
   const plan = await local.plan("FEAT-123");
   expect("plan with tasks in contract order", plan.tasks.length > 0 && plan.order.length === 3);
   expect("models", (await local.models()).length > 0);
-  expect("skills", (await local.skills()).some((s) => s.source === "builtin"));
+  expect(
+    "skills",
+    (await local.skills()).some((s) => s.source === "builtin"),
+  );
   expect("registry", (await local.registry()).services.length === 3);
 
   const events: StreamEvent[] = [];
@@ -81,17 +87,29 @@ try {
     execFileSync("git", ["-C", repoDir, "add", "-A"]);
     execFileSync("git", ["-C", repoDir, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"]);
     const project = threadManager.store.addProject(repoDir);
-    expect("projects", (await local.projects()).some((p) => p.id === project.id));
+    expect(
+      "projects",
+      (await local.projects()).some((p) => p.id === project.id),
+    );
     const t = await local.createThread(project.id, "Write notes");
     const seen: ThreadEvent[] = [];
     const ctl = new AbortController();
-    const following = local.threadEvents(t.id, (e) => {
-      seen.push(e);
-      if (e.type === "status" && e.status === "idle") ctl.abort();
-    }, ctl.signal).catch(() => undefined);
+    const following = local
+      .threadEvents(
+        t.id,
+        (e) => {
+          seen.push(e);
+          if (e.type === "status" && e.status === "idle") ctl.abort();
+        },
+        ctl.signal,
+      )
+      .catch(() => undefined);
     await following;
     expect("thread events stream until the turn ends", seen.some((e) => e.type === "turn_end") && seen.some((e) => e.type === "tool"));
-    expect("thread diff", (await local.threadDiff(t.id)).files.some((f) => f.path === "NOTES.md"));
+    expect(
+      "thread diff",
+      (await local.threadDiff(t.id)).files.some((f) => f.path === "NOTES.md"),
+    );
     expect("commit", Boolean((await local.commitThread(t.id, "Notes")).commit));
   }
 

@@ -27,7 +27,9 @@ function flag(argv: string[], name: string): string | undefined {
 }
 
 function show(p: RoutingProfile, active: boolean): void {
-  console.log(`${pc.bold(p.name)}${p.name === "default" && p.builtin ? pc.dim(" (Garry's setup)") : ""}${active ? pc.green(" active") : ""}${p.description ? pc.dim(`  ${p.description}`) : ""}`);
+  console.log(
+    `${pc.bold(p.name)}${p.name === "default" && p.builtin ? pc.dim(" (Garry's setup)") : ""}${active ? pc.green(" active") : ""}${p.description ? pc.dim(`  ${p.description}`) : ""}`,
+  );
   for (const s of STAGE_NAMES) {
     const r = p.stages[s] ?? p.defaults;
     console.log(`  ${s.padEnd(10)} ${r.agent.padEnd(16)} ${r.model}`);
@@ -45,7 +47,10 @@ export function runRouting(argv: string[]): void {
   const all = () => listProfiles(registry, legacyFile);
   if (sub === "list") {
     const { active, profiles } = all();
-    for (const p of profiles) console.log(`${p.name === active ? pc.green("●") : " "} ${pc.bold(p.name.padEnd(20))} ${p.name === "default" ? pc.dim(p.builtin ? "Garry's setup" : "changed") : ""}${p.description ? pc.dim(` ${p.description}`) : ""}`);
+    for (const p of profiles)
+      console.log(
+        `${p.name === active ? pc.green("●") : " "} ${pc.bold(p.name.padEnd(20))} ${p.name === "default" ? pc.dim(p.builtin ? "Garry's setup" : "changed") : ""}${p.description ? pc.dim(` ${p.description}`) : ""}`,
+      );
     return;
   }
   if (sub === "show") {

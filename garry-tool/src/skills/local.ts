@@ -24,7 +24,11 @@ const MAX_FILES = 50;
 const MAX_TOTAL = 2_000_000;
 
 export class SkillError extends Error {
-  constructor(message: string, readonly status = 400, readonly audit?: AuditReport) {
+  constructor(
+    message: string,
+    readonly status = 400,
+    readonly audit?: AuditReport,
+  ) {
     super(message);
   }
 }
@@ -187,7 +191,11 @@ export function prepareSkill(req: InstallRequest, reserved: Set<string>): Prepar
 export function enforceAudit(prepared: PreparedSkill, acknowledge: boolean | undefined, action: string): void {
   const { audit } = prepared;
   if (audit.verdict === "fail") {
-    throw new SkillError(`the security audit failed (${audit.counts.critical} critical, ${audit.counts.high} high): this skill cannot be ${action}`, 422, audit);
+    throw new SkillError(
+      `the security audit failed (${audit.counts.critical} critical, ${audit.counts.high} high): this skill cannot be ${action}`,
+      422,
+      audit,
+    );
   }
   if (audit.verdict === "warn" && !acknowledge) {
     throw new SkillError(`the security audit has ${audit.counts.medium} warning(s): review them and confirm`, 409, audit);

@@ -58,7 +58,7 @@ const run = async (task: string) => {
   await until(() => !threads.isRunning(t.id));
   return t.id;
 };
-const ready = await run("Write the release notes");
+await run("Write the release notes");
 const asks = await run("ASK Add a buy button");
 const broke = await run("FAIL Fix the search prices");
 const busy = threads.create(project.id, "BUSY Add a checkout page");
@@ -66,12 +66,26 @@ await until(() => threads.store.events(busy.id).some((e) => e.type === "tool"));
 
 // one lane with known times: it worked from 40 to 25 minutes ago and has waited on you since
 const minAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
-const sale = threads.store.save({ id: threads.store.newId(), projectId: project.id, title: "Plan the summer sale", status: "idle", branch: "garry/sale", worktree: repo, baseSha: "0", sessionId: null, createdAt: minAgo(40), updatedAt: minAgo(25) });
+const sale = threads.store.save({
+  id: threads.store.newId(),
+  projectId: project.id,
+  title: "Plan the summer sale",
+  status: "idle",
+  branch: "garry/sale",
+  worktree: repo,
+  baseSha: "0",
+  sessionId: null,
+  createdAt: minAgo(40),
+  updatedAt: minAgo(25),
+});
 threads.store.append(sale.id, { type: "user", text: "Plan the summer sale", at: minAgo(40) });
 threads.store.append(sale.id, { type: "text", text: "Here is a plan.\nShould it start on Monday?", at: minAgo(25) });
 threads.store.append(sale.id, { type: "turn_end", ok: true, costUsd: 0.12, at: minAgo(25) });
 
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
@@ -105,36 +119,84 @@ try {
     // what needs you: the question in the agent's words, and the stop
     const question = needs.getByRole("article", { name: /Add a buy button: asks a question/ });
     const stopped = needs.getByRole("article", { name: /Fix the search prices: stopped before finishing/ });
-    expect("needs you shows the question in the agent's own words", (await question.count()) === 1 && (await question.innerText()).includes("Should it be red or blue?"), await needs.innerText());
+    expect(
+      "needs you shows the question in the agent's own words",
+      (await question.count()) === 1 && (await question.innerText()).includes("Should it be red or blue?"),
+      await needs.innerText(),
+    );
     expect("and the agent that stopped", (await stopped.count()) === 1 && (await stopped.getByRole("button", { name: "Let it fix" }).count()) === 1);
     expect("its count is three", (await needs.getByRole("heading").innerText()).includes("3"));
 
     // every agent is a lane, in the server's state, what needs you first
     const options = await lanes.getByRole("option").evaluateAll((os) => os.map((o) => o.getAttribute("aria-label")));
     const waits = /, (Needs you|Failed)$/;
-    expect("every agent is a lane in its state, what needs you first", options.length === 5 && options.slice(0, 3).every((o) => waits.test(o!)) && options[3] === "BUSY Add a checkout page, Working" && options[4] === "Write the release notes, Ready", options.join(" | "));
+    expect(
+      "every agent is a lane in its state, what needs you first",
+      options.length === 5 &&
+        options.slice(0, 3).every((o) => waits.test(o!)) &&
+        options[3] === "BUSY Add a checkout page, Working" &&
+        options[4] === "Write the release notes, Ready",
+      options.join(" | "),
+    );
     const saleLane = lanes.getByRole("option", { name: /Plan the summer sale/ });
     const segs = await saleLane.locator("[title][data-state]").evaluateAll((s) => s.map((x) => x.getAttribute("data-state")));
     expect("a lane is work, then the question that waits", segs.join(",") === "work,wait", segs.join(","));
     // the 1 hour span runs from 56.4 minutes ago to 3.6 minutes ahead
-    const track = (await saleLane.locator("[title]").first().evaluateHandle((el) => el.parentElement!)).asElement()!;
+    const track = (
+      await saleLane
+        .locator("[title]")
+        .first()
+        .evaluateHandle((el) => el.parentElement!)
+    ).asElement()!;
     const tb = (await track.boundingBox())!;
     const x = (minutes: number) => tb.x + (tb.width * (56.4 - minutes)) / 60;
-    const [work, wait] = [(await saleLane.locator('[title][data-state="work"]').boundingBox())!, (await saleLane.locator('[title][data-state="wait"]').boundingBox())!];
+    const [work, wait] = [
+      (await saleLane.locator('[title][data-state="work"]').boundingBox())!,
+      (await saleLane.locator('[title][data-state="wait"]').boundingBox())!,
+    ];
     const nowX = (await lanes.locator(":scope > [aria-hidden]").last().boundingBox())!.x;
-    expect("work sits where its events put it", Math.abs(work.x - x(40)) <= 3 && Math.abs(work.x + work.width - x(25)) <= 3, JSON.stringify({ work, from: x(40), to: x(25) }));
-    expect("the question runs from there up to the now line", Math.abs(wait.x - x(25)) <= 3 && Math.abs(wait.x + wait.width - x(0)) <= 3 && Math.abs(nowX - x(0)) <= 3, JSON.stringify({ wait, nowX, now: x(0) }));
-    expect("a segment says what it was when you point at it", (await saleLane.locator('[title][data-state="wait"]').getAttribute("title"))!.startsWith("Needs you: Should it start on Monday?"));
+    expect(
+      "work sits where its events put it",
+      Math.abs(work.x - x(40)) <= 3 && Math.abs(work.x + work.width - x(25)) <= 3,
+      JSON.stringify({ work, from: x(40), to: x(25) }),
+    );
+    expect(
+      "the question runs from there up to the now line",
+      Math.abs(wait.x - x(25)) <= 3 && Math.abs(wait.x + wait.width - x(0)) <= 3 && Math.abs(nowX - x(0)) <= 3,
+      JSON.stringify({ wait, nowX, now: x(0) }),
+    );
+    expect(
+      "a segment says what it was when you point at it",
+      (await saleLane.locator('[title][data-state="wait"]').getAttribute("title"))!.startsWith("Needs you: Should it start on Monday?"),
+    );
 
     // picking a lane: what it did and what it cost
     const agent = page.getByRole("region", { name: /^agent: / });
-    expect("the first lane is followed below", (await agent.getAttribute("aria-label"))!.startsWith("agent: ") && (await lanes.getByRole("option", { selected: true }).count()) === 1);
+    expect(
+      "the first lane is followed below",
+      (await agent.getAttribute("aria-label"))!.startsWith("agent: ") && (await lanes.getByRole("option", { selected: true }).count()) === 1,
+    );
     await lanes.getByRole("option", { name: /Write the release notes/ }).click();
     await page.getByRole("region", { name: "agent: Write the release notes" }).waitFor();
     const log = page.getByRole("list", { name: "what it did" });
-    await log.getByText("Write the release notes").first().waitFor({ timeout: 5000 }).catch(() => undefined);
-    const rows = await log.locator("li").evaluateAll((ls) => ls.map((l) => [...l.children].slice(1).map((c) => c.textContent).join(" | ")));
-    expect("clicking a lane shows what it did: your message, its tool, its words, the end", rows.join("\n") === "You | Write the release notes\nWrite | NOTES.md\nSays | wrote NOTES.md\nDone | this turn cost $0.01", rows.join("\n"));
+    await log
+      .getByText("Write the release notes")
+      .first()
+      .waitFor({ timeout: 5000 })
+      .catch(() => undefined);
+    const rows = await log.locator("li").evaluateAll((ls) =>
+      ls.map((l) =>
+        [...l.children]
+          .slice(1)
+          .map((c) => c.textContent)
+          .join(" | "),
+      ),
+    );
+    expect(
+      "clicking a lane shows what it did: your message, its tool, its words, the end",
+      rows.join("\n") === "You | Write the release notes\nWrite | NOTES.md\nSays | wrote NOTES.md\nDone | this turn cost $0.01",
+      rows.join("\n"),
+    );
     expect("and what it cost", (await page.getByRole("region", { name: "agent: Write the release notes" }).locator("dl").innerText()).includes("$0.01"));
     await page.keyboard.press("k");
     expect("K moves up a lane", (await lanes.getByRole("option", { selected: true }).getAttribute("aria-label")) === "BUSY Add a checkout page, Working");
@@ -144,13 +206,19 @@ try {
     await page.keyboard.press("ArrowUp");
     expect("so do the arrows", (await lanes.getByRole("option", { selected: true }).getAttribute("aria-label")) === "BUSY Add a checkout page, Working");
     const working = page.getByRole("region", { name: "agent: BUSY Add a checkout page" });
-    expect("a working agent says what it does and can be stopped", (await working.innerText()).includes("Write NOTES.md") && (await working.getByRole("button", { name: "Stop" }).count()) === 1);
+    expect(
+      "a working agent says what it does and can be stopped",
+      (await working.innerText()).includes("Write NOTES.md") && (await working.getByRole("button", { name: "Stop" }).count()) === 1,
+    );
 
     // answering in place: the agent works on your answer, and it leaves needs you
     await question.getByRole("textbox", { name: "answer ASK Add a buy button" }).fill("Blue, like the other actions");
     await question.getByRole("button", { name: "Send" }).click();
     await until(() => threads.store.events(asks).some((e) => e.type === "user" && e.text === "Blue, like the other actions"), 5000);
-    expect("an answer reaches the agent as your next message", threads.store.events(asks).some((e) => e.type === "user" && e.text === "Blue, like the other actions"));
+    expect(
+      "an answer reaches the agent as your next message",
+      threads.store.events(asks).some((e) => e.type === "user" && e.text === "Blue, like the other actions"),
+    );
     await until(() => !threads.isRunning(asks));
     await question.waitFor({ state: "detached", timeout: 8000 }).catch(() => undefined);
     expect("and the question leaves needs you", (await question.count()) === 0);
@@ -158,7 +226,10 @@ try {
     // a stop: Let it fix sends it back to work
     await stopped.getByRole("button", { name: "Let it fix" }).click();
     await until(() => threads.store.events(broke).filter((e) => e.type === "user").length === 2, 5000);
-    expect("Let it fix sends the agent back to work on what went wrong", /fix it/.test((threads.store.events(broke).filter((e) => e.type === "user")[1] as { text: string } | undefined)?.text ?? ""));
+    expect(
+      "Let it fix sends the agent back to work on what went wrong",
+      /fix it/.test((threads.store.events(broke).filter((e) => e.type === "user")[1] as { text: string } | undefined)?.text ?? ""),
+    );
 
     // the time span
     await page.getByRole("button", { name: "15 min" }).click();

@@ -99,7 +99,11 @@ export async function runFeature(argv: string[]): Promise<void> {
     console.log(HELP);
     return;
   }
-  const csv = (v?: string) => (v ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  const csv = (v?: string) =>
+    (v ?? "")
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
   if (args.featId === "new") {
     if (!args.title) throw new Error('garry feature new needs a title: garry feature new "Quick cart in the header"');
     const f = createFeature(args.registry, { title: args.title, goal: args.goal, services: csv(args.services), contractChanges: csv(args.contracts) });
@@ -109,7 +113,8 @@ export async function runFeature(argv: string[]): Promise<void> {
   if (args.featId === "list") {
     const all = listFeatures(args.registry);
     if (!all.length) console.log(pc.dim(`No features in ${args.registry} yet. garry feature new "<title>"`));
-    for (const f of all) console.log(`${pc.bold(f.id.padEnd(10))} ${f.status.padEnd(10)} ${f.title}${f.services.length ? pc.dim(`  ${f.services.join(", ")}`) : ""}`);
+    for (const f of all)
+      console.log(`${pc.bold(f.id.padEnd(10))} ${f.status.padEnd(10)} ${f.title}${f.services.length ? pc.dim(`  ${f.services.join(", ")}`) : ""}`);
     return;
   }
 
@@ -126,9 +131,7 @@ export async function runFeature(argv: string[]): Promise<void> {
 
   console.log(pc.bold(`Feature ${plan.feature.id}: ${plan.feature.title}`));
   console.log(`  services (delegation order): ${plan.order.join(" -> ")}`);
-  console.log(
-    `  contract changes: ${plan.feature.contractChanges.join(", ") || "(none)"}`,
-  );
+  console.log(`  contract changes: ${plan.feature.contractChanges.join(", ") || "(none)"}`);
   console.log(`  tasks: ${plan.tasks.length}`);
   console.log("\n" + pc.dim("Pipeline (dry run):") + "\n");
 

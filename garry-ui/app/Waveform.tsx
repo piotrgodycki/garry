@@ -10,13 +10,7 @@ export default function Waveform({ bars = 40, active = false }: { bars?: number;
       {Array.from({ length: bars }).map((_, i) => {
         // a smooth crest across the row so it reads like a voice wave
         const phase = Math.abs((i % 16) - 8);
-        return (
-          <span
-            key={i}
-            className={styles.bar}
-            style={{ animationDelay: `${(phase * 0.06).toFixed(2)}s` }}
-          />
-        );
+        return <span key={i} className={styles.bar} style={{ animationDelay: `${(phase * 0.06).toFixed(2)}s` }} />;
       })}
     </div>
   );

@@ -82,13 +82,27 @@ git(worktree, ["config", "user.name", "t"]);
 git(worktree, ["config", "user.email", "t@t"]);
 writeFileSync(join(worktree, "button.txt"), "buy\n");
 const at = new Date().toISOString();
-const t = store.save({ id, projectId: shop.id, title: "Add a buy button", status: "idle", branch: "garry/buy-button", worktree, baseSha, sessionId: null, createdAt: at, updatedAt: at });
+const t = store.save({
+  id,
+  projectId: shop.id,
+  title: "Add a buy button",
+  status: "idle",
+  branch: "garry/buy-button",
+  worktree,
+  baseSha,
+  sessionId: null,
+  createdAt: at,
+  updatedAt: at,
+});
 t.commit = commitAll(worktree, "Add a buy button");
 store.save(t);
 const blogPath = newRepo("blog");
 store.addProject(blogPath, "Blog");
 
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
@@ -96,7 +110,9 @@ const browser = await launchChromium();
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   // newer browsers return a promise from the scroll methods; behave like them here too
-  await page.addInitScript("{ const s = Element.prototype.scrollIntoView; Element.prototype.scrollIntoView = function (...a) { s.apply(this, a); return Promise.resolve(); }; }");
+  await page.addInitScript(
+    "{ const s = Element.prototype.scrollIntoView; Element.prototype.scrollIntoView = function (...a) { s.apply(this, a); return Promise.resolve(); }; }",
+  );
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   const consoleErrors: string[] = [];
@@ -107,7 +123,10 @@ try {
   await page.getByRole("button", { name: "Open pull request" }).click();
   const box = page.getByRole("dialog", { name: "Confirm the push" });
   await box.waitFor();
-  expect("it says the repository is not on GitHub yet and Garry creates it first", (await box.innerText()).includes("Not on GitHub yet: Garry creates it first"));
+  expect(
+    "it says the repository is not on GitHub yet and Garry creates it first",
+    (await box.innerText()).includes("Not on GitHub yet: Garry creates it first"),
+  );
   const name = box.getByRole("textbox", { name: "new GitHub repository name" });
   expect("proposed under your account, named as in Garry", (await name.inputValue()) === "My-Shop" && (await box.innerText()).includes("octo /"));
   expect("nothing is made before the yes", made.length === 0);
@@ -123,7 +142,14 @@ try {
     .then(() => true)
     .catch(() => false);
   // when it is not there, say what the server logged and what the page shows, so a failure elsewhere can be read
-  const why = logged ? "" : `server log: ${JSON.stringify(store.events(t.id).map((e) => `${e.type}${"action" in e ? `:${e.action}:${e.detail}` : ""}`))}; page errors: ${errors.join("; ")}; console: ${consoleErrors.join(" | ")}; url: ${page.url()}; page: ${(await page.locator("body").innerText().catch(() => "")).slice(0, 1500)}`;
+  const why = logged
+    ? ""
+    : `server log: ${JSON.stringify(store.events(t.id).map((e) => `${e.type}${"action" in e ? `:${e.action}:${e.detail}` : ""}`))}; page errors: ${errors.join("; ")}; console: ${consoleErrors.join(" | ")}; url: ${page.url()}; page: ${(
+        await page
+          .locator("body")
+          .innerText()
+          .catch(() => "")
+      ).slice(0, 1500)}`;
   expect("the work's log says so", logged, why);
 
   // a repository's settings in Build offer the same on their own
@@ -134,14 +160,26 @@ try {
   await job.getByRole("button", { name: "Branch and push settings" }).click();
   const create = job.getByRole("group", { name: "create it on GitHub" });
   await create.waitFor();
-  expect("the settings propose the name as in Garry", (await create.getByRole("textbox", { name: "GitHub repository name" }).inputValue()) === "Blog" && (await create.getByRole("textbox", { name: "GitHub owner" }).inputValue()) === "octo");
+  expect(
+    "the settings propose the name as in Garry",
+    (await create.getByRole("textbox", { name: "GitHub repository name" }).inputValue()) === "Blog" &&
+      (await create.getByRole("textbox", { name: "GitHub owner" }).inputValue()) === "octo",
+  );
   await create.getByRole("textbox", { name: "GitHub owner" }).fill("acme");
   await create.getByRole("button", { name: "Create acme/Blog on GitHub" }).click();
   await job.getByRole("link", { name: "acme/Blog" }).waitFor();
-  expect("created in the organization, private by default, and the settings now show where it is", made.at(-1)?.owner === "acme" && made.at(-1)?.private === true && (await job.getByRole("link", { name: "acme/Blog" }).getAttribute("href")) === "https://github.com/acme/Blog");
+  expect(
+    "created in the organization, private by default, and the settings now show where it is",
+    made.at(-1)?.owner === "acme" &&
+      made.at(-1)?.private === true &&
+      (await job.getByRole("link", { name: "acme/Blog" }).getAttribute("href")) === "https://github.com/acme/Blog",
+  );
   const shopSettings = page.getByRole("region", { name: "Start a job" });
   await shopSettings.getByRole("combobox", { name: "repository" }).click();
-  await page.getByRole("listbox", { name: "repository" }).getByRole("option", { name: /^My Shop/ }).click();
+  await page
+    .getByRole("listbox", { name: "repository" })
+    .getByRole("option", { name: /^My Shop/ })
+    .click();
   await shopSettings.getByRole("link", { name: "octo/shop-web" }).waitFor();
   expect("a repository already on GitHub shows where", true);
   expect("no errors in the page", errors.length === 0, errors.join("; "));

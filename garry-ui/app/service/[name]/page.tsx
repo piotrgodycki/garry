@@ -115,7 +115,9 @@ export default function ServicePage() {
     return (
       <main className="page">
         <PageHeader back={back} title={name} />
-        <div className="card"><Empty icon={Icon.service}>Service {name} is not in the registry.</Empty></div>
+        <div className="card">
+          <Empty icon={Icon.service}>Service {name} is not in the registry.</Empty>
+        </div>
       </main>
     );
   if (!svc)
@@ -152,18 +154,43 @@ export default function ServicePage() {
         <div className="card cardPad">
           <h2 className={styles.blockTitle}>Overview</h2>
           <dl className={styles.dl}>
-            <dt>Owner</dt><dd>{svc.owner ?? "unknown"}</dd>
-            <dt>Repository</dt><dd className="mono">{svc.repo ?? "n/a"}</dd>
-            {svc.db && <><dt>Database</dt><dd>{svc.db.engine}{svc.db.name ? ` (${svc.db.name})` : ""}</dd></>}
-            {svc.api && <><dt>API</dt><dd>{svc.api.kind} {svc.api.version ?? ""}</dd></>}
+            <dt>Owner</dt>
+            <dd>{svc.owner ?? "unknown"}</dd>
+            <dt>Repository</dt>
+            <dd className="mono">{svc.repo ?? "n/a"}</dd>
+            {svc.db && (
+              <>
+                <dt>Database</dt>
+                <dd>
+                  {svc.db.engine}
+                  {svc.db.name ? ` (${svc.db.name})` : ""}
+                </dd>
+              </>
+            )}
+            {svc.api && (
+              <>
+                <dt>API</dt>
+                <dd>
+                  {svc.api.kind} {svc.api.version ?? ""}
+                </dd>
+              </>
+            )}
           </dl>
         </div>
 
         <div className="card cardPad">
           <h2 className={styles.blockTitle}>Exposes</h2>
           {svc.exposes.length ? (
-            <div className={styles.chips}>{svc.exposes.map((e) => <span key={e} className="chip mono">{e}</span>)}</div>
-          ) : <p className="muted">Nothing exposed.</p>}
+            <div className={styles.chips}>
+              {svc.exposes.map((e) => (
+                <span key={e} className="chip mono">
+                  {e}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">Nothing exposed.</p>
+          )}
         </div>
 
         <div className="card cardPad">
@@ -180,7 +207,9 @@ export default function ServicePage() {
                 </li>
               ))}
             </ul>
-          ) : <p className="muted">No dependencies.</p>}
+          ) : (
+            <p className="muted">No dependencies.</p>
+          )}
         </div>
       </div>
 
@@ -216,9 +245,7 @@ export default function ServicePage() {
         </div>
         <div className={styles.logBody} ref={logRef}>
           {log.length === 0 ? (
-            <Empty icon={Icon.inbox}>
-              {featureId ? "Waiting for an agent to touch this service." : "No feature references this service yet."}
-            </Empty>
+            <Empty icon={Icon.inbox}>{featureId ? "Waiting for an agent to touch this service." : "No feature references this service yet."}</Empty>
           ) : (
             <ol className={styles.logList}>
               {log.map((l, i) => {

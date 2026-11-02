@@ -27,7 +27,11 @@ function flag(argv: string[], name: string): string | undefined {
   const i = argv.indexOf(`--${name}`);
   return i >= 0 ? argv[i + 1] : undefined;
 }
-const csv = (v?: string) => (v ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+const csv = (v?: string) =>
+  (v ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
 export function runService(argv: string[]): void {
   const [sub = "list", name] = argv;
@@ -52,7 +56,16 @@ export function runService(argv: string[]): void {
     });
     const r = addService(
       registry,
-      { name, kind: flag(argv, "kind"), repo: flag(argv, "repo"), owner: flag(argv, "owner"), stack: flag(argv, "stack"), stackRef: flag(argv, "stack-ref"), exposes: csv(flag(argv, "exposes")), consumes },
+      {
+        name,
+        kind: flag(argv, "kind"),
+        repo: flag(argv, "repo"),
+        owner: flag(argv, "owner"),
+        stack: flag(argv, "stack"),
+        stackRef: flag(argv, "stack-ref"),
+        exposes: csv(flag(argv, "exposes")),
+        consumes,
+      },
       { replace: argv.includes("--replace") },
     );
     console.log(pc.green(`Added ${r.service.name} (${r.service.kind}): ${r.file}`));

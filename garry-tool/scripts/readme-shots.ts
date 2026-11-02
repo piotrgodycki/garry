@@ -49,7 +49,18 @@ const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
 const project = threads.store.addProject(repo, "Shop");
 const minAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
 const past = (title: string, from: number, to: number, said: string, cost: number) => {
-  const t = threads.store.save({ id: threads.store.newId(), projectId: project.id, title, status: "idle", branch: `garry/${title.toLowerCase().replace(/\W+/g, "-")}`, worktree: repo, baseSha: "0", sessionId: null, createdAt: minAgo(from), updatedAt: minAgo(to) });
+  const t = threads.store.save({
+    id: threads.store.newId(),
+    projectId: project.id,
+    title,
+    status: "idle",
+    branch: `garry/${title.toLowerCase().replace(/\W+/g, "-")}`,
+    worktree: repo,
+    baseSha: "0",
+    sessionId: null,
+    createdAt: minAgo(from),
+    updatedAt: minAgo(to),
+  });
   threads.store.append(t.id, { type: "user", text: title, at: minAgo(from) });
   threads.store.append(t.id, { type: "tool", id: "a", name: "Read", summary: "src/cart/index.ts", at: minAgo(from - 2) });
   threads.store.append(t.id, { type: "tool", id: "b", name: "Edit", summary: "src/cart/QuickCart.tsx", at: minAgo(from - 6) });
@@ -77,7 +88,10 @@ saveLayer(registry, { level: "project" }, { notes: "Write in British English. Ru
 saveLayer(registry, { level: "repo", name: "Shop" }, { notes: "Shop ships every Friday: keep changes small." });
 
 const devices = new DeviceStore(join(home, "devices.json"));
-const server = createGarryServer({ registry, skills: fileURLToPath(new URL("../skills", import.meta.url)), routing: join(home, "none.json"), threads, ui }, devices);
+const server = createGarryServer(
+  { registry, skills: fileURLToPath(new URL("../skills", import.meta.url)), routing: join(home, "none.json"), threads, ui },
+  devices,
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
@@ -88,13 +102,18 @@ try {
     await page.goto(`${base}${path}`);
     await page.locator(ready).first().waitFor({ timeout: 15_000 });
     // what the picture is about, at the top of the window
-    if (scrollTo) await page.locator(scrollTo).first().evaluate((el) => (el.scrollIntoView({ block: "start" }), window.scrollBy(0, -72)));
+    if (scrollTo)
+      await page
+        .locator(scrollTo)
+        .first()
+        .evaluate((el) => (el.scrollIntoView({ block: "start" }), window.scrollBy(0, -72)));
     await page.waitForTimeout(900);
     await page.screenshot({ path: join(out, `${name}.png`) });
     console.log(`ok   ${name}.png`);
   };
   // something said to Garry: one runs, one waits
-  for (const text of ["BUSY tidy up the cart service", "then rename the checkout buttons to match the design"]) await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
+  for (const text of ["BUSY tidy up the cart service", "then rename the checkout buttons to match the design"])
+    await fetch(`${base}/api/garry/queue`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
   await shoot("live", "/live", '[role="option"]');
   await shoot("dashboard", "/", "canvas[data-garry-crawl]");
   await shoot("build", "/build", "textarea");
@@ -113,7 +132,10 @@ try {
     // the command line pinned at the foot would cover the board's lower edge
     await page.addStyleTag({ content: ".cmdline { display: none !important; }" });
     await page.waitForTimeout(900);
-    await page.locator(".react-flow").first().screenshot({ path: join(out, `architecture-board-${scheme}.png`) });
+    await page
+      .locator(".react-flow")
+      .first()
+      .screenshot({ path: join(out, `architecture-board-${scheme}.png`) });
     console.log(`ok   architecture-board-${scheme}.png`);
   }
   await page.close();
@@ -134,7 +156,10 @@ try {
     if ("error" in paired) throw new Error(paired.error);
     for (const scheme of ["light", "dark"] as const) {
       const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, colorScheme: scheme });
-      await phone.addInitScript((c) => localStorage.setItem("garry.connection", c), JSON.stringify({ baseUrl: base, token: paired.token, deviceId: paired.device.id }));
+      await phone.addInitScript(
+        (c) => localStorage.setItem("garry.connection", c),
+        JSON.stringify({ baseUrl: base, token: paired.token, deviceId: paired.device.id }),
+      );
       await phone.goto(appUrl);
       await phone.getByText("Needs you").first().waitFor({ timeout: 20_000 });
       await phone.waitForTimeout(1200);

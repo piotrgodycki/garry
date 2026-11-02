@@ -61,11 +61,18 @@ for (const task of ["write the release notes", "fix the footer", "tidy the readm
 const busy = threads.create(project.id, "BUSY add a checkout page");
 await until(() => threads.store.events(busy.id).some((e) => e.type === "tool"));
 
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), threads, ui },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const status = (await (await fetch(`${base}/api/status`)).json()) as { counts: { needsYou: number; working: number; done: number } };
-expect("the server sees two that need you, one working, three ready", status.counts.needsYou === 2 && status.counts.working === 1 && status.counts.done === 3, JSON.stringify(status.counts));
+expect(
+  "the server sees two that need you, one working, three ready",
+  status.counts.needsYou === 2 && status.counts.working === 1 && status.counts.done === 3,
+  JSON.stringify(status.counts),
+);
 
 const browser = await launchChromium();
 try {
@@ -79,7 +86,13 @@ try {
 
   // the rail: every page, the one you are on marked
   const names = await nav.getByRole("link").evaluateAll((ls) => ls.map((l) => l.getAttribute("data-tip")));
-  expect("the rail has every page", ["Dashboard", "Live", "Build", "Pull requests", "Services", "Architecture", "Stacks", "Files", "Skills", "Model routing", "Settings"].every((n) => names.includes(n)), names.join(", "));
+  expect(
+    "the rail has every page",
+    ["Dashboard", "Live", "Build", "Pull requests", "Services", "Architecture", "Stacks", "Files", "Skills", "Model routing", "Settings"].every((n) =>
+      names.includes(n),
+    ),
+    names.join(", "),
+  );
   expect("Files sits with the work, right after Build", names.indexOf("Files") === names.indexOf("Build") + 1, names.join(", "));
   const current = await nav.locator('[aria-current="page"]').evaluateAll((ls) => ls.map((l) => l.getAttribute("data-tip")));
   expect("the page you are on is marked, and only it", current.length === 1 && current[0] === "Stacks", current.join(", "));
@@ -87,7 +100,17 @@ try {
   // the badge on Live is what needs you
   const liveLink = nav.getByRole("link", { name: "Live, 2 need you" });
   await liveLink.waitFor({ timeout: 8000 }).catch(() => undefined);
-  expect("Live carries a badge with the work that needs you", (await liveLink.count()) === 1 && (await liveLink.locator(".railBadge").innerText()) === "2", String(await nav.getByRole("link").nth(1).getAttribute("aria-label").catch(() => "")));
+  expect(
+    "Live carries a badge with the work that needs you",
+    (await liveLink.count()) === 1 && (await liveLink.locator(".railBadge").innerText()) === "2",
+    String(
+      await nav
+        .getByRole("link")
+        .nth(1)
+        .getAttribute("aria-label")
+        .catch(() => ""),
+    ),
+  );
 
   // the name beside the rail on hover, at the icon's height, not clipped
   const archi = nav.getByRole("link", { name: "Architecture" });
@@ -95,7 +118,16 @@ try {
   const tip = rail.locator(".railFloat");
   await tip.waitFor({ timeout: 2000 }).catch(() => undefined);
   const [tb, ab, rb] = [await tip.boundingBox(), await archi.boundingBox(), await rail.boundingBox()];
-  expect("hovering an icon shows its name beside the rail, level with it", !!tb && !!ab && !!rb && (await tip.innerText()) === "Architecture" && tb.x >= rb.x + rb.width - 1 && Math.abs(tb.y + tb.height / 2 - (ab.y + ab.height / 2)) <= 3, JSON.stringify({ tb, ab }));
+  expect(
+    "hovering an icon shows its name beside the rail, level with it",
+    !!tb &&
+      !!ab &&
+      !!rb &&
+      (await tip.innerText()) === "Architecture" &&
+      tb.x >= rb.x + rb.width - 1 &&
+      Math.abs(tb.y + tb.height / 2 - (ab.y + ab.height / 2)) <= 3,
+    JSON.stringify({ tb, ab }),
+  );
   await page.mouse.move(800, 500);
   await page.waitForTimeout(100);
   expect("and it goes when the pointer leaves", (await tip.count()) === 0);
@@ -105,7 +137,11 @@ try {
   expect("the top bar names the page", (await top.locator(".crumbPage").innerText()) === "Stacks");
   const gauges = top.getByRole("navigation", { name: "Garry at a glance" });
   const labels = await gauges.getByRole("link").evaluateAll((ls) => ls.map((l) => l.getAttribute("aria-label")));
-  expect("the top bar counts match /api/status", labels.join("|") === `${status.counts.needsYou} need you|${status.counts.working} working|${status.counts.done} ready`, labels.join("|"));
+  expect(
+    "the top bar counts match /api/status",
+    labels.join("|") === `${status.counts.needsYou} need you|${status.counts.working} working|${status.counts.done} ready`,
+    labels.join("|"),
+  );
   await gauges.getByRole("link", { name: "2 need you" }).click();
   await page.waitForURL("**/live");
   expect("a count opens Live", new URL(page.url()).pathname === "/live");
@@ -119,7 +155,11 @@ try {
   expect("with nothing typed it lists the pages", (await page.getByRole("listbox", { name: "commands" }).getByRole("option").count()) >= 10);
   await page.keyboard.type("stacks");
   const first = page.getByRole("option").first();
-  expect("a page's name puts that page first", (await first.innerText()).includes("Go to Stacks") && (await first.getAttribute("aria-selected")) === "true", await first.innerText());
+  expect(
+    "a page's name puts that page first",
+    (await first.innerText()).includes("Go to Stacks") && (await first.getAttribute("aria-selected")) === "true",
+    await first.innerText(),
+  );
   await page.keyboard.press("Enter");
   await page.waitForURL("**/stacks");
   expect("Enter goes there and empties the field", new URL(page.url()).pathname === "/stacks" && (await line.inputValue()) === "");
@@ -147,28 +187,57 @@ try {
   }
   const q = await queue();
   const mine = (t: string) => q.items.find((i) => i.text === t);
-  expect("Enter puts each message in line: the first runs, the rest wait", mine("BUSY tidy the cart")?.status === "running" && mine("then rename the buttons")?.status === "queued" && mine("then write the notes")?.status === "queued", JSON.stringify(q.items.map((i) => [i.text, i.status])));
+  expect(
+    "Enter puts each message in line: the first runs, the rest wait",
+    mine("BUSY tidy the cart")?.status === "running" &&
+      mine("then rename the buttons")?.status === "queued" &&
+      mine("then write the notes")?.status === "queued",
+    JSON.stringify(q.items.map((i) => [i.text, i.status])),
+  );
   await line.blur();
   const summary = page.getByRole("button", { name: "show what you told Garry" });
   await summary.waitFor({ timeout: 5000 }).catch(() => undefined);
-  expect("what you told Garry is one short line until you open it", (await page.getByRole("list", { name: "what you told Garry" }).count()) === 0 && /BUSY tidy the cart\s*Garry is on it · 2 waiting/.test(await summary.innerText()), await summary.innerText().catch(() => ""));
+  expect(
+    "what you told Garry is one short line until you open it",
+    (await page.getByRole("list", { name: "what you told Garry" }).count()) === 0 &&
+      /BUSY tidy the cart\s*Garry is on it · 2 waiting/.test(await summary.innerText()),
+    await summary.innerText().catch(() => ""),
+  );
   await summary.click();
   const shown = page.getByRole("list", { name: "what you told Garry" });
-  await shown.getByText("then write the notes").waitFor({ timeout: 5000 }).catch(() => undefined);
-  const rows = await shown.locator("li[data-status]").evaluateAll((ls) => ls.map((l) => `${l.getAttribute("data-status")}: ${(l as HTMLElement).innerText.replace(/\s+/g, " ").trim()}`));
-  expect("above the field: what runs, and what waits with its place in line", rows.some((r) => r.startsWith("running: BUSY tidy the cart Garry is on it")) && rows.some((r) => r.startsWith("queued: then rename the buttons waiting, 1 in line")) && rows.some((r) => r.startsWith("queued: then write the notes waiting, 2 in line")), rows.join(" | "));
+  await shown
+    .getByText("then write the notes")
+    .waitFor({ timeout: 5000 })
+    .catch(() => undefined);
+  const rows = await shown
+    .locator("li[data-status]")
+    .evaluateAll((ls) => ls.map((l) => `${l.getAttribute("data-status")}: ${(l as HTMLElement).innerText.replace(/\s+/g, " ").trim()}`));
+  expect(
+    "above the field: what runs, and what waits with its place in line",
+    rows.some((r) => r.startsWith("running: BUSY tidy the cart Garry is on it")) &&
+      rows.some((r) => r.startsWith("queued: then rename the buttons waiting, 1 in line")) &&
+      rows.some((r) => r.startsWith("queued: then write the notes waiting, 2 in line")),
+    rows.join(" | "),
+  );
   const running = mine("BUSY tidy the cart")!;
   const thread = (await (await fetch(`${base}/api/threads/${running.threadId}`)).json()) as { events: { type: string }[] };
   expect("the waiting ones do not touch the work that runs", thread.events.filter((e) => e.type === "user").length === 1);
   await shown.getByRole("button", { name: "drop: then write the notes" }).click();
   await page.waitForTimeout(400);
-  expect("a waiting message can be dropped", (await queue()).items.find((i) => i.text === "then write the notes")?.status === "cancelled" && (await shown.getByText("then write the notes").count()) === 0);
+  expect(
+    "a waiting message can be dropped",
+    (await queue()).items.find((i) => i.text === "then write the notes")?.status === "cancelled" &&
+      (await shown.getByText("then write the notes").count()) === 0,
+  );
 
   // Escape leaves the field
   await page.keyboard.press("ControlOrMeta+k");
   await page.keyboard.type("x");
   await page.keyboard.press("Escape");
-  expect("Escape leaves the field and closes the list", (await line.evaluate((el) => el !== document.activeElement)) && (await page.getByRole("listbox", { name: "commands" }).count()) === 0);
+  expect(
+    "Escape leaves the field and closes the list",
+    (await line.evaluate((el) => el !== document.activeElement)) && (await page.getByRole("listbox", { name: "commands" }).count()) === 0,
+  );
 
   // talking to Garry lives in the field only: no microphone in the rail
   expect("the rail has no microphone of its own", (await rail.getByRole("button", { name: "talk to Garry" }).count()) === 0);
@@ -177,7 +246,11 @@ try {
   // the field floats at the foot, centred on the page
   const fb = (await page.locator(".garryField").boundingBox())!;
   const vw = page.viewportSize()!;
-  expect("the field floats at the foot, centred beside the rail", Math.abs(fb.x + fb.width / 2 - (64 + (vw.width - 64) / 2)) <= 2 && vw.height - (fb.y + fb.height) >= 8 && vw.height - (fb.y + fb.height) <= 24, JSON.stringify(fb));
+  expect(
+    "the field floats at the foot, centred beside the rail",
+    Math.abs(fb.x + fb.width / 2 - (64 + (vw.width - 64) / 2)) <= 2 && vw.height - (fb.y + fb.height) >= 8 && vw.height - (fb.y + fb.height) <= 24,
+    JSON.stringify(fb),
+  );
 
   // on a phone: no rail, no top bar; the field stays
   await page.setViewportSize({ width: 390, height: 844 });
@@ -185,7 +258,11 @@ try {
   await page.waitForTimeout(300);
   const hidden = await page.evaluate(() => [".rail", ".topbar"].map((s) => getComputedStyle(document.querySelector(s)!).display));
   const pf = (await page.locator(".garryField").boundingBox())!;
-  expect("on a phone the frame steps aside for the menu, the field stays", hidden.every((d) => d === "none") && pf.x >= 0 && pf.x + pf.width <= 390, `${hidden.join(",")} ${JSON.stringify(pf)}`);
+  expect(
+    "on a phone the frame steps aside for the menu, the field stays",
+    hidden.every((d) => d === "none") && pf.x >= 0 && pf.x + pf.width <= 390,
+    `${hidden.join(",")} ${JSON.stringify(pf)}`,
+  );
   expect("no errors in the page", errors.length === 0, errors.join("; "));
 } finally {
   await browser.close();

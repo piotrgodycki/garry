@@ -69,7 +69,8 @@ export default function GithubConnect({ onChange }: { onChange?: (s: GithubStatu
         const r = await client.pollGithubDevice(d.deviceCode);
         if (r.status === "slow_down") wait += 5000;
         if (r.status === "done") break;
-        if (r.status === "denied" || r.status === "expired") throw new Error(r.status === "denied" ? "sign in was cancelled on GitHub" : "the code expired, try again");
+        if (r.status === "denied" || r.status === "expired")
+          throw new Error(r.status === "denied" ? "sign in was cancelled on GitHub" : "the code expired, try again");
       }
       await refresh();
     }).finally(() => setDevice(null));
@@ -125,9 +126,13 @@ export default function GithubConnect({ onChange }: { onChange?: (s: GithubStatu
           )}
         </div>
       ) : (
-        <p className={styles.note}>{status.error ? `${status.error}. ` : ""}Not connected. Garry needs GitHub to import repositories, open pull requests and show their checks.</p>
+        <p className={styles.note}>
+          {status.error ? `${status.error}. ` : ""}Not connected. Garry needs GitHub to import repositories, open pull requests and show their checks.
+        </p>
       )}
-      {status.source === "env" && <p className={styles.note}>GARRY_GITHUB_TOKEN in .env.local wins over a token saved here; remove it there to use this one.</p>}
+      {status.source === "env" && (
+        <p className={styles.note}>GARRY_GITHUB_TOKEN in .env.local wins over a token saved here; remove it there to use this one.</p>
+      )}
 
       {(!status.connected || replacing) && (
         <>
@@ -137,7 +142,8 @@ export default function GithubConnect({ onChange }: { onChange?: (s: GithubStatu
             <a href={NEW_TOKEN} target="_blank" rel="noreferrer">
               GitHub, Developer settings
             </a>
-            : repository access to the repositories Garry works on, with Contents and Pull requests set to read and write. Garry checks it with GitHub and keeps it in ~/.garry/github.json, readable by you only.
+            : repository access to the repositories Garry works on, with Contents and Pull requests set to read and write. Garry checks it with GitHub and keeps
+            it in ~/.garry/github.json, readable by you only.
           </p>
           {status.deviceFlow &&
             (device ? (

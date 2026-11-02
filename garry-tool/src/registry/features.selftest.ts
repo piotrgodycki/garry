@@ -39,7 +39,12 @@ expect("title too long", status(() => createFeature(registry, { title: "x".repea
 expect("unknown service", status(() => createFeature(registry, { title: "A", services: ["nope"] })) === 400);
 expect("unknown contract", status(() => createFeature(registry, { title: "A", contractChanges: ["secrets.json"] })) === 400);
 
-const first = createFeature(registry, { title: "Quick cart  in the header!", goal: "Show the cart anywhere.", services: ["shell", "cart", "cart"], contractChanges: ["events.json"] });
+const first = createFeature(registry, {
+  title: "Quick cart  in the header!",
+  goal: "Show the cart anywhere.",
+  services: ["shell", "cart", "cart"],
+  contractChanges: ["events.json"],
+});
 expect("first id", first.id === "FEAT-1");
 expect("file name", first.file.endsWith("FEAT-1-quick-cart-in-the-header.md"), first.file);
 expect("services deduplicated", first.services.join() === "shell,cart");
@@ -57,10 +62,7 @@ expect("ids never reused while a higher one exists", createFeature(registry, { t
 expect("remove unknown", status(() => removeFeature(registry, "FEAT-99")) === 404);
 
 // the server: POST creates, DELETE removes (this computer)
-const server = createGarryServer(
-  { registry, skills, routing: join(registry, "routing.json") },
-  new DeviceStore(join(registry, "devices.json")),
-);
+const server = createGarryServer({ registry, skills, routing: join(registry, "routing.json") }, new DeviceStore(join(registry, "devices.json")));
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const post = (body: unknown, headers: Record<string, string> = {}) =>
@@ -69,7 +71,10 @@ const made = await post({ title: "From the dashboard", services: ["cart"] });
 const madeBody = (await made.json()) as { id: string };
 expect("POST creates", made.status === 200 && madeBody.id === "FEAT-4");
 const listed = (await fetch(`${base}/api/features`).then((r) => r.json())) as { features: { id: string }[] };
-expect("listed", listed.features.some((f) => f.id === "FEAT-4"));
+expect(
+  "listed",
+  listed.features.some((f) => f.id === "FEAT-4"),
+);
 expect("POST bad input is 400", (await post({ title: "" })).status === 400);
 const cross = await post({ title: "Evil" }, { origin: "https://evil.example" });
 expect("POST from another site refused", cross.status === 403 && listFeatures(registry).every((f) => f.title !== "Evil"));

@@ -36,11 +36,19 @@ export default function Shell() {
       <div className={`shell${menu ? " menuOpen" : ""}`}>
         <aside className="sidebar">
           <div className="sidebarTop">
-            <button className="menuButton" aria-label={menu ? "close menu" : "open menu"} aria-expanded={menu} aria-controls="garry-menu" onClick={() => setMenu((m) => !m)}>
+            <button
+              className="menuButton"
+              aria-label={menu ? "close menu" : "open menu"}
+              aria-expanded={menu}
+              aria-controls="garry-menu"
+              onClick={() => setMenu((m) => !m)}
+            >
               {menu ? Icon.close : Icon.menu}
             </button>
             <Link href="/" className="brand" aria-label="Garry home">
-              <span className="brandMark"><GarryMark size={40} /></span>
+              <span className="brandMark">
+                <GarryMark size={40} />
+              </span>
               <span className="brandText">
                 <span className="brandName">garry</span>
                 <span className="brandSub">AI SDLC orchestrator</span>

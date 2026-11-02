@@ -35,7 +35,10 @@ export function setupTray(opts: { threads: () => ThreadManager | undefined; open
     }
     if (s.state !== "working") tray.setImage(icon(s.state === "needs-you" ? "needs" : s.state === "done" ? "done" : "idle"));
     tray.setTitle(s.counts.needsYou ? ` ${s.counts.needsYou}` : "");
-    const summary = s.state === "idle" ? "Garry is idle" : `Garry: ${[s.counts.needsYou && `${s.counts.needsYou} need you`, s.counts.working && `${s.counts.working} working`, s.counts.done && `${s.counts.done} ready`].filter(Boolean).join(", ")}`;
+    const summary =
+      s.state === "idle"
+        ? "Garry is idle"
+        : `Garry: ${[s.counts.needsYou && `${s.counts.needsYou} need you`, s.counts.working && `${s.counts.working} working`, s.counts.done && `${s.counts.done} ready`].filter(Boolean).join(", ")}`;
     tray.setToolTip(summary);
     if (process.platform === "darwin") app.dock?.setBadge(s.counts.needsYou ? String(s.counts.needsYou) : "");
 

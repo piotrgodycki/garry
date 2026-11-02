@@ -32,7 +32,10 @@ const expect = (name: string, ok: boolean, detail = "") => {
   if (!ok) failed++;
 };
 
-const server = createGarryServer({ registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), ui }, new DeviceStore(join(home, "devices.json")));
+const server = createGarryServer(
+  { registry: join(home, "registry"), skills: join(home, "none"), routing: join(home, "none.json"), ui },
+  new DeviceStore(join(home, "devices.json")),
+);
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 
@@ -69,7 +72,11 @@ try {
   await page.waitForTimeout(600);
   const box = (await canvas.boundingBox())!;
   const main = (await page.locator(".content").boundingBox())!;
-  expect("the soil runs along the foot of the dashboard, edge to edge", Math.abs(box.width - main.width) < 2 && box.height === 92, `${box.width} of ${main.width}, ${box.height} high`);
+  expect(
+    "the soil runs along the foot of the dashboard, edge to edge",
+    Math.abs(box.width - main.width) < 2 && box.height === 92,
+    `${box.width} of ${main.width}, ${box.height} high`,
+  );
   const first = await at(page);
   expect("Garry is drawn", first !== null && first.head - first.tail > 120, JSON.stringify(first));
 
@@ -84,11 +91,25 @@ try {
     requestAnimationFrame(tick);
   })`)) as ({ head: number } | null)[];
   const heads = frames.map((f) => f?.head ?? NaN);
-  const steps = heads.slice(1).map((h, i) => h - heads[i]).filter((s) => !Number.isNaN(s) && Math.abs(s) < 500);
+  const steps = heads
+    .slice(1)
+    .map((h, i) => h - heads[i])
+    .filter((s) => !Number.isNaN(s) && Math.abs(s) < 500);
   expect("the page keeps its frame rate while he crawls", frames.length >= 100, `${frames.length} frames in 2 s`);
   expect("he moves forward", heads[heads.length - 1] - heads[0] > 15, `${(heads[heads.length - 1] - heads[0]).toFixed(1)} px in 2 s`);
-  expect("frame to frame he never jumps nor slides back", steps.every((s) => s > -1 && s < 4), `steps ${Math.min(...steps).toFixed(2)} to ${Math.max(...steps).toFixed(2)} px`);
-  expect("he crawls the way a worm does: surges and rests", Math.max(...steps) > 2 * (steps.reduce((a, b) => a + b, 0) / steps.length), steps.map((s) => s.toFixed(1)).join(" ").slice(0, 120));
+  expect(
+    "frame to frame he never jumps nor slides back",
+    steps.every((s) => s > -1 && s < 4),
+    `steps ${Math.min(...steps).toFixed(2)} to ${Math.max(...steps).toFixed(2)} px`,
+  );
+  expect(
+    "he crawls the way a worm does: surges and rests",
+    Math.max(...steps) > 2 * (steps.reduce((a, b) => a + b, 0) / steps.length),
+    steps
+      .map((s) => s.toFixed(1))
+      .join(" ")
+      .slice(0, 120),
+  );
 
   // the pointer at his head: he stops and looks up
   const now = (await at(page))!;
@@ -116,7 +137,12 @@ try {
   // the theme: the soil follows it
   await page.setViewportSize({ width: 1280, height: 640 });
   await canvas.scrollIntoViewIfNeeded();
-  const soil = () => canvas.evaluate((c: HTMLCanvasElement) => Array.from(c.getContext("2d")!.getImageData(Math.round(c.width * 0.97), c.height - 6, 1, 1).data).slice(0, 3).join(","));
+  const soil = () =>
+    canvas.evaluate((c: HTMLCanvasElement) =>
+      Array.from(c.getContext("2d")!.getImageData(Math.round(c.width * 0.97), c.height - 6, 1, 1).data)
+        .slice(0, 3)
+        .join(","),
+    );
   const light = await soil();
   await page.evaluate("document.documentElement.dataset.theme = 'dark'");
   await page.waitForTimeout(300);
@@ -134,7 +160,11 @@ try {
   // the foot of the window, less the room kept for Garry's field floating there
   const room = await tall.evaluate(() => parseFloat(getComputedStyle(document.querySelector(".content")!).paddingBottom) || 0);
   const bottom = 1600 - room;
-  expect("on a short page the soil sits at the foot of the window", Math.abs(foot.y + foot.height - bottom) <= 2, `ends at ${foot.y + foot.height}, the foot is at ${bottom}`);
+  expect(
+    "on a short page the soil sits at the foot of the window",
+    Math.abs(foot.y + foot.height - bottom) <= 2,
+    `ends at ${foot.y + foot.height}, the foot is at ${bottom}`,
+  );
   await tall.close();
 
   // reduced motion: drawn, still
@@ -145,7 +175,11 @@ try {
   const a = await at(calm);
   await calm.waitForTimeout(1200);
   const b = await at(calm);
-  expect("with reduced motion he is drawn and stays still", a !== null && b !== null && Math.abs(a.head - b.head) < 0.5, `${JSON.stringify(a)} ${JSON.stringify(b)}`);
+  expect(
+    "with reduced motion he is drawn and stays still",
+    a !== null && b !== null && Math.abs(a.head - b.head) < 0.5,
+    `${JSON.stringify(a)} ${JSON.stringify(b)}`,
+  );
 } finally {
   await browser.close();
   server.close();

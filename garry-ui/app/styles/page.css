@@ -138,7 +138,10 @@
 }
 .cardLink {
   color: inherit;
-  transition: border-color 0.15s, box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.2s var(--ease),
+    transform 0.2s var(--ease);
 }
 .cardLink:hover {
   text-decoration: none;

@@ -102,7 +102,12 @@ export class ThreadStore {
     const list = this.projects();
     const known = list.find((p) => p.path === abs);
     if (known) return known;
-    const p: Project = { id: id(), name: (name ?? basename(abs)).slice(0, 64), path: abs, ...(garryProject && garryProject !== "default" ? { garryProject } : {}) };
+    const p: Project = {
+      id: id(),
+      name: (name ?? basename(abs)).slice(0, 64),
+      path: abs,
+      ...(garryProject && garryProject !== "default" ? { garryProject } : {}),
+    };
     this.write(join(this.root, "projects.json"), { projects: [...list, p] });
     return p;
   }

@@ -31,7 +31,13 @@ export default function NextAgent({ thread }: { thread: Thread }) {
           if (text.trim()) void send();
         }}
       >
-        <input className="input" aria-label="what the next agent does" placeholder="e.g. Write the tests for this" value={text} onChange={(e) => setText(e.target.value)} />
+        <input
+          className="input"
+          aria-label="what the next agent does"
+          placeholder="e.g. Write the tests for this"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
         <button className="btn" type="submit" disabled={!text.trim()}>
           Hand it on
         </button>

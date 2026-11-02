@@ -104,7 +104,12 @@ export async function fileRoute(
   res: ServerResponse,
   action: string,
   root: string,
-  ctx: { local: boolean; json: (res: ServerResponse, code: number, body: unknown) => void; readBody: (req: IncomingMessage) => Promise<unknown>; busy?: string },
+  ctx: {
+    local: boolean;
+    json: (res: ServerResponse, code: number, body: unknown) => void;
+    readBody: (req: IncomingMessage) => Promise<unknown>;
+    busy?: string;
+  },
 ): Promise<boolean> {
   if (action !== "/files" && action !== "/file") return false;
   const { json } = ctx;

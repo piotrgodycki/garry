@@ -39,12 +39,17 @@ export default function Connect() {
     <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
       <Title style={{ fontSize: 24 }}>Pair with your computer</Title>
       <Body muted>
-        On the computer running Garry, start it with garry serve --host 0.0.0.0 (or run garry pair), or in the desktop app choose Devices, Pair a Device. Then scan the code it shows.
+        On the computer running Garry, start it with garry serve --host 0.0.0.0 (or run garry pair), or in the desktop app choose Devices, Pair a Device. Then
+        scan the code it shows.
       </Body>
 
       <Card style={{ padding: 0 }}>
         {permission?.granted ? (
-          <CameraView style={s.camera} barcodeScannerSettings={{ barcodeTypes: ["qr"] }} onBarcodeScanned={busy ? undefined : ({ data }) => void submit(data)} />
+          <CameraView
+            style={s.camera}
+            barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+            onBarcodeScanned={busy ? undefined : ({ data }) => void submit(data)}
+          />
         ) : (
           <View style={s.cameraOff}>
             <Body muted>The camera scans the pairing code. Nothing else is recorded.</Body>

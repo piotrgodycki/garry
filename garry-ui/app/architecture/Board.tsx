@@ -1,5 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
-import { addEdge, Background, Controls, MarkerType, MiniMap, ReactFlow, useEdgesState, useNodesInitialized, useNodesState, useReactFlow, type Connection, type Edge } from "@xyflow/react";
+import {
+  addEdge,
+  Background,
+  Controls,
+  MarkerType,
+  MiniMap,
+  ReactFlow,
+  useEdgesState,
+  useNodesInitialized,
+  useNodesState,
+  useReactFlow,
+  type Connection,
+  type Edge,
+} from "@xyflow/react";
 import type { ArchBlock, ArchIssue, ArchSuggestion, Architecture, ArchitectureState } from "garry-client";
 import { client } from "../lib/client";
 import styles from "./architecture.module.css";
@@ -54,8 +67,7 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
       );
     }, 700);
     return () => clearTimeout(t);
-    // positions change on every drag frame; the timer debounces it
-  }, [board]);
+  }, [board, boardId]);
 
   // mark blocks that something is wrong with
   useEffect(() => {
@@ -67,20 +79,21 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
       if (e) level.set(e.source, "error");
     });
     // only a real change replaces the nodes, or every save would trigger the next one
-    setNodes((ns) => (ns.some((n) => n.data.level !== level.get(n.id)) ? ns.map((n) => (n.data.level === level.get(n.id) ? n : { ...n, data: { ...n.data, level: level.get(n.id) } })) : ns));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [issues]);
+    setNodes((ns) =>
+      ns.some((n) => n.data.level !== level.get(n.id))
+        ? ns.map((n) => (n.data.level === level.get(n.id) ? n : { ...n, data: { ...n.data, level: level.get(n.id) } }))
+        : ns,
+    );
+  }, [issues, edges, setNodes]);
 
   // only fitting pieces join: a need plugs into the same capability, never into itself
   const isValidConnection = useCallback((c: Connection | Edge) => c.source !== c.target && !!c.sourceHandle && c.sourceHandle === c.targetHandle, []);
-  const onConnect = useCallback(
-    (c: Connection) =>
-      setEdges((es) => addEdge({ ...c, id: `${c.source}>${c.target}:${c.sourceHandle}` }, es)),
-    [setEdges, state.capabilities],
-  );
+  const onConnect = useCallback((c: Connection) => setEdges((es) => addEdge({ ...c, id: `${c.source}>${c.target}:${c.sourceHandle}` }, es)), [setEdges]);
 
   const add = (b: ArchBlock, at?: { x: number; y: number }) => {
-    const pos = at ?? flow.screenToFlowPosition({ x: (wrap.current?.getBoundingClientRect().left ?? 0) + 260, y: (wrap.current?.getBoundingClientRect().top ?? 0) + 120 });
+    const pos =
+      at ??
+      flow.screenToFlowPosition({ x: (wrap.current?.getBoundingClientRect().left ?? 0) + 260, y: (wrap.current?.getBoundingClientRect().top ?? 0) + 120 });
     const id = `${b.id.replace(/[^A-Za-z0-9_-]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`;
     setNodes((ns) => [...ns, { id, type: "block", position: pos, data: { block: b, caps: state.capabilities } }]);
   };
@@ -103,7 +116,14 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
   const [asking, setAsking] = useState(false);
   const [garry, setGarry] = useState<{ summary?: string; suggestions: ArchSuggestion[]; error?: string } | null>(null);
   useEffect(() => {
-    const t = setTimeout(() => void client.suggestArchitecture(JSON.parse(board) as Architecture).then((r) => setFixes(r.quickFixes), () => undefined), 400);
+    const t = setTimeout(
+      () =>
+        void client.suggestArchitecture(JSON.parse(board) as Architecture).then(
+          (r) => setFixes(r.quickFixes),
+          () => undefined,
+        ),
+      400,
+    );
     return () => clearTimeout(t);
   }, [board]);
   const ask = async () => {
@@ -122,14 +142,31 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
   const apply = (sg: ArchSuggestion) => {
     const anchor = nodes.find((x) => sg.links.some((l) => l.from === x.id || l.to === x.id));
     const base = anchor ? { x: anchor.position.x + 360, y: anchor.position.y } : flow.screenToFlowPosition({ x: 400, y: 300 });
-    const made = sg.add.map((a, i) => ({ id: `${a.block.replace(/[^A-Za-z0-9_-]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`, block: blocks.get(a.block), label: a.label, i }));
+    const made = sg.add.map((a, i) => ({
+      id: `${a.block.replace(/[^A-Za-z0-9_-]/g, "-")}-${Math.random().toString(36).slice(2, 6)}`,
+      block: blocks.get(a.block),
+      label: a.label,
+      i,
+    }));
     const ref = (id: string) => (id.startsWith("new:") ? made[Number(id.slice(4))]?.id : id);
-    setNodes((ns) => [...ns, ...made.filter((m) => m.block).map((m) => ({ id: m.id, type: "block" as const, position: { x: base.x, y: base.y + m.i * 160 }, data: { block: m.block!, label: m.label, caps: state.capabilities } }))]);
+    setNodes((ns) => [
+      ...ns,
+      ...made
+        .filter((m) => m.block)
+        .map((m) => ({
+          id: m.id,
+          type: "block" as const,
+          position: { x: base.x, y: base.y + m.i * 160 },
+          data: { block: m.block!, label: m.label, caps: state.capabilities },
+        })),
+    ]);
     setEdges((es) =>
       sg.links.reduce((acc, l) => {
         const from = ref(l.from);
         const to = ref(l.to);
-        return from && to ? addEdge({ id: `${from}>${to}:${l.capability}`, source: from, target: to, sourceHandle: l.capability, targetHandle: l.capability }, acc) : acc;
+        return from && to
+          ? addEdge({ id: `${from}>${to}:${l.capability}`, source: from, target: to, sourceHandle: l.capability, targetHandle: l.capability }, acc)
+          : acc;
       }, es),
     );
   };
@@ -149,7 +186,13 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
   return (
     <div className={styles.layout}>
       <aside className={`card ${styles.palette}`}>
-        <input className="input" placeholder="Search blocks, e.g. postgres or queue" aria-label="search blocks" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input
+          className="input"
+          placeholder="Search blocks, e.g. postgres or queue"
+          aria-label="search blocks"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
         {groups.map((g) => (
           <div key={g.label} className={styles.group}>
             <span className={styles.groupLabel}>{g.label}</span>
@@ -173,39 +216,49 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
 
       <div className={`card ${styles.canvas}`} ref={wrap} onDrop={onDrop} onDragOver={(e) => e.preventDefault()}>
         <FocusContext.Provider value={focus}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          isValidConnection={isValidConnection}
-          fitView
-          fitViewOptions={{ maxZoom: 1, padding: 0.2 }}
-          minZoom={0.2}
-          defaultViewport={{ x: 40, y: 40, zoom: 1 }}
-          proOptions={{ hideAttribution: true }}
-          onMoveStart={(e) => {
-            // a wheel, drag or pinch (not a fit) means you placed the view
-            if (e) moved.current = true;
-          }}
-          edgeTypes={edgeTypes}
-          defaultEdgeOptions={{ type: "relation", markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 } }}
-          onNodeMouseEnter={(_, n) => setHover(n.id)}
-          onNodeMouseLeave={() => setHover(null)}
-          deleteKeyCode={["Backspace", "Delete"]}
-        >
-          <Background gap={20} />
-          {/* under the wizard or the ready-made ones, the board's own controls step aside */}
-          {!overlay && <Controls showInteractive={false} />}
-          {!overlay && <MiniMap pannable zoomable />}
-        </ReactFlow>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            isValidConnection={isValidConnection}
+            fitView
+            fitViewOptions={{ maxZoom: 1, padding: 0.2 }}
+            minZoom={0.2}
+            defaultViewport={{ x: 40, y: 40, zoom: 1 }}
+            proOptions={{ hideAttribution: true }}
+            onMoveStart={(e) => {
+              // a wheel, drag or pinch (not a fit) means you placed the view
+              if (e) moved.current = true;
+            }}
+            edgeTypes={edgeTypes}
+            defaultEdgeOptions={{ type: "relation", markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 } }}
+            onNodeMouseEnter={(_, n) => setHover(n.id)}
+            onNodeMouseLeave={() => setHover(null)}
+            deleteKeyCode={["Backspace", "Delete"]}
+          >
+            <Background gap={20} />
+            {/* under the wizard or the ready-made ones, the board's own controls step aside */}
+            {!overlay && <Controls showInteractive={false} />}
+            {!overlay && <MiniMap pannable zoomable />}
+          </ReactFlow>
         </FocusContext.Provider>
-        {nodes.length === 0 && !overlay && <p className={styles.empty}>Drag blocks here from the left, then join a need (right side) to a block that provides it (left side).</p>}
+        {nodes.length === 0 && !overlay && (
+          <p className={styles.empty}>Drag blocks here from the left, then join a need (right side) to a block that provides it (left side).</p>
+        )}
         <div className={styles.toolbar}>{bar}</div>
         {overlay && <div className={styles.overlay}>{overlay}</div>}
-        <span className={styles.saved}>{saved === "saving" ? "Saving…" : saved === "saved" ? `Saved to ${boardId ? `architecture/${boardId}.json` : "architecture.json"}` : saved === "error" ? "Not saved" : ""}</span>
+        <span className={styles.saved}>
+          {saved === "saving"
+            ? "Saving…"
+            : saved === "saved"
+              ? `Saved to ${boardId ? `architecture/${boardId}.json` : "architecture.json"}`
+              : saved === "error"
+                ? "Not saved"
+                : ""}
+        </span>
       </div>
 
       <aside className={`card ${styles.issues}`}>
@@ -232,14 +285,19 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
         <span className="eyebrow">Ask Garry</span>
         <textarea
           className={`input ${styles.goal}`}
-          placeholder="What is it for? e.g. A shop for 10,000 visitors a day, on Cloudflare, cheap to run" aria-label="what the architecture is for"
+          placeholder="What is it for? e.g. A shop for 10,000 visitors a day, on Cloudflare, cheap to run"
+          aria-label="what the architecture is for"
           value={goal}
           onChange={(e) => setGoal(e.target.value)}
         />
         <button className="btn btnPrimary btnSm" disabled={asking} onClick={() => void ask()}>
           {asking ? "Garry is thinking…" : "Suggest"}
         </button>
-        {garry?.error && <p className={styles.issue}><span className="badge danger">could not ask</span> {garry.error}</p>}
+        {garry?.error && (
+          <p className={styles.issue}>
+            <span className="badge danger">could not ask</span> {garry.error}
+          </p>
+        )}
         {garry?.summary && <p className={styles.issue}>{garry.summary}</p>}
         {garry?.suggestions.map(card)}
         {garry && !garry.error && garry.suggestions.length === 0 && <p className={styles.hint}>Nothing to add: Garry is happy with it.</p>}

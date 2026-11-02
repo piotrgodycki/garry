@@ -12,8 +12,54 @@ import { basename, extname } from "node:path";
 export const MAX_TOKENS = 5000;
 export const tokensOf = (bytes: number) => Math.ceil(bytes / 4);
 
-const LOCKFILES = new Set(["pnpm-lock.yaml", "package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "bun.lockb", "bun.lock", "Cargo.lock", "poetry.lock", "Pipfile.lock", "uv.lock", "Gemfile.lock", "composer.lock", "go.sum", "flake.lock", "packages.lock.json", "Podfile.lock", "pubspec.lock", "mix.lock"]);
-const BINARY = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".icns", ".avif", ".pdf", ".zip", ".gz", ".tgz", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".mp3", ".mp4", ".mov", ".wasm", ".jar", ".dylib", ".so", ".dll", ".exe"]);
+const LOCKFILES = new Set([
+  "pnpm-lock.yaml",
+  "package-lock.json",
+  "npm-shrinkwrap.json",
+  "yarn.lock",
+  "bun.lockb",
+  "bun.lock",
+  "Cargo.lock",
+  "poetry.lock",
+  "Pipfile.lock",
+  "uv.lock",
+  "Gemfile.lock",
+  "composer.lock",
+  "go.sum",
+  "flake.lock",
+  "packages.lock.json",
+  "Podfile.lock",
+  "pubspec.lock",
+  "mix.lock",
+]);
+const BINARY = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".ico",
+  ".icns",
+  ".avif",
+  ".pdf",
+  ".zip",
+  ".gz",
+  ".tgz",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".otf",
+  ".eot",
+  ".mp3",
+  ".mp4",
+  ".mov",
+  ".wasm",
+  ".jar",
+  ".dylib",
+  ".so",
+  ".dll",
+  ".exe",
+]);
 const GENERATED_DIRS = /(^|\/)(dist|build|out|coverage|vendor|node_modules|__generated__|generated|\.next|\.expo)\//;
 const GENERATED_NAMES = /\.(min\.(js|css)|map|snap|lock)$|\.(pb|generated|gen)\.\w+$|_pb2\.py$/;
 
@@ -52,7 +98,9 @@ export function oversizedStaged(cwd: string, max = MAX_TOKENS): Oversized[] {
     if (generated.has(path)) continue;
     const bytes = Number(git(cwd, ["cat-file", "-s", `:${path}`]).trim());
     if (tokensOf(bytes) <= max) continue;
-    const head = execFileSync("git", ["cat-file", "blob", `:${path}`], { cwd, maxBuffer: 64 * 1024 * 1024 }).subarray(0, 2048).toString("utf8");
+    const head = execFileSync("git", ["cat-file", "blob", `:${path}`], { cwd, maxBuffer: 64 * 1024 * 1024 })
+      .subarray(0, 2048)
+      .toString("utf8");
     if (skipReason(path, head)) continue;
     out.push({ path, tokens: tokensOf(bytes) });
   }
@@ -73,7 +121,7 @@ function howToSplit(path: string): string[] {
     return [
       "Find the groups of functions that belong together (one concern each: routes for one resource, one parser, one client).",
       "Move each group into its own module in the same folder, named for that concern, and import it where it is used.",
-      "If other files import from this one, keep a short re-export here (export { x } from \"./x\") so their imports do not change.",
+      'If other files import from this one, keep a short re-export here (export { x } from "./x") so their imports do not change.',
       "Move types and constants shared by the new modules into a small module of their own.",
     ];
   if ([".css", ".scss", ".less"].includes(ext))
@@ -102,7 +150,9 @@ export function sizeMessage(files: Oversized[], max = MAX_TOKENS): string {
     "",
   ];
   for (const f of files) {
-    lines.push(`  ${f.path}: about ${f.tokens.toLocaleString("en")} tokens (${Math.ceil(f.tokens / max)} files of under ${max.toLocaleString("en")} would hold it)`);
+    lines.push(
+      `  ${f.path}: about ${f.tokens.toLocaleString("en")} tokens (${Math.ceil(f.tokens / max)} files of under ${max.toLocaleString("en")} would hold it)`,
+    );
     for (const step of howToSplit(f.path)) lines.push(`    - ${step}`);
     lines.push("");
   }

@@ -18,16 +18,7 @@ export interface ParsedArgs {
   yes: boolean;
 }
 
-const FLAGS = [
-  "name",
-  "kind",
-  "framework",
-  "bundler",
-  "federation",
-  "owner",
-  "registry",
-  "out",
-] as const;
+const FLAGS = ["name", "kind", "framework", "bundler", "federation", "owner", "registry", "out"] as const;
 
 /** Minimal flag parser. Supports a leading positional name and --key value flags. */
 export function parseArgs(argv: string[]): ParsedArgs {

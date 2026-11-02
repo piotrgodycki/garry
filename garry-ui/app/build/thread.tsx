@@ -23,9 +23,18 @@ function EventRow({ e }: { e: ThreadEvent }) {
     case "tool_result":
       return e.ok ? null : <div className={`${styles.ev} ${styles.evTool} ${styles.evBad}`}>{e.preview}</div>;
     case "turn_end":
-      return <div className={`${styles.ev} ${styles.evEnd}`}>{e.ok ? "Turn done" : "Turn stopped"}{e.costUsd ? ` · $${e.costUsd.toFixed(3)}` : ""}</div>;
+      return (
+        <div className={`${styles.ev} ${styles.evEnd}`}>
+          {e.ok ? "Turn done" : "Turn stopped"}
+          {e.costUsd ? ` · $${e.costUsd.toFixed(3)}` : ""}
+        </div>
+      );
     case "git":
-      return <div className={`${styles.ev} ${styles.evEnd}`}>{e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : e.action === "repo" ? `Created ${e.detail}` : `Pull request ${e.detail}`}</div>;
+      return (
+        <div className={`${styles.ev} ${styles.evEnd}`}>
+          {e.action === "commit" ? `Committed ${e.detail.slice(0, 7)}` : e.action === "repo" ? `Created ${e.detail}` : `Pull request ${e.detail}`}
+        </div>
+      );
     case "error":
       return <div className={`${styles.ev} ${styles.evBad}`}>{e.message}</div>;
     default:
@@ -37,7 +46,14 @@ function Patch({ patch }: { patch: string }) {
   return (
     <pre className={styles.patch}>
       {patch.split("\n").map((l, i) => {
-        const cls = l.startsWith("+") && !l.startsWith("+++") ? styles.lineAdd : l.startsWith("-") && !l.startsWith("---") ? styles.lineDel : l.startsWith("@@") ? styles.lineHunk : "";
+        const cls =
+          l.startsWith("+") && !l.startsWith("+++")
+            ? styles.lineAdd
+            : l.startsWith("-") && !l.startsWith("---")
+              ? styles.lineDel
+              : l.startsWith("@@")
+                ? styles.lineHunk
+                : "";
         return (
           <span key={i} className={cls}>
             {l || " "}
@@ -130,14 +146,22 @@ export default function ThreadView() {
   const changed = diff?.files.length ?? 0;
   return (
     <main className="page">
-      <PageHeader back={{ href: "/build", label: "Build" }} title={thread.title} lede={<span className={`${styles.meta} ${styles.branch}`}>{thread.branch}</span>} />
+      <PageHeader
+        back={{ href: "/build", label: "Build" }}
+        title={thread.title}
+        lede={<span className={`${styles.meta} ${styles.branch}`}>{thread.branch}</span>}
+      />
       <div className={styles.layout}>
         <section className="card" style={{ padding: 0 }}>
           <div className={styles.timeline}>
             {events.map((e, i) => (
               <EventRow key={i} e={e} />
             ))}
-            {running && <div className={`${styles.ev} ${styles.evEnd}`}><span className="badge run">Working</span></div>}
+            {running && (
+              <div className={`${styles.ev} ${styles.evEnd}`}>
+                <span className="badge run">Working</span>
+              </div>
+            )}
             <div ref={bottom} />
           </div>
           <div className={styles.composer}>
@@ -150,7 +174,8 @@ export default function ThreadView() {
               disabled={running}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && message.trim() && !running) void act(async () => (await client.sendMessage(id, message), setMessage("")));
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && message.trim() && !running)
+                  void act(async () => (await client.sendMessage(id, message), setMessage("")));
               }}
             />
             <div className={styles.row}>
@@ -159,7 +184,11 @@ export default function ThreadView() {
                   Stop
                 </button>
               ) : (
-                <button className="btn btnPrimary" disabled={!message.trim() || busy} onClick={() => void act(async () => (await client.sendMessage(id, message), setMessage("")))}>
+                <button
+                  className="btn btnPrimary"
+                  disabled={!message.trim() || busy}
+                  onClick={() => void act(async () => (await client.sendMessage(id, message), setMessage("")))}
+                >
                   Send
                 </button>
               )}
@@ -200,9 +229,19 @@ export default function ThreadView() {
               </a>
             ) : (
               <>
-                <input className="input" placeholder={`Commit message (empty: "${thread.title}")`} aria-label="commit message" value={commitMsg} onChange={(e) => setCommitMsg(e.target.value)} />
+                <input
+                  className="input"
+                  placeholder={`Commit message (empty: "${thread.title}")`}
+                  aria-label="commit message"
+                  value={commitMsg}
+                  onChange={(e) => setCommitMsg(e.target.value)}
+                />
                 <div className={styles.row}>
-                  <button className="btn btnPrimary" disabled={running || busy || !diff?.uncommitted} onClick={() => void act(() => client.commitThread(id, commitMsg), "commit these changes")}>
+                  <button
+                    className="btn btnPrimary"
+                    disabled={running || busy || !diff?.uncommitted}
+                    onClick={() => void act(() => client.commitThread(id, commitMsg), "commit these changes")}
+                  >
                     Commit
                   </button>
                   <button
@@ -242,7 +281,13 @@ export default function ThreadView() {
                           (push.create ? (
                             <span className={styles.githubFields}>
                               <span>{push.create.owner} /</span>
-                              <input className="input" aria-label="new GitHub repository name" value={newRepo.name} onChange={(e) => setNewRepo({ ...newRepo, name: e.target.value })} spellCheck={false} />
+                              <input
+                                className="input"
+                                aria-label="new GitHub repository name"
+                                value={newRepo.name}
+                                onChange={(e) => setNewRepo({ ...newRepo, name: e.target.value })}
+                                spellCheck={false}
+                              />
                               <label className={styles.githubCheck}>
                                 <input type="checkbox" checked={newRepo.private} onChange={(e) => setNewRepo({ ...newRepo, private: e.target.checked })} />
                                 Private
@@ -274,10 +319,18 @@ export default function ThreadView() {
                           onClick={() =>
                             void act(
                               async () => {
-                                await client.openPullRequest(id, undefined, undefined, true, push.create ? { owner: push.create.owner, name: newRepo.name.trim(), private: newRepo.private } : undefined);
+                                await client.openPullRequest(
+                                  id,
+                                  undefined,
+                                  undefined,
+                                  true,
+                                  push.create ? { owner: push.create.owner, name: newRepo.name.trim(), private: newRepo.private } : undefined,
+                                );
                                 setPush(null);
                               },
-                              push.create ? `create ${push.create.owner}/${newRepo.name.trim()} on GitHub and push ${push.branch}` : `push ${push.branch} to ${push.remote}`,
+                              push.create
+                                ? `create ${push.create.owner}/${newRepo.name.trim()} on GitHub and push ${push.branch}`
+                                : `push ${push.branch} to ${push.remote}`,
                             )
                           }
                         >

@@ -82,7 +82,11 @@ export default function Prs() {
     <main className="page">
       <PageHeader
         title="Pull requests"
-        lede={<>One pull request per service on branch <code>feat/{selected || "FEATURE"}</code>. Search, filter and paging keep the view usable at hundreds of PRs.</>}
+        lede={
+          <>
+            One pull request per service on branch <code>feat/{selected || "FEATURE"}</code>. Search, filter and paging keep the view usable at hundreds of PRs.
+          </>
+        }
       />
 
       {error && <ServerNotice />}
@@ -97,13 +101,24 @@ export default function Prs() {
             className="input"
             placeholder="Search by service, repository or branch"
             value={query}
-            onChange={(e) => { setQuery(e.target.value); setPage(0); }}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(0);
+            }}
             aria-label="search pull requests"
           />
         </label>
         <div className={styles.segmented} role="group" aria-label="state">
           {states.map((s) => (
-            <button key={s} type="button" aria-pressed={stateFilter === s} onClick={() => { setStateFilter(s); setPage(0); }}>
+            <button
+              key={s}
+              type="button"
+              aria-pressed={stateFilter === s}
+              onClick={() => {
+                setStateFilter(s);
+                setPage(0);
+              }}
+            >
               {s}
             </button>
           ))}
@@ -136,22 +151,37 @@ export default function Prs() {
                     {pr.service}
                   </span>
                 </td>
-                <td data-label="Branch"><span className="chip mono">{pr.branch}</span></td>
-                <td data-label="State"><span className={`badge ${stateTone(pr.state)}`}>{pr.state}</span></td>
+                <td data-label="Branch">
+                  <span className="chip mono">{pr.branch}</span>
+                </td>
+                <td data-label="State">
+                  <span className={`badge ${stateTone(pr.state)}`}>{pr.state}</span>
+                </td>
                 <td data-label="Checks">
                   <span className={`badge ${checkTone(pr.checks)}`}>
                     <span className={`dot ${checkTone(pr.checks) || "wait"}`} />
                     {pr.checks}
                   </span>
                 </td>
-                <td className={styles.repo} data-label="Repository">{pr.repo}</td>
+                <td className={styles.repo} data-label="Repository">
+                  {pr.repo}
+                </td>
                 <td className={styles.open}>
                   {pr.url ? (
-                    <a href={pr.url} target="_blank" rel="noopener noreferrer" className="btn btnGhost iconBtn" aria-label={`open ${pr.service} on GitHub`} onClick={(e) => e.stopPropagation()}>
+                    <a
+                      href={pr.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btnGhost iconBtn"
+                      aria-label={`open ${pr.service} on GitHub`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {Icon.external}
                     </a>
                   ) : (
-                    <span className="muted" title="not opened yet">n/a</span>
+                    <span className="muted" title="not opened yet">
+                      n/a
+                    </span>
                   )}
                 </td>
               </tr>
@@ -163,12 +193,20 @@ export default function Prs() {
       </div>
 
       <div className={styles.foot}>
-        <span className="muted">{filtered.length} {filtered.length === 1 ? "pull request" : "pull requests"}</span>
+        <span className="muted">
+          {filtered.length} {filtered.length === 1 ? "pull request" : "pull requests"}
+        </span>
         {pageCount > 1 && (
           <div className={styles.pager}>
-            <button className="btn btnSm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Previous</button>
-            <span className="muted">Page {page + 1} of {pageCount}</span>
-            <button className="btn btnSm" disabled={page >= pageCount - 1} onClick={() => setPage((p) => p + 1)}>Next</button>
+            <button className="btn btnSm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+              Previous
+            </button>
+            <span className="muted">
+              Page {page + 1} of {pageCount}
+            </span>
+            <button className="btn btnSm" disabled={page >= pageCount - 1} onClick={() => setPage((p) => p + 1)}>
+              Next
+            </button>
           </div>
         )}
       </div>

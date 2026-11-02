@@ -18,8 +18,12 @@
   animation: crawl var(--crawl) linear infinite;
 }
 @keyframes crawl {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: -8.5; }
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -8.5;
+  }
 }
 
 /* the clitellum: smooth, no rings, clay. It throbs while the agents work. */
@@ -32,8 +36,13 @@
   animation: throb 0.9s ease-in-out infinite;
 }
 @keyframes throb {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
 /* a slow peristaltic squeeze of the whole body */
@@ -41,6 +50,11 @@
   animation: squeeze calc(var(--crawl) * 2) ease-in-out infinite;
 }
 @keyframes squeeze {
-  0%, 100% { transform: scale(1, 1); }
-  50% { transform: scale(1.025, 0.975); }
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.025, 0.975);
+  }
 }

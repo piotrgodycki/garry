@@ -71,7 +71,9 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 .choice:hover {
   border-color: var(--color-text-muted);

@@ -131,7 +131,9 @@
   .logRow {
     grid-template-columns: 10px minmax(0, 1fr);
   }
-  .logStage, .logText, .logMeta {
+  .logStage,
+  .logText,
+  .logMeta {
     grid-column: 2;
   }
 }

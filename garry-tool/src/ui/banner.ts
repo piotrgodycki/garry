@@ -18,8 +18,6 @@ export function tagline(): string {
 
 /** A compact stepper line, for example step(2, 5). */
 export function stepper(current: number, total: number): string {
-  const dots = Array.from({ length: total }, (_, i) =>
-    i + 1 <= current ? pc.cyan("●") : pc.dim("○"),
-  ).join(pc.dim("──"));
+  const dots = Array.from({ length: total }, (_, i) => (i + 1 <= current ? pc.cyan("●") : pc.dim("○"))).join(pc.dim("──"));
   return `${dots}  ${pc.dim(`step ${current}/${total}`)}`;
 }

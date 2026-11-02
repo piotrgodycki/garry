@@ -1,5 +1,14 @@
 import { spawn } from "node:child_process";
-import { CAPABILITIES, COMPONENTS, checkArchitecture, componentById, serviceBlock, type Architecture, type ArchitectureIssue, type Capability } from "../registry/schema/architecture.js";
+import {
+  CAPABILITIES,
+  COMPONENTS,
+  checkArchitecture,
+  componentById,
+  serviceBlock,
+  type Architecture,
+  type ArchitectureIssue,
+  type Capability,
+} from "../registry/schema/architecture.js";
 
 /**
  * Suggestions for the architecture board. Quick fixes come from the rules and
@@ -29,31 +38,54 @@ export function quickFixes(arch: Architecture, services: Service[]): Suggestion[
     if (!b) continue;
     const linked = new Set(arch.edges.filter((e) => e.from === n.id).map((e) => e.capability));
     // the platform this block runs on: itself, or the host it is linked to
-    const host = arch.edges.filter((e) => e.from === n.id && e.capability === "compute").map((e) => blockOf(arch.nodes.find((x) => x.id === e.to)?.block ?? "", services)?.provider)[0];
+    const host = arch.edges
+      .filter((e) => e.from === n.id && e.capability === "compute")
+      .map((e) => blockOf(arch.nodes.find((x) => x.id === e.to)?.block ?? "", services)?.provider)[0];
     const home = b.provider === "Your services" ? host : b.provider;
     for (const need of b.needs ?? []) {
       if (linked.has(need)) continue;
       // something already on the board that provides it
       // never something that needs the same thing itself (a CDN in front of another CDN)
-      const fits = (c: { id: string; provides: Capability[]; needs?: Capability[] }) => c.provides.includes(need) && !(c.needs ?? []).includes(need) && c.id !== b.id;
-      const onBoard = arch.nodes.find((x) => x.id !== n.id && (() => {
-        const xb = blockOf(x.block, services);
-        return !!xb && fits(xb);
-      })());
+      const fits = (c: { id: string; provides: Capability[]; needs?: Capability[] }) =>
+        c.provides.includes(need) && !(c.needs ?? []).includes(need) && c.id !== b.id;
+      const onBoard = arch.nodes.find(
+        (x) =>
+          x.id !== n.id &&
+          (() => {
+            const xb = blockOf(x.block, services);
+            return !!xb && fits(xb);
+          })(),
+      );
       if (onBoard) {
-        out.push({ title: `Link ${n.label ?? b.name} to ${onBoard.label ?? blockOf(onBoard.block, services)!.name}`, why: `${b.name} needs ${CAPABILITIES[need]}, and it is already on the board.`, add: [], links: [{ from: n.id, to: onBoard.id, capability: need }] });
+        out.push({
+          title: `Link ${n.label ?? b.name} to ${onBoard.label ?? blockOf(onBoard.block, services)!.name}`,
+          why: `${b.name} needs ${CAPABILITIES[need]}, and it is already on the board.`,
+          add: [],
+          links: [{ from: n.id, to: onBoard.id, capability: need }],
+        });
         continue;
       }
       const reachable = COMPONENTS.filter((c) => fits(c) && (!c.reachableFrom || (home && c.reachableFrom.includes(home))));
       // same platform first, then the rest
       const ranked = [...reachable.filter((c) => c.provider === home), ...reachable.filter((c) => c.provider !== home)].slice(0, 3);
-      for (const c of ranked) out.push({ title: `Add ${c.name} for ${n.label ?? b.name}`, why: `${b.name} needs ${CAPABILITIES[need]}; ${c.name} provides it${c.provider === home ? ` on ${home}` : ""}.`, add: [{ block: c.id }], links: [{ from: n.id, to: "new:0", capability: need }] });
+      for (const c of ranked)
+        out.push({
+          title: `Add ${c.name} for ${n.label ?? b.name}`,
+          why: `${b.name} needs ${CAPABILITIES[need]}; ${c.name} provides it${c.provider === home ? ` on ${home}` : ""}.`,
+          add: [{ block: c.id }],
+          links: [{ from: n.id, to: "new:0", capability: need }],
+        });
     }
   }
   return out;
 }
 
-const PROMPT = (arch: Architecture, services: Service[], issues: ArchitectureIssue[], goal: string) => `You are Garry, an architect for a team's services. Suggest improvements to their architecture board.
+const PROMPT = (
+  arch: Architecture,
+  services: Service[],
+  issues: ArchitectureIssue[],
+  goal: string,
+) => `You are Garry, an architect for a team's services. Suggest improvements to their architecture board.
 
 Blocks you may add (id: provides / needs / reachable only from):
 ${COMPONENTS.map((c) => `- ${c.id} (${c.name}, ${c.provider}): ${c.provides.join(",") || "-"} / ${(c.needs ?? []).join(",") || "-"}${c.reachableFrom ? ` / ${c.reachableFrom.join(",")}` : ""}`).join("\n")}
@@ -70,9 +102,20 @@ Answer with JSON only, no prose around it:
 At most 5 suggestions. A link goes from the block that needs to the block that provides. Prefer the platform they already use.`;
 
 /** Runs Claude Code once and returns its suggestions, keeping only blocks and links that exist. */
-export async function aiSuggestions(arch: Architecture, services: Service[], goal = "", opts: { model?: string; timeoutMs?: number } = {}): Promise<{ summary: string; suggestions: Suggestion[] }> {
+export async function aiSuggestions(
+  arch: Architecture,
+  services: Service[],
+  goal = "",
+  opts: { model?: string; timeoutMs?: number } = {},
+): Promise<{ summary: string; suggestions: Suggestion[] }> {
   const bin = process.env.GARRY_CLAUDE_BIN?.trim() || "claude";
-  const args = ["-p", PROMPT(arch, services, checkArchitecture(arch, services), goal.slice(0, 2000)), "--output-format", "json", ...(opts.model ? ["--model", opts.model] : [])];
+  const args = [
+    "-p",
+    PROMPT(arch, services, checkArchitecture(arch, services), goal.slice(0, 2000)),
+    "--output-format",
+    "json",
+    ...(opts.model ? ["--model", opts.model] : []),
+  ];
   const text = await new Promise<string>((resolve, reject) => {
     const child = spawn(bin, args, { stdio: ["ignore", "pipe", "pipe"], env: process.env });
     let out = "";
@@ -80,7 +123,9 @@ export async function aiSuggestions(arch: Architecture, services: Service[], goa
     child.stdout.on("data", (d) => (out += d));
     child.stderr.on("data", (d) => (err += d));
     const timer = setTimeout(() => child.kill("SIGTERM"), opts.timeoutMs ?? 120_000);
-    child.on("error", (e: NodeJS.ErrnoException) => reject(new Error(e.code === "ENOENT" ? `${bin} not found: install Claude Code and sign in (claude)` : e.message)));
+    child.on("error", (e: NodeJS.ErrnoException) =>
+      reject(new Error(e.code === "ENOENT" ? `${bin} not found: install Claude Code and sign in (claude)` : e.message)),
+    );
     child.on("close", (code) => {
       clearTimeout(timer);
       if (code !== 0) return reject(new Error(err.trim().slice(0, 300) || `${bin} exited with ${code}`));

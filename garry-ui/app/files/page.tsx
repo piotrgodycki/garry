@@ -28,22 +28,51 @@ interface Tab {
 }
 const isDirty = (t: Tab) => t.file.content !== null && t.text !== t.file.content;
 
-function Folder({ api, path, depth, open, onOpen, selected, version }: { api: string; path: string; depth: number; open: Set<string>; onOpen: (e: FileEntry) => void; selected: string | null; version: number }) {
+function Folder({
+  api,
+  path,
+  depth,
+  open,
+  onOpen,
+  selected,
+  version,
+}: {
+  api: string;
+  path: string;
+  depth: number;
+  open: Set<string>;
+  onOpen: (e: FileEntry) => void;
+  selected: string | null;
+  version: number;
+}) {
   const [entries, setEntries] = useState<FileEntry[] | null>(null);
   useEffect(() => {
     client.listFiles(api, path).then(setEntries, () => setEntries([]));
   }, [api, path, version]);
-  if (!entries) return <div className={styles.loading} style={{ paddingLeft: 14 + depth * 14 }}>…</div>;
+  if (!entries)
+    return (
+      <div className={styles.loading} style={{ paddingLeft: 14 + depth * 14 }}>
+        …
+      </div>
+    );
   if (!entries.length && !depth) return <p className={styles.hint}>This folder is empty.</p>;
   return (
     <>
       {entries.map((e) => (
         <div key={e.path}>
-          <button className={`${styles.entry} ${selected === e.path ? styles.selected : ""}`} style={{ paddingLeft: 14 + depth * 14 }} onClick={() => onOpen(e)} title={e.path} aria-expanded={e.type === "dir" ? open.has(e.path) : undefined}>
+          <button
+            className={`${styles.entry} ${selected === e.path ? styles.selected : ""}`}
+            style={{ paddingLeft: 14 + depth * 14 }}
+            onClick={() => onOpen(e)}
+            title={e.path}
+            aria-expanded={e.type === "dir" ? open.has(e.path) : undefined}
+          >
             <span className={styles.twisty}>{e.type === "dir" ? (open.has(e.path) ? "▾" : "▸") : ""}</span>
             {e.name}
           </button>
-          {e.type === "dir" && open.has(e.path) && <Folder api={api} path={e.path} depth={depth + 1} open={open} onOpen={onOpen} selected={selected} version={version} />}
+          {e.type === "dir" && open.has(e.path) && (
+            <Folder api={api} path={e.path} depth={depth + 1} open={open} onOpen={onOpen} selected={selected} version={version} />
+          )}
         </div>
       ))}
     </>
@@ -192,7 +221,7 @@ export default function FilesPage() {
   }, []);
   const shownIds = shown.map((t) => t.id).join();
   useEffect(() => {
-    setTermActive((cur) => (cur && shownIds.split(",").includes(cur) ? cur : (shownIds.split(",")[0] || null)));
+    setTermActive((cur) => (cur && shownIds.split(",").includes(cur) ? cur : shownIds.split(",")[0] || null));
   }, [shownIds]);
 
   const newTerminal = async () => {
@@ -259,7 +288,10 @@ export default function FilesPage() {
               ariaLabel="folder"
               value={rootKey}
               onChange={pickRoot}
-              options={[...(current ? [] : [{ value: rootKey, label: rootKey }]), ...groups.flatMap(({ g, items }) => items.map((r) => ({ value: r.key, label: r.label, group: g })))]}
+              options={[
+                ...(current ? [] : [{ value: rootKey, label: rootKey }]),
+                ...groups.flatMap(({ g, items }) => items.map((r) => ({ value: r.key, label: r.label, group: g }))),
+              ]}
             />
           </label>
           <nav className={styles.tree} aria-label="files">
@@ -274,13 +306,23 @@ export default function FilesPage() {
                 <button className={styles.tabName} onClick={() => setActive(t.path)} title={t.path}>
                   {t.path.split("/").pop()}
                 </button>
-                <button className={styles.tabClose} onClick={() => closeTab(t.path)} aria-label={`close ${t.path}`} title={isDirty(t) ? "unsaved changes" : "close"}>
+                <button
+                  className={styles.tabClose}
+                  onClick={() => closeTab(t.path)}
+                  aria-label={`close ${t.path}`}
+                  title={isDirty(t) ? "unsaved changes" : "close"}
+                >
                   {isDirty(t) ? <span className={styles.dot} /> : Icon.close}
                 </button>
               </div>
             ))}
             <span className={styles.tabsFill} />
-            <button className={`btn btnSm btnGhost ${styles.termToggle}`} onClick={toggleTerminal} aria-pressed={termOn} title="Show or hide the terminal (Ctrl+`)">
+            <button
+              className={`btn btnSm btnGhost ${styles.termToggle}`}
+              onClick={toggleTerminal}
+              aria-pressed={termOn}
+              title="Show or hide the terminal (Ctrl+`)"
+            >
               {Icon.terminal} Terminal
             </button>
           </div>
@@ -311,10 +353,18 @@ export default function FilesPage() {
                   ) : null}
                   {tab.file.content !== null && (
                     <>
-                      <button className="btn btnSm btnGhost" disabled={!isDirty(tab)} onClick={() => patch(tab.path, (t) => ({ ...t, text: t.file.content ?? "" }))}>
+                      <button
+                        className="btn btnSm btnGhost"
+                        disabled={!isDirty(tab)}
+                        onClick={() => patch(tab.path, (t) => ({ ...t, text: t.file.content ?? "" }))}
+                      >
                         Revert
                       </button>
-                      <button className="btn btnSm btnPrimary" disabled={!isDirty(tab) || running || tab.state.kind === "saving"} onClick={() => void save(tab.path)}>
+                      <button
+                        className="btn btnSm btnPrimary"
+                        disabled={!isDirty(tab) || running || tab.state.kind === "saving"}
+                        onClick={() => void save(tab.path)}
+                      >
                         {tab.state.kind === "saving" ? "Saving…" : "Save"}
                       </button>
                     </>
@@ -322,11 +372,20 @@ export default function FilesPage() {
                 </span>
               </div>
               {tab.file.content === null ? (
-                <p className={styles.hint}>{tab.file.reason === "binary" ? "A binary file; it cannot be edited here." : "Too large to edit here (over 1 MB)."}</p>
+                <p className={styles.hint}>
+                  {tab.file.reason === "binary" ? "A binary file; it cannot be edited here." : "Too large to edit here (over 1 MB)."}
+                </p>
               ) : (
                 <div className={styles.code}>
                   <Suspense fallback={<p className={styles.hint}>Loading the editor…</p>}>
-                    <CodeEditor key={`${api}:${tab.path}`} path={tab.path} value={tab.text} readOnly={running} onChange={(text) => patch(tab.path, (t) => ({ ...t, text }))} onSave={() => void save(tab.path)} />
+                    <CodeEditor
+                      key={`${api}:${tab.path}`}
+                      path={tab.path}
+                      value={tab.text}
+                      readOnly={running}
+                      onChange={(text) => patch(tab.path, (t) => ({ ...t, text }))}
+                      onSave={() => void save(tab.path)}
+                    />
                   </Suspense>
                 </div>
               )}
@@ -364,7 +423,12 @@ export default function FilesPage() {
               ) : (
                 <Suspense fallback={<p className={styles.hint}>Loading the terminal…</p>}>
                   {shown.map((t) => (
-                    <Terminal key={t.id} id={t.id} active={t.id === termActive} onExit={() => setTerms((cur) => cur.map((x) => (x.id === t.id ? { ...x, exited: true } : x)))} />
+                    <Terminal
+                      key={t.id}
+                      id={t.id}
+                      active={t.id === termActive}
+                      onExit={() => setTerms((cur) => cur.map((x) => (x.id === t.id ? { ...x, exited: true } : x)))}
+                    />
                   ))}
                 </Suspense>
               )}

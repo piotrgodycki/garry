@@ -31,23 +31,23 @@ export function PageHeader({
   return (
     <header className="pageHead">
       <div className="pageHeadMain">
-      {icon && (
-        <span className="pageIcon" data-group={group?.toLowerCase()} aria-hidden="true">
-          {icon}
-        </span>
-      )}
-      <div className="pageHeadText">
-        {back ? (
-          <Link href={back.href} className="eyebrow">
-            <span style={{ display: "inline-flex", width: 14, height: 14 }}>{Icon.back}</span>
-            {back.label}
-          </Link>
-        ) : (
-          eyebrow && <span className="eyebrow">{eyebrow}</span>
+        {icon && (
+          <span className="pageIcon" data-group={group?.toLowerCase()} aria-hidden="true">
+            {icon}
+          </span>
         )}
-        <h1>{title}</h1>
-        {lede && <p className="lede">{lede}</p>}
-      </div>
+        <div className="pageHeadText">
+          {back ? (
+            <Link href={back.href} className="eyebrow">
+              <span style={{ display: "inline-flex", width: 14, height: 14 }}>{Icon.back}</span>
+              {back.label}
+            </Link>
+          ) : (
+            eyebrow && <span className="eyebrow">{eyebrow}</span>
+          )}
+          <h1>{title}</h1>
+          {lede && <p className="lede">{lede}</p>}
+        </div>
       </div>
       {actions && <div className="pageActions">{actions}</div>}
     </header>

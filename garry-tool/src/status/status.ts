@@ -36,10 +36,11 @@ const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` :
 /** The agent's last words in its last turn, if that turn ended well. */
 function lastTurn(events: ThreadEvent[]): { ended: boolean; ok: boolean; text: string; at: string } | null {
   let end = -1;
-  for (let i = events.length - 1; i >= 0; i--) if (events[i].type === "turn_end") {
-    end = i;
-    break;
-  }
+  for (let i = events.length - 1; i >= 0; i--)
+    if (events[i].type === "turn_end") {
+      end = i;
+      break;
+    }
   if (end < 0) return null;
   const e = events[end] as Extract<ThreadEvent, { type: "turn_end" }>;
   let text = "";
@@ -69,7 +70,8 @@ export function threadState(t: Thread, events: ThreadEvent[], running: boolean):
   if (t.pr || t.commit) return null;
   // a turn that never ended while nothing runs it: the agent was cut off
   const lastUser = events.map((e) => e.type).lastIndexOf("user");
-  if (lastUser > events.map((e) => e.type).lastIndexOf("turn_end")) return { ...base, state: "needs-you", detail: "Stopped before finishing: look at what happened", at: t.updatedAt };
+  if (lastUser > events.map((e) => e.type).lastIndexOf("turn_end"))
+    return { ...base, state: "needs-you", detail: "Stopped before finishing: look at what happened", at: t.updatedAt };
   const turn = lastTurn(events);
   if (!turn) return null;
   if (!turn.ok || t.status === "error") return { ...base, state: "needs-you", detail: "Stopped before finishing: look at what happened", at: turn.at };
