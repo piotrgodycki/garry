@@ -1,6 +1,6 @@
 /**
- * Regression test for the human QA check: which changes need a person to try
- * them, and which do not. Run with: pnpm -C garry-tool test:qa (CI runs it too).
+ * Regression test for the human QA check.
+ * Run with: pnpm -C garry-tool test:qa
  */
 import { QA_MARKER, assessQa, parseDiff, qaMarkdown, type ChangedFile } from "./qa.js";
 

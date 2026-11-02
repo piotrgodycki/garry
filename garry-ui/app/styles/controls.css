@@ -1,5 +1,4 @@
 /* buttons, fields and tables (one part of globals.css, which imports them in this order) */
-/* ---- controls ------------------------------------------------------------- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -143,7 +142,6 @@
   color: var(--color-text-muted);
 }
 
-/* ---- data table ----------------------------------------------------------- */
 /* A table marked "cards" turns each row into a card on a phone: every cell
    on its own line under the name of its column (data-label). */
 @media (max-width: 640px) {
@@ -229,7 +227,6 @@
   font-weight: 600;
 }
 
-/* a field's name above it: plain words, readable, not a caption */
 .fieldLabel {
   display: block;
   padding: 0;

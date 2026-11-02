@@ -3,11 +3,8 @@ import { kindInfo } from "./kinds.js";
 import { WizardAnswersSchema } from "./wizard.js";
 
 /**
- * The architecture board: blocks (your services and the platforms they run on)
- * joined like puzzle pieces. Every block offers some capabilities (provides)
- * and needs others (needs); a link always goes from a need to a block that
- * provides it, so only fitting pieces snap together. Stored in the registry as
- * architecture.json; checkArchitecture says what is missing or does not fit.
+ * The architecture board: blocks that provide and need capabilities. A link always goes from a need to a
+ * block that provides it, so only fitting pieces snap together.
  */
 
 export const CAPABILITIES = {
@@ -36,7 +33,6 @@ export interface Component {
   provider: string;
   group: "client" | "edge" | "compute" | "data" | "messaging" | "storage" | "identity" | "content" | "external";
   provides: Capability[];
-  /** what it cannot work without */
   needs?: Capability[];
   /** may only be reached from blocks of these providers (bindings, private networks) */
   reachableFrom?: string[];
@@ -46,12 +42,10 @@ export interface Component {
 export const PROVIDERS = ["Clients", "AWS", "Cloudflare", "Vercel", "Netlify", "Supabase", "Adobe", "Self-hosted", "SaaS"];
 
 export const COMPONENTS: Component[] = [
-  // clients
   { id: "browser", name: "Browser", provider: "Clients", group: "client", provides: [], needs: ["web"] },
   { id: "mobile-app", name: "Mobile app", provider: "Clients", group: "client", provides: [], needs: ["http"] },
   { id: "ios-app", name: "iOS app", provider: "Clients", group: "client", provides: [], needs: ["http"], note: "iPhone and iPad" },
   { id: "android-app", name: "Android app", provider: "Clients", group: "client", provides: [], needs: ["http"] },
-  // AWS
   { id: "aws-cloudfront", name: "CloudFront", provider: "AWS", group: "edge", provides: ["cdn", "web"], needs: ["web"] },
   { id: "aws-s3-site", name: "S3 static site", provider: "AWS", group: "edge", provides: ["web"] },
   { id: "aws-api-gateway", name: "API Gateway", provider: "AWS", group: "edge", provides: ["http"], needs: ["compute"] },
@@ -73,7 +67,6 @@ export const COMPONENTS: Component[] = [
   { id: "aws-s3", name: "S3", provider: "AWS", group: "storage", provides: ["blob"] },
   { id: "aws-cognito", name: "Cognito", provider: "AWS", group: "identity", provides: ["auth"] },
   { id: "aws-ses", name: "SES", provider: "AWS", group: "external", provides: ["email"] },
-  // Cloudflare
   { id: "cf-cdn", name: "Cloudflare CDN", provider: "Cloudflare", group: "edge", provides: ["cdn", "web"], needs: ["web"] },
   { id: "cf-pages", name: "Pages", provider: "Cloudflare", group: "edge", provides: ["web"] },
   { id: "cf-workers", name: "Workers", provider: "Cloudflare", group: "compute", provides: ["compute", "http", "web"] },
@@ -91,13 +84,10 @@ export const COMPONENTS: Component[] = [
   },
   { id: "cf-queues", name: "Queues", provider: "Cloudflare", group: "messaging", provides: ["queue"], reachableFrom: ["Cloudflare"] },
   { id: "cf-r2", name: "R2", provider: "Cloudflare", group: "storage", provides: ["blob"] },
-  // Vercel
   { id: "vercel-app", name: "Vercel (Next.js)", provider: "Vercel", group: "compute", provides: ["web", "http", "compute"] },
   { id: "vercel-blob", name: "Vercel Blob", provider: "Vercel", group: "storage", provides: ["blob"] },
   { id: "netlify", name: "Netlify", provider: "Netlify", group: "compute", provides: ["web", "http", "compute"] },
-  // Supabase
   { id: "supabase", name: "Supabase", provider: "Supabase", group: "data", provides: ["sql", "auth", "blob"] },
-  // Adobe Experience Manager
   {
     id: "aem-sites",
     name: "AEM Sites",
@@ -175,7 +165,6 @@ export const COMPONENTS: Component[] = [
     provides: ["events"],
     note: "events from AEM and Adobe apps to your code",
   },
-  // self-hosted, anywhere
   { id: "postgres", name: "PostgreSQL", provider: "Self-hosted", group: "data", provides: ["sql"] },
   { id: "mysql", name: "MySQL / MariaDB", provider: "Self-hosted", group: "data", provides: ["sql"] },
   { id: "mongodb", name: "MongoDB", provider: "Self-hosted", group: "data", provides: ["document"] },
@@ -204,7 +193,6 @@ export const COMPONENTS: Component[] = [
   },
   { id: "vps", name: "VPS / Docker", provider: "Self-hosted", group: "compute", provides: ["compute", "http", "web"] },
   { id: "kubernetes", name: "Kubernetes", provider: "Self-hosted", group: "compute", provides: ["compute", "http", "web"] },
-  // SaaS
   {
     id: "akamai",
     name: "Akamai",
@@ -276,7 +264,7 @@ export interface ArchitectureIssue {
   message: string;
 }
 
-/** What is missing or does not fit on the board. services are the registry's manifests. */
+/** `services` are the registry's manifests. */
 export function checkArchitecture(arch: Architecture, services: { name: string; kind?: string; db?: unknown }[] = []): ArchitectureIssue[] {
   const issues: ArchitectureIssue[] = [];
   const svc = new Map(services.map((s) => [`service:${s.name}`, serviceBlock(s)]));

@@ -1,11 +1,7 @@
 import type { ReactNode } from "react";
 import styles from "./illustrations.module.css";
 
-/**
- * The empty and first states tell one story: the soil, things growing in it,
- * the repositories the work lives in. Drawn from the theme's tokens (soil, leaf, Garry's colours), so they
- * hold in both themes; each says what it shows for a screen reader.
- */
+/** Drawn from theme tokens so they hold in both themes; each one is labelled for screen readers. */
 type Art = "caughtUp" | "connectRepo" | "plantFeature";
 
 const ART: Record<Art, { label: string; draw: ReactNode }> = {
@@ -72,7 +68,6 @@ const ART: Record<Art, { label: string; draw: ReactNode }> = {
   },
 };
 
-/** An empty state with its picture: what it shows, what it means, and what to do. */
 export default function Illustrated({ art, title, children, action }: { art: Art; title: string; children?: ReactNode; action?: ReactNode }) {
   const a = ART[art];
   return (

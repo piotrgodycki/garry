@@ -3,11 +3,7 @@ import { join } from "node:path";
 import { ArchitectureSchema, checkArchitecture, serviceBlock, type Architecture, type ArchitectureIssue, type Component } from "./schema/architecture.js";
 import { listManifests } from "../sync/registryIO.js";
 
-/**
- * The registry's architecture boards: one for the whole project
- * (architecture.json) and one per repository (architecture/<repo>.json). Used
- * by the Architecture page and garry architecture.
- */
+/** The registry's boards: architecture.json for the whole project, architecture/<repo>.json per repository. */
 
 export class ArchitectureError extends Error {
   constructor(
@@ -38,7 +34,6 @@ export function readArchitecture(registry: string, board = ""): Architecture {
   }
 }
 
-/** The board, the registry's services as blocks, and what the check says. */
 export function architectureState(registry: string, board = ""): { architecture: Architecture; services: Component[]; issues: ArchitectureIssue[] } {
   const architecture = readArchitecture(registry, board);
   const svc = services(registry);
@@ -52,9 +47,8 @@ export function checkDraft(registry: string, input: unknown): ArchitectureIssue[
 }
 
 /**
- * Writes the board. Links to blocks that are not on the board are dropped, and
- * so are repeated links. The wizard's answers are kept unless the input sets
- * them (null clears them), so editing the board by hand does not lose them.
+ * Drops links to blocks not on the board and repeated links. The wizard's answers are kept unless the
+ * input sets them (null clears them), so editing the board by hand does not lose them.
  */
 export function saveArchitecture(registry: string, input: unknown, board = ""): { architecture: Architecture; issues: ArchitectureIssue[] } {
   const r = ArchitectureSchema.safeParse(input);
@@ -80,12 +74,10 @@ export function saveArchitecture(registry: string, input: unknown, board = ""): 
   return { architecture, issues: checkArchitecture(architecture, services(registry)) };
 }
 
-/** Empties a board: its blocks, links and wizard answers. Another board is untouched. */
 export function resetArchitecture(registry: string, board = ""): void {
   rmSync(file(registry, board), { force: true });
 }
 
-/** The boards there are: the whole project's, and one per repository named. */
 export function listBoards(registry: string, repos: string[]): { id: string; name: string; blocks: number }[] {
   const names = [...new Set(repos.filter((r) => BOARD_NAME.test(r) && !r.includes("..")))];
   return [{ id: "", name: "Whole project" }, ...names.map((n) => ({ id: n, name: n }))].map((b) => ({

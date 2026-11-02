@@ -1,8 +1,6 @@
 /**
- * Regression test for device pairing: a request from another machine needs a
- * paired device token, codes work once, device management stays on this machine
- * and a revoked token stops working. Run with: pnpm -C garry-tool test:auth (CI
- * runs it too). It needs a non-loopback address to play the other device.
+ * Tests device pairing. Needs a non-loopback address to play the other device.
+ * Run with: pnpm -C garry-tool test:auth
  */
 import { mkdtempSync } from "node:fs";
 import { request } from "node:http";

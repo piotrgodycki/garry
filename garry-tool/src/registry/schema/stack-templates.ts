@@ -1,16 +1,14 @@
 import type { ServiceKind } from "./kinds.js";
 
 /**
- * Ready-made stacks: well known combinations a team can start from, then change.
- * Each one passes the stack rules as it is, and says which kinds of service it
- * suits so the Add service form can offer the right ones first.
+ * Ready-made stacks a team can start from. Each passes the stack rules as is, and lists the service kinds
+ * it suits so the Add service form can offer it first.
  */
 
 export interface StackTemplate {
   name: string;
   title: string;
   description: string;
-  /** the kinds of service it is meant for */
   kinds: ServiceKind[];
   technologies: { id: string }[];
 }

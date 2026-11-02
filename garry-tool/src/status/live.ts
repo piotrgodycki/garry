@@ -3,12 +3,9 @@ import type { Thread, ThreadEvent } from "../threads/store.js";
 import { asksSomething } from "./status.js";
 
 /**
- * Live: every agent as a lane on a timeline, worked out from the threads' own
- * event logs. A turn is a stretch of work, from your message to the turn's end;
- * what follows says what the agent left you with until you answer: a question
- * (needs you), a stop before finishing (failed), or work to review (ready).
- * Committing or opening the pull request ends the lane. What needs you comes
- * with the agent's own words, so you can answer from Live.
+ * Every agent as a lane on a timeline, built from the threads' event logs. A
+ * turn is work; what follows it is a question (wait), a stop (fail) or work to
+ * review (done) until you answer. A commit or pull request ends the lane.
  */
 
 export type LiveState = "work" | "wait" | "fail" | "done";
@@ -33,7 +30,6 @@ export interface LiveLane {
   costUsd: number;
   turns: number;
   tools: number;
-  /** the tool it is using now, while it works */
   doing: string | null;
   /** a reviewer of another agent's work, or a step of a chain; none for work you started */
   role?: "reviewer" | "step";
@@ -55,14 +51,12 @@ export interface LiveView {
   now: string;
   lanes: LiveLane[];
   needsYou: LiveAsk[];
-  /** what today's turns cost, across every lane */
   spentToday: number;
 }
 
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 const firstLine = (s: string) => s.trim().split(/\n+/)[0] ?? "";
 
-/** The lane of one thread. */
 export function laneOf(t: Thread, project: string, events: ThreadEvent[], running: boolean): LiveLane {
   const segments: LiveSegment[] = [];
   const open = () => (segments.length && segments[segments.length - 1].to === null ? segments[segments.length - 1] : null);
@@ -138,9 +132,8 @@ export function laneOf(t: Thread, project: string, events: ThreadEvent[], runnin
 }
 
 /**
- * Live for some threads (the active Garry project's): lanes touched since
- * `since`, or still waiting on you or working whenever they started; the ones
- * that need you first, then working, then the rest, newest first.
+ * Lanes touched since `since`, plus any still waiting or working; those that
+ * need you first, then working, then the rest, newest first.
  */
 export function liveView(threads: ThreadManager, threadIds: Set<string>, since: Date, now = new Date()): LiveView {
   const names = new Map(threads.store.projects().map((p) => [p.id, p.name]));

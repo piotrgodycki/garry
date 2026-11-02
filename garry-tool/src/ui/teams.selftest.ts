@@ -1,12 +1,6 @@
 /**
- * Regression test for agents working together, in a real browser against a
- * real Garry server whose agents are a stand-in for Claude Code: in Build you
- * pick a reviewer or a chain; a pair shows its writer, its reviewer and the
- * round until it is approved; a chain's steps are written and ordered before
- * it starts, and while they wait they move, drop and get added to; on a piece
- * of work, "Then another agent" hands it on; Live shows the reviewer as one.
- * Needs the built dashboard and Chromium, like test:dropdown.
- * Run with: pnpm -C garry-tool test:teams-ui (CI runs it too).
+ * Browser regression test for agents working together: pairs, chains and hand-offs.
+ * Run with: pnpm -C garry-tool test:teams-ui
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -65,7 +59,6 @@ try {
   const modes = page.getByRole("radiogroup", { name: "who works on it" });
   await modes.waitFor();
 
-  // a pair, from Build
   await modes.getByRole("radio", { name: /^Agent and reviewer/ }).click();
   await page.getByRole("combobox", { name: "review rounds" }).selectOption("2");
   await page.getByRole("textbox", { name: "What should change?" }).fill("PAIR2 add a buy button");
@@ -95,7 +88,6 @@ try {
   const loose = await jobs.locator(`li > a[href="/build/${t.pairs[0].writer}"], li > a[href="/build/${t.pairs[0].reviewer}"]`).count();
   expect("the pair's two agents show inside it, not again as jobs of their own", loose === 0, String(loose));
 
-  // a chain, from Build: steps written and put in order before it starts
   await modes.getByRole("radio", { name: /^Several steps/ }).click();
   await page.getByRole("textbox", { name: "Step 1: what should change first?" }).fill("BUSY write the spec");
   await page.getByRole("textbox", { name: "step 2" }).fill("write the notes");
@@ -116,7 +108,6 @@ try {
     JSON.stringify(chain?.steps),
   );
 
-  // while they wait: move, drop, add
   const chainCard = page.getByRole("article", { name: /^job in steps: / });
   await chainCard.getByRole("button", { name: "move down: build it" }).waitFor({ timeout: 8000 });
   await chainCard.getByRole("button", { name: "move down: build it" }).click();
@@ -143,7 +134,6 @@ try {
   expect("the chain can be stopped: nothing more starts", t.chains[0].status === "stopped" && t.chains[0].steps.slice(1).every((s) => s.status === "dropped"));
   threads.stop(t.chains[0].steps[0].threadId!);
 
-  // a piece of work handed on to another agent
   await page.goto(`${base}/build/${t.pairs[0].writer}`);
   const next = page.getByRole("region", { name: "then another agent" });
   await next.getByRole("textbox", { name: "what the next agent does" }).fill("write the tests for the button");
@@ -161,7 +151,6 @@ try {
     JSON.stringify(handed),
   );
 
-  // Live: the reviewer is a reviewer
   await page.goto(`${base}/live`);
   const lanes = page.getByRole("listbox", { name: "agents" });
   await lanes.getByRole("option").first().waitFor();

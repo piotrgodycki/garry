@@ -21,7 +21,6 @@ function allDeps(pkg: PackageJson): Record<string, string> {
   return { ...pkg.dependencies, ...pkg.devDependencies };
 }
 
-/** Finds the first existing file from a list, relative to root. */
 function firstExisting(root: string, names: string[]): string | undefined {
   return names.find((n) => existsSync(join(root, n)));
 }
@@ -38,14 +37,12 @@ export function detectStack(root: string): StackDetection {
   const deps = allDeps(pkg);
   const has = (name: string) => Object.prototype.hasOwnProperty.call(deps, name);
 
-  // framework
   let framework = "unknown";
   if (has("react")) framework = "react";
   else if (has("vue")) framework = "vue";
   else if (has("svelte")) framework = "svelte";
   if (framework !== "unknown") evidence.push(`dependency ${framework}`);
 
-  // bundler
   let bundler: Bundler = "unknown";
   const viteCfg = firstExisting(root, ["vite.config.ts", "vite.config.js", "vite.config.mjs"]);
   const webpackCfg = firstExisting(root, ["webpack.config.js", "webpack.config.ts"]);
@@ -61,7 +58,6 @@ export function detectStack(root: string): StackDetection {
     evidence.push(webpackCfg ? `found ${webpackCfg}` : "dependency webpack");
   }
 
-  // federation
   let federation: Federation = "unknown";
   if (has("@module-federation/enhanced") || has("@module-federation/vite")) {
     federation = "module-federation-2";

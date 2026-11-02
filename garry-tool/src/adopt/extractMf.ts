@@ -9,10 +9,8 @@ export interface MfConfig {
 }
 
 /**
- * Extracts the Module Federation surface from a bundler config by static text
- * parsing. It never evaluates the config (untrusted code). It reads the exposes,
- * remotes and shared keys well enough to seed the registry, and a human approves
- * the result afterwards.
+ * Reads the Module Federation config by static text parsing. It never evaluates
+ * the config, which is untrusted code; a human approves the result.
  */
 export function extractMf(root: string, configFile: string | undefined): MfConfig {
   const result: MfConfig = { exposes: [], remotes: [], shared: [] };
@@ -54,7 +52,6 @@ function objectKeys(body: string): string[] {
   return keys;
 }
 
-/** shared can be an array of names or an object keyed by name. Handles both. */
 function sharedNames(src: string): string[] {
   const arr = /shared\s*:\s*\[([^\]]*)\]/.exec(src);
   if (arr) {

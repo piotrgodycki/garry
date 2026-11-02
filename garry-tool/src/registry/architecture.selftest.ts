@@ -1,7 +1,6 @@
 /**
- * Regression test for the architecture board: the block catalog, the rules
- * (only fitting pieces join, binding-only blocks, missing needs), saving and
- * the server. Run with: pnpm -C garry-tool test:architecture (CI runs it too).
+ * Regression test for the architecture board: catalog, rules, saving and the server.
+ * Run with: pnpm -C garry-tool test:architecture
  */
 import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -26,7 +25,6 @@ const n = (id: string, block: string) => ({ id, block, x: 0, y: 0 });
 const levels = (a: Architecture, services: { name: string; kind?: string; db?: unknown }[] = []) =>
   checkArchitecture(a, services).map((i) => `${i.level}:${i.message}`);
 
-// the catalog
 const caps = new Set(Object.keys(CAPABILITIES));
 expect("block ids are unique", new Set(COMPONENTS.map((c) => c.id)).size === COMPONENTS.length);
 {
@@ -55,7 +53,6 @@ expect(
   COMPONENTS.every((c) => PROVIDERS.includes(c.provider)),
 );
 
-// ready-made architectures: valid, and nothing for the rules to say
 expect("template ids are unique", new Set(ARCHITECTURE_TEMPLATES.map((t) => t.id)).size === ARCHITECTURE_TEMPLATES.length);
 for (const t of ARCHITECTURE_TEMPLATES) {
   const issues = checkArchitecture(t.architecture);
@@ -66,7 +63,6 @@ for (const t of ARCHITECTURE_TEMPLATES) {
   );
 }
 
-// the rules
 const sound: Architecture = {
   nodes: [n("b", "browser"), n("cdn", "cf-cdn"), n("w", "cf-workers"), n("d1", "cf-d1")],
   edges: [
@@ -99,7 +95,6 @@ expect(
   ),
 );
 
-// services as blocks
 const services = [
   { name: "orders", kind: "backend", db: { engine: "postgres" } },
   { name: "shell", kind: "mfe-shell" },
@@ -136,7 +131,6 @@ expect(
 );
 expect("registry services missing from the board are noted", levels({ nodes: [], edges: [] }, services).filter((m) => m.startsWith("info:")).length === 3);
 
-// suggestions: quick fixes from the rules
 const fixes = quickFixes({ nodes: [n("w", "cf-workers"), n("wp", "wordpress"), n("pg", "postgres")], edges: [] }, []);
 expect(
   "an open need on the board gets a link to what is already there",
@@ -158,13 +152,12 @@ expect(
   cdnFixes.map((f) => f.title).join(" | "),
 );
 
-// suggestions from Garry (a stand-in for claude)
+// a stand-in for claude answers the suggestion requests
 process.env.GARRY_CLAUDE_BIN = fileURLToPath(new URL("../architecture/fake-claude-architect.mjs", import.meta.url));
 const ai = await aiSuggestions({ nodes: [n("o", "service:orders")], edges: [] }, services, "a shop");
 expect("Garry's answer is parsed from the claude envelope", ai.summary.startsWith("Add a database") && ai.suggestions[0]?.add[0]?.block === "neon");
 expect("suggestions with blocks that do not exist are dropped", ai.suggestions.length === 1);
 
-// storage
 const registry = mkdtempSync(join(tmpdir(), "garry-arch-"));
 expect("an empty registry has an empty board", readArchitecture(registry).nodes.length === 0);
 const saved = saveArchitecture(registry, {
@@ -194,7 +187,6 @@ expect(
   validateRegistry(registry).some((i) => i.where === "architecture.json" && i.level === "error"),
 );
 
-// the server
 const server = createGarryServer(
   { registry, skills: join(registry, "none"), routing: join(registry, "none.json") },
   new DeviceStore(join(registry, "devices.json")),

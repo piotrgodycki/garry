@@ -58,12 +58,10 @@ const DEFAULTS = {
   owner: "team-unknown",
 };
 
-/** Fills the optional fields with sensible defaults, keeping any provided values. */
 export function applyDefaults(v: Partial<ScaffoldOptions>): Partial<ScaffoldOptions> {
   return { ...DEFAULTS, registry: v.registry ?? defaultRegistry(), ...v };
 }
 
-/** Builds the human readable stack string from the structured fields. */
 export function stackString(o: Pick<ScaffoldOptions, "framework" | "bundler" | "federation">): string {
   return `${o.framework} + ${o.bundler} + ${o.federation}`;
 }

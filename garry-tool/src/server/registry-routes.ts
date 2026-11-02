@@ -36,20 +36,19 @@ import { activeGarryProject } from "../project/store.js";
 import { json, readBody, type RouteCtx } from "./http.js";
 
 /**
- * What the registry holds, besides features: its files, the services, the
- * architecture boards, the stacks and the routing profiles. Returns false
- * when the request is about none of them.
+ * Registry files, services, architecture boards, stacks and routing profiles.
+ * Returns false when the request is about none of them.
  */
 export async function registryRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
   const { cfg, local, url } = ctx;
-  // The registry's own files (catalog/, contracts/, features/, stacks/): browse and edit by hand, this machine only
+  // Hand-editing the registry's own files is this machine only.
   const regFiles = /^\/api\/registry(\/files|\/file)$/.exec(path);
   if (regFiles) {
     mkdirSync(cfg.registry, { recursive: true });
     if (await fileRoute(req, res, regFiles[1], cfg.registry, { local, json, readBody })) return;
   }
 
-  // Services: add one to the registry (this machine and paired devices), remove one (this machine only)
+  // Adding a service is open to paired devices; removing is this machine only.
   if (req.method === "POST" && path === "/api/registry/services") {
     const body = (await readBody(req)) as ServiceInput & { replace?: boolean };
     try {
@@ -71,7 +70,7 @@ export async function registryRoutes(req: IncomingMessage, res: ServerResponse, 
     }
   }
 
-  // Suggestions for the board: quick fixes from the rules, and with ai Garry's own (Claude Code on this computer)
+  // With ai, Garry also asks Claude Code on this computer for suggestions.
   if (req.method === "POST" && path === "/api/architecture/suggest") {
     const body = (await readBody(req)) as { goal?: string; ai?: boolean; board?: unknown };
     const parsed = ArchitectureSchema.safeParse(body.board ?? readArchitecture(cfg.registry, url.searchParams.get("board") ?? ""));
@@ -87,9 +86,8 @@ export async function registryRoutes(req: IncomingMessage, res: ServerResponse, 
     }
   }
 
-  // The architecture boards (the whole project's, one per repository, ?board=<repo>): save one
-  // (this machine and paired devices), check a draft, build one from the wizard's answers
-  // (a preview, saved by the next POST), reset one (this machine only)
+  // Saving a board is open to paired devices; resetting one is this machine only.
+  // A wizard result is only a preview until the next POST saves it.
   if (path === "/api/architecture" || path === "/api/architecture/check" || path === "/api/architecture/wizard") {
     const board = url.searchParams.get("board") ?? "";
     try {
@@ -115,7 +113,7 @@ export async function registryRoutes(req: IncomingMessage, res: ServerResponse, 
     }
   }
 
-  // Stacks: save one (this machine and paired devices), check a draft, remove one (this machine only)
+  // Saving a stack is open to paired devices; removing is this machine only.
   if (req.method === "POST" && path === "/api/stacks/check") {
     const body = (await readBody(req)) as { technologies?: string[] };
     return json(res, 200, { issues: checkStack(Array.isArray(body.technologies) ? body.technologies.map(String) : []) });
@@ -141,7 +139,6 @@ export async function registryRoutes(req: IncomingMessage, res: ServerResponse, 
     }
   }
 
-  // Routing profiles: default (Garry's values until changed) and your own (routing/<name>.json in the registry)
   if (req.method === "POST" && path === "/api/routing") {
     // one stage (or "defaults") of a profile: the active one unless named
     const body = (await readBody(req)) as { profile?: string; stage?: string; model?: string; agent?: string };

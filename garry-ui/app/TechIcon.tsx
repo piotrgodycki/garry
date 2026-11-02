@@ -120,10 +120,8 @@ import {
 } from "simple-icons";
 
 /**
- * The mark of each technology in Garry's catalog: the brand's own logo
- * (Simple Icons, CC0) where there is one, otherwise a short monogram. AWS asks
- * for its marks not to be redistributed, so its services get monograms, as on
- * the architecture board.
+ * Simple Icons (CC0) where there is one, otherwise a monogram. AWS asks for its marks not to be
+ * redistributed, so its services get monograms.
  */
 type Mark = { path: string; hex: string } | { text: string; hex: string } | { glyph: "bolt"; hex: string };
 const icon = (i: SimpleIcon): Mark => ({ path: i.path, hex: `#${i.hex}` });

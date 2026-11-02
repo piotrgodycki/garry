@@ -1,13 +1,6 @@
 /**
- * Regression test for Garry's crew and illustrations, in a real browser
- * against a real Garry server: the pipeline shows each task's agent as its
- * crew icon (the analyst's spec, the developer's code, the reviewer's
- * lens), Live shows each lane's state on its icon (a red mark
- * when it failed), and the empty states tell their story with a picture that
- * says what it shows: connect a repository, nothing in progress, all caught up.
- * Needs the built dashboard and Chromium, like test:dropdown.
- * Run with: pnpm -C garry-tool test:crew (CI runs it too).
- * GARRY_CREW_SHOTS=<dir> also saves screenshots there.
+ * Browser regression test for Garry's crew icons and illustrations.
+ * Run with: pnpm -C garry-tool test:crew (GARRY_CREW_SHOTS=<dir> also saves screenshots there)
  */
 import { cpSync, existsSync, mkdtempSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -60,7 +53,6 @@ try {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(String(e)));
 
-  // the empty states, each with its picture
   await page.goto(`${base}/build`);
   const connect = page.getByRole("img", { name: "A cable plugging into a box holding a repository" });
   await connect.waitFor({ timeout: 8000 }).catch(() => undefined);
@@ -87,12 +79,10 @@ try {
     (await page.getByRole("img", { name: /sprout with a feature tag/ }).count()) === 1 &&
       (await page.getByRole("link", { name: "Start work in Build" }).count()) === 1,
   );
-  // the pictures are drawn from the theme: soil and Garry's colours, not fixed ones
   const rest = page.getByRole("img", { name: /sprout with a feature tag/ });
   const fills = await rest.evaluate((svg) => [...svg.querySelectorAll("path, circle")].map((e) => getComputedStyle(e).fill + getComputedStyle(e).stroke));
   await page.emulateMedia({ colorScheme: "dark" });
   const darkFills = await rest.evaluate((svg) => [...svg.querySelectorAll("path, circle")].map((e) => getComputedStyle(e).fill + getComputedStyle(e).stroke));
-  // the soil (two shapes), a pebble, the stem and the leaves: each its own colour per theme
   expect(
     "the soil, pebbles and sprout follow the theme",
     [0, 1, 2, 4, 5].every((i) => fills[i] !== darkFills[i]) && !fills.some((f) => f.startsWith("rgb(0, 0, 0)rgb(0, 0, 0)")),
@@ -100,13 +90,11 @@ try {
   );
   await page.emulateMedia({ colorScheme: "light" });
 
-  // Settings: the GitHub card carries GitHub's logo
   await page.goto(`${base}/settings`);
   const gh = page.getByRole("heading", { name: "GitHub", level: 2 });
   await gh.waitFor();
   expect("Settings shows GitHub's logo by its card's title", (await gh.locator('[data-logo="github"] svg path').count()) === 1);
 
-  // the pipeline: each task's agent is its crew face
   await page.goto(`${base}/build?view=pipeline&feature=FEAT-123`);
   await page
     .locator("[data-crew]")
@@ -135,7 +123,6 @@ try {
   });
   expect("each task's face is its own agent's", titles.length > 0 && mismatched.length === 0, mismatched.join(", ") || "no tasks");
 
-  // Live: the face shows the lane's state
   const repo = join(home, "shop");
   execFileSync("git", ["init", "-q", repo]);
   execFileSync("git", ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "init"]);

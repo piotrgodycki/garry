@@ -16,13 +16,12 @@ import { avatarUrl, projectOwner } from "../project/avatar.js";
 import { json, readBody, type RouteCtx } from "./http.js";
 
 /**
- * GitHub (connect, list repositories, import one) and Garry projects (switch,
- * export, import, clone what an imported one lists, remove). Returns false
- * when the request is about neither.
+ * GitHub connection and Garry projects. Returns false when the request is about
+ * neither.
  */
 export async function projectRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
   const { cfg, local, url } = ctx;
-  // GitHub: connect, list repositories, import one as a project. All on this machine only.
+  // GitHub is connected on this machine only.
   if (path.startsWith("/api/github") || path === "/api/projects/import") {
     if (!local) return json(res, 403, { error: "GitHub is connected on the computer running Garry" });
     try {
@@ -50,8 +49,7 @@ export async function projectRoutes(req: IncomingMessage, res: ServerResponse, p
     }
   }
 
-  // Garry projects: everything one product is made of (the registry and its repositories), switched,
-  // exported and imported as one. Reading the list is open to paired devices; the rest is this computer only.
+  // Reading the list is open to paired devices; the rest is this computer only.
   if (path === "/api/garry-projects" || path.startsWith("/api/garry-projects/")) {
     const list = () => {
       const { active, projects } = listGarryProjects();

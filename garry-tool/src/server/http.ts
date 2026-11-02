@@ -1,7 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { ServerConfig } from "./server.js";
 
-/** What every group of routes gets: the server's settings, whether the request comes from this computer, its URL. */
 export interface RouteCtx {
   cfg: ServerConfig;
   local: boolean;
@@ -15,10 +14,9 @@ export const CORS = {
 } as const;
 
 /**
- * Pages Garry serves from may write; any other site the user happens to have open
- * in the browser may not (a request to localhost would otherwise be enough to
- * install a skill, that is instructions for the agents). Requests with no Origin
- * (the CLI, curl) are allowed. GARRY_UI_ORIGINS adds origins, comma separated.
+ * Only pages Garry serves may write. Otherwise any site open in the browser could
+ * call localhost and, for example, install a skill for the agents. Requests with
+ * no Origin (the CLI, curl) are allowed; GARRY_UI_ORIGINS adds origins.
  */
 export function writeAllowed(req: IncomingMessage): boolean {
   const origin = req.headers.origin;

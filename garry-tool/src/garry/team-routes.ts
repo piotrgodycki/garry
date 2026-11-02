@@ -4,11 +4,8 @@ import { activeGarryProject } from "../project/store.js";
 import { TeamError, type Teams } from "./teams.js";
 
 /**
- * Agents working together (garry/teams.ts), for the active project:
- * GET /api/teams (pairs and chains), POST /api/pairs {task, projectId?, rounds?},
- * POST /api/chains {steps, name?, projectId?, after?}, POST /api/chains/:id/steps {prompt},
- * POST /api/chains/:id/order {order}, DELETE /api/chains/:id/steps/:step, POST /api/chains/:id/stop.
- * This machine and paired devices.
+ * Routes for pairs and chains (garry/teams.ts) in the active project, open to
+ * this machine and paired devices.
  */
 export async function teamRoutes(
   req: IncomingMessage,

@@ -1,11 +1,6 @@
 /**
- * Regression test for the Files tab's terminal: a real shell in a real
- * terminal, driven over HTTP the way the dashboard does. It opens in the folder
- * asked for, runs what is typed, stops a running command on Ctrl-C, resizes,
- * replays its output to a view that attaches late, and ends when closed. Only
- * this computer may open one: a paired device, another site and an unknown
- * folder are refused, and GARRY_TERMINAL=off turns it off.
- * Run with: pnpm -C garry-tool test:terminal (CI runs it too).
+ * Tests the Files tab's terminal: a real shell driven over HTTP like the dashboard does.
+ * Run with: pnpm -C garry-tool test:terminal
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, realpathSync, writeFileSync } from "node:fs";
@@ -50,7 +45,6 @@ const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 const post = (path: string, body: unknown, headers: Record<string, string> = {}) =>
   fetch(`${base}${path}`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body: JSON.stringify(body) });
 
-/** Follows a terminal's stream; `seen` grows as the shell prints. */
 function follow(id: string) {
   const out = { seen: "", exited: false, abort: new AbortController() };
   void (async () => {
@@ -84,7 +78,6 @@ const until = async (f: () => boolean, ms = 8000) => {
 };
 const type = (id: string, data: string) => post(`/api/terminals/${id}/input`, { data });
 
-// a shell in the repo, at the size asked for
 const opened = await post("/api/terminals", { root: `project:${project.id}`, cols: 91, rows: 27 });
 const term = (await opened.json()) as { id: string; cwd: string };
 expect("a terminal opens in a repo", opened.status === 200 && term.cwd === repo, JSON.stringify(term));
@@ -94,7 +87,6 @@ expect("it runs in the repo's folder", await until(() => view.seen.includes(repo
 expect("what is typed runs", await until(() => view.seen.includes("from the repo") && view.seen.includes("sum=42")));
 expect("it is a real terminal of the size asked for", await until(() => view.seen.includes("27 91")), view.seen.slice(-300));
 
-// Ctrl-C stops a running command and the shell carries on
 await type(term.id, "sleep 30; echo slept-$((6*7))\n");
 await new Promise((r) => setTimeout(r, 400));
 await type(term.id, "\x03");
@@ -105,12 +97,10 @@ expect(
   JSON.stringify(view.seen.slice(-400)),
 );
 
-// resizing reaches the shell
 expect("resize is accepted", (await post(`/api/terminals/${term.id}/resize`, { cols: 132, rows: 40 })).status === 200);
 await type(term.id, "stty size\n");
 expect("the shell sees the new size", await until(() => view.seen.includes("40 132")), view.seen.slice(-300));
 
-// a view that attaches late sees what came before
 const late = follow(term.id);
 expect("a late view replays the output so far", await until(() => late.seen.includes("sum=42")));
 late.abort.abort();
@@ -128,7 +118,6 @@ const alive = (pid: number) => {
   }
 };
 
-// listed, then closed: the shell ends
 const listed = (await (await fetch(`${base}/api/terminals`)).json()) as { enabled: boolean; terminals: { id: string; root: string }[] };
 expect("open terminals are listed", listed.enabled && listed.terminals.some((t) => t.id === term.id && t.root === `project:${project.id}`));
 const closedAt = Date.now();
@@ -137,12 +126,10 @@ expect("closing ends the shell at once", (await until(() => view.exited)) && Dat
 expect("the shell's process is gone, not left behind", shellPid > 1 && (await until(() => !alive(shellPid), 3000)), `pid ${shellPid}`);
 expect("typing into a closed terminal is refused", (await type(term.id, "echo nope\n")).status === 404);
 
-// the registry is a root too
 const reg = (await (await post("/api/terminals", { root: "registry" })).json()) as { id: string; cwd: string };
 expect("a terminal opens in the registry", reg.cwd === registry);
 await fetch(`${base}/api/terminals/${reg.id}`, { method: "DELETE" });
 
-// refusals
 expect(
   "an unknown folder is refused",
   (await post("/api/terminals", { root: "project:zzzzzz" })).status === 404 && (await post("/api/terminals", { root: "/etc" })).status === 404,
@@ -162,7 +149,6 @@ const big = (await (await post("/api/terminals", { root: "registry" })).json()) 
 expect("a huge paste is refused", (await type(big.id, "x".repeat(70_000))).status === 413);
 await fetch(`${base}/api/terminals/${big.id}`, { method: "DELETE" });
 
-// a limit on how many are open
 const many: string[] = [];
 for (let i = 0; i < MAX_TERMINALS; i++) many.push(((await (await post("/api/terminals", { root: "registry" })).json()) as { id: string }).id);
 expect(`more than ${MAX_TERMINALS} at once is refused`, many.every(Boolean) && (await post("/api/terminals", { root: "registry" })).status === 429);
@@ -176,13 +162,11 @@ const leftovers = () => {
 };
 expect("closed terminals leave no processes behind", await until(() => leftovers() === "", 3000), leftovers());
 
-// a company can turn it off
 process.env.GARRY_TERMINAL = "off";
 const off = await post("/api/terminals", { root: "registry" });
 expect("GARRY_TERMINAL=off refuses", off.status === 403 && ((await off.json()) as { error: string }).error.includes("GARRY_TERMINAL=off"));
 delete process.env.GARRY_TERMINAL;
 
-// stopping the server ends every shell
 const last = (await (await post("/api/terminals", { root: "registry" })).json()) as { id: string };
 let lastExited = false;
 terminals.attach(last.id, (e) => e.type === "exit" && (lastExited = true));

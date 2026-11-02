@@ -4,7 +4,6 @@ import { stringify as stringifyYaml } from "yaml";
 import { type ScaffoldOptions, stackString } from "./options.js";
 import type { GeneratedFile } from "./templates.js";
 
-/** Writes the generated files under the given root. */
 export function writeFiles(root: string, files: GeneratedFile[]): void {
   for (const f of files) {
     const full = join(root, f.path);
@@ -13,7 +12,6 @@ export function writeFiles(root: string, files: GeneratedFile[]): void {
   }
 }
 
-/** Writes the service manifest into the registry catalog and returns its path. */
 export function writeCatalogEntry(opts: ScaffoldOptions): string {
   const isHost = opts.kind === "shell";
   const manifest = {

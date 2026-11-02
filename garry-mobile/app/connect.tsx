@@ -7,7 +7,7 @@ import { useConnection } from "../lib/connection";
 import { monoFamily, usePalette } from "../lib/theme";
 import { Body, Button, Card, Label, Title } from "../lib/ui";
 
-/** Pairs this phone with Garry: scan the QR code from garry serve --host or garry pair. */
+/** The QR code comes from garry serve --host or garry pair. */
 export default function Connect() {
   const { connect } = useConnection();
   const router = useRouter();

@@ -1,9 +1,6 @@
 import styles from "./waveform.module.css";
 
-/**
- * A linear audio style waveform. Pure CSS animation, no state. Pass active to
- * make it move faster and taller, as if the agent is "speaking".
- */
+/** Pure CSS animation, no state; active makes it faster and taller. */
 export default function Waveform({ bars = 40, active = false }: { bars?: number; active?: boolean }) {
   return (
     <div className={`${styles.wave} ${active ? styles.active : ""}`} aria-hidden="true">

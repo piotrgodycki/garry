@@ -4,10 +4,7 @@ import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { StackSchema, checkStack, type Stack, type StackIssue } from "./schema/stacks.js";
 import { listManifests } from "../sync/registryIO.js";
 
-/**
- * The registry's tech stacks, one per stacks/<name>.yaml. Used by garry stack,
- * the dashboard's Stacks page and the service form (stackRef).
- */
+/** The registry's tech stacks, one per stacks/<name>.yaml. */
 
 export class StackError extends Error {
   constructor(
@@ -21,7 +18,6 @@ export class StackError extends Error {
 const dir = (registry: string) => join(registry, "stacks");
 const file = (registry: string, name: string) => join(dir(registry), `${name}.yaml`);
 
-/** Every stack that parses, with the services built on it and what its check says. */
 export function listStacks(registry: string): (Stack & { usedBy: string[]; issues: StackIssue[] })[] {
   if (!existsSync(dir(registry))) return [];
   const manifests = listManifests(registry);
@@ -45,7 +41,7 @@ export function readStack(registry: string, name: string): Stack | null {
   return r.success ? r.data : null;
 }
 
-/** Writes stacks/<name>.yaml. A conflict in it is reported, not refused: the team decides. */
+/** A conflict is reported, not refused: the team decides. */
 export function saveStack(registry: string, input: unknown, opts: { replace?: boolean } = {}): { stack: Stack; issues: StackIssue[] } {
   const raw = (input ?? {}) as Partial<Stack>;
   const r = StackSchema.safeParse({
@@ -64,7 +60,7 @@ export function saveStack(registry: string, input: unknown, opts: { replace?: bo
   return { stack: r.data, issues: checkStack(r.data.technologies.map((t) => t.id)) };
 }
 
-/** Deletes a stack, unless a service is still built on it. */
+/** Refuses while a service is still built on it. */
 export function removeStack(registry: string, name: string): void {
   if (!readStack(registry, name)) throw new StackError(`no stack ${name}`, 404);
   const users = listManifests(registry).filter((m) => m.stackRef === name);

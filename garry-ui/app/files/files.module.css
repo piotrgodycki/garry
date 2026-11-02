@@ -1,5 +1,3 @@
-/* Files: an editor's layout. Explorer on the left, open files on the right,
-   the terminal along the bottom when shown. It fills the window below the top bar. */
 .page {
   height: 100vh;
   min-height: 420px;

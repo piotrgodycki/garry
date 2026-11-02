@@ -2,11 +2,9 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { biometricsEnabled } from "./biometrics";
 
-// The server address and this device's token. On a phone the token lives in the
-// keychain or keystore (expo-secure-store); on iOS with Face ID on, the keychain
-// item itself requires Face ID to read, so the key cannot be taken from an
-// unlocked phone without it. The web build, for development only, uses
-// localStorage.
+// On a phone the token lives in the keychain or keystore. On iOS with Face ID on, the
+// keychain item itself requires Face ID, so an unlocked phone does not give the key away.
+// The web build, for development only, uses localStorage.
 export interface Connection {
   baseUrl: string;
   token: string;

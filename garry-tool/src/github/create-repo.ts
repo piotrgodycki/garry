@@ -3,11 +3,9 @@ import { GitHub } from "./client.js";
 import { gitAuthArgs } from "./connect.js";
 
 /**
- * A repository that has no home on GitHub yet gets one named as it is in
- * Garry, and only when a person says yes: Garry proposes owner/name, the
- * person confirms (or changes them), then Garry creates it (private unless
- * they say otherwise), adds it as origin and pushes the current branch, so a
- * pull request has a base to go into.
+ * Gives a repository with no GitHub home one, only on a person's yes: Garry
+ * proposes owner/name, creates it (private by default), adds origin and pushes
+ * the current branch so a pull request has a base.
  */
 
 export class CreateRepoError extends Error {
@@ -32,7 +30,6 @@ export function githubName(name: string): string {
   return s && s !== "." && s !== ".." ? s : "repo";
 }
 
-/** Whether the repository has an origin at all (on GitHub or elsewhere). */
 const hasOrigin = (path: string) => {
   try {
     return git(path, ["config", "--get", "remote.origin.url"]).trim() !== "";

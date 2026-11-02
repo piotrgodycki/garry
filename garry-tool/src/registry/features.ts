@@ -5,11 +5,7 @@ import { STAGES } from "../orchestrate/plan.js";
 import { listManifests } from "../sync/registryIO.js";
 import { readProfile } from "../orchestrate/profiles.js";
 
-/**
- * Creates features in the registry and removes them: one markdown document each
- * in features/FEAT-<n>-<slug>.md, the format garry feature, the dashboard and the
- * agents read. Used by garry feature new, the dashboard and the phone.
- */
+/** One markdown document per feature in features/FEAT-<n>-<slug>.md, the format the CLI, dashboard and agents read. */
 
 export class FeatureError extends Error {
   constructor(
@@ -89,7 +85,6 @@ export function createFeature(registry: string, input: FeatureInput): { id: stri
   return { id, title, status: STAGES[0], services, file };
 }
 
-/** Deletes a feature's document. */
 export function removeFeature(registry: string, id: string): void {
   const doc = documents(registry).find((d) => d.id === id);
   if (!doc) throw new FeatureError(`no feature ${id}`, 404);

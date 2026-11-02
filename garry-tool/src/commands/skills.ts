@@ -153,7 +153,6 @@ function printAudit(name: string, audit: AuditReport): void {
   }
 }
 
-/** The audit as Markdown, for a pull request comment. */
 function auditMarkdown(reports: { name: string; audit: AuditReport }[]): string {
   const icon = { pass: "PASS", warn: "WARN", fail: "FAIL" } as const;
   const out = ["| Skill | Verdict | Critical | High | Medium |", "| --- | --- | --- | --- | --- |"];

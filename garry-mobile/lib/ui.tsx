@@ -3,9 +3,6 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View, type TextStyle, t
 import Svg, { Path } from "react-native-svg";
 import { monoFamily, tint, usePalette, type State } from "./theme";
 
-// Small building blocks in Garry's calm style: soft corners, quiet borders,
-// sentence case, and colour only where it says what state something is in.
-
 export function Card({ children, style, tone }: { children: ReactNode; style?: ViewStyle; tone?: State }) {
   const p = usePalette();
   const border = tone ? tint(p[tone], p.line, 0.45) : p.line;
@@ -32,7 +29,6 @@ export function Body({ children, muted, style }: { children: ReactNode; muted?: 
   return <Text style={[s.body, { color: muted ? p.muted : p.text }, style]}>{children}</Text>;
 }
 
-/** A name in a box; strong when it is picked. */
 export function Chip({ children, strong }: { children: ReactNode; strong?: boolean }) {
   const p = usePalette();
   return (
@@ -42,7 +38,6 @@ export function Chip({ children, strong }: { children: ReactNode; strong?: boole
   );
 }
 
-/** A state in words, on a soft tile of its colour. */
 export function Pill({ state, children }: { state: State; children: ReactNode }) {
   const p = usePalette();
   return (
@@ -115,18 +110,13 @@ export function Notice({ children, action }: { children: ReactNode; action?: Rea
 
 export type CrewRole = "analyst" | "dev" | "reviewer";
 
-/** The role behind an agent's name (garry-analyst, garry-dev, garry-reviewer), as on the dashboard. */
+/** Agent names look like garry-analyst, garry-dev, garry-reviewer. */
 export function roleOf(agent: string | null | undefined): CrewRole {
   const a = (agent ?? "").toLowerCase();
   return a.includes("analyst") ? "analyst" : a.includes("review") ? "reviewer" : "dev";
 }
 
-/**
- * One of Garry's crew, the same as the dashboard's (garry-ui/app/Crew.tsx): the
- * role's icon (the analyst's spec, the developer's code, the reviewer's lens)
- * on a tile in the state's colour; a failure carries a red mark, a queued one
- * is faded.
- */
+// Crew icons, the same as the dashboard's (garry-ui/app/Crew.tsx).
 const TOOL: Record<CrewRole, string> = {
   analyst: "M6.5 3.5h7.5l4 4v13h-11.5zM14 3.5v4h4M9.5 11.5h5M9.5 14.5h5M9.5 17.5h3",
   dev: "M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5M13.5 5.5l-3 13",

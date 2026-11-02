@@ -27,7 +27,6 @@
   }
 }
 
-/* the stage card holds the hub and the orbiting service nodes */
 .stageCard {
   position: relative;
   display: grid;
@@ -99,7 +98,6 @@
   fill: var(--accent);
 }
 
-/* hub: Garry at the center, circled by an orbit */
 .voice {
   position: absolute;
   left: 50%;
@@ -133,8 +131,6 @@
   opacity: 0.7;
   animation-duration: 6s;
 }
-/* a hairline orbit with a comet that circles it: slow while idle, quick while
-   the agents work, when soft ripples also spread out from Garry */
 .orbit,
 .comet,
 .ripple {
@@ -272,7 +268,7 @@
   opacity: 1;
 }
 
-/* service nodes: small cards so lines pass underneath, never through text */
+/* small cards, so lines pass underneath and never through text */
 .node {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -360,7 +356,6 @@
   display: flex;
 }
 
-/* progress ring around the hub */
 .ringTrack {
   fill: none;
   stroke: var(--border);
@@ -388,7 +383,6 @@
   gap: 6px;
 }
 
-/* right column: live status and the work log */
 .side {
   display: grid;
   gap: var(--space-md);
@@ -511,7 +505,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- phones: hub summary plus a service list instead of the orbit map ---- */
 .mobile {
   display: none;
 }
@@ -602,7 +595,6 @@
   }
 }
 
-/* ---- the run in one line ---- */
 .runBar {
   display: flex;
   align-items: center;
@@ -659,7 +651,6 @@
   height: 28px;
 }
 
-/* ---- the orchestration, left to right ---- */
 .flowCard {
   padding: 0;
   overflow-x: auto;
@@ -769,7 +760,6 @@
   padding: 6px 8px;
   border-bottom: 1px solid var(--border);
 }
-/* the lane's rail: work flows along it from left to right */
 .flowRail {
   position: absolute;
   left: 0;
@@ -819,14 +809,12 @@
   }
 }
 
-/* ---- contracts and the log side by side, a fixed height ---- */
 .below {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-md);
   align-items: start;
 }
-/* both panels the same height; each scrolls on its own */
 .below > :global(.card) {
   max-height: 360px;
   overflow-y: auto;

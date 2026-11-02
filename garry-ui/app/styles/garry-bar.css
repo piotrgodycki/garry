@@ -1,5 +1,4 @@
 /* Garry's field at the foot of every page, and what you told him (one part of globals.css, which imports them in this order) */
-/* ---- talking to Garry: one field floating at the foot of every page ------- */
 :root {
   /* the room the field takes at the foot, so nothing of a page stays under it */
   --bar-room: 92px;
@@ -11,7 +10,6 @@
   position: fixed;
   z-index: 40;
   bottom: 16px;
-  /* centred on the page, beside the rail */
   left: calc(64px + (100vw - 64px) / 2);
   transform: translateX(-50%);
   width: min(760px, calc(100vw - 64px - 32px));
@@ -106,7 +104,6 @@
   color: var(--state-fail);
   font-size: 14px;
 }
-/* Garry's answer to a command: a line above the field, kept to its lines */
 .garrySaid {
   margin: 0;
   justify-self: center;
@@ -127,7 +124,6 @@
   color: var(--color-text-muted);
   font-weight: 400;
 }
-/* what you told Garry: answered, running, waiting */
 .garryQueue {
   margin: 0;
   padding: 6px;
@@ -297,7 +293,6 @@ li[data-status="running"] .qDot {
   color: var(--color-text-muted);
 }
 
-/* what you told Garry, folded to one line until you open it */
 .garrySummary {
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr) 16px;

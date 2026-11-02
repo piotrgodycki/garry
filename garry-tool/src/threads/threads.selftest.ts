@@ -1,9 +1,5 @@
 /**
- * Threads end to end with a stand-in for Claude Code (testdata/fake-claude.mjs):
- * a project, a thread in its own worktree, the live events, a follow-up that
- * resumes the session, the diff, the commit, stopping a turn, and a phone
- * (paired device) starting work but not registering folders, and the worktree's
- * files read and edited by hand from this computer only.
+ * Threads end to end with a stand-in for Claude Code (testdata/fake-claude.mjs).
  * Run with: pnpm -C garry-tool test:threads
  */
 import { execFileSync } from "node:child_process";
@@ -86,7 +82,6 @@ expect("a stopped turn is not a success", threads.store.get(slow.id)?.status ===
 threads.remove(slow.id);
 expect("discarding removes the worktree and branch", !sh(repo, "branch", "--list", slow.branch).trim());
 
-// the same over HTTP, from this machine and from a paired phone
 const remote = reachableAddresses()[0];
 const devices = new DeviceStore(join(home, "devices.json"));
 const server = createGarryServer(
@@ -102,7 +97,6 @@ try {
     listed.threads.some((x) => x.id === t.id),
   );
 
-  // files: read and edit the worktree by hand, from this computer
   const base = `http://127.0.0.1:${port}/api/threads/${t.id}`;
   const tree = (await fetch(`${base}/files`).then((r) => r.json())) as { entries: { name: string; type: string }[] };
   expect("the worktree's files are listed, .git hidden", tree.entries.some((e) => e.name === "NOTES.md") && !tree.entries.some((e) => e.name === ".git"));

@@ -4,7 +4,6 @@ import { createPortal } from "react-dom";
 export interface SelectOption {
   value: string;
   label: string;
-  /** a heading the option sits under */
   group?: string;
   /** a second, quieter line */
   hint?: string;
@@ -14,11 +13,8 @@ export interface SelectOption {
 }
 
 /**
- * A dropdown drawn in the dashboard's own style, in place of the browser's.
- * It behaves like a select for mouse, touch and keyboard: Enter, Space or the
- * arrows open it, the arrows move, typing jumps to a match, Enter picks,
- * Escape and Tab close. The list floats above everything, so a panel that
- * clips its content does not cut it off.
+ * A styled replacement for the native select, with the same mouse, touch and keyboard behaviour.
+ * The list is portalled so a panel that clips its content cannot cut it off.
  */
 export default function Select({
   value,
@@ -71,7 +67,6 @@ export default function Select({
     const next = at < 0 ? (by > 0 ? 0 : enabled.length - 1) : Math.min(enabled.length - 1, Math.max(0, at + by));
     setActive(enabled[next]);
   };
-  // typing a few letters jumps to the first option that starts with them
   const jump = (key: string) => {
     const now = Date.now();
     typed.current = { text: (now - typed.current.at < 700 ? typed.current.text : "") + key.toLowerCase(), at: now };
@@ -80,8 +75,7 @@ export default function Select({
     return hit;
   };
 
-  // place the list under the button, or above it when there is no room below;
-  // it follows the button when the page scrolls, and closes once the button is gone
+  // Opens upward when there is little room below; closes once the button scrolls off screen.
   const measure = () => {
     if (!button.current) return;
     const r = button.current.getBoundingClientRect();
@@ -102,7 +96,6 @@ export default function Select({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // the list closes on a click elsewhere
   useEffect(() => {
     if (!open) return;
     const outside = (e: PointerEvent) => {
@@ -123,7 +116,6 @@ export default function Select({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // keep the highlighted option in view
   useEffect(() => {
     if (open && active >= 0) list.current?.querySelector(`[data-index="${active}"]`)?.scrollIntoView({ block: "nearest" });
   }, [open, active]);

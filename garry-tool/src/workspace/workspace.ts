@@ -31,7 +31,6 @@ function frontmatter(src: string): Record<string, unknown> {
   return m ? ((parseYaml(m[1]) ?? {}) as Record<string, unknown>) : {};
 }
 
-/** Finds a feature by id and returns its services and the shared branch name. */
 export function findFeature(registry: string, id: string): FeatureInfo {
   const dir = join(registry, "features");
   if (!existsSync(dir)) throw new Error(`no features/ directory in registry: ${registry}`);
@@ -44,7 +43,6 @@ export function findFeature(registry: string, id: string): FeatureInfo {
   throw new Error(`feature ${id} not found in ${dir}`);
 }
 
-/** Reads the repo url for a service from its catalog manifest. */
 export function repoUrl(registry: string, service: string): string {
   const file = join(registry, "catalog", `${service}.yaml`);
   if (!existsSync(file)) throw new Error(`manifest not found: ${file}`);
@@ -87,14 +85,12 @@ export function createWorkspace(registry: string, id: string, paths: WsPaths): W
   return state;
 }
 
-/** Loads the workspace state from a workspace directory. */
 export function loadWorkspace(wsDir: string): WorkspaceState {
   const file = join(resolve(wsDir), ".garry-workspace.json");
   if (!existsSync(file)) throw new Error(`not a workspace (no .garry-workspace.json): ${wsDir}`);
   return JSON.parse(readFileSync(file, "utf8")) as WorkspaceState;
 }
 
-/** Returns the current branch and the number of dirty entries for a repo. */
 export function repoStatus(dir: string): { branch: string; dirty: number } {
   const branch = gitTry(["-C", dir, "rev-parse", "--abbrev-ref", "HEAD"]).out;
   const st = gitTry(["-C", dir, "status", "--porcelain"]).out;

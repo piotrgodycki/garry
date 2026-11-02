@@ -1,23 +1,14 @@
 import { z } from "zod";
 import { SERVICE_KIND_IDS } from "./kinds.js";
 
-/**
- * Contract Registry schemas (Garry).
- * The registry is the single source of truth: service manifests (catalog/)
- * and cross service contracts (contracts/). Everything is validated with zod
- * so the whole fleet of agents reads one consistent format.
- */
+/** Contract Registry schemas: the single source of truth for service manifests and cross service contracts. */
 
 // catalog/ : service manifest
 
 /** consumes: a map from a service name to the list of consumed modules (./Foo) */
 export const ConsumesSchema = z.record(z.string(), z.array(z.string()));
 
-/**
- * db: null for a microfrontend. For a backend service it carries its own database
- * (each service owns its data): the engine, the database name and the migrations
- * directory Garry drives.
- */
+/** null for a microfrontend; each backend service owns its database, and Garry drives its migrations directory. */
 export const DbSchema = z.union([
   z.null(),
   z.object({
@@ -30,11 +21,7 @@ export const DbSchema = z.union([
 /** The kind of service, so Garry picks the right adapters and skills. */
 export const ServiceKindSchema = z.enum(SERVICE_KIND_IDS);
 
-/**
- * api: for a backend service, a reference to its API contract. The OpenAPI (REST)
- * or AsyncAPI (events) document is the cross service contract, the backend
- * equivalent of Module Federation remotes.
- */
+/** The OpenAPI or AsyncAPI document is the cross service contract, the backend equivalent of federation remotes. */
 export const ApiRefSchema = z.object({
   kind: z.enum(["openapi", "asyncapi"]),
   path: z.string(),
@@ -84,11 +71,7 @@ export type SharedDepsContract = z.infer<typeof SharedDepsContractSchema>;
 export const DesignTokensContractSchema = z.record(z.string(), z.any());
 export type DesignTokensContract = z.infer<typeof DesignTokensContractSchema>;
 
-/**
- * api.json: the cross service API contract for backend services. Each service
- * declares what it exposes over REST (OpenAPI) or events (AsyncAPI). This is the
- * backend equivalent of remotes.json.
- */
+/** api.json: what each backend service exposes over REST or events; the backend equivalent of remotes.json. */
 export const ApiServiceSchema = z.object({
   kind: z.enum(["openapi", "asyncapi"]),
   baseUrl: z.string().optional(),

@@ -1,16 +1,12 @@
 import type { LogEntry, PairedDevice, StreamEvent, Task } from "./types";
 
-/**
- * Reaching a Garry server: the fetch it uses, the error it answers with,
- * pairing a device from a QR code, and reading the plan's live stream.
- */
-/** A fetch with the standard signature; React Native passes expo/fetch for streaming. */
+/** React Native passes expo/fetch, since its built-in fetch cannot stream bodies. */
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
 export interface ClientOptions {
   /** The server, for example http://192.168.1.20:8123. Empty means the page's own origin. */
   baseUrl: string;
-  /** The device token from pairing; a browser on the server's own origin needs none. */
+  /** A browser on the server's own origin needs none. */
   token?: string | null;
   fetch?: FetchLike;
 }
@@ -22,13 +18,12 @@ export class GarryError extends Error {
   ) {
     super(message);
   }
-  /** True when this device has to pair (again): its token is missing, wrong or revoked. */
+  /** The token is missing, wrong or revoked, so the device has to pair again. */
   get unpaired(): boolean {
     return this.status === 401;
   }
 }
 
-/** Where a pairing link (QR code) points: the server, and the one-time code. */
 export function parsePairingLink(link: string): { baseUrl: string; code: string } | null {
   try {
     const url = new URL(link.trim());
@@ -40,7 +35,6 @@ export function parsePairingLink(link: string): { baseUrl: string; code: string 
   }
 }
 
-/** Trades a pairing code for this device's token. */
 export async function pair(baseUrl: string, code: string, name: string, f: FetchLike = fetch): Promise<{ token: string; device: PairedDevice }> {
   const res = await f(`${baseUrl}/api/pair`, {
     method: "POST",
@@ -52,7 +46,7 @@ export async function pair(baseUrl: string, code: string, name: string, f: Fetch
   return { token: body.token, device: body.device };
 }
 
-/** Parses a server sent events body into Garry stream events. */
+/** rest is the trailing partial event, to prepend to the next chunk. */
 export function parseStream(chunk: string): { events: StreamEvent[]; rest: string } {
   const events: StreamEvent[] = [];
   const blocks = chunk.split("\n\n");

@@ -11,10 +11,8 @@ import {
 } from "../registry/schema/architecture.js";
 
 /**
- * Suggestions for the architecture board. Quick fixes come from the rules and
- * need no AI: for every open need, the blocks that would satisfy it, best fits
- * first. Garry's suggestions ask Claude Code (the claude command, on your own
- * Claude plan, no API key) to look at the board and a goal in plain words.
+ * Board suggestions. Quick fixes come from the rules and need no AI; Garry's suggestions ask Claude Code
+ * (the claude command, on the user's own plan, so no API key).
  */
 
 export interface Suggestion {
@@ -30,7 +28,6 @@ type Service = { name: string; kind?: string; db?: unknown };
 
 const blockOf = (id: string, services: Service[]) => componentById(id) ?? services.map(serviceBlock).find((b) => b.id === id);
 
-/** For each open need on the board: add a block that provides it and link it. */
 export function quickFixes(arch: Architecture, services: Service[]): Suggestion[] {
   const out: Suggestion[] = [];
   for (const n of arch.nodes) {
@@ -44,7 +41,6 @@ export function quickFixes(arch: Architecture, services: Service[]): Suggestion[
     const home = b.provider === "Your services" ? host : b.provider;
     for (const need of b.needs ?? []) {
       if (linked.has(need)) continue;
-      // something already on the board that provides it
       // never something that needs the same thing itself (a CDN in front of another CDN)
       const fits = (c: { id: string; provides: Capability[]; needs?: Capability[] }) =>
         c.provides.includes(need) && !(c.needs ?? []).includes(need) && c.id !== b.id;
@@ -101,7 +97,7 @@ Answer with JSON only, no prose around it:
 {"summary": "one or two sentences", "suggestions": [{"title": "short", "why": "one sentence, concrete (cost, latency, limits, lock in)", "add": [{"block": "<an id from the list>", "label": "optional"}], "links": [{"from": "<node id or new:<index>>", "to": "<node id or new:<index>>", "capability": "<capability>"}]}]}
 At most 5 suggestions. A link goes from the block that needs to the block that provides. Prefer the platform they already use.`;
 
-/** Runs Claude Code once and returns its suggestions, keeping only blocks and links that exist. */
+/** Keeps only blocks and links that exist, whatever the model answers. */
 export async function aiSuggestions(
   arch: Architecture,
   services: Service[],

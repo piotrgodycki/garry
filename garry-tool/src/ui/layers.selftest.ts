@@ -1,12 +1,6 @@
 /**
- * Regression test for Layers and per-project skills, in a real browser against
- * a real Garry server: pick the project, a repository or a service; turn skills
- * on, or off again where a wider layer turned them on; pick stacks; write
- * notes; save; and see what an agent in the repository gets, down to the text
- * it reads. Skills page: install a skill for one repository, and give a local
- * skill to every project or only where a layer turns it on. Needs the built
- * dashboard and Chromium, like test:dropdown.
- * Run with: pnpm -C garry-tool test:layers-ui (CI runs it too).
+ * Browser regression test for Layers and per-project skills.
+ * Run with: pnpm -C garry-tool test:layers-ui
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -117,7 +111,6 @@ try {
   await gets.getByText("The exact text the agent reads").click();
   expect("down to the text the agent reads", (await gets.locator("pre").innerText()).includes("Write in British English."));
 
-  // the repository: what the project turned on shows as inherited and can be turned off here
   await where.getByRole("radio", { name: /^shop/ }).click();
   const repoEditor = page.getByRole("region", { name: "shop" });
   expect(
@@ -139,7 +132,6 @@ try {
   await gets.getByText("house-style").waitFor({ state: "detached" });
   expect("and the agent no longer gets that skill", !(await got("skills it gets").innerText()).includes("house-style"));
 
-  // the service: added for agents in the repository it lives in
   await where.getByRole("radio", { name: /^api in shop/ }).click();
   const svc = page.getByRole("region", { name: "api" });
   const svcText = await svc.innerText();
@@ -156,7 +148,6 @@ try {
       (await page.getByRole("button", { name: "Save the layer" }).isDisabled()),
   );
 
-  // Skills: install one for a single repository, and change who gets one later
   await page.goto(`${base}/skills`);
   await page.getByRole("button", { name: "Install skill" }).click();
   const dialog = page.getByRole("dialog");
@@ -181,7 +172,6 @@ try {
   await card.getByRole("button", { name: "Only where turned on" }).waitFor();
   expect("and it can go to every project", side("sql-review").everywhere === true);
 
-  // small screens: one column, nothing wider than the screen
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${base}/layers`);
   await page.getByRole("radiogroup", { name: "layer to change" }).waitFor();

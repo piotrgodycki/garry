@@ -1,8 +1,6 @@
 /**
- * Regression test for tech stacks: the compatibility rules, saving and removing
- * stacks, a service built on one (stackRef), the registry check, the server and
- * the stack reaching the agent through garry sync.
- * Run with: pnpm -C garry-tool test:stacks (CI runs it too).
+ * Regression test for tech stacks, from the compatibility rules to the stack reaching the agent.
+ * Run with: pnpm -C garry-tool test:stacks
  */
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -33,7 +31,6 @@ const status = (fn: () => unknown): number => {
 };
 const msgs = (ids: string[]) => checkStack(ids).map((i) => `${i.level}:${i.message}`);
 
-// the catalog itself
 const ids = new Set(CATALOG.map((t) => t.id));
 expect("catalog ids are unique", ids.size === CATALOG.length);
 expect(
@@ -45,7 +42,6 @@ expect(
   CATALOG.every((t) => [...(t.conflicts ?? []), ...(t.requires ?? []).flat()].every((r) => ids.has(r))),
 );
 
-// the rules
 expect("a sound stack has no issues", checkStack(["typescript", "react", "vite", "module-federation", "tailwind", "vitest"]).length === 0);
 expect(
   "Next.js with Vite is a conflict",
@@ -70,7 +66,6 @@ expect(
   checkStack(["htmx"]).every((i) => i.level === "info"),
 );
 
-// storage
 const registry = mkdtempSync(join(tmpdir(), "garry-stacks-"));
 expect("bad name", status(() => saveStack(registry, { name: "Web", technologies: [{ id: "react" }] })) === 400);
 expect("junk technologies are a 400, not a crash", status(() => saveStack(registry, { name: "junk", technologies: [null, 3, { id: "" }] })) === 400);
@@ -96,7 +91,6 @@ expect(
     ?.issues.some((i) => i.level === "error") === true,
 );
 
-// services built on a stack
 expect("unknown stackRef refused", status(() => addService(registry, { name: "shop", kind: "mfe-remote", repo: "r", stackRef: "nope" })) === 400);
 const shop = addService(registry, { name: "shop", kind: "mfe-remote", repo: "r", stackRef: "web", exposes: ["./Shop"] });
 expect("stackRef fills the stack line", shop.service.stackRef === "web" && shop.service.stack === "React 19 + Vite + TypeScript", shop.service.stack);
@@ -118,7 +112,6 @@ expect(
   validateRegistry(registry).some((i) => i.where === "catalog/ghost" && i.level === "error"),
 );
 
-// the agent gets the stack
 const repo = mkdtempSync(join(tmpdir(), "garry-stacks-repo-"));
 const written = syncService(repo, registry, "shop");
 expect(
@@ -126,7 +119,6 @@ expect(
   written.includes("stack.json") && JSON.parse(readFileSync(join(repo, ".garry", "stack.json"), "utf8")).name === "web",
 );
 
-// the server
 const server = createGarryServer(
   { registry, skills: join(registry, "none"), routing: join(registry, "routing.json") },
   new DeviceStore(join(registry, "devices.json")),
@@ -162,7 +154,6 @@ const served = (await (await fetch(`${base}/api/stacks`)).json()) as { templates
 expect("GET /api/stacks offers the ready-made stacks", served.templates.length === STACK_TEMPLATES.length && served.templates.some((x) => x.name === "mern"));
 server.close();
 
-// ready-made stacks: each one is valid, fits the rules as it is, and names real kinds
 for (const tpl of STACK_TEMPLATES) {
   const ids = tpl.technologies.map((x) => x.id);
   const unknown = ids.filter((id) => !techById(id));
@@ -187,7 +178,6 @@ expect(
   "there are stacks for iPhone, Android and both",
   has("ios-swiftui", "swiftui") && has("android-compose", "jetpack-compose") && has("flutter", "flutter") && has("expo", "expo", "react-native"),
 );
-// a ready-made stack saved into the registry is an ordinary stack a service can use
 const pern = saveStack(registry, { name: "pern", description: "from Garry", technologies: STACK_TEMPLATES.find((x) => x.name === "pern")!.technologies });
 expect(
   "a ready-made stack saves as one of yours",
@@ -195,14 +185,12 @@ expect(
     pern.issues.length === 0 &&
     addService(registry, { name: "orders-api", kind: "backend", repo: "r", stackRef: "pern" }).service.stack.includes("PostgreSQL"),
 );
-// the rules for what the new technologies need
 expect(
   "Expo needs React Native, SwiftUI needs Swift, Flutter needs Dart",
   checkStack(["expo"]).some((i) => i.message.includes("React Native")) &&
     checkStack(["swiftui"]).some((i) => i.message.includes("Swift")) &&
     checkStack(["flutter"]).some((i) => i.message.includes("Dart")),
 );
-// a backend in every common language
 const backends = STACK_TEMPLATES.filter((x) => x.kinds.includes("backend"));
 const speaks = (lang: string) => backends.some((x) => x.technologies.some((t) => t.id === lang));
 expect(

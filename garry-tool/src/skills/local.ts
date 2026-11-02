@@ -5,14 +5,9 @@ import { parse as parseYaml } from "yaml";
 import { auditFiles, readSkillFolder, type AuditReport } from "./audit.js";
 
 /**
- * Locally installed skills: skills a user adds on their machine on top of the
- * pre-installed ones that ship with the project. Each one lives in its own folder,
- * <dir>/<name>/SKILL.md, plus a garry.json sidecar with the SDLC stage, so the
- * user's SKILL.md is stored exactly as given.
- *
- * SKILL.md is untrusted input: its frontmatter is parsed as YAML only (never with
- * an engine that can run code), names are restricted to a safe charset so they
- * cannot escape the folder, and copies skip symlinks and stay within size limits.
+ * Skills a user installs on their machine, one folder each (<dir>/<name>/SKILL.md) with a
+ * garry.json sidecar for the stage so the user's SKILL.md is stored exactly as given.
+ * SKILL.md is untrusted: YAML-only frontmatter, names in a safe charset, no symlinks, size limits.
  */
 
 export const STAGES = ["spec", "plan", "design", "implement", "review", "test", "integrate"] as const;
@@ -50,14 +45,12 @@ export interface LocalSkill extends ParsedSkill {
   audit: AuditReport;
 }
 
-/** Where local skills live: GARRY_SKILLS_HOME, else ~/.garry/skills. */
 export function localSkillsDir(): string {
   return resolve(process.env.GARRY_SKILLS_HOME?.trim() || join(homedir(), ".garry", "skills"));
 }
 
 const isStage = (s: unknown): s is Stage => typeof s === "string" && (STAGES as readonly string[]).includes(s);
 
-/** Reads name, description, stage and dependsOn from the YAML frontmatter of a SKILL.md. */
 export function parseSkillMd(src: string): ParsedSkill {
   if (src.length > MAX_SKILL_MD) throw new SkillError(`SKILL.md is larger than ${MAX_SKILL_MD / 1000} kB`);
   const m = /^---\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)/.exec(src);
@@ -77,7 +70,6 @@ export function parseSkillMd(src: string): ParsedSkill {
   return { name, description: description.slice(0, 1024), stage: fm.stage as Stage | undefined, dependsOn };
 }
 
-/** Every locally installed skill. A broken folder is skipped, not fatal. */
 export function listLocalSkills(dir = localSkillsDir()): LocalSkill[] {
   if (!existsSync(dir)) return [];
   const out: LocalSkill[] = [];
@@ -153,10 +145,8 @@ export interface PreparedSkill {
 }
 
 /**
- * Reads a skill from uploaded SKILL.md text or from a folder on this machine,
- * parses it and audits every file. Local install and team proposal both go
- * through here, so they always apply the same audit. Pre-installed names are
- * reserved, so a skill can never silently replace one that ships with the project.
+ * Local install and team proposal both go through here so they always apply the same audit.
+ * Pre-installed names are reserved so a skill can never silently replace one.
  */
 export function prepareSkill(req: InstallRequest, reserved: Set<string>): PreparedSkill {
   let source: string;
@@ -187,7 +177,6 @@ export function prepareSkill(req: InstallRequest, reserved: Set<string>): Prepar
   return { skill: { ...parsed, stage }, source, files, audit: auditFiles(files) };
 }
 
-/** Refuses a skill whose audit failed, and one with warnings nobody acknowledged. */
 export function enforceAudit(prepared: PreparedSkill, acknowledge: boolean | undefined, action: string): void {
   const { audit } = prepared;
   if (audit.verdict === "fail") {
@@ -202,7 +191,6 @@ export function enforceAudit(prepared: PreparedSkill, acknowledge: boolean | und
   }
 }
 
-/** Installs a skill on this machine after the audit; a dry run only previews it. */
 export function installSkill(req: InstallRequest, reserved: Set<string>, dir = localSkillsDir()): InstallResult {
   const prepared = prepareSkill(req, reserved);
   const { skill, files, audit, source } = prepared;
@@ -270,7 +258,7 @@ export function setEverywhere(name: string, on: boolean, dir = localSkillsDir())
   writeFileSync(f, JSON.stringify({ ...raw, everywhere: on }, null, 2) + "\n");
 }
 
-/** Removes a local skill. Only names in the safe charset, only inside the local folder. */
+/** The name is checked against the safe charset so the delete cannot leave the local folder. */
 export function removeSkill(name: string, dir = localSkillsDir()): void {
   if (!NAME.test(name)) throw new SkillError("invalid skill name");
   const target = join(dir, name);
@@ -278,7 +266,6 @@ export function removeSkill(name: string, dir = localSkillsDir()): void {
   rmSync(target, { recursive: true, force: true });
 }
 
-/** The SKILL.md text of a local skill, for a preview. */
 export function readLocalSkillMd(name: string, dir = localSkillsDir()): string | null {
   if (!NAME.test(name)) return null;
   const md = join(dir, name, "SKILL.md");

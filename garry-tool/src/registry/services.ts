@@ -8,11 +8,7 @@ import { readStack } from "./stacks.js";
 import { stackLine } from "./schema/stacks.js";
 import { SERVICE_KIND_IDS, isServiceKind, kindInfo } from "./schema/kinds.js";
 
-/**
- * Adds services to the registry and removes them: one manifest per service in
- * catalog/<name>.yaml, the same file garry scaffold and garry adopt write. Used by
- * garry service and by the dashboard.
- */
+/** One manifest per service in catalog/<name>.yaml, the same file garry scaffold and garry adopt write. */
 
 export class ServiceError extends Error {
   constructor(
@@ -46,7 +42,7 @@ const NAME = /^[a-z][a-z0-9-]{0,62}$/;
 const file = (registry: string, name: string) => join(registry, "catalog", `${name}.yaml`);
 const list = (v: unknown): string[] => (Array.isArray(v) ? v.map((x) => String(x).trim()).filter(Boolean) : []);
 
-/** Writes catalog/<name>.yaml. Refuses a name that exists unless replace is set. Returns the manifest and what the registry check says now. */
+/** Refuses a name that exists unless replace is set. */
 export function addService(
   registry: string,
   input: ServiceInput,
@@ -99,7 +95,7 @@ export function addService(
   return { service: parsed.data, file: file(registry, name), issues };
 }
 
-/** Deletes catalog/<name>.yaml. Refuses while another service consumes it. */
+/** Refuses while another service consumes it. */
 export function removeService(registry: string, name: string): void {
   if (!NAME.test(name) || !existsSync(file(registry, name))) throw new ServiceError(`no service ${name}`, 404);
   const users = listManifests(registry).filter((m) => m.name !== name && name in (m.consumes ?? {}));

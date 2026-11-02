@@ -4,7 +4,7 @@ import ProjectsPanel from "../projects/ProjectsPanel";
 import styles from "./settings.module.css";
 import { Icon } from "../icons";
 
-/** Garry's own settings: projects and the GitHub connection. Per project push and branch settings live on the Build page. */
+/** Per project push and branch settings live on the Build page, not here. */
 export default function Settings() {
   return (
     <main className="page">

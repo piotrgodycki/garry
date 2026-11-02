@@ -1,8 +1,6 @@
 /**
- * Regression test for routing profiles: the default one (Garry's values until
- * changed, and back on reset), your own created from it, changed, made active
- * and removed, a feature can pick one, and the server does the same. Run with: pnpm -C garry-tool test:routing
- * (CI runs it too).
+ * Regression test for routing profiles.
+ * Run with: pnpm -C garry-tool test:routing
  */
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -66,7 +64,6 @@ expect(
 );
 expect("an unknown model is refused", status(() => saveProfile(registry, { name: "x", defaults: { agent: "garry-dev", model: "gpt-9" } })) === 400);
 
-// Claude 5 by default; a profile saved with an earlier generation keeps working
 expect(
   "the default routes to Claude 5",
   [DEFAULT_PROFILE.defaults, ...Object.values(DEFAULT_PROFILE.stages)].every((r) => r && MODELS.some((m) => m.id === r.model && !m.previous)),
@@ -111,7 +108,6 @@ const legacy = join(registry, "garry.routing.json");
 writeFileSync(legacy, JSON.stringify({ defaults: { agent: "garry-dev", model: HAIKU }, stages: { spec: { agent: "garry-analyst", model: HAIKU } } }));
 expect("garry.routing.json becomes the example", listProfiles(registry, legacy).profiles[0].stages.spec?.model === HAIKU);
 
-// features
 addService(registry, { name: "api", kind: "backend", repo: "r" });
 expect(
   "a feature with an unknown profile is refused",
@@ -127,14 +123,12 @@ expect(
 const f = createFeature(registry, { title: "Uses fast", services: ["api"], routing: "fast" });
 expect("a feature keeps its profile", loadFeature(registry, f.id).routing === "fast");
 
-// removing the active profile falls back to the example
 removeProfile(registry, "fast");
 expect(
   "removing the active profile goes back to the example",
   activeProfileName(registry) === "default" && !existsSync(join(registry, "routing", "fast.json")),
 );
 
-// the server
 saveProfile(registry, { name: "team", from: "default" });
 const server = createGarryServer(
   { registry, skills: join(registry, "none"), routing: join(registry, "none.json") },

@@ -128,8 +128,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, plan !== null]);
 
-  // Stop every agent on this feature: close the live stream and halt. Best effort
-  // POST so the backend can abort delegation once that endpoint exists.
+  // Best effort POST so the backend can abort delegation once that endpoint exists.
   const stopAll = () => {
     esRef.current?.close();
     esRef.current = null;
@@ -143,7 +142,6 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
     window.history.replaceState(null, "", `/build?view=pipeline&feature=${id}`);
   };
 
-  // the latest detailed (per skill) action for a service, shown on its own node
   const lastAction = (svc: string): string | null => {
     for (let i = logs.length - 1; i >= 0; i--) if (logs[i].who === svc) return logs[i].action;
     return null;
@@ -154,8 +152,7 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [logs]);
 
-  // The flow, left to right: one column per stage (in the order the plan runs
-  // them), one lane for Garry's own work and one per service.
+  // One column per stage in plan order; one lane for Garry's own work and one per service.
   const flow = useMemo(() => {
     const tasks = plan?.tasks ?? [];
     const stages = [...new Set(tasks.map((t) => t.stage))];
@@ -329,7 +326,6 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
         </ul>
       </div>
 
-      {/* the status of the whole run, in one line */}
       <div className={`card ${styles.runBar}`}>
         <button
           className={`${styles.runCore} ${busy ? styles.busy : ""}`}
@@ -376,7 +372,6 @@ export default function AgentView({ embedded = false }: { embedded?: boolean } =
         </span>
       </div>
 
-      {/* the orchestration, left to right: stages as columns, Garry and each service as lanes */}
       {plan && flow.stages.length > 0 && (
         <div className={`card ${styles.flowCard}`}>
           <div className={styles.flow} style={{ gridTemplateColumns: `152px repeat(${flow.stages.length}, minmax(150px, 1fr))` }}>

@@ -10,7 +10,6 @@ export default function Link({ href, children, ...rest }: AnchorHTMLAttributes<H
   );
 }
 
-/** The current path, without the query string. */
 export function usePathname(): string {
   return useLocation().pathname;
 }

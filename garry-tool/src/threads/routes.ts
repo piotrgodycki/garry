@@ -13,11 +13,8 @@ import { activeGarryProject } from "../project/store.js";
 import { threadState } from "../status/status.js";
 
 /**
- * /api/projects and /api/threads. Called after the server checked who is
- * asking: this machine, or a paired device (which may start and steer work,
- * the point of pairing a phone). Registering a folder as a project, reading and
- * editing files by hand (a worktree's or a project's) and discarding a
- * thread's work stay on this machine.
+ * Runs after the server checked the caller is this machine or a paired device. Adding
+ * projects, hand-editing files and discarding work stay on this machine.
  */
 export async function threadRoutes(
   req: IncomingMessage,
@@ -37,7 +34,6 @@ export async function threadRoutes(
   const fail = (e: unknown, code = 400) => json(res, code, { error: String((e as Error).message ?? e) });
 
   if (path === "/api/projects") {
-    // the repositories of the Garry project in use
     if (m === "GET") return (json(res, 200, { projects: store.projectsOf(activeGarryProject().id) }), true);
     if (m === "POST") {
       if (!local) return (json(res, 403, { error: "projects are added on the computer running Garry" }), true);
@@ -50,7 +46,7 @@ export async function threadRoutes(
     }
   }
 
-  // what Garry may do with a project's remote: anyone paired reads, this computer changes
+  // Paired devices may read the settings; only this computer changes them.
   const settings = /^\/api\/projects\/([a-z0-9]{4,16})\/settings$/.exec(path);
   if (settings) {
     if (!store.project(settings[1])) return (json(res, 404, { error: "no such project" }), true);
@@ -66,7 +62,7 @@ export async function threadRoutes(
     return (json(res, 405, { error: "method not allowed" }), true);
   }
 
-  // a repository with no home on GitHub: what Garry would create (GET), and creating it on a person's yes (POST, this computer)
+  // Creating the GitHub repository needs a person's yes on this computer.
   const home = /^\/api\/projects\/([a-z0-9]{4,16})\/github-repo$/.exec(path);
   if (home) {
     const p = store.project(home[1]);
@@ -90,7 +86,7 @@ export async function threadRoutes(
     return (json(res, 405, { error: "method not allowed" }), true);
   }
 
-  // a project's own checkout: browse and edit by hand, this computer only
+  // Hand-editing a project's checkout is this computer only.
   const proj = /^\/api\/projects\/([a-z0-9]{4,16})(\/files|\/file)$/.exec(path);
   if (proj) {
     const p = store.project(proj[1]);
@@ -103,8 +99,7 @@ export async function threadRoutes(
       const project = new URL(req.url ?? "/", "http://x").searchParams.get("project") ?? undefined;
       const repos = new Set(store.projectsOf(activeGarryProject().id).map((p) => p.id));
       const list = store.threads(project).filter((t) => project || repos.has(t.projectId));
-      // attention: the same reading as the menu bar (needs you, working, ready); activity: in one
-      // line, what the agent is doing now (its last tool), what it asks, or that it is ready
+      // Same reading as the menu bar, plus one line on what the agent is doing or asks.
       return (
         json(res, 200, {
           threads: list.map((t) => {
@@ -136,7 +131,6 @@ export async function threadRoutes(
   try {
     if (m === "GET" && action === "") return (json(res, 200, { thread: { ...t, running: threads.isRunning(id) }, events: store.events(id) }), true);
     if (m === "GET" && action === "/events") {
-      // the log so far, then every new event live
       res.writeHead(200, ctx.sseHeaders);
       const send = (e: unknown) => res.write(`data: ${JSON.stringify(e)}\n\n`);
       for (const e of store.events(id)) send(e);

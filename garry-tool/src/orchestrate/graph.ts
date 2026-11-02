@@ -7,7 +7,7 @@ export interface ServiceNode {
   consumes: string[];
 }
 
-/** Loads the services of a feature with their consume edges, limited to the feature set. */
+/** Consume edges to services outside the feature are dropped. */
 export function loadServices(registry: string, names: string[]): ServiceNode[] {
   return names.map((n) => {
     const file = join(registry, "catalog", `${n}.yaml`);
@@ -18,11 +18,7 @@ export function loadServices(registry: string, names: string[]): ServiceNode[] {
   });
 }
 
-/**
- * Delegation order, contract first: a service that consumes X depends on X, so X
- * is delegated first (the producer before the consumer). Cycles are tolerated and
- * produce a deterministic linearization.
- */
+/** Producers before their consumers. Cycles are tolerated and still give a deterministic order. */
 export function delegationOrder(nodes: ServiceNode[]): string[] {
   const byName = new Map(nodes.map((n) => [n.name, n] as const));
   const seen = new Set<string>();

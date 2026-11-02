@@ -1,10 +1,6 @@
 /**
- * Regression test for layers: what agents are given, set for the whole Garry
- * project and changed per repository and per service. Saving and reading
- * layers, how they add up (skills on and off, stacks, notes, boards), skills
- * installed for one layer only, the HTTP routes, and what an agent turn
- * actually receives (a stand-in for Claude Code records its arguments).
- * Run with: pnpm -C garry-tool test:layers (CI runs it too).
+ * Regression test for layers, down to what an agent turn receives (a stand-in for Claude Code records it).
+ * Run with: pnpm -C garry-tool test:layers
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -44,7 +40,6 @@ const throws = (fn: () => unknown) => {
   }
 };
 
-// --- how layers add up, without a server
 const registry = join(home, "reg");
 expect(
   "no file reads as empty layers",
@@ -106,7 +101,6 @@ expect(
   two.skills.some((s) => s.name === "a11y"),
 );
 
-// --- the server: skills installed for one layer, the routes, what an agent turn gets
 // the folder is not named like the repository, so the service at its path is found by the path
 const repo = join(home, "shop-checkout");
 execFileSync("git", ["init", "-q", repo]);

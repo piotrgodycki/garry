@@ -10,25 +10,15 @@ export interface ValidationIssue {
 }
 
 /**
- * Extracts only the YAML frontmatter from the top of a file.
- * We deliberately avoid gray-matter: it can execute JavaScript from a
- * javascript frontmatter block, and SKILL.md comes from an external skills
- * repository (untrusted input). Nothing is evaluated here. We take the block
- * between the first pair of fence lines and parse it as YAML.
+ * Deliberately not gray-matter: it can execute a javascript frontmatter block, and SKILL.md is untrusted.
+ * Nothing is evaluated here; the fenced block is only parsed as YAML.
  */
 function extractYamlFrontmatter(src: string): string | null {
   const m = /^---\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)/.exec(src);
   return m ? m[1] : null;
 }
 
-/**
- * Validates a skills repository:
- *  1. manifest.json against the schema,
- *  2. unique names and valid dependsOn references,
- *  3. for each skill, the presence of SKILL.md and a valid frontmatter.
- * A missing SKILL.md is a warning (the skill is planned, not built yet) and
- * does not block.
- */
+/** A missing SKILL.md is only a warning: the skill is planned, not built yet. */
 export function validateSkills(root: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const err = (where: string, message: string) => issues.push({ level: "error", where, message });
@@ -67,8 +57,7 @@ export function validateSkills(root: string): ValidationIssue[] {
       if (!manifest.skills.some((s) => s.name === dep)) err(`skill:${skill.name}`, `dependsOn references an unknown skill: ${dep}`);
     }
 
-    // Path traversal protection: skill.path comes from the manifest (untrusted).
-    // The resolved path must stay inside the skills repository.
+    // skill.path comes from the untrusted manifest, so the resolved path must stay inside the repository.
     const rootResolved = resolve(root);
     const skillDir = resolve(rootResolved, skill.path);
     const rel = relative(rootResolved, skillDir);

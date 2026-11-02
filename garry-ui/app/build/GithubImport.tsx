@@ -5,11 +5,7 @@ import Link from "../lib/router";
 import GithubConnect from "../settings/GithubConnect";
 import styles from "./build.module.css";
 
-/**
- * Import a GitHub repository as a project, on this computer only. Connecting
- * (the token) is the same as in Settings; imported repositories are cloned
- * into ~/.garry/repos.
- */
+/** Imported repositories are cloned into ~/.garry/repos; the token is the same one as in Settings. */
 export default function GithubImport({ onImported }: { onImported: (p: Project) => void }) {
   const [status, setStatus] = useState<GithubStatus | null>(null);
   const [query, setQuery] = useState("");
@@ -17,7 +13,6 @@ export default function GithubImport({ onImported }: { onImported: (p: Project) 
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // the repository list, filtered as you type
   useEffect(() => {
     if (!status?.connected) return;
     const t = setTimeout(() => client.githubRepos(query).then(setRepos, (e) => setError(String((e as Error).message ?? e))), 250);

@@ -11,12 +11,7 @@ import Rail from "./Rail";
 import TopBar from "./TopBar";
 import GarryBar from "./GarryBar";
 
-/**
- * The app frame. On a wide screen: the rail (pages, projects, talk), the top
- * bar (the page, Garry at a glance), the page, and the command line at its
- * foot. On a tablet or phone: a top bar (menu, Garry, the project, talk) and
- * the menu as a drawer. The voice dock opens beside either.
- */
+/** Wide screens get the rail and top bar; tablets and phones get a top bar with the menu in a drawer. */
 export default function Shell() {
   const [menu, setMenu] = useState(false);
   const { pathname, search } = useLocation();

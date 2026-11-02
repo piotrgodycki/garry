@@ -5,14 +5,9 @@ import { garryHome } from "../server/auth.js";
 import type { ProjectSettings } from "../threads/settings.js";
 
 /**
- * Garry projects: everything one product is made of, kept together and
- * switched as one. A project is a registry folder (services, contracts,
- * features, stacks, routing, the architecture board) plus the repositories
- * agents work on in it, each with its push settings. The list lives in
- * ~/.garry/garry-projects.json; each project's registry in
- * ~/.garry/garry-projects/<id>/, except "default", which is the registry Garry
- * always used (~/.garry/registry). Any project can be removed, the default and
- * the active one too, as long as one is left.
+ * A Garry project is a registry folder plus the repositories agents work on in
+ * it. "default" uses the legacy ~/.garry/registry; the others live under
+ * ~/.garry/garry-projects/<id>/. Any project can be removed while one is left.
  */
 
 export interface PendingRepo {
@@ -26,7 +21,6 @@ export interface GarryProject {
   id: string;
   name: string;
   description?: string;
-  /** the project's registry folder */
   path: string;
   createdAt: string;
   /** repositories an imported project names but that are not cloned here yet */
@@ -58,7 +52,7 @@ function read(): Index {
   } catch {
     /* first run */
   }
-  // the registry Garry always used becomes the default project, saved on first use
+  // The legacy registry becomes the default project on first use.
   const first: Index = { active: "default", projects: [{ id: "default", name: "Default", path: legacyRegistry(), createdAt: new Date().toISOString() }] };
   write(first);
   return first;
@@ -132,10 +126,9 @@ export function updateGarryProject(id: string, patch: { name?: unknown; descript
 }
 
 /**
- * Removes a project and its registry folder (services, contracts, features,
- * stacks, routing, the architecture boards). The last project stays; removing
- * the active one makes another active, the default first. Returns the project
- * active afterwards. The repositories are not touched here.
+ * Removes a project and its registry folder, never its repositories. The last
+ * project stays; removing the active one activates another (the default
+ * first). Returns the project active afterwards.
  */
 export function removeGarryProject(id: string): GarryProject {
   const index = read();

@@ -1,9 +1,6 @@
 /**
- * What Garry may do with a project's git remote, set per project. By default
- * Garry asks before every push, never pushes to a protected branch (main,
- * master, develop, release/*), names its branches garry/<work>-<id>, and opens
- * pull requests against the repository's default branch. Agents never push at
- * all: only a person, from Garry, after this check.
+ * What Garry may do with a project's git remote. Agents never push themselves;
+ * only a person does, from Garry, after these checks.
  */
 
 export type PushMode = "ask" | "allow" | "never";
@@ -13,11 +10,9 @@ export interface ProjectSettings {
   push: PushMode;
   /** the branch pull requests target; empty is the repository's default branch */
   baseBranch: string;
-  /** what Garry's branches start with */
   branchPrefix: string;
   /** branches Garry never pushes to; * matches anything */
   protectedBranches: string[];
-  /** open pull requests as drafts */
   draftPr: boolean;
   /** a commit with a file over this many tokens (bytes / 4) is refused, so agents can read files whole; 0 turns it off */
   maxFileTokens: number;
@@ -43,7 +38,6 @@ export function settingsOf(stored: Partial<ProjectSettings> | undefined): Projec
   return { ...DEFAULT_SETTINGS, ...(stored ?? {}), protectedBranches: [...(stored?.protectedBranches ?? DEFAULT_SETTINGS.protectedBranches)] };
 }
 
-/** Checks a change to the settings and returns the new whole. */
 export function applySettings(current: ProjectSettings, input: unknown): ProjectSettings {
   if (!input || typeof input !== "object") throw new SettingsError("settings: an object");
   const i = input as Record<string, unknown>;

@@ -1,11 +1,7 @@
 import { type BrowserWindow, ipcMain, powerMonitor, systemPreferences, type IpcMainInvokeEvent } from "electron";
 
-/**
- * Touch ID on macOS: the app opens locked, locks again when the screen locks,
- * the Mac sleeps, or after ten idle minutes, and the dashboard asks for Touch ID
- * before it starts work, commits or opens a pull request. Other platforms and
- * Macs without Touch ID are unchanged.
- */
+// The app opens locked and locks again when the screen locks, the Mac sleeps or after
+// ten idle minutes. Other platforms and Macs without Touch ID are unchanged.
 
 const IDLE_LOCK_SECONDS = 10 * 60;
 
@@ -37,7 +33,6 @@ export interface TouchIdOptions {
   window: () => BrowserWindow | null;
 }
 
-/** Wires Touch ID into the app. Returns whether the first window should open locked. */
 export function setupTouchId(o: TouchIdOptions): {
   locked: () => boolean;
   lock: () => void;

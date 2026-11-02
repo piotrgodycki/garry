@@ -2,8 +2,7 @@ import type { Browser } from "playwright";
 import type * as Playwright from "playwright";
 
 /**
- * Launches headless Chromium through Playwright. GARRY_CHROMIUM_PATH points at
- * a preinstalled browser; otherwise Playwright uses its own download
+ * GARRY_CHROMIUM_PATH points at a preinstalled browser; otherwise Playwright uses its own download
  * (run "pnpm -C garry-tool exec playwright install chromium" once).
  */
 export async function launchChromium(): Promise<Browser> {

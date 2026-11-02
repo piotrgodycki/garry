@@ -1,14 +1,7 @@
 import type { ReactNode } from "react";
 import GarryMark from "./GarryMark";
 
-/**
- * Garry's crew: one icon per role, so on the timeline and in what needs you
- * it is plain who works. The analyst writes the spec and plan (a page with
- * its lines), the developer the code (brackets), the reviewer checks it (a
- * lens with a tick). The tile is the state's colour; a failure carries a red
- * mark, a queued one is faded. Garry himself is his mark on a clay tile.
- * Drawn from the theme's tokens, so both themes work.
- */
+/** One icon per crew role, tinted by state. Drawn from theme tokens so both themes work. */
 export type CrewRole = "garry" | "analyst" | "dev" | "reviewer";
 export type CrewState = "plan" | "work" | "wait" | "done" | "fail" | "idle";
 
@@ -21,7 +14,6 @@ export function roleOf(agent: string | null | undefined): CrewRole {
   return "dev";
 }
 
-/** Each role's tool, on the 24px grid with the 1.7 stroke of the rest of the icons. */
 const TOOL: Record<Exclude<CrewRole, "garry">, { name: string; draw: ReactNode }> = {
   analyst: { name: "spec", draw: <path d="M6.5 3.5h7.5l4 4v13h-11.5zM14 3.5v4h4M9.5 11.5h5M9.5 14.5h5M9.5 17.5h3" /> },
   dev: { name: "code", draw: <path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5M13.5 5.5l-3 13" /> },

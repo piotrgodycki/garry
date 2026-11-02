@@ -21,7 +21,6 @@ export interface FeatureDoc {
   routing?: string;
 }
 
-/** Finds and reads a feature document by id from the registry. */
 export function loadFeature(registry: string, id: string): FeatureDoc {
   const dir = join(registry, "features");
   if (!existsSync(dir)) throw new Error(`no features/ directory in registry: ${registry}`);
@@ -50,7 +49,6 @@ export interface FeatureSummary {
   services: string[];
 }
 
-/** Lists all features in the registry with their summary frontmatter. */
 export function listFeatures(registry: string): FeatureSummary[] {
   const dir = join(registry, "features");
   if (!existsSync(dir)) return [];
@@ -87,7 +85,6 @@ export interface BuildPlanOptions {
   serviceModels?: Record<string, string>;
 }
 
-/** Composes the SDLC pipeline into an ordered list of delegation tasks. */
 export function buildPlan(opts: BuildPlanOptions): Plan {
   const feature = loadFeature(opts.registry, opts.featureId);
   const nodes = loadServices(opts.registry, feature.services);
@@ -123,7 +120,6 @@ export function buildPlan(opts: BuildPlanOptions): Plan {
   return { feature, order, tasks };
 }
 
-/** Runs every task through the delegate in order. */
 export async function runPlan(plan: Plan, delegate: Delegate): Promise<void> {
   for (const task of plan.tasks) {
     await delegate.run(task);

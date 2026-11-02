@@ -1,8 +1,6 @@
 /**
- * Regression test for creating features: ids count up, titles and services are
- * checked against the registry, the document is one garry feature can plan, and
- * the server creates and removes them. Run with: pnpm -C garry-tool test:features
- * (CI runs it too).
+ * Regression test for creating and removing features.
+ * Run with: pnpm -C garry-tool test:features
  */
 import { mkdtempSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -61,7 +59,6 @@ removeFeature(registry, "FEAT-1");
 expect("ids never reused while a higher one exists", createFeature(registry, { title: "Third" }).id === "FEAT-3");
 expect("remove unknown", status(() => removeFeature(registry, "FEAT-99")) === 404);
 
-// the server: POST creates, DELETE removes (this computer)
 const server = createGarryServer({ registry, skills, routing: join(registry, "routing.json") }, new DeviceStore(join(registry, "devices.json")));
 await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;

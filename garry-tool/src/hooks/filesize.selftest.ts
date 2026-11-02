@@ -1,10 +1,6 @@
 /**
- * Regression test for the file size check: a staged file over 5,000 tokens
- * (bytes / 4) is refused and the message says how to split it; only staged
- * files count; lockfiles, generated code and binaries are skipped; garry hooks
- * check and install; and Garry refusing to commit an agent's oversized file
- * (a project setting, 0 turns it off). Run with: pnpm -C garry-tool
- * test:filesize (CI runs it too).
+ * Tests the staged file size check, garry hooks, and Garry refusing an agent's oversized file.
+ * Run with: pnpm -C garry-tool test:filesize
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -52,7 +48,6 @@ put("src/over.ts", 20_001);
 expect("one byte more is refused, counted as bytes / 4", names() === "src/over.ts:5001", names());
 expect("the limit is 5,000", MAX_TOKENS === 5000);
 
-// only what is staged
 put("src/unstaged.ts", 40_000, false);
 expect("a big file that is not staged does not count", !names().includes("unstaged"));
 g("reset", "-q");
@@ -74,7 +69,6 @@ expect("deleting a big file is fine (it gets smaller, not bigger)", deleting ===
 g("reset", "-q");
 g("checkout", "-q", "--", "src/big-before.ts");
 
-// what nobody writes by hand is left alone
 put("pnpm-lock.yaml", 90_000);
 put("ios/Podfile.lock", 90_000);
 put("dist/app.js", 90_000);
@@ -98,7 +92,6 @@ expect(
   names(),
 );
 
-// the message says how to split each kind
 const msg = sizeMessage(oversizedStaged(repo));
 expect(
   "the message names every file with its size",
@@ -118,7 +111,6 @@ expect("docs: a short overview and a page per section, linked", /overview[\s\S]*
 expect("data: one file per entry, or mark it generated", /one file per entry[\s\S]*linguist-generated/.test(section("config/data.json")));
 expect("and not to cheat the limit", /Do not shorten names, strip comments or minify/.test(msg));
 
-// the command line
 const cli = fileURLToPath(new URL("../cli.ts", import.meta.url));
 // tsx by its full path: the commands run inside the test's repository, far from node_modules
 const tsx = import.meta.resolve("tsx");
@@ -142,7 +134,6 @@ expect(
   hook,
 );
 
-// Garry refuses to commit an agent's oversized file
 const threads = new ThreadManager(new ThreadStore(process.env.GARRY_HOME!));
 const shop = join(home, "shop");
 execFileSync("git", ["init", "-q", shop]);

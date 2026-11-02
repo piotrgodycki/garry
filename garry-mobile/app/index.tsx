@@ -12,10 +12,6 @@ const ago = (iso: string) => {
   return m < 1 ? "just now" : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h`;
 };
 
-/**
- * Garry on the phone: what needs you first, answered right here; the agents
- * at work, each with its face; then the features Garry is driving.
- */
 export default function Home() {
   const { ready, client, connection } = useConnection();
   const router = useRouter();
@@ -42,7 +38,6 @@ export default function Home() {
       void load();
     }, [load]),
   );
-  // while it is open, keep up with the agents
   useEffect(() => {
     const t = setInterval(() => void load(), 5000);
     return () => clearInterval(t);
@@ -149,7 +144,6 @@ export default function Home() {
   );
 }
 
-/** What needs you, in the agent's own words, answered right here. */
 function Ask({ ask, onDone }: { ask: LiveAsk; onDone: () => Promise<void> }) {
   const { client } = useConnection();
   const p = usePalette();
@@ -220,7 +214,6 @@ function Ask({ ask, onDone }: { ask: LiveAsk; onDone: () => Promise<void> }) {
   );
 }
 
-/** One agent at work or with something ready: its face, what it does, its state. */
 function Agent({ lane }: { lane: LiveLane }) {
   const state = (lane.state ?? "idle") as State;
   return (

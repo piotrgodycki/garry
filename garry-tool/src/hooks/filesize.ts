@@ -2,12 +2,9 @@ import { execFileSync } from "node:child_process";
 import { basename, extname } from "node:path";
 
 /**
- * Keeps the files agents write small enough for an agent to read whole: a
- * staged file over the limit (5,000 tokens, counted as bytes / 4) is refused,
- * with instructions on how to split it. Only staged files are looked at, and
- * only what people and agents write: lockfiles, generated code, minified
- * bundles and binaries are left alone, as is anything .gitattributes marks
- * linguist-generated.
+ * Keeps files small enough for an agent to read whole: a staged file over 5,000
+ * tokens (bytes / 4) is refused. Lockfiles, generated code, minified bundles,
+ * binaries and linguist-generated paths are skipped.
  */
 export const MAX_TOKENS = 5000;
 export const tokensOf = (bytes: number) => Math.ceil(bytes / 4);
@@ -107,7 +104,6 @@ export function oversizedStaged(cwd: string, max = MAX_TOKENS): Oversized[] {
   return out;
 }
 
-/** How to split a file of this kind, in plain steps. */
 function howToSplit(path: string): string[] {
   const ext = extname(path).toLowerCase();
   if ([".tsx", ".jsx", ".vue", ".svelte"].includes(ext))

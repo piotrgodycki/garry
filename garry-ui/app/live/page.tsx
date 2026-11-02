@@ -9,7 +9,6 @@ import styles from "./live.module.css";
 import CrewFace, { type CrewState } from "../Crew";
 import Illustrated from "../Illustrations";
 
-/** The words for a state, the same everywhere on this screen. */
 const WORD: Record<LiveState, string> = { work: "Working", wait: "Needs you", fail: "Failed", done: "Ready" };
 const ZOOMS = [
   { key: "15m", label: "15 min", span: 15 * 60_000, step: 5 * 60_000 },
@@ -39,11 +38,6 @@ function windowOf(zoom: Zoom, now: number): { start: number; end: number; step: 
   return { start, end: now + span * 0.04, step: span > 8 * 3600_000 ? 2 * 3600_000 : span > 3 * 3600_000 ? 3600_000 : 30 * 60_000 };
 }
 
-/**
- * Live: every agent of the project as a lane on a timeline, what needs you
- * beside it with the agent's own words and an answer box, and the lane you
- * pick followed below: what it does, step by step, and what it has cost.
- */
 export default function Live() {
   const navigate = useNavigate();
   const [view, setView] = useState<LiveView | null>(null);
@@ -124,7 +118,6 @@ export default function Live() {
       {!view && !error && <Skeleton rows={4} />}
       {view && (
         <div className={view.needsYou.length ? styles.grid : styles.single}>
-          {/* what needs you takes a column only while something does */}
           {view.needsYou.length > 0 && (
             <section className={styles.needs} aria-labelledby="needs-you">
               <h2 id="needs-you" className={styles.colHead}>
@@ -290,7 +283,6 @@ function Timeline({
                     style={{ left: `${pct(from)}%`, width: `max(${pct(to) - pct(from)}%, 6px)` }}
                     title={`${WORD[s.state]}: ${s.label} (${hm(new Date(s.from).getTime())} to ${s.to ? hm(new Date(s.to).getTime()) : "now"})`}
                   >
-                    {/* a label only where it has room to be read */}
                     {pct(to) - pct(from) > 6 ? s.label : null}
                   </span>
                 );
@@ -304,7 +296,6 @@ function Timeline({
   );
 }
 
-/** What needs you: the agent's own words, and the answer right here. */
 function Ask({ ask, now, onDone }: { ask: LiveAsk; now: number; onDone: () => void }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -383,7 +374,6 @@ function Ask({ ask, now, onDone }: { ask: LiveAsk; now: number; onDone: () => vo
   );
 }
 
-/** The lane you picked: what it does, step by step, and what it has cost. */
 function Agent({ lane, now, onChange }: { lane: LiveLane; now: number; onChange: () => void }) {
   const [events, setEvents] = useState<ThreadEvent[] | null>(null);
   const log = useRef<HTMLOListElement>(null);

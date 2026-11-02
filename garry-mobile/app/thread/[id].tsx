@@ -7,7 +7,6 @@ import { mono, usePalette } from "../../lib/theme";
 import { Body, Button, Card, Label, Loading } from "../../lib/ui";
 import { confirmWithBiometrics } from "../../lib/biometrics";
 
-/** One piece of work, live: the conversation with the agent, its changes, commit and pull request. */
 export default function ThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { client } = useConnection();
@@ -44,7 +43,7 @@ export default function ThreadScreen() {
     return () => ctl.abort();
   }, [client, id, refresh]);
 
-  /** Shows what will be pushed and waits for a yes (unless the project allows pushing), then Face ID. */
+  /** Waits for a yes unless the project allows pushing, then asks for Face ID. */
   const openPr = async () => {
     if (!client) return;
     const c = client;

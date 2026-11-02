@@ -18,11 +18,6 @@ import { client } from "../lib/client";
 import styles from "./architecture.module.css";
 import { BlockLogo, FocusContext, edgeTypes, fromFlow, nodeTypes, toFlow, type BlockNode } from "./blocks";
 
-/**
- * The board, the whole screen: the blocks on the left, the canvas with its
- * own controls along the top (the bar), what Garry sees on the right. The
- * wizard and the ready-made architectures open over the canvas (overlay).
- */
 export default function Board({ state, boardId, bar, overlay }: { state: ArchitectureState; boardId: string; bar: ReactNode; overlay: ReactNode }) {
   const blocks = useMemo(() => new Map([...state.services, ...state.components].map((b) => [b.id, b])), [state]);
   const initial = useMemo(() => toFlow(state.architecture, blocks, state.capabilities), [state, blocks]);
@@ -69,7 +64,6 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
     return () => clearTimeout(t);
   }, [board, boardId]);
 
-  // mark blocks that something is wrong with
   useEffect(() => {
     const level = new Map<string, "error" | "warn">();
     for (const i of issues) if (i.node && i.level !== "info") level.set(i.node, i.level === "error" || level.get(i.node) === "error" ? "error" : "warn");
@@ -138,7 +132,6 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
       setAsking(false);
     }
   };
-  // add a suggestion's blocks next to the block it is about, then its links
   const apply = (sg: ArchSuggestion) => {
     const anchor = nodes.find((x) => sg.links.some((l) => l.from === x.id || l.to === x.id));
     const base = anchor ? { x: anchor.position.x + 360, y: anchor.position.y } : flow.screenToFlowPosition({ x: 400, y: 300 });
@@ -240,7 +233,6 @@ export default function Board({ state, boardId, bar, overlay }: { state: Archite
             deleteKeyCode={["Backspace", "Delete"]}
           >
             <Background gap={20} />
-            {/* under the wizard or the ready-made ones, the board's own controls step aside */}
             {!overlay && <Controls showInteractive={false} />}
             {!overlay && <MiniMap pannable zoomable />}
           </ReactFlow>

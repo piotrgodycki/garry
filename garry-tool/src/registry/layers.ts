@@ -3,13 +3,8 @@ import { join } from "node:path";
 import { z } from "zod";
 
 /**
- * Layers: what agents are given, set once for the whole Garry project and
- * changed per repository and per service. A layer turns skills on (or off
- * again, for what a wider layer turned on), names the stacks the code is built
- * with and holds the team's own notes. An agent in a repository gets the sum:
- * the project's layer, then the repository's, then each service in it. The
- * architecture follows the same order with the boards that already exist: the
- * whole project's board, then the repository's. Kept in <registry>/layers.json.
+ * Layers: what agents are given, set for the whole project and changed per repository and per service.
+ * An agent gets the sum in that order. Kept in <registry>/layers.json.
  */
 
 const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
@@ -86,7 +81,7 @@ export function saveLayer(registry: string, scope: Scope, input: unknown): Layer
   return layers;
 }
 
-/** Turns one skill on in a layer (a per-project install lands here). */
+/** A per-project install lands here. */
 export function addSkillTo(registry: string, scope: Scope, skill: string): void {
   const l = layerAt(readLayers(registry), scope);
   saveLayer(registry, scope, { ...l, skills: [...l.skills, skill], skillsOff: l.skillsOff.filter((s) => s !== skill) });
@@ -104,11 +99,8 @@ export interface Resolved {
 }
 
 /**
- * What an agent in one repository gets: skills installed for every project,
- * then the project's layer, the repository's, and each of its services'. A
- * narrower layer adds skills and can turn off one a wider layer turned on.
- * Stacks: the repository's replace the project's when it names any; each
- * service adds the stack it is built with and its own.
+ * A narrower layer adds skills and can turn off one a wider layer turned on. A repository's stacks replace
+ * the project's when it names any; each service adds the stack it is built with.
  */
 export function resolveLayers(layers: Layers, input: { repo: string; services: { name: string; stackRef?: string }[]; everywhere: string[] }): Resolved {
   const repoLayer = layers.repos[input.repo] ?? empty();

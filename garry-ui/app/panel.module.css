@@ -5,7 +5,6 @@
   gap: 12px;
 }
 
-/* registry service card */
 .svcCard {
   padding: 18px;
   display: grid;
@@ -81,7 +80,6 @@
   gap: 5px;
 }
 
-/* skills */
 .stageTitle {
   text-transform: capitalize;
 }
@@ -121,7 +119,6 @@
   color: var(--color-text-muted);
 }
 
-/* routing */
 .defaultRoute {
   display: flex;
   align-items: center;
@@ -161,7 +158,6 @@
   height: 13px;
 }
 
-/* registry: contracts */
 .explain {
   margin: 0;
   max-width: 78ch;

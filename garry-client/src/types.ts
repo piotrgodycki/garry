@@ -24,7 +24,6 @@ export interface Plan {
   tasks: Task[];
 }
 
-/** One step an agent took, as the live stream reports it. */
 export interface LogEntry {
   index: number;
   stage: string;
@@ -93,7 +92,6 @@ export interface SkillSummary {
   everywhere?: boolean;
 }
 
-/** What one layer gives agents: skills turned on (or off again), stacks, the team's notes. */
 export interface Layer {
   skills: string[];
   skillsOff: string[];
@@ -101,7 +99,6 @@ export interface Layer {
   notes: string;
 }
 
-/** The project's layer, then each repository's and each service's. */
 export interface Layers {
   project: Layer;
   repos: Record<string, Layer>;
@@ -110,10 +107,9 @@ export interface Layers {
 
 export type LayerScope = { level: "project" } | { level: "repo" | "service"; name: string };
 
-/** Where a piece of what an agent gets comes from: "everywhere", "project", "repo:<name>" or "service:<name>". */
+/** "everywhere", "project", "repo:<name>" or "service:<name>". */
 export type LayerFrom = string;
 
-/** Everything an agent in one repository is given. */
 export interface AgentContext {
   repo: string;
   services: string[];
@@ -128,7 +124,6 @@ export interface AgentContext {
 
 export type ServiceKind = "mfe-remote" | "mfe-shell" | "spa" | "ssr" | "isr" | "ssg" | "mobile" | "backend" | "bff" | "worker" | "function";
 
-/** A kind of service: what it is, what it exposes, whether it may own a database, and the stack it starts from. */
 export interface ServiceKindInfo {
   id: ServiceKind;
   label: string;
@@ -150,8 +145,6 @@ export interface RegistryService {
   consumes: Record<string, string[]>;
 }
 
-/** One entry of a worktree folder (files are opened and edited on the computer running Garry only). */
-/** A shell opened from the Files tab on the computer running Garry. */
 export interface TerminalInfo {
   id: string;
   /** "registry", "project:<id>" or "thread:<id>" */
@@ -196,14 +189,13 @@ export interface StackIssue {
   message: string;
 }
 
-/** A technology in Garry's catalog. */
 export interface CatalogTech {
   id: string;
   name: string;
   category: string;
   requires?: string[][];
   conflicts?: string[];
-  /** for rendering and performance: where it happens */
+  /** where it renders or runs */
   side?: "server" | "client";
   note?: string;
 }
@@ -212,11 +204,9 @@ export interface Stacks {
   stacks: (Stack & { usedBy: string[]; issues: StackIssue[] })[];
   catalog: CatalogTech[];
   categories: { id: string; label: string; single?: boolean }[];
-  /** ready-made stacks to start from (MERN, Jamstack, Expo...) */
   templates: StackTemplate[];
 }
 
-/** A ready-made stack: a known combination, and the kinds of service it suits. */
 export interface StackTemplate {
   name: string;
   title: string;
@@ -225,7 +215,7 @@ export interface StackTemplate {
   technologies: { id: string }[];
 }
 
-/** A block on the architecture board: a platform piece or one of your services (service:<name>). */
+/** A platform piece, or one of your services as service:<name>. */
 export interface ArchBlock {
   id: string;
   name: string;
@@ -259,7 +249,6 @@ export interface Architecture {
   wizard?: WizardAnswers | null;
 }
 
-/** The architecture wizard's answers. */
 export interface WizardAnswers {
   clients: ("web" | "ios" | "android")[];
   platform: "vercel" | "cloudflare" | "aws" | "supabase" | "self-hosted" | "kubernetes";
@@ -268,13 +257,12 @@ export interface WizardAnswers {
   services: boolean;
 }
 
-/** One question of the wizard: its title and its choices. */
 export interface WizardQuestion {
   title: string;
   choices: { id: string; label: string; hint: string }[];
 }
 
-/** A board: the whole project's (id "") or a repository's (id = its name). */
+/** id is "" for the whole project's board, else the repository's name. */
 export interface ArchBoard {
   id: string;
   name: string;
@@ -288,7 +276,7 @@ export interface ArchIssue {
   message: string;
 }
 
-/** A change to the board: blocks to add (referred to as new:<index> in links) and links to make. */
+/** Links refer to added blocks as new:<index>. */
 export interface ArchSuggestion {
   title: string;
   why: string;
@@ -303,12 +291,10 @@ export interface ArchitectureState {
   capabilities: Record<string, string>;
   providers: string[];
   issues: ArchIssue[];
-  /** ready-made architectures to start from */
   templates: ArchTemplate[];
-  /** the board shown ("" the whole project's) and every board there is */
+  /** "" is the whole project's board */
   board: string;
   boards: ArchBoard[];
-  /** the wizard's questions */
   wizard: Record<"clients" | "platform" | "data" | "extras", WizardQuestion>;
 }
 
@@ -325,7 +311,6 @@ export interface NewFeature {
   /** what it should do and why; becomes the Goal section */
   goal?: string;
   services?: string[];
-  /** contract files it changes, e.g. events.json */
   contractChanges?: string[];
   /** a routing profile; empty uses the active one */
   routing?: string;
@@ -341,7 +326,6 @@ export interface NewService {
   stackRef?: string;
   exposes?: string[];
   consumes?: Record<string, string[]>;
-  /** the database it owns, for kinds that may own one */
   db?: { engine: string; name?: string } | null;
 }
 
@@ -363,7 +347,6 @@ export interface PairedDevice {
   lastSeenAt: string | null;
 }
 
-// ---- Garry at a glance ----
 export interface GarryStatusItem {
   threadId: string;
   title: string;
@@ -378,7 +361,6 @@ export interface GarryStatus {
   items: GarryStatusItem[];
 }
 
-// ---- Live: every agent as a lane on a timeline ----
 export type LiveState = "work" | "wait" | "fail" | "done";
 export interface LiveSegment {
   state: LiveState;
@@ -418,7 +400,6 @@ export interface LiveView {
   spentToday: number;
 }
 
-// ---- Talking to Garry: messages in line, one at a time ----
 export interface GarryMessage {
   id: string;
   text: string;
@@ -437,7 +418,6 @@ export interface GarryQueue {
   repos: { id: string; name: string }[];
 }
 
-// ---- Agents working together: pairs and chains ----
 export interface Pair {
   id: string;
   projectId: string;
@@ -465,7 +445,6 @@ export interface Chain {
   createdAt: string;
 }
 
-// ---- Garry projects ----
 export interface PendingRepo {
   name: string;
   remote: string;
@@ -486,7 +465,6 @@ export interface GarryProject {
 }
 export interface GarryProjects {
   active: string;
-  /** the registry the server reads now */
   registry: string;
   projects: GarryProject[];
 }
@@ -500,7 +478,6 @@ export interface GarryBundle {
   repos: PendingRepo[];
 }
 
-// ---- GitHub ----
 export interface GithubStatus {
   connected: boolean;
   /** where the token comes from: .env.local, connected in Garry, or the GitHub CLI */
@@ -526,9 +503,6 @@ export interface GithubRepo {
   cloneUrl: string;
 }
 
-// ---- the IDE: projects and agent threads ----
-
-/** What Garry may do with a project's remote. */
 export interface ProjectSettings {
   /** ask: confirm every push; allow: push when opening a PR; never: no pushes from Garry */
   push: "ask" | "allow" | "never";
@@ -549,9 +523,8 @@ export interface PushPreview {
   commits: { sha: string; subject: string }[];
   mode: ProjectSettings["push"];
   draft: boolean;
-  /** why the push would be refused, if it would */
   refused: string | null;
-  /** with no GitHub remote: the repository Garry would create, named as in Garry, once you say yes */
+  /** with no GitHub remote: the repository Garry would create once you say yes */
   create: { owner: string; name: string } | null;
 }
 
@@ -573,7 +546,7 @@ export interface Thread {
   createdAt: string;
   updatedAt: string;
   running?: boolean;
-  /** what it needs from you: the same reading as the menu bar */
+  /** the same reading as the menu bar */
   attention?: "working" | "needs-you" | "done" | null;
   /** in one line: what the agent is doing now, what it asks, or that it is ready */
   activity?: string | null;
@@ -605,7 +578,6 @@ export interface ThreadDiff {
   uncommitted: boolean;
 }
 
-/** A command that can follow a slash in Garry's field. */
 export interface GarryCommand {
   name: string;
   /** what goes after it; empty when nothing does */
@@ -613,7 +585,6 @@ export interface GarryCommand {
   help: string;
 }
 
-/** One thing Garry and every agent in a project keep in mind. */
 export interface MemoryEntry {
   id: string;
   text: string;

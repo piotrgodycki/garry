@@ -25,11 +25,8 @@ const Dictation =
   (globalThis as unknown as { webkitSpeechRecognition?: new () => Recognition }).webkitSpeechRecognition;
 
 /**
- * Talking to Garry, from every page: one field floating at the foot of the
- * screen. Type, or dictate (the microphone, or Cmd/Ctrl+J), and Enter puts the
- * message in line: Garry works on one at a time, so sending more never
- * interrupts what runs. What waits, what runs and what Garry answered sit just
- * above the field. Cmd/Ctrl+K focuses it; a page's name goes to that page.
+ * Garry's message field, floating at the foot of every page. Messages queue: Garry works on one
+ * at a time, so sending more never interrupts what runs.
  */
 export default function GarryBar() {
   const navigate = useNavigate();
@@ -42,7 +39,6 @@ export default function GarryBar() {
   const [error, setError] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [history, setHistory] = useState(false);
-  // what you told Garry stays one short line until you open it
   const [shown, setShown] = useState(false);
   const rec = useRef<Recognition | null>(null);
   const before = useRef("");

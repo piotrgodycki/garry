@@ -7,11 +7,8 @@ import { CommandError, commandList, runCommand } from "./commands.js";
 import { MemoryError, forget, readMemory, remember } from "./memory.js";
 
 /**
- * Talking to Garry: GET /api/garry/queue (what you said, newest last, and
- * where it goes), POST /api/garry/queue {text, projectId?} (in line; the
- * project's first repository when none is named), DELETE
- * /api/garry/queue/:id (a message that has not started). This machine and
- * paired devices.
+ * /api/garry/queue, /commands and /memory, for this machine and paired devices.
+ * A message without projectId goes to the project's first repository.
  */
 export async function queueRoutes(
   req: IncomingMessage,
@@ -50,7 +47,6 @@ export async function queueRoutes(
       }
     }
   }
-  // commands after a slash: the list (for the field's suggestions), and running one
   if (path === "/api/garry/commands" && req.method === "GET") return (json(res, 200, { commands: commandList() }), true);
   if (path === "/api/garry/commands" && req.method === "POST") {
     const body = (await ctx.readBody(req)) as { text?: unknown };
@@ -60,7 +56,6 @@ export async function queueRoutes(
       return fail(e);
     }
   }
-  // Garry's memory of the active project: read, add, forget one
   if (path === "/api/garry/memory") {
     if (req.method === "GET") return (json(res, 200, { entries: readMemory(ctx.registry) }), true);
     if (req.method === "POST") {

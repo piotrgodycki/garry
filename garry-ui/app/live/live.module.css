@@ -1,4 +1,3 @@
-/* Live: what needs you beside every agent on a timeline, the picked one below. */
 .live {
   --who: 220px;
 }
@@ -83,7 +82,6 @@
   text-align: center;
 }
 
-/* what needs you */
 .needs {
   display: grid;
   gap: var(--space-sm);
@@ -185,7 +183,6 @@
   font-size: 13.5px;
 }
 
-/* the agents */
 .board {
   display: grid;
   gap: var(--space-sm);
@@ -376,7 +373,6 @@
   pointer-events: none;
 }
 
-/* the agent you picked */
 .agent {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -501,7 +497,6 @@
   .live {
     --who: 0px;
   }
-  /* on a phone a lane is its name, then its track below */
   .axis > span:first-child {
     display: none;
   }

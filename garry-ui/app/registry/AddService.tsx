@@ -101,7 +101,6 @@ export default function AddService({
 
   const ready = /^[a-z][a-z0-9-]*$/.test(name.trim()) && repo.trim() !== "" && !busy;
   const current = kinds.find((k) => k.id === kind);
-  // ready-made stacks for this kind that are not already one of yours
   const fitting = templates.filter((t) => t.kinds.includes(kind) && !stacks.some((x) => x.name === t.name));
   return (
     <form

@@ -2,14 +2,9 @@ import type { ThreadManager } from "../threads/manager.js";
 import type { Thread, ThreadEvent } from "../threads/store.js";
 
 /**
- * Garry at a glance: is an agent working, does one need you, is something
- * ready. One answer for the menu bar on a Mac, the iPhone app and the
- * dashboard, worked out from the threads and their event logs.
- *
- * - working: an agent is in a turn right now
- * - needs-you: a turn ended with a question to you, or the agent stopped on an error
- * - done: a turn ended and the work waits for your review (not committed yet)
- * - idle: nothing in flight
+ * One status for the Mac menu bar, the iPhone app and the dashboard, derived
+ * from the threads' event logs. needs-you is a question or a stop on an error;
+ * done is work waiting for review, not committed yet.
  */
 
 export type GarryState = "idle" | "working" | "needs-you" | "done";
@@ -26,14 +21,12 @@ export interface StatusItem {
 
 export interface GarryStatus {
   state: GarryState;
-  /** how many need you, how many are working, how many are ready */
   counts: { needsYou: number; working: number; done: number };
   items: StatusItem[];
 }
 
 const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
-/** The agent's last words in its last turn, if that turn ended well. */
 function lastTurn(events: ThreadEvent[]): { ended: boolean; ok: boolean; text: string; at: string } | null {
   let end = -1;
   for (let i = events.length - 1; i >= 0; i--)
@@ -66,7 +59,6 @@ export function threadState(t: Thread, events: ThreadEvent[], running: boolean):
     const tool = [...events].reverse().find((e) => e.type === "tool") as Extract<ThreadEvent, { type: "tool" }> | undefined;
     return { ...base, state: "working", detail: tool ? clip(`${tool.name} ${tool.summary}`) : "Working", at: t.updatedAt };
   }
-  // shipped or committed: nothing waits on you here
   if (t.pr || t.commit) return null;
   // a turn that never ended while nothing runs it: the agent was cut off
   const lastUser = events.map((e) => e.type).lastIndexOf("user");
@@ -97,9 +89,8 @@ export function garryStatus(threads: ThreadManager, threadIds?: Set<string>): Ga
 }
 
 /**
- * What is worth a notification between two looks at the status: a thread that
- * now needs you, or that is now ready, and was not before. Working is not
- * news; the menu bar shows it.
+ * What is worth a notification: a thread that newly needs you or is newly
+ * ready. Working is not news; the menu bar already shows it.
  */
 export function statusChanges(prev: GarryStatus | null, next: GarryStatus): StatusItem[] {
   const before = new Map((prev?.items ?? []).map((i) => [i.threadId, i]));

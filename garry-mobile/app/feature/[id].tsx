@@ -6,7 +6,6 @@ import { useConnection } from "../../lib/connection";
 import { mono, usePalette } from "../../lib/theme";
 import { Body, Button, Card, Chip, CrewFace, Label, Loading, Notice, Pill, Title, roleOf } from "../../lib/ui";
 
-/** One feature live: the delegation order, what each agent is doing now, the pull requests. */
 export default function FeatureScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { client } = useConnection();

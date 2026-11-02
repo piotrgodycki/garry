@@ -37,7 +37,6 @@ export interface RegistryData {
   contracts: Contracts;
 }
 
-/** Human names for the contract files a feature can change. */
 export const CONTRACT_LABEL: Record<string, string> = {
   "events.json": "Events",
   "remotes.json": "Remote modules",

@@ -81,7 +81,6 @@ export default function ServicePage() {
       .catch(() => undefined);
   }, [name]);
 
-  // Live detailed work log: every skill step the agent runs on THIS service.
   useEffect(() => {
     if (!featureId) return;
     setLog([]);
@@ -231,7 +230,6 @@ export default function ServicePage() {
         )}
       </section>
 
-      {/* Detailed work log: exactly what the agent did on this service, step by step. */}
       <div className="card">
         <div className="cardHead">
           <h2>Work log</h2>

@@ -38,7 +38,6 @@
   overflow-wrap: anywhere;
 }
 
-/* the thread: conversation on the left, changes on the right */
 .layout {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
@@ -162,7 +161,6 @@
   color: var(--color-text-muted);
 }
 
-/* importing from GitHub */
 .repoList {
   display: grid;
   gap: 8px;
@@ -179,7 +177,6 @@
   border-radius: 10px;
 }
 
-/* confirming a push */
 .pushBox {
   display: grid;
   gap: 10px;
@@ -203,7 +200,6 @@
   overflow-wrap: anywhere;
 }
 
-/* a project's push and branch settings */
 .settings {
   display: grid;
   gap: 14px;
@@ -266,7 +262,6 @@
   }
 }
 
-/* a repository's home on GitHub, or creating one */
 .githubHome {
   display: flex;
   flex-wrap: wrap;

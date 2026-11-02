@@ -1,10 +1,6 @@
 /**
- * Regression test for Live: an agent's lane worked out from its event log
- * (work from your message to the turn's end, then what it left you with: a
- * question, a stop, or work to review; shipping ends the lane), the view over
- * every thread (what shows, in what order, what needs you, today's spend),
- * that it agrees with Garry at a glance, and GET /api/live.
- * Run with: pnpm -C garry-tool test:live (CI runs it too).
+ * Tests Live: lanes from event logs, the view over every thread, and GET /api/live.
+ * Run with: pnpm -C garry-tool test:live
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync } from "node:fs";
@@ -61,7 +57,6 @@ const brief = (l: ReturnType<typeof laneOf>) =>
     )
     .join(" ");
 
-// one turn that ends in a question: work, then needs you until you answer
 let lane = laneOf(thread(), "Shop", turn(0, 10, "I added it.\nShould it be red or blue?"), false);
 expect(
   "a turn is work from your message to its end, then a question that waits",
@@ -72,7 +67,6 @@ expect("work is labelled with the first line of your message", lane.segments[0].
 expect("the question is the agent's own last line", lane.segments[1].label === "Should it be red or blue?");
 expect("it counts turns, tools and cost", lane.turns === 1 && lane.tools === 1 && Math.abs(lane.costUsd - 0.02) < 1e-9 && lane.project === "Shop");
 
-// answering: the wait ends at your answer, and a turn that ends well is ready
 lane = laneOf(thread(), "Shop", [...turn(0, 10, "Red or blue?"), ...turn(25, 40, "Done, it is blue.")], false);
 expect(
   "your answer ends the wait and starts work; then it is ready",
@@ -80,7 +74,6 @@ expect(
   brief(lane),
 );
 
-// a turn that fails: the problem is what the failing tool said
 lane = laneOf(thread(), "Shop", turn(0, 5, "It broke.", false), false);
 expect(
   "a failed turn is failed, with the first line of what went wrong",
@@ -88,7 +81,6 @@ expect(
   lane.segments[1]?.label,
 );
 
-// working now: the open stretch, and the tool it uses
 const working: ThreadEvent[] = [
   ...turn(0, 10, "Ready?"),
   { type: "user", text: "yes", at: at(20) },
@@ -114,18 +106,15 @@ const ct = cut.save(thread({ id: "cutoff1" }));
 for (const e of [...turn(0, 10, "Done."), ...working.slice(5)]) cut.append(ct.id, e);
 expect("Garry at a glance agrees: a cut off agent needs you", garryStatus(new ThreadManager(cut)).items[0]?.state === "needs-you");
 
-// shipped: committing ends the lane
 lane = laneOf(thread({ commit: "abc" }), "Shop", [...turn(0, 10, "Done."), { type: "git", action: "commit", detail: "abc", at: at(15) }], false);
 expect("committing ends the lane", brief(lane) === "work:0-10 done:10-15" && lane.state === null, brief(lane));
 
 lane = laneOf(thread({ pr: { number: 7, url: "u" } }), "Shop", turn(0, 10, "Done."), false);
 expect("a thread with a pull request is shipped, even without its git event", lane.state === null && lane.segments.every((s) => s.to !== null));
 
-// a thread in error after a turn that looked fine
 lane = laneOf(thread({ status: "error" }), "Shop", turn(0, 10, "Done."), false);
 expect("a thread in error is failed, not ready", lane.state === "fail");
 
-// the view over a store: what shows, in what order, what needs you, spend
 const store = new ThreadStore(process.env.GARRY_HOME!);
 const repo = join(home, "shop");
 execFileSync("git", ["init", "-q", repo]);
@@ -176,7 +165,6 @@ expect(
   `${glance.counts.needsYou} vs ${view.needsYou.length}`,
 );
 
-// a narrow window drops finished lanes older than it; waiting ones stay
 const narrow = liveView(threads, new Set(store.threads().map((t) => t.id)), new Date(Date.now() + 3600_000));
 expect(
   "a window that ended before them drops ready and shipped lanes, keeps the waiting",
@@ -184,7 +172,6 @@ expect(
   narrow.lanes.map((l) => l.title).join(", "),
 );
 
-// over HTTP
 const server = createGarryServer(
   { registry: join(home, "reg"), skills: join(home, "none"), routing: join(home, "none.json"), threads },
   new DeviceStore(join(home, "devices.json")),

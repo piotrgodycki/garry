@@ -3,13 +3,7 @@ import { join } from "node:path";
 import type { ThreadManager } from "../../garry-tool/src/threads/manager.js";
 import { garryStatus, statusChanges, type GarryStatus, type StatusItem } from "../../garry-tool/src/status/status.js";
 
-/**
- * Garry in the menu bar: the G shows whether an agent is working (moving
- * dots), needs you (!) or has something ready (a tick), with how many need you
- * beside it. The menu lists the work; a click opens it. Notifications say when
- * something becomes ready or needs you, and the Dock icon carries the count.
- * The icons are template images, so the menu bar draws them light or dark.
- */
+// The icons are template images, so the menu bar draws them light or dark.
 
 const LABEL: Record<StatusItem["state"], string> = { "needs-you": "Needs you", working: "Working", done: "Ready" };
 
@@ -26,7 +20,6 @@ export function setupTray(opts: { threads: () => ThreadManager | undefined; open
   let spinner: NodeJS.Timeout | null = null;
 
   const render = (s: GarryStatus) => {
-    // working: the dots move; otherwise one still icon
     if (s.state === "working" && !spinner) {
       spinner = setInterval(() => tray.setImage(icon(`working-${(frame++ % 3) + 1}`)), 450);
     } else if (s.state !== "working" && spinner) {
@@ -76,13 +69,13 @@ export function setupTray(opts: { threads: () => ThreadManager | undefined; open
     const threads = opts.threads();
     if (!threads) return;
     const next = garryStatus(threads);
-    // the first look sets the scene; only what changes after it is news
+    // no notifications for what was already there on the first look
     if (last) for (const i of statusChanges(last, next)) notify(i);
     last = next;
     render(next);
   };
 
-  // every thread event can change the picture; settle bursts of them
+  // debounce bursts of thread events
   let pending: NodeJS.Timeout | null = null;
   const onEvent = () => {
     if (pending) return;

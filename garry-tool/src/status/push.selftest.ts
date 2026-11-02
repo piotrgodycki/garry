@@ -1,11 +1,6 @@
 /**
- * Regression test for notifications on the phone: a paired phone registers
- * its push token over HTTP (and only its own, and only a real one), real
- * threads run by a stand-in for Claude Code end the way they do, and a
- * stand-in for Expo's push service records what Garry sends: the title and
- * detail by default, nothing named with GARRY_PUSH_DETAIL=minimal, nothing at
- * all with GARRY_PUSH=off or once the phone opts out.
- * Run with: pnpm -C garry-tool test:push-notify (CI runs it too).
+ * Tests push notifications to a paired phone against a stand-in for Expo's push service.
+ * Run with: pnpm -C garry-tool test:push-notify
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -105,7 +100,6 @@ expect(
   ).status === 400,
 );
 
-// work that ends with a question reaches the phone, named
 const asks = threads.create(project.id, "add a button ASK", "Add a buy button");
 await until(() => !threads.isRunning(asks.id));
 await until(() => received.length > 0);
@@ -118,7 +112,6 @@ expect(
     received[0].data.threadId === asks.id,
 );
 
-// minimal: nothing named leaves the computer
 process.env.GARRY_PUSH_DETAIL = "minimal";
 const quiet = threads.create(project.id, "write the notes", "Secret project notes");
 await until(() => !threads.isRunning(quiet.id));
@@ -130,7 +123,6 @@ expect(
 );
 delete process.env.GARRY_PUSH_DETAIL;
 
-// off: nothing at all
 process.env.GARRY_PUSH = "off";
 const offRun = threads.create(project.id, "more notes", "Another one");
 await until(() => !threads.isRunning(offRun.id));
@@ -138,7 +130,6 @@ await settle();
 expect("GARRY_PUSH=off sends nothing", received.length === 2);
 delete process.env.GARRY_PUSH;
 
-// the phone opts out: nothing either
 devices.setPushToken(phone.device.id, null);
 const after = threads.create(project.id, "even more", "After opting out");
 await until(() => !threads.isRunning(after.id));

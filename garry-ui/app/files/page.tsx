@@ -6,7 +6,6 @@ import { Icon } from "../icons";
 import styles from "./files.module.css";
 import Select from "../Select";
 
-// the editor and the terminal load only when they are first needed
 const CodeEditor = lazy(() => import("../build/CodeEditor"));
 const Terminal = lazy(() => import("./Terminal"));
 
@@ -79,11 +78,7 @@ function Folder({
   );
 }
 
-/**
- * Files: the registry, your repos and the work in progress, as folders. Browse,
- * open files in tabs, edit them by hand and run commands in a terminal, on the
- * computer running Garry. While an agent works in a folder, its files are read only.
- */
+/** Files and a terminal on the computer running Garry. While an agent works in a folder, its files are read only. */
 export default function FilesPage() {
   const [params, setParams] = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -102,7 +97,6 @@ export default function FilesPage() {
   );
   const running = rootKey.startsWith("thread:") && Boolean(threads.find((t) => `thread:${t.id}` === rootKey)?.running);
 
-  // the roots, and whether the agent in the open one is still working
   useEffect(() => {
     let live = true;
     const load = () =>
@@ -118,7 +112,6 @@ export default function FilesPage() {
     };
   }, []);
 
-  // ---- explorer and editor tabs ----
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [active, setActive] = useState<string | null>(null);
@@ -203,7 +196,6 @@ export default function FilesPage() {
     setParams(key === "registry" ? {} : { root: key });
   };
 
-  // ---- terminals ----
   const [terms, setTerms] = useState<TerminalInfo[]>([]);
   const [termOn, setTermOn] = useState(false);
   const [termActive, setTermActive] = useState<string | null>(null);
@@ -258,7 +250,6 @@ export default function FilesPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // leaving with unsaved changes asks first
   useEffect(() => {
     const dirty = tabs.some(isDirty);
     if (!dirty) return;

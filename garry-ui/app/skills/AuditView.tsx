@@ -27,7 +27,6 @@ const LABEL: Record<Verdict, string> = {
   fail: "Blocked by the security audit",
 };
 
-/** One line verdict for a skill card. */
 export function AuditBadge({ audit }: { audit: AuditReport | null }) {
   if (!audit) return <span className={styles.auditNone}>Not audited: no instructions yet</span>;
   const { verdict, counts } = audit;
@@ -45,7 +44,6 @@ export function AuditBadge({ audit }: { audit: AuditReport | null }) {
   );
 }
 
-/** The full report: verdict, then every finding with where it is and why it matters. */
 export function AuditFindings({ audit }: { audit: AuditReport }) {
   const findings = audit.findings ?? [];
   return (

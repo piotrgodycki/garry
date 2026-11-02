@@ -3,11 +3,9 @@ import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 
 /**
- * Garry's memory: short things to keep in mind about a project, said once
- * ("/remember we deploy on Fridays") and given to every agent working in it
- * from then on, next to the layers. Kept in the project's registry
- * (memory.json), so it travels with an exported project; seen and changed on
- * the Memory page.
+ * Short notes about a project ("/remember we deploy on Fridays") given to every
+ * agent working in it. Kept in the registry's memory.json so they travel with
+ * an exported project.
  */
 
 export interface MemoryEntry {

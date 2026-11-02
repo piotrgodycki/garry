@@ -58,7 +58,6 @@ export class GitHub {
     return { owner: r.owner.login, name: r.name, url: r.html_url };
   }
 
-  /** The default branch of a repo, used as the base for pull requests. */
   async defaultBranch(owner: string, name: string): Promise<string> {
     const repo = await this.api<{ default_branch: string }>("GET", `/repos/${owner}/${name}`);
     return repo.default_branch;
@@ -71,7 +70,6 @@ export class GitHub {
     return { number: pr.number, state: pr.state, draft: pr.draft, url: pr.html_url, checks: await this.checks(owner, name, pr.head.sha) };
   }
 
-  /** Lists the open pull request for a head branch, if any. */
   async prForBranch(owner: string, name: string, head: string): Promise<PrState | null> {
     const prs = await this.api<GhPr[]>("GET", `/repos/${owner}/${name}/pulls?head=${owner}:${head}&state=all`);
     const pr = prs[0];
@@ -100,7 +98,6 @@ export class GitHub {
     return { url: c.html_url, created: true };
   }
 
-  /** A text file on a branch, or null when it does not exist. */
   async fileText(owner: string, name: string, path: string, ref: string): Promise<string | null> {
     try {
       const f = await this.api<{ content: string; encoding: string }>(
@@ -162,7 +159,6 @@ export class GitHub {
     return { number: pr.number, url: pr.html_url };
   }
 
-  /** Rolls up the check runs for a commit into one status. */
   private async checks(owner: string, name: string, sha: string): Promise<PrState["checks"]> {
     const runs = await this.api<{ check_runs: { conclusion: string | null }[] }>("GET", `/repos/${owner}/${name}/commits/${sha}/check-runs`);
     if (runs.check_runs.length === 0) return "none";

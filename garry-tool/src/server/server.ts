@@ -32,17 +32,12 @@ export interface ServerConfig {
   ui?: string;
   /** host names this server answers to besides localhost (the --host address) */
   hosts?: string[];
-  /** projects and agent threads; one is created when not given */
   threads?: ThreadManager;
-  /** what you tell Garry, in order (garry/queue.ts); one is created when not given */
   queue?: GarryQueue;
-  /** agents working together: pairs and chains (garry/teams.ts); created when not given */
   teams?: Teams;
-  /** shells opened from the Files tab; one is created when not given */
   terminals?: TerminalManager;
 }
 
-/** Builds the Garry HTTP server (REST plus SSE) over the supervisor. */
 export function createGarryServer(cfg: ServerConfig, devices = new DeviceStore()): Server {
   cfg.threads ??= new ThreadManager();
   wireAgentContext(cfg, cfg.threads);
@@ -76,9 +71,8 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     if (serveUi(req, res, cfg.ui, path)) return;
   }
 
-  // Pairing: the only endpoint another device may call without a token. A browser
-  // asks for a session cookie (HttpOnly, never readable by scripts); the apps keep
-  // the token and send it as a bearer header.
+  // The only endpoint another device may call without a token. Browsers get an
+  // HttpOnly cookie; the apps keep the token and send it as a bearer header.
   if (req.method === "POST" && path === "/api/pair") {
     const body = (await readBody(req)) as { code?: string; name?: string; session?: string };
     if (typeof body.code !== "string" || !body.code) return json(res, 400, { error: "code is required" });
@@ -96,7 +90,6 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   const device = presented ? devices.verify(presented) : null;
   if (!local && !device) return json(res, 401, { error: "pair this device first: run garry pair on the computer running Garry" });
 
-  // A paired phone asks to be notified (or stops): its own push token, nothing else
   if (path === "/api/push/token") {
     if (!device) return json(res, 400, { error: "only a paired device registers for notifications" });
     if (req.method !== "POST") return json(res, 405, { error: "method not allowed" });
@@ -131,38 +124,32 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return json(res, 403, { error: `writes are not allowed from ${req.headers.origin}; add it to GARRY_UI_ORIGINS` });
   }
 
-  // Terminals for the Files tab: a shell is this computer's to open, never a paired device's
+  // A shell on this computer is never opened for a paired device.
   if (path === "/api/terminals" || path.startsWith("/api/terminals/")) {
     if (!local) return json(res, 403, { error: "the terminal opens on the computer running Garry" });
     return terminalRoutes(req, res, path, cfg);
   }
 
-  // Projects and agent threads (the IDE): this machine and paired devices
   if (path.startsWith("/api/projects") || path.startsWith("/api/threads")) {
     const sseHeaders = { "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive", ...CORS };
     if (await threadRoutes(req, res, path, { threads: cfg.threads!, local, json, readBody, sseHeaders })) return;
   }
 
-  // Talking to Garry: messages in line, one at a time (garry/routes.ts)
   if (
     /^\/api\/garry\/(queue|commands|memory)(\/|$)/.test(path) &&
     (await queueRoutes(req, res, path, { queue: cfg.queue!, threads: cfg.threads!, teams: cfg.teams!, registry: cfg.registry, json, readBody }))
   )
     return;
 
-  // Agents working together: pairs and chains (garry/team-routes.ts)
   if (
     /^\/api\/(teams|pairs|chains)(\/|$)/.test(path) &&
     (await teamRoutes(req, res, path, { teams: cfg.teams!, threads: cfg.threads!, json, readBody })) !== false
   )
     return;
 
-  // The rest, each group in a module of its own: GitHub and Garry projects, the
-  // registry (files, services, boards, stacks, routing), skills, features
   const ctx: RouteCtx = { cfg, local, url };
   for (const group of [projectRoutes, registryRoutes, layerRoutes, skillRoutes, featureRoutes]) if ((await group(req, res, path, ctx)) !== false) return;
 
-  // Garry at a glance (the Mac menu bar, the iPhone app): working, needs you, ready; the active project's work
   if (req.method === "GET" && path === "/api/status") {
     if (!cfg.threads) return json(res, 200, { state: "idle", counts: { needsYou: 0, working: 0, done: 0 }, items: [] });
     const store = cfg.threads.store;
@@ -176,8 +163,6 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
     return json(res, 200, garryStatus(cfg.threads, ids));
   }
 
-  // Live: every agent of the active project as a lane on a timeline (status/live.ts);
-  // ?hours= how far back a finished lane still shows, a day by default
   if (req.method === "GET" && path === "/api/live") {
     if (!cfg.threads) return json(res, 200, { now: new Date().toISOString(), lanes: [], needsYou: [], spentToday: 0 });
     const store = cfg.threads.store;
@@ -195,7 +180,6 @@ async function handle(req: IncomingMessage, res: ServerResponse, cfg: ServerConf
   if (req.method !== "GET") return json(res, 405, { error: "method not allowed" });
 
   if (path === "/" || path === "/health") {
-    // with no dashboard to serve, / answers with the API overview
     return json(res, 200, { ok: true, service: "garry-server", endpoints: ENDPOINTS });
   }
   if (path === "/api/models") return json(res, 200, { models: MODELS });

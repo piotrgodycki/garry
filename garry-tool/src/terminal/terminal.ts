@@ -6,12 +6,9 @@ import { join } from "node:path";
 import { StringDecoder } from "node:string_decoder";
 
 /**
- * A shell in a folder Garry knows (the registry, a repo, a piece of work's
- * worktree), for the Files tab on the computer running Garry. The shell runs
- * in a real terminal made by the system's `script` command, so prompts,
- * colours, Ctrl-C and full screen programs work without native modules.
- *
- * For a company: GARRY_TERMINAL=off turns it off for everyone.
+ * A shell for the Files tab, in a folder Garry knows. It runs in a real terminal
+ * made by the system's `script` command, so prompts, Ctrl-C and full screen
+ * programs work without native modules. GARRY_TERMINAL=off disables it.
  */
 
 export const terminalEnabled = () => (process.env.GARRY_TERMINAL ?? "").toLowerCase() !== "off";
@@ -154,7 +151,6 @@ export class TerminalManager {
     t.proc.stdin!.write(data);
   }
 
-  /** Tells the shell its new size; full screen programs redraw to fit. */
   async resize(id: string, size: { cols?: unknown; rows?: unknown }): Promise<void> {
     const t = this.must(id);
     if (t.exited) return;

@@ -25,7 +25,6 @@ export function inheritedSkills(layers: Layers, skills: SkillSummary[], scope: L
 
 const TITLE = { project: "Project", repo: "Repository", service: "Service" } as const;
 
-/** One layer: its skills (on, or off again), its stacks and its notes. */
 export default function LayerEditor(props: {
   scope: LayerScope;
   layer: Layer;

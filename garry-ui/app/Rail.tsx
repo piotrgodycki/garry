@@ -8,12 +8,7 @@ import GarryMark from "./GarryMark";
 import { Icon } from "./icons";
 import ProjectMark from "./projects/ProjectMark";
 
-/**
- * The rail on a wide screen: Garry (crawling while agents work), every page as
- * an icon with its name on hover and focus, the work that needs you as a badge
- * on Live, the projects as squares to switch between, and at the foot
- * the theme and whether the server is up.
- */
+/** Navigation rail for wide screens. */
 export default function Rail() {
   const path = usePathname();
   const status = useGarryStatus();
@@ -79,7 +74,6 @@ export default function Rail() {
   );
 }
 
-/** The projects as squares: the one in use outlined, a dot while its agents work; + makes another. */
 function RailProjects() {
   const [data, setData] = useState<GarryProjects | null>(null);
   const status = useGarryStatus();
@@ -118,7 +112,6 @@ function RailProjects() {
 type Theme = "light" | "system" | "dark";
 const NEXT: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
 
-/** One button for the theme: system, light, dark, round again. */
 function ThemeCycle() {
   const [theme, setTheme] = useState<Theme>("system");
   useEffect(() => {
@@ -149,7 +142,6 @@ function ThemeCycle() {
   );
 }
 
-/** Is the server up: a dot, its words on hover. */
 function ServerDot() {
   const [up, setUp] = useState<boolean | null>(null);
   useEffect(() => {

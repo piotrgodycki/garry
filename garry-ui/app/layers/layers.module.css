@@ -1,4 +1,3 @@
-/* Layers: where on the left, the layer in the middle, what an agent gets on the right */
 .layout {
   display: grid;
   grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(280px, 380px);
@@ -23,7 +22,6 @@
   font-size: 13.5px;
 }
 
-/* the layers to pick from */
 .tree {
   padding: 10px;
 }
@@ -66,7 +64,6 @@
   font-size: 13px;
 }
 
-/* one layer */
 .editor {
   display: grid;
   gap: 20px;
@@ -181,7 +178,6 @@
   gap: 10px 14px;
 }
 
-/* what an agent gets */
 .gets {
   display: grid;
   gap: 14px;

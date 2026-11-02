@@ -1,5 +1,4 @@
 /* the page itself, motion, and the app shell (one part of globals.css, which imports them in this order) */
-/* ---- base ----------------------------------------------------------------- */
 * {
   box-sizing: border-box;
 }
@@ -78,7 +77,6 @@ select {
   }
 }
 
-/* ---- motion --------------------------------------------------------------- */
 @keyframes rise {
   from {
     opacity: 0;
@@ -128,7 +126,6 @@ select {
   }
 }
 
-/* ---- app shell ------------------------------------------------------------ */
 .shell {
   --topbar-h: 57px;
   display: grid;

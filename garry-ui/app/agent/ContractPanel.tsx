@@ -13,10 +13,8 @@ interface Task {
 type StepState = "done" | "active" | "wait";
 
 /**
- * Contract first, made visible: the contracts this feature changes, how far each
- * step of their life has got (designed and validated, synced into every service,
- * checked for drift), and why the services are delegated in this order.
- * Progress is derived from the same task stream the rest of the page uses.
+ * The contracts a feature changes, how far each has got, and why the services are delegated in this order.
+ * Progress is derived from the same task stream as the rest of the page.
  */
 export default function ContractPanel({
   contractChanges,
@@ -30,7 +28,6 @@ export default function ContractPanel({
   tasks: Task[];
   /** 1 based index of the running task, or null */
   current: number | null;
-  /** how many tasks are done */
   done: number;
 }) {
   const [registry, setRegistry] = useState<RegistryData | null>(null);

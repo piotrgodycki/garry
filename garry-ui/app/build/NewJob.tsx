@@ -16,10 +16,6 @@ const MODES: { id: Mode; title: string; text: string; icon: ReactNode }[] = [
   { id: "chain", title: "Several steps", text: "Agents one after another, each one carrying on from the last.", icon: Icon.code },
 ];
 
-/**
- * Start a job: the repository it is in, what should change, and who works on
- * it (one agent, an agent with a reviewer, or several steps in order).
- */
 export default function NewJob({ projects, task, onStarted }: { projects: Project[]; task: string; onStarted: () => void }) {
   const navigate = useNavigate();
   const [projectId, setProjectId] = useState(projects[0]?.id ?? "");

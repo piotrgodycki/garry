@@ -1,18 +1,6 @@
 /**
- * Regression test for the dashboard's layout, in a real browser against a real
- * Garry server with a project, agents at work and a feature in flight. Every
- * page, at a wide screen, a laptop, a tablet, a phone and a short window:
- * nothing makes the page scroll sideways, nothing sticks out past the screen
- * unless it sits in something that scrolls, no button or link lies on top of
- * another or under something else, the page uses the whole width, and the
- * sidebar keeps its foot (talk, server, theme) in view. On a tablet and a
- * phone the menu is a drawer that opens, goes to a page and closes again; on a
- * wide screen the voice dock sits beside the page instead of over it.
- * GARRY_LAYOUT_SHOTS=<dir> also saves a screenshot of each page and size;
- * GARRY_LAYOUT_SIZES=phone,laptop checks only those sizes; GARRY_LAYOUT_SCHEME=dark
- * checks in the dark theme.
- * Needs the built dashboard and Chromium, like test:dropdown.
- * Run with: pnpm -C garry-tool test:layout (CI runs it too).
+ * Browser regression test for the dashboard layout on every page and screen size.
+ * Run with: pnpm -C garry-tool test:layout (options: GARRY_LAYOUT_SHOTS=<dir>, GARRY_LAYOUT_SIZES=phone,laptop, GARRY_LAYOUT_SCHEME=dark)
  */
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -101,7 +89,6 @@ const ALL_SIZES = [
 const only = process.env.GARRY_LAYOUT_SIZES?.split(",").map((x) => x.trim());
 const SIZES = only ? ALL_SIZES.filter((s) => only.includes(s.name)) : ALL_SIZES;
 
-/** Everything wrong with the layout of the page as it is now, in words. */
 const problems = (page: Page) =>
   page.evaluate(() => {
     const out: string[] = [];

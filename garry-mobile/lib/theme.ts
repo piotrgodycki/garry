@@ -1,9 +1,6 @@
 import { Platform, useColorScheme } from "react-native";
 
-// The Garry palette, the same as the dashboard's (garry-ui/app/globals.css):
-// paper by day, graphite by night, colour only where it means a state
-// (working, needs you, ready, failed, planning, queued), and Garry's own clay
-// for the brand and for talking to him. test:style checks every pair reads.
+// Same palette as the dashboard (garry-ui/app/globals.css). test:style checks every pair reads.
 const light = {
   bg: "#f3f4f6",
   surface: "#ffffff",
@@ -64,7 +61,7 @@ export function usePalette(): Palette {
   return useColorScheme() === "dark" ? dark : light;
 }
 
-/** A colour at some strength over a surface, for soft tiles and badges (React Native has no color-mix). */
+/** React Native has no color-mix, so soft tiles and badges blend by hand. */
 export function tint(hex: string, over: string, amount: number): string {
   const c = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
   const [a, b] = [c(hex), c(over)];

@@ -5,10 +5,8 @@ import type { Teams } from "./teams.js";
 import { MemoryError, forget, readMemory, remember } from "./memory.js";
 
 /**
- * Commands typed after a slash in Garry's field (and in any app that talks
- * to Garry): /remember, /forget, /memory, /new, /pair, /stop, /help. Each one
- * does its thing at once instead of waiting in line like a message, and
- * answers in a sentence; some also say which page to open.
+ * Slash commands (/remember, /new, /pair, ...). They run at once instead of
+ * waiting in line like a message.
  */
 
 export interface CommandInfo {
@@ -34,7 +32,6 @@ export class CommandError extends Error {
 }
 
 export interface CommandContext {
-  /** the active project's registry, where its memory is kept */
   registry: string;
   /** the active project's repositories; work goes to the first unless one is named */
   repos: Project[];

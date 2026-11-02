@@ -59,7 +59,6 @@ export async function runServe(argv: string[]): Promise<void> {
     routing: values.routing ?? "garry.routing.json",
     root: values.root,
     ui: values.ui ?? defaultUiDir(),
-    // the names other devices use to reach this server
     hosts: hostsFor(host),
     threads: new ThreadManager(),
   };
@@ -71,7 +70,6 @@ export async function runServe(argv: string[]): Promise<void> {
 
   const devices = new DeviceStore();
   const server = createGarryServer(cfg, devices);
-  // phones that asked to be notified hear when work needs them or is ready
   startPushNotifier(cfg.threads!, devices, { onError: (e) => console.error(pc.dim(`push: ${(e as Error).message ?? e}`)) });
   server.listen(port, host, () => {
     console.log(pc.green(`garry-server listening on http://${host.includes(":") ? `[${host}]` : host}:${port}`));

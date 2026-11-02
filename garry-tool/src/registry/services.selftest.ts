@@ -1,8 +1,6 @@
 /**
- * Regression test for adding and removing services: names and kinds are checked,
- * a service can only consume what another one exposes, an existing one is not
- * overwritten by accident, one still in use cannot be removed, and the server
- * writes the same manifest. Run with: pnpm -C garry-tool test:services (CI runs it too).
+ * Regression test for adding and removing services.
+ * Run with: pnpm -C garry-tool test:services
  */
 import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -62,7 +60,6 @@ expect("remove path refused", status(() => removeService(registry, "../x")) === 
 removeService(registry, "shell");
 expect("removed", !existsSync(join(registry, "catalog", "shell.yaml")));
 
-// every kind: its default stack, what it exposes, whether it keeps a database
 const kinds = mkdtempSync(join(tmpdir(), "garry-kinds-"));
 const db = { engine: "postgres" };
 const made = (name: string, kind: string, extra: object = {}) => addService(kinds, { name, kind, repo: `git@github.com:acme/${name}.git`, ...extra }).service;
@@ -93,7 +90,6 @@ expect(
   JSON.stringify(validateRegistry(kinds)),
 );
 
-// on the architecture board each kind needs what it cannot work without
 const svcs = ["site", "web", "store", "web-bff", "jobs", "orders", "app"].map((name) => {
   const m = parseYaml(readFileSync(join(kinds, "catalog", `${name}.yaml`), "utf8")) as { name: string; kind: string; db: unknown };
   return { name: m.name, kind: m.kind, db: m.db };
@@ -118,7 +114,6 @@ expect("a mobile app needs an API", needs("app", "HTTP API"));
 expect("a static site and a SPA need nothing", !says.some((m) => m.startsWith("site needs") || m.startsWith("web needs")), JSON.stringify(says));
 expect("a SPA can call a BFF", !says.some((m) => m.includes("does not provide")));
 
-// the server: POST adds, DELETE removes (this computer)
 const server = createGarryServer(
   { registry, skills: "garry-tool/skills", routing: join(registry, "routing.json") },
   new DeviceStore(join(registry, "devices.json")),

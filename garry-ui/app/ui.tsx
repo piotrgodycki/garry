@@ -3,11 +3,7 @@ import Link, { usePathname } from "./lib/router";
 import { groupOf, pageOf } from "./Nav";
 import { Icon } from "./icons";
 
-/**
- * The header every page starts with: the page's own icon on a tile in its
- * menu group's colour, a way back or the menu group the page is in (the same
- * words as the menu), title, one line of context, actions.
- */
+/** The header every page starts with; its eyebrow uses the same words as the menu. */
 export function PageHeader({
   eyebrow,
   back,
@@ -54,7 +50,6 @@ export function PageHeader({
   );
 }
 
-/** One consistent message when garry-server cannot be reached. */
 export function ServerNotice() {
   return (
     <div className="notice" role="alert">
@@ -69,7 +64,6 @@ export function ServerNotice() {
   );
 }
 
-/** Loading placeholder blocks shaped like the content that is coming. */
 export function Skeleton({ rows = 3, height = 56 }: { rows?: number; height?: number }) {
   return (
     <div style={{ display: "grid", gap: 10 }} aria-busy="true" aria-label="loading">

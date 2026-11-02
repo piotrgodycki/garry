@@ -1,9 +1,6 @@
 /**
- * The dashboard's look, checked from its CSS: text and every state colour are
- * readable (WCAG AA, 4.5:1) on the surfaces they sit on, in the light and the
- * dark theme, and the old brutalist style (uppercase labels, thick ink
- * borders, hard offset shadows) does not creep back in.
- * Run with: pnpm -C garry-tool test:style (CI runs it too).
+ * Checks the dashboard CSS for WCAG AA contrast in both themes and against the old brutalist style.
+ * Run with: pnpm -C garry-tool test:style
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -16,7 +13,6 @@ const expect = (name: string, ok: boolean, detail = "") => {
   if (!ok) failed++;
 };
 
-// the tokens live in the first part of globals.css
 const css = readFileSync(join(app, "styles", "theme.css"), "utf8");
 const tokens = readFileSync(join(app, "tokens.css"), "utf8");
 /** the custom properties of the first block that starts with this selector */
@@ -81,7 +77,6 @@ for (const name of ["light", "dark"]) {
 }
 expect("the phone has no old signal red", !/#ff2200|#ff3a1a/i.test(theme));
 
-// the brutalist style stays gone
 const files = (dir: string): string[] =>
   readdirSync(dir).flatMap((f) => {
     const p = join(dir, f);

@@ -50,7 +50,6 @@ function resultText(content: unknown): string {
   return "";
 }
 
-/** Maps one stream-json line from claude to thread events. */
 export function toEvents(line: Record<string, unknown>): { events: ThreadEvent[]; sessionId?: string; result?: { ok: boolean } } {
   const at = now();
   const type = line.type;

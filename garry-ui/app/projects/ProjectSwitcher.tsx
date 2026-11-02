@@ -6,11 +6,7 @@ import { Icon } from "../icons";
 import styles from "./projects.module.css";
 import ProjectMark from "./ProjectMark";
 
-/**
- * The project in use, at the top of the sidebar: everything below it (the
- * registry, stacks, architecture, routing, the repositories in Build) is this
- * project's. Switching reloads the dashboard on the other project.
- */
+/** Everything below it in the sidebar belongs to the active project; switching reloads the dashboard. */
 export default function ProjectSwitcher() {
   const [data, setData] = useState<GarryProjects | null>(null);
   const [open, setOpen] = useState(false);
@@ -20,7 +16,6 @@ export default function ProjectSwitcher() {
   useEffect(() => {
     client.garryProjects().then(setData, () => undefined);
   }, []);
-  // close on a click outside or Escape
   useEffect(() => {
     if (!open) return;
     const away = (e: MouseEvent) => !box.current?.contains(e.target as Node) && setOpen(false);

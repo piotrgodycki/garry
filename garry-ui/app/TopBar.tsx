@@ -4,11 +4,7 @@ import { pageOf } from "./Nav";
 import ProjectSwitcher from "./projects/ProjectSwitcher";
 import { Icon } from "./icons";
 
-/**
- * The top bar on a wide screen: the project and the page you are on, and Garry
- * at a glance: how many agents need you, are working, have something ready.
- * Each count opens Live, where that work is.
- */
+/** Top bar for wide screens. Each agent count opens Live, where that work is. */
 export default function TopBar() {
   const page = pageOf(usePathname());
   const status = useGarryStatus();

@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-/**
- * The architecture wizard's questions and the answers it keeps with the board
- * (architecture.json, "wizard"), so it opens again where it was left.
- */
+/** The wizard's questions, and the answers kept with the board so it reopens where it was left. */
 
 export const WIZARD_CLIENTS = ["web", "ios", "android"] as const;
 export const WIZARD_PLATFORMS = ["vercel", "cloudflare", "aws", "supabase", "adobe", "self-hosted", "kubernetes"] as const;

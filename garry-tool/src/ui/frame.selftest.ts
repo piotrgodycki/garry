@@ -1,15 +1,6 @@
 /**
- * Regression test for the frame on a wide screen, in a real browser against a
- * real Garry server whose agents are a stand-in for Claude Code: the rail has
- * every page with its name beside it on hover, the one you are on marked, and
- * the work that needs you as a badge on Live; the top bar's counts are
- * /api/status; Garry's field floats at the foot of every page: ⌘K focuses
- * it, a page's name goes there, Enter puts a sentence in line for Garry (send
- * more and they wait their turn, without touching the work that runs, and
- * one that waits can be dropped), or the arrows pick separate work in Build.
- * On a phone the old top bar stays, the rail goes and the field stays.
- * Needs the built dashboard and Chromium, like test:dropdown.
- * Run with: pnpm -C garry-tool test:frame (CI runs it too).
+ * Browser regression test for the wide-screen frame: rail, top bar and Garry's field.
+ * Run with: pnpm -C garry-tool test:frame
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
@@ -84,7 +75,6 @@ try {
   const nav = rail.getByRole("navigation", { name: "main" });
   await nav.waitFor();
 
-  // the rail: every page, the one you are on marked
   const names = await nav.getByRole("link").evaluateAll((ls) => ls.map((l) => l.getAttribute("data-tip")));
   expect(
     "the rail has every page",
@@ -97,7 +87,6 @@ try {
   const current = await nav.locator('[aria-current="page"]').evaluateAll((ls) => ls.map((l) => l.getAttribute("data-tip")));
   expect("the page you are on is marked, and only it", current.length === 1 && current[0] === "Stacks", current.join(", "));
 
-  // the badge on Live is what needs you
   const liveLink = nav.getByRole("link", { name: "Live, 2 need you" });
   await liveLink.waitFor({ timeout: 8000 }).catch(() => undefined);
   expect(
@@ -112,7 +101,6 @@ try {
     ),
   );
 
-  // the name beside the rail on hover, at the icon's height, not clipped
   const archi = nav.getByRole("link", { name: "Architecture" });
   await archi.hover();
   const tip = rail.locator(".railFloat");
@@ -132,7 +120,6 @@ try {
   await page.waitForTimeout(100);
   expect("and it goes when the pointer leaves", (await tip.count()) === 0);
 
-  // the top bar: the project and page, and the counts from /api/status
   const top = page.getByRole("banner").filter({ has: page.getByRole("navigation", { name: "Garry at a glance" }) });
   expect("the top bar names the page", (await top.locator(".crumbPage").innerText()) === "Stacks");
   const gauges = top.getByRole("navigation", { name: "Garry at a glance" });
@@ -146,7 +133,6 @@ try {
   await page.waitForURL("**/live");
   expect("a count opens Live", new URL(page.url()).pathname === "/live");
 
-  // ⌘K, then a page's name
   await page.goto(`${base}/`);
   await nav.waitFor();
   const line = page.getByRole("combobox", { name: "tell Garry" });
@@ -164,7 +150,6 @@ try {
   await page.waitForURL("**/stacks");
   expect("Enter goes there and empties the field", new URL(page.url()).pathname === "/stacks" && (await line.inputValue()) === "");
 
-  // the arrows pick separate work in Build, written in
   await page.keyboard.press("ControlOrMeta+k");
   await page.keyboard.type("add a newsletter sign up form");
   expect("a sentence is for Garry first", (await page.getByRole("option").first().innerText()).includes("Tell Garry: add a newsletter sign up form"));
@@ -176,7 +161,6 @@ try {
   await box.waitFor();
   expect("that opens Build with it written in", (await box.inputValue()) === "add a newsletter sign up form", await box.inputValue());
 
-  // Enter tells Garry; more messages wait their turn
   type Q = { items: { id: string; text: string; status: string; threadId?: string }[] };
   const queue = async () => (await (await fetch(`${base}/api/garry/queue`)).json()) as Q;
   for (const said of ["BUSY tidy the cart", "then rename the buttons", "then write the notes"]) {
@@ -230,7 +214,6 @@ try {
       (await shown.getByText("then write the notes").count()) === 0,
   );
 
-  // Escape leaves the field
   await page.keyboard.press("ControlOrMeta+k");
   await page.keyboard.type("x");
   await page.keyboard.press("Escape");
@@ -239,11 +222,9 @@ try {
     (await line.evaluate((el) => el !== document.activeElement)) && (await page.getByRole("listbox", { name: "commands" }).count()) === 0,
   );
 
-  // talking to Garry lives in the field only: no microphone in the rail
   expect("the rail has no microphone of its own", (await rail.getByRole("button", { name: "talk to Garry" }).count()) === 0);
   expect("there is no separate voice dock any more", (await page.getByRole("dialog", { name: "Talk to Garry" }).count()) === 0);
 
-  // the field floats at the foot, centred on the page
   const fb = (await page.locator(".garryField").boundingBox())!;
   const vw = page.viewportSize()!;
   expect(
@@ -252,7 +233,6 @@ try {
     JSON.stringify(fb),
   );
 
-  // on a phone: no rail, no top bar; the field stays
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${base}/`);
   await page.waitForTimeout(300);

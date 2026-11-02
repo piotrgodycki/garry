@@ -1,6 +1,4 @@
 /* tablet and phone: the menu in a drawer (one part of globals.css, which imports them in this order) */
-/* Tablet and phone: the sidebar folds into a top bar (menu, Garry, the
-   project, talk) and the menu slides in from the left as a drawer. */
 @media (max-width: 900px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);

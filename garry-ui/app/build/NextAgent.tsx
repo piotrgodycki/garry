@@ -3,11 +3,7 @@ import type { Thread } from "garry-client";
 import { client } from "../lib/client";
 import styles from "./build.module.css";
 
-/**
- * Hand this work on to another agent: it starts in the same branch once this
- * one is done, as the next step of a job in steps (Build lists it under Your jobs,
- * where more steps can be added and put in order).
- */
+/** Hands the work on to another agent, which starts in the same branch once this one is done. */
 export default function NextAgent({ thread }: { thread: Thread }) {
   const [text, setText] = useState("");
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);

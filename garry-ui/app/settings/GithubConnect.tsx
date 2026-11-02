@@ -6,11 +6,7 @@ import styles from "./settings.module.css";
 const SOURCE: Record<string, string> = { env: "GARRY_GITHUB_TOKEN in .env.local", garry: "the token saved in Garry", gh: "the GitHub CLI (gh auth login)" };
 const NEW_TOKEN = "https://github.com/settings/personal-access-tokens/new";
 
-/**
- * Garry's GitHub connection, on this computer only: who is connected and
- * through what, a token to paste (kept in ~/.garry/github.json, readable by you
- * only), signing in with a code when an OAuth app is set up, and disconnecting.
- */
+/** Local to this computer. A pasted token is kept in ~/.garry/github.json, readable by you only; code sign-in needs an OAuth app. */
 export default function GithubConnect({ onChange }: { onChange?: (s: GithubStatus) => void }) {
   const [status, setStatus] = useState<GithubStatus | null>(null);
   const [blocked, setBlocked] = useState(false);

@@ -19,10 +19,9 @@ import { proposeSkill, skillsRepo } from "../skills/propose.js";
 import { githubToken } from "../github/env.js";
 import { json, readBody, type RouteCtx } from "./http.js";
 
-/** The skills: list, install, propose to the team, remove, read one, its audit. Returns false for anything else. */
+/** Returns false when the request is not about skills. */
 export async function skillRoutes(req: IncomingMessage, res: ServerResponse, path: string, ctx: RouteCtx): Promise<boolean | void> {
   const { cfg } = ctx;
-  // Skills: install a local skill (upload or folder), remove one, read its instructions
   if (req.method === "POST" && path === "/api/skills/install") {
     const body = (await readBody(req)) as InstallRequest & { scope?: unknown };
     try {

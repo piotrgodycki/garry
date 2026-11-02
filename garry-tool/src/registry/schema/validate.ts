@@ -21,12 +21,7 @@ export interface ValidationIssue {
   message: string;
 }
 
-/**
- * Validates a registry directory:
- *  1. the schema of every manifest and contract (zod),
- *  2. cross service consistency (consumes, exposes, remotes, events).
- * This is the reference implementation behind the contract-validate skill.
- */
+/** The reference implementation behind the contract-validate skill. */
 export function validateRegistry(root: string): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const err = (where: string, message: string) => issues.push({ level: "error", where, message });
@@ -35,7 +30,6 @@ export function validateRegistry(root: string): ValidationIssue[] {
   const zodMsg = (e: { issues: { path: PropertyKey[]; message: string }[] }) =>
     e.issues.map((i) => `${i.path.map(String).join(".") || "<root>"}: ${i.message}`).join("; ");
 
-  // catalog/
   const services: Record<string, ServiceManifest> = {};
   const catalogDir = join(root, "catalog");
   if (!existsSync(catalogDir)) {
@@ -85,8 +79,7 @@ export function validateRegistry(root: string): ValidationIssue[] {
     if (svc.stackRef && !stacks.has(svc.stackRef)) err(`catalog/${name}`, `stackRef ${svc.stackRef} has no stacks/${svc.stackRef}.yaml`);
   }
 
-  // the architecture boards (optional): the whole project's architecture.json and one per
-  // repository in architecture/; each parses, and nothing on it is broken
+  // optional boards: the project's architecture.json plus one per repository in architecture/
   const boards = [
     "architecture.json",
     ...(existsSync(join(root, "architecture"))
@@ -110,7 +103,6 @@ export function validateRegistry(root: string): ValidationIssue[] {
     }
   }
 
-  // contracts/
   const contractsDir = join(root, "contracts");
   const loadJson = <T>(name: string, schema: ZodSchema<T>): T | null => {
     const p = join(contractsDir, name);
@@ -138,7 +130,7 @@ export function validateRegistry(root: string): ValidationIssue[] {
   loadJson("design-tokens.json", DesignTokensContractSchema);
   const events = loadJson("events.json", EventsContractSchema);
 
-  // api.json is optional (only backend registries have it). Validate it if present.
+  // api.json is optional: only backend registries have it.
   let api: ApiContract | null = null;
   const apiPath = join(contractsDir, "api.json");
   if (existsSync(apiPath)) {
@@ -153,7 +145,6 @@ export function validateRegistry(root: string): ValidationIssue[] {
     }
   }
 
-  // cross service consistency
   for (const [name, svc] of Object.entries(services)) {
     for (const [dep, modules] of Object.entries(svc.consumes)) {
       const target = services[dep];

@@ -6,12 +6,8 @@ type Platform = WizardAnswers["platform"];
 type Extra = WizardAnswers["extras"][number];
 
 /**
- * The architecture wizard: a few plain questions (who uses it, where it runs,
- * what data it keeps, what else it needs) become a board built from the same
- * blocks as by hand. The answers are kept with the board, so the wizard opens
- * again with them, can be changed and the board rebuilt; the board itself
- * stays editable. Every combination of answers builds a board the rules have
- * no error for (the wizard test checks them all).
+ * The architecture wizard turns a few plain questions into a board built from the same blocks as by hand.
+ * Every combination of answers must build a board with no rule errors; the wizard test checks them all.
  */
 
 /** The block each platform uses for each piece. */
@@ -132,7 +128,7 @@ const LABEL: Record<string, string> = { app: "Your app", api: "API", site: "Stat
 const COL = 420;
 const ROW = 160;
 
-/** Builds the board for a set of answers. services are the registry's manifests (name, kind, db). */
+/** `services` are the registry's manifests. */
 export function buildFromWizard(input: unknown, services: { name: string; kind?: string; db?: unknown }[] = []): Architecture & { wizard: WizardAnswers } {
   const answers = WizardAnswersSchema.parse(input);
   const pick = PICK[answers.platform];
@@ -155,14 +151,12 @@ export function buildFromWizard(input: unknown, services: { name: string; kind?:
     if (!edges.some((e) => e.from === from && e.to === to && e.capability === capability)) edges.push({ from, to, capability });
   };
 
-  // who uses it
   const web = answers.clients.includes("web");
   const phones = answers.clients.filter((c) => c !== "web");
   if (web) place(0, "browser", "browser", "Visitors");
   if (phones.includes("ios")) place(0, "ios", "ios-app");
   if (phones.includes("android")) place(0, "android", "android-app");
 
-  // the app, and how requests reach it
   let compute: string;
   let api: string;
   if (answers.platform === "aws") {
@@ -200,7 +194,6 @@ export function buildFromWizard(input: unknown, services: { name: string; kind?:
   }
   for (const p of phones) link(p, api, "http");
 
-  // the data it keeps
   let sql: string | null = null;
   if (answers.data === "sql") {
     sql = place(4, "db", pick.sql, LABEL.db);
@@ -212,7 +205,6 @@ export function buildFromWizard(input: unknown, services: { name: string; kind?:
   // a database for what needs one even when the app keeps none (a self-hosted CMS)
   const needSql = () => sql ?? (sql = place(4, "db", pick.sql, LABEL.db));
 
-  // the rest
   for (const extra of WIZARD_EXTRAS) {
     if (!extras.has(extra) || extra === "cdn") continue;
     const block = pick[extra];
@@ -221,7 +213,6 @@ export function buildFromWizard(input: unknown, services: { name: string; kind?:
     for (const need of componentById(block)?.needs ?? []) if (need === "sql") link(id, needSql(), "sql");
   }
 
-  // your services, joined to what they need
   if (answers.services) {
     const placed = services.map((s) => ({
       s,

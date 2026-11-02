@@ -5,17 +5,9 @@ import { now, type ThreadEvent } from "../threads/store.js";
 import { asksSomething } from "../status/status.js";
 
 /**
- * Agents working together, in one working copy.
- *
- * A pair: one agent writes, and each time it finishes a reviewer looks at its
- * changes and answers APPROVED, or CHANGES with what to fix; the writer fixes
- * them, the reviewer looks again, up to a number of rounds. A chain: steps in
- * the order you set, each its own agent, the next starting when the one
- * before is done, building on its work. You can add, drop and reorder the
- * steps that have not started, and start a chain after work already done.
- * When an agent asks you something or stops, the pair or chain waits for you
- * and goes on once your answer's turn ends well. Kept in
- * ~/.garry/garry-teams.json.
+ * Agents working together in one working copy. A pair is a writer plus a reviewer
+ * that answers APPROVED or CHANGES for a few rounds; a chain runs steps in order.
+ * Both wait when an agent asks you something or stops. Kept in ~/.garry/garry-teams.json.
  */
 export interface Pair {
   id: string;
@@ -117,7 +109,7 @@ export class Teams {
     return pair;
   }
 
-  /** Steps in order, each its own agent in one working copy; after: start once that work is done. */
+  /** With `after`, the chain starts once that thread's work is done. */
   startChain(projectId: string, prompts: string[], name = "", after?: string): Chain {
     const steps = prompts.map((p) => p.trim()).filter(Boolean);
     if (!steps.length && !after) throw new TeamError("a chain needs at least one step");

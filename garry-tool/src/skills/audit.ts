@@ -3,18 +3,9 @@ import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { extname, join, relative } from "node:path";
 
 /**
- * Security audit for skills. A skill is instructions (and sometimes scripts) that
- * an agent follows with access to the repositories, the tokens and a shell, so a
- * malicious or careless skill is a real attack path. Every skill is audited: on
- * install, every time local skills are loaded (so a file edited on disk after
- * install is caught), and the pre-installed ones in CI.
- *
- * The audit is static and deterministic: rules over the text of every file. It
- * looks for prompt injection, hidden content, remote code execution, destructive
- * commands, secret exfiltration, persistence, safety bypasses, obfuscation and
- * supply chain risk. A critical or high finding fails the audit (the skill cannot
- * be installed and is left out of every plan); a medium finding is a warning the
- * human has to acknowledge.
+ * Static, deterministic security audit for skills, which agents follow with repo access, tokens and a shell.
+ * A critical or high finding fails the skill (not installable, left out of every plan); a medium one needs
+ * a human acknowledgement. Runs on install, on every load of local skills, and in CI.
  */
 
 export const AUDIT_VERSION = 1;
@@ -67,7 +58,6 @@ const SINK =
   /\b(curl|wget|nc|ncat|netcat|scp|rsync|ftp)\b|\bfetch\s*\(|\baxios\b|\brequests\.(post|put|get)\b|\bhttps?:\/\/|\bwebhook\b|\bupload\b|\bsend\s+(it|them|the\s+\w+)\s+to\b/i;
 
 const RULES: Rule[] = [
-  // ---- critical: direct compromise of the machine or the agent ----
   {
     id: "remote-code-exec",
     title: "Downloads code and runs it",
@@ -125,7 +115,6 @@ const RULES: Rule[] = [
     ),
   },
 
-  // ---- high: deception, privilege, persistence, unreviewable content ----
   {
     id: "deceive-human",
     title: "Hides actions from the human",
@@ -195,7 +184,6 @@ const RULES: Rule[] = [
     ),
   },
 
-  // ---- medium: needs a human look ----
   {
     id: "secret-access",
     title: "Reads secrets or credentials",
@@ -310,7 +298,6 @@ function isBinary(data: Buffer): boolean {
   return false;
 }
 
-/** Audits a skill's files and returns every finding with a verdict. */
 export function auditFiles(files: AuditFile[]): AuditReport {
   const findings: Finding[] = [];
   const add = (r: Pick<Finding, "rule" | "title" | "severity" | "why">, file: string, line: number, excerpt: string) =>
@@ -416,7 +403,7 @@ export function auditFiles(files: AuditFile[]): AuditReport {
   return { version: AUDIT_VERSION, verdict, counts, findings: deduped, files: files.length, hash: hash.digest("hex") };
 }
 
-/** Reads every regular file of a skill folder (no symlinks, no dot folders) for the audit. */
+/** Skips symlinks and dot folders. */
 export function readSkillFolder(folder: string): AuditFile[] {
   const out: AuditFile[] = [];
   const walk = (d: string) => {
@@ -434,5 +421,4 @@ export function readSkillFolder(folder: string): AuditFile[] {
   return out;
 }
 
-/** The rules, for documentation and the UI. */
 export const AUDIT_RULES = RULES.map(({ id, title, severity, why }) => ({ id, title, severity, why }));

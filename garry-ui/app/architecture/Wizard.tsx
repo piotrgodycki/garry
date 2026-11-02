@@ -8,10 +8,8 @@ type Step = "clients" | "platform" | "data" | "extras" | "review";
 const STEPS: Step[] = ["clients", "platform", "data", "extras", "review"];
 
 /**
- * The architecture, step by step: who uses it, where it runs, what data it
- * keeps, what else it needs. The answers build a board from the same blocks as
- * by hand; they are kept with the board, so the wizard opens with them again
- * and a change rebuilds it.
+ * The answers build a board from the same blocks as by hand. They are kept with the board, so the
+ * wizard reopens with them and a change rebuilds it.
  */
 export default function Wizard({
   state,

@@ -1,10 +1,6 @@
 /**
- * Regression test for Garry projects: the default one (the registry Garry
- * always used), creating and switching (the registry follows), repositories
- * per project, export to one file (registry files only, no credentials) and
- * import (never writing outside the new project's registry), removing (any
- * one, the default and the active too, never the last nor one with agents at
- * work; repositories stay on disk), and the server's endpoints. Run with: pnpm -C garry-tool test:project (CI runs it too).
+ * Tests Garry projects: create, switch, export, import, remove, and the HTTP endpoints.
+ * Run with: pnpm -C garry-tool test:project
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -44,7 +40,6 @@ const status = (f: () => unknown) => {
   }
 };
 
-// the default project is the registry Garry always used
 expect("a fresh install has the default project", listGarryProjects().active === "default" && defaultRegistry() === join(process.env.GARRY_HOME!, "registry"));
 
 const shop = createGarryProject({ name: "Shop", description: "the web shop" });
@@ -54,7 +49,6 @@ useGarryProject(shop.id);
 expect("switching moves the registry", activeGarryProject().id === shop.id && defaultRegistry() === shop.path);
 expect("removing a project that is not there is a 404", status(() => removeGarryProject("nope")) === 404);
 
-// export: registry files only, remotes without credentials
 mkdirSync(join(shop.path, "stacks"), { recursive: true });
 writeFileSync(join(shop.path, "catalog", "web.yaml"), "name: web\nkind: mfe-remote\nrepo: x\n");
 writeFileSync(join(shop.path, "architecture.json"), '{"nodes":[],"edges":[]}\n');
@@ -66,7 +60,6 @@ expect("and nothing else", !(".env" in bundle.files) && !("notes.txt" in bundle.
 expect("remotes lose their credentials", bundle.repos[0].remote === "https://github.com/acme/web.git" && !JSON.stringify(bundle).includes("ghp_secret"));
 expect("cleanRemote keeps ssh remotes", cleanRemote("git@github.com:acme/web.git") === "git@github.com:acme/web.git");
 
-// import: a new project, never writing outside it
 const imported = importGarryProject(bundle);
 expect(
   "import makes a new project with a free name",
@@ -83,7 +76,6 @@ expect(
 );
 expect("nothing escaped", !existsSync(join(process.env.GARRY_HOME!, "garry-projects", "escape.yaml")) && !existsSync(join(home, "x")));
 
-// repositories belong to a project
 const repo = join(home, "web");
 execFileSync("git", ["init", "-q", repo]);
 writeFileSync(join(repo, "README.md"), "# web\n");
@@ -106,7 +98,6 @@ store.save({
 });
 expect("a repository belongs to one project", store.projectsOf(shop.id).length === 1 && store.projectsOf("default").length === 0);
 
-// the server
 useGarryProject("default");
 const remote = reachableAddresses()[0];
 const devices = new DeviceStore(join(home, "devices.json"));
@@ -152,7 +143,6 @@ const viaApi = await post("/api/garry-projects/import", await exported.json());
 expect("POST /api/garry-projects/import imports it", viaApi.status === 200);
 expect("cloning needs GitHub", (await post(`/api/garry-projects/${imported.id}/repos/clone`, { remote: "https://github.com/acme/web.git" })).status === 400);
 expect("a write from another site is refused", (await post("/api/garry-projects", { name: "evil" }, { origin: "https://evil.example" })).status === 403);
-// a paired phone sees the projects but cannot change them
 if (remote) {
   const port = (server.address() as AddressInfo).port;
   const { code } = devices.createCode();
@@ -177,7 +167,6 @@ if (remote) {
   );
 } else console.log("skip phone checks: no network address to pair from");
 
-// removing: an agent at work in it keeps it
 const del = (id: string) => fetch(`${base}/api/garry-projects/${id}`, { method: "DELETE" });
 const working = cfg.threads.create(webRepo.id, "BUSY change the shop");
 const until = async (f: () => boolean) => {
@@ -193,7 +182,6 @@ expect(
 cfg.threads.stop(working.id);
 await until(() => !cfg.threads.isRunning(working.id));
 
-// the active one goes: the default takes over, its repositories leave Build and stay on disk
 expect("the active project is shop", listGarryProjects().active === shop.id);
 const gone = await del(shop.id);
 const after = (await gone.json()) as { active: string; projects: { id: string }[] };
@@ -209,7 +197,6 @@ expect(
     ((await fetch(`${base}/api/projects`).then((r) => r.json())) as { projects: unknown[] }).projects.length === 0,
 );
 
-// the default one goes too while another is left
 const otherDefaultFile = join(defaultRegistry(), "catalog", "old.yaml");
 writeFileSync(otherDefaultFile, "name: old\n");
 const noDefault = await del("default");
@@ -222,7 +209,6 @@ expect(
   "and stays removed: Garry does not bring it back",
   !listGarryProjects().projects.some((p) => p.id === "default") && activeGarryProject().id === left.active,
 );
-// down to one: that one stays
 for (const p of left.projects.slice(1)) await del(p.id);
 const last = await del(listGarryProjects().projects[0].id);
 const lastError = ((await last.json()) as { error: string }).error;
@@ -233,7 +219,6 @@ expect(
 );
 server.close();
 
-// a project's mark: the GitHub owner most of its repositories live under
 expect(
   "repositories still to clone count by their remote; others are not GitHub",
   projectOwner(
